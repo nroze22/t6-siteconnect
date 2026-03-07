@@ -15,6 +15,16 @@ import {
   Eye,
   Gauge,
   ShieldCheck,
+  Info,
+  X as XIcon,
+  Zap,
+  DollarSign,
+  CalendarClock,
+  FlaskConical,
+  HeartPulse,
+  Shield,
+  Globe,
+  FileText,
 } from "lucide-react";
 import {
   BarChart,
@@ -118,6 +128,7 @@ export function AnalyticsPage() {
 function FeasibilityTab({ patients }: { patients: ReturnType<typeof parseEpicRows> }) {
   const [selectedQueryId, setSelectedQueryId] = useState(PRESET_QUERIES[0]!.id);
   const [forecast, setForecast] = useState<EnrollmentForecast | null>(null);
+  const [showInfo, setShowInfo] = useState(false);
 
   const selectedQuery = PRESET_QUERIES.find((q) => q.id === selectedQueryId) ?? PRESET_QUERIES[0]!;
 
@@ -133,10 +144,13 @@ function FeasibilityTab({ patients }: { patients: ReturnType<typeof parseEpicRow
 
   return (
     <div className="space-y-6">
+      <InfoModal open={showInfo} onClose={() => setShowInfo(false)} {...FEASIBILITY_MODAL} />
+
       {/* Query selector */}
       <div className="flex items-center gap-3">
         <Target className="h-5 w-5 text-indigo-400" />
         <h3 className="text-[14px] font-bold text-white">Select Protocol Template</h3>
+        <InfoButton onClick={() => setShowInfo(true)} />
       </div>
       <div className="grid grid-cols-3 gap-2">
         {PRESET_QUERIES.map((q) => (
@@ -279,6 +293,7 @@ function FeasibilityTab({ patients }: { patients: ReturnType<typeof parseEpicRow
 
 function TrajectoryTab({ patients }: { patients: ReturnType<typeof parseEpicRows> }) {
   const [selectedPreset, setSelectedPreset] = useState(LAB_THRESHOLD_PRESETS[0]!.id);
+  const [showInfo, setShowInfo] = useState(false);
   const preset = LAB_THRESHOLD_PRESETS.find((p) => p.id === selectedPreset) ?? LAB_THRESHOLD_PRESETS[0]!;
 
   const trajectoryGroup = useMemo(
@@ -288,6 +303,8 @@ function TrajectoryTab({ patients }: { patients: ReturnType<typeof parseEpicRows
 
   return (
     <div className="space-y-6">
+      <InfoModal open={showInfo} onClose={() => setShowInfo(false)} {...TRAJECTORY_MODAL} />
+
       <div className="flex items-center gap-3">
         <TrendingUp className="h-5 w-5 text-amber-400" />
         <div>
@@ -296,6 +313,7 @@ function TrajectoryTab({ patients }: { patients: ReturnType<typeof parseEpicRows
             These patients are near a lab threshold — they may become eligible soon with natural disease progression.
           </p>
         </div>
+        <InfoButton onClick={() => setShowInfo(true)} />
       </div>
 
       {/* Threshold selector */}
@@ -440,9 +458,12 @@ function TrajectoryTab({ patients }: { patients: ReturnType<typeof parseEpicRows
 
 function DiversityTab({ patients }: { patients: ReturnType<typeof parseEpicRows> }) {
   const profile = useMemo(() => computeDiversityProfile(patients), [patients]);
+  const [showInfo, setShowInfo] = useState(false);
 
   return (
     <div className="space-y-6">
+      <InfoModal open={showInfo} onClose={() => setShowInfo(false)} {...DIVERSITY_MODAL} />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -453,6 +474,7 @@ function DiversityTab({ patients }: { patients: ReturnType<typeof parseEpicRows>
               FDA diversity action plan compliance — generate a report for sponsor site selection packages.
             </p>
           </div>
+          <InfoButton onClick={() => setShowInfo(true)} />
         </div>
         <button className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-[12px] font-medium text-slate-300 hover:bg-white/[0.06]">
           <Download className="h-3.5 w-3.5" />
@@ -675,3 +697,215 @@ function MiniStat({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+// ============================================================
+// INFO MODALS — Feature explainers that sell each capability
+// ============================================================
+
+interface InfoModalProps {
+  open: boolean;
+  onClose: () => void;
+  icon: React.ReactNode;
+  iconColor: string;
+  title: string;
+  subtitle: string;
+  highlights: { icon: React.ReactNode; title: string; desc: string }[];
+  useCases: string[];
+  bottomNote: string;
+}
+
+function InfoModal({ open, onClose, icon, iconColor, title, subtitle, highlights, useCases, bottomNote }: InfoModalProps) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Modal */}
+      <div className="relative z-10 w-full max-w-lg rounded-2xl border border-white/[0.08] bg-[#141824] shadow-2xl">
+        {/* Header gradient */}
+        <div className={`rounded-t-2xl px-6 pt-6 pb-4 bg-gradient-to-br ${iconColor}`}>
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/20 backdrop-blur-sm">
+                {icon}
+              </div>
+              <div>
+                <h3 className="text-[16px] font-bold text-white">{title}</h3>
+                <p className="mt-0.5 text-[12px] text-white/70">{subtitle}</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="rounded-lg p-1.5 text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <XIcon className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="px-6 py-5 space-y-5">
+          {/* Feature highlights */}
+          <div className="space-y-3">
+            {highlights.map((h, i) => (
+              <div key={i} className="flex gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.04] ring-1 ring-white/[0.06]">
+                  {h.icon}
+                </div>
+                <div>
+                  <p className="text-[12px] font-semibold text-slate-200">{h.title}</p>
+                  <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">{h.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-white/[0.06]" />
+
+          {/* Use cases */}
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2.5">When to use this</p>
+            <div className="space-y-2">
+              {useCases.map((uc, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <Zap className="mt-0.5 h-3 w-3 shrink-0 text-indigo-400" />
+                  <p className="text-[11px] leading-relaxed text-slate-400">{uc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom note */}
+          <div className="rounded-lg bg-indigo-500/5 px-4 py-3 ring-1 ring-indigo-500/10">
+            <p className="text-[11px] leading-relaxed text-indigo-300/80">{bottomNote}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InfoButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-slate-500 transition-all hover:bg-indigo-500/10 hover:text-indigo-400 hover:border-indigo-500/20"
+      title="Learn more about this feature"
+    >
+      <Info className="h-3.5 w-3.5" />
+    </button>
+  );
+}
+
+// Modal content configs
+const FEASIBILITY_MODAL = {
+  icon: <Calculator className="h-5 w-5 text-white" />,
+  iconColor: "from-indigo-600/20 via-indigo-500/10 to-transparent",
+  title: "Protocol Feasibility Calculator",
+  subtitle: "Answer the #1 question sponsors ask: \"How many patients do you have?\"",
+  highlights: [
+    {
+      icon: <Target className="h-4 w-4 text-indigo-400" />,
+      title: "Instant Population Queries",
+      desc: "Run any combination of diagnosis codes, age ranges, lab values, medications, and BMI against your entire patient population in milliseconds.",
+    },
+    {
+      icon: <BarChart3 className="h-4 w-4 text-emerald-400" />,
+      title: "Criterion-by-Criterion Breakdown",
+      desc: "See exactly which eligibility criteria are the bottleneck. Know before you commit that 90% of your patients pass inclusion but 60% fail on eGFR.",
+    },
+    {
+      icon: <CalendarClock className="h-4 w-4 text-amber-400" />,
+      title: "Enrollment Timeline Forecasting",
+      desc: "Project monthly enrollment rates, time to target, and build realistic timelines based on your actual patient volume — not guesswork.",
+    },
+    {
+      icon: <DollarSign className="h-4 w-4 text-green-400" />,
+      title: "Revenue-Ready Projections",
+      desc: "Combine feasibility counts with per-patient payment data to project total study revenue before signing the contract.",
+    },
+  ],
+  useCases: [
+    "A sponsor calls asking if you can run their Phase 3 trial — give them an answer in 60 seconds instead of 2 weeks",
+    "During site selection, attach a feasibility report showing exact patient counts by criterion to your questionnaire response",
+    "Before committing to a study, verify you actually have enough patients to hit enrollment targets",
+    "Negotiate better per-patient payments by demonstrating you have a large eligible population",
+  ],
+  bottomNote: "Sites that respond to feasibility questionnaires with real data (not estimates) are 3x more likely to be selected. This tool turns a 2-week manual chart review into a 60-second automated query.",
+};
+
+const TRAJECTORY_MODAL = {
+  icon: <TrendingUp className="h-5 w-5 text-white" />,
+  iconColor: "from-amber-600/20 via-amber-500/10 to-transparent",
+  title: "Lab Trajectory Monitoring",
+  subtitle: "See the future: patients who are about to become eligible",
+  highlights: [
+    {
+      icon: <HeartPulse className="h-4 w-4 text-amber-400" />,
+      title: "Predictive Eligibility Pipeline",
+      desc: "Identify patients whose lab values are trending toward eligibility thresholds. A patient with HbA1c at 6.8% today may cross 7.0% next month.",
+    },
+    {
+      icon: <Eye className="h-4 w-4 text-blue-400" />,
+      title: "Watchlist with Proximity Tracking",
+      desc: "See exactly how close each patient is to crossing the threshold, with visual proximity bars and estimated weeks to eligibility.",
+    },
+    {
+      icon: <CalendarClock className="h-4 w-4 text-emerald-400" />,
+      title: "Proactive Re-screening Alerts",
+      desc: "Schedule follow-up labs at the right time — not too early (wasted visit), not too late (missed enrollment window).",
+    },
+    {
+      icon: <FlaskConical className="h-4 w-4 text-purple-400" />,
+      title: "Multi-Threshold Monitoring",
+      desc: "Track 6 common clinical thresholds: HbA1c, eGFR, BNP, CRP, LDL, and more. Each maps to specific trial types.",
+    },
+  ],
+  useCases: [
+    "You're running a diabetes trial requiring HbA1c ≥ 7.5% — find the 12 patients at 7.1-7.4% who will likely qualify next quarter",
+    "A new heart failure study opens — instantly see how many patients are approaching the BNP ≥ 100 threshold",
+    "Reduce screen failures by only screening patients when their labs are likely to qualify, based on trajectory data",
+    "Build a \"pre-screening pipeline\" that coordinators review weekly to catch newly eligible patients",
+  ],
+  bottomNote: "This is predictive enrollment intelligence that no other site tool provides. It turns your patient data into a forward-looking pipeline instead of a backward-looking snapshot.",
+};
+
+const DIVERSITY_MODAL = {
+  icon: <Users className="h-5 w-5 text-white" />,
+  iconColor: "from-emerald-600/20 via-emerald-500/10 to-transparent",
+  title: "Site Diversity Profile",
+  subtitle: "FDA diversity compliance — your competitive advantage in site selection",
+  highlights: [
+    {
+      icon: <Shield className="h-4 w-4 text-emerald-400" />,
+      title: "FDA Diversity Action Plan Compliance",
+      desc: "Since 2024, the FDA requires diversity action plans for all clinical trials. Sites that can prove diverse patient populations are increasingly preferred.",
+    },
+    {
+      icon: <Globe className="h-4 w-4 text-blue-400" />,
+      title: "Race, Ethnicity & Age Breakdowns",
+      desc: "Automated demographic analysis with percentage breakdowns, comparison to US census proportions, and visual charts ready for sponsor presentations.",
+    },
+    {
+      icon: <Gauge className="h-4 w-4 text-purple-400" />,
+      title: "Simpson Diversity Score",
+      desc: "A single 0-100 score that quantifies your population's demographic diversity. Higher scores mean sponsors can meet FDA requirements more easily at your site.",
+    },
+    {
+      icon: <FileText className="h-4 w-4 text-indigo-400" />,
+      title: "Export-Ready Reports",
+      desc: "Generate a one-page PDF diversity profile to attach to site selection questionnaires, feasibility surveys, and grant applications.",
+    },
+  ],
+  useCases: [
+    "A sponsor asks \"What percentage of your patients are underrepresented minorities?\" — answer with exact data instead of estimates",
+    "Include your diversity profile in every feasibility questionnaire response to stand out during site selection",
+    "Track diversity metrics over time as you expand outreach to underrepresented communities",
+    "Support NIH grant applications with quantitative evidence of your site's diverse patient population",
+  ],
+  bottomNote: "Sponsors now pay 15-25% higher per-patient rates at sites with strong diversity metrics. Your diversity profile is a revenue multiplier — this tool quantifies and packages it for you.",
+};
+
