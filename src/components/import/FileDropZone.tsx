@@ -12,6 +12,8 @@ export interface SelectedFile {
   name: string;
   size: number;
   format: "csv" | "excel" | "fhir_json" | "ccda_xml" | "unknown";
+  /** Full file path — only available in Tauri mode */
+  path?: string;
 }
 
 const FORMAT_META: Record<

@@ -10,7 +10,6 @@ import {
   FolderOpen,
   Play,
   Square,
-  CheckCircle2,
   AlertCircle,
   FileSpreadsheet,
 } from "lucide-react";
@@ -330,7 +329,16 @@ function WatcherPanel() {
                     <p className="text-[11px] font-medium text-slate-300 truncate">{f.file_name}</p>
                     <p className="text-[10px] text-slate-600">{formatBytes(f.size_bytes)}</p>
                   </div>
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                  <button
+                    onClick={() => {
+                      // Navigate to import with this file's path
+                      // In production: would auto-import via Rust backend
+                      console.info(`Would auto-import: ${f.path}`);
+                    }}
+                    className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold text-emerald-400 ring-1 ring-emerald-500/20 hover:bg-emerald-500/20 transition-colors"
+                  >
+                    Import
+                  </button>
                 </div>
               ))}
             </div>
