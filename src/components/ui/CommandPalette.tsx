@@ -13,6 +13,7 @@ import {
   ArrowRight,
   Command,
   CornerDownLeft,
+  HelpCircle,
 } from "lucide-react";
 import { useAppStore } from "@/stores/use-app-store";
 import type { NavigationPage } from "@/types";
@@ -55,7 +56,8 @@ export function CommandPalette() {
       { id: "nav-performance", label: "Site Performance", hint: "Metrics & revenue", icon: <TrendingUp className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("performance"), keywords: ["revenue", "metrics", "kpi", "financial"] },
       { id: "nav-settings", label: "Settings", hint: "LLM, database, export", icon: <Settings className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("settings"), keywords: ["configure", "llm", "database", "preferences", "audit"] },
       // Actions
-      { id: "act-shortcuts", label: "Keyboard Shortcuts", hint: "View all shortcuts", icon: <Keyboard className="h-4 w-4" />, section: "Actions", action: () => { setOpen(false); window.dispatchEvent(new CustomEvent("toggle-shortcuts")); }, keywords: ["keys", "hotkey", "shortcut", "help"] },
+      { id: "act-shortcuts", label: "Keyboard Shortcuts", hint: "View all shortcuts", icon: <Keyboard className="h-4 w-4" />, section: "Actions", action: () => { setOpen(false); window.dispatchEvent(new CustomEvent("toggle-shortcuts")); }, keywords: ["keys", "hotkey", "shortcut"] },
+      { id: "act-help", label: "Help & Guide", hint: "Page-specific help and tips", icon: <HelpCircle className="h-4 w-4" />, section: "Actions", action: () => { setOpen(false); window.dispatchEvent(new CustomEvent("toggle-help")); }, keywords: ["help", "guide", "documentation", "how", "faq"] },
     ],
     [navigateTo]
   );

@@ -16,6 +16,8 @@ import { UnlockScreen } from "@/components/setup/UnlockScreen";
 import { ToastProvider } from "@/components/ui/Toast";
 import { CommandPalette } from "@/components/ui/CommandPalette";
 import { KeyboardShortcutsOverlay } from "@/components/ui/KeyboardShortcuts";
+import { HelpDrawer } from "@/components/ui/HelpDrawer";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { useAppStore } from "@/stores/use-app-store";
 import { useDemoData } from "@/hooks/use-demo-data";
 import { checkDatabaseExists } from "@/lib/tauri";
@@ -94,26 +96,34 @@ const isTauri =
 function PageRouter() {
   const currentPage = useAppStore((s) => s.currentPage);
 
-  switch (currentPage) {
-    case "screening":
-      return <ScreeningPage />;
-    case "import":
-      return <ImportPage />;
-    case "trials":
-      return <TrialsPage />;
-    case "review":
-      return <ReviewQueuePage />;
-    case "analytics":
-      return <AnalyticsPage />;
-    case "pipeline":
-      return <PipelinePage />;
-    case "performance":
-      return <PerformancePage />;
-    case "settings":
-      return <SettingsPage />;
-    default:
-      return <ScreeningPage />;
-  }
+  const page = (() => {
+    switch (currentPage) {
+      case "screening":
+        return <ScreeningPage />;
+      case "import":
+        return <ImportPage />;
+      case "trials":
+        return <TrialsPage />;
+      case "review":
+        return <ReviewQueuePage />;
+      case "analytics":
+        return <AnalyticsPage />;
+      case "pipeline":
+        return <PipelinePage />;
+      case "performance":
+        return <PerformancePage />;
+      case "settings":
+        return <SettingsPage />;
+      default:
+        return <ScreeningPage />;
+    }
+  })();
+
+  return (
+    <PageTransition pageKey={currentPage}>
+      {page}
+    </PageTransition>
+  );
 }
 
 // Global keyboard navigation: 1-8 for pages
@@ -162,6 +172,7 @@ function useGlobalShortcuts() {
 function MainApp() {
   useDemoData();
   useGlobalShortcuts();
+  const currentPage = useAppStore((s) => s.currentPage);
 
   const [showOnboarding, setShowOnboarding] = useState(() => {
     try {
@@ -194,6 +205,7 @@ function MainApp() {
         {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
         <CommandPalette />
         <KeyboardShortcutsOverlay />
+        <HelpDrawer currentPage={currentPage} />
       </div>
     </ToastProvider>
   );

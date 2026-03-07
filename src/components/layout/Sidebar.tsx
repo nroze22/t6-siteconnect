@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import {
   Search,
   FileUp,
@@ -102,28 +103,35 @@ export function Sidebar() {
             <button
               key={item.id}
               onClick={() => setCurrentPage(item.id)}
-              className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all duration-150 ${
-                isActive
-                  ? "bg-indigo-500/15 text-indigo-300 shadow-sm glow-indigo"
-                  : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
-              }`}
+              className="group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors duration-150"
             >
-              <span className={isActive ? "text-indigo-400" : "text-slate-500 group-hover:text-slate-400"}>
+              {isActive && (
+                <motion.div
+                  layoutId="sidebar-active"
+                  className="absolute inset-0 rounded-lg bg-indigo-500/15 ring-1 ring-indigo-500/20"
+                  transition={{ type: "spring", damping: 28, stiffness: 350 }}
+                />
+              )}
+              <span className={`relative z-10 ${isActive ? "text-indigo-400" : "text-slate-500 group-hover:text-slate-400"}`}>
                 {item.icon}
               </span>
-              <div className="flex-1 min-w-0">
-                <span className="block text-[13px] font-medium leading-tight">{item.label}</span>
+              <div className="relative z-10 flex-1 min-w-0">
+                <span className={`block text-[13px] font-medium leading-tight ${isActive ? "text-indigo-300" : "text-slate-400 group-hover:text-slate-200"}`}>
+                  {item.label}
+                </span>
                 <span className={`block text-[10px] leading-tight ${isActive ? "text-indigo-400/60" : "text-slate-600"}`}>
                   {item.hint}
                 </span>
               </div>
-              {isActive ? (
-                <ChevronRight className="h-3 w-3 text-indigo-500/50" />
-              ) : (
-                <kbd className="hidden group-hover:flex h-[18px] items-center rounded bg-white/[0.06] px-1.5 text-[9px] font-medium text-slate-600 ring-1 ring-white/[0.06]">
-                  {item.shortcut}
-                </kbd>
-              )}
+              <span className="relative z-10">
+                {isActive ? (
+                  <ChevronRight className="h-3 w-3 text-indigo-500/50" />
+                ) : (
+                  <kbd className="hidden group-hover:flex h-[18px] items-center rounded bg-white/[0.06] px-1.5 text-[9px] font-medium text-slate-600 ring-1 ring-white/[0.06]">
+                    {item.shortcut}
+                  </kbd>
+                )}
+              </span>
             </button>
           );
         })}

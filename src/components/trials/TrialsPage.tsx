@@ -167,7 +167,7 @@ function StudyCard({ study, onScreenPatients }: { study: (typeof DEMO_STUDIES)[n
   };
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-card transition-all hover:border-white/[0.1] hover:shadow-lg hover:shadow-black/10">
+    <div className="group/card rounded-xl border border-white/[0.06] bg-card transition-all duration-200 hover:border-white/[0.12] hover:shadow-xl hover:shadow-black/20 hover:-translate-y-0.5">
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">

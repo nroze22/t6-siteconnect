@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import {
   Users,
   Phone,
@@ -18,11 +18,14 @@ import {
   Zap,
   Target,
   Timer,
+  Check,
+  Send,
 } from "lucide-react";
 import { screenPatientsForStudy, STUDY_SCREENING_DEFS } from "@/lib/epic-demo-data";
 import { getPatients } from "@/lib/data-provider";
 import type { ParsedPatient } from "@/lib/epic-demo-data";
 import { SkeletonCard } from "@/components/ui/Skeleton";
+import { useToast } from "@/components/ui/Toast";
 
 // Pipeline stages
 type PipelineStage = "identified" | "contacted" | "interested" | "consented" | "enrolled" | "screen_failed";
@@ -140,6 +143,33 @@ export function PipelinePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
+  const toast = useToast();
+
+  const advancePatient = useCallback((patientId: string) => {
+    setPipelineData((prev) => prev.map((p) => {
+      if (p.id !== patientId) return p;
+      const idx = STAGES_ORDER.indexOf(p.stage);
+      if (idx < 0 || idx >= STAGES_ORDER.length - 1) return p;
+      const nextStage = STAGES_ORDER[idx + 1]!;
+      return { ...p, stage: nextStage, daysInStage: 0 };
+    }));
+  }, []);
+
+  const logCall = useCallback((patientId: string) => {
+    const today = new Date().toISOString().split("T")[0] ?? "";
+    setPipelineData((prev) => prev.map((p) => {
+      if (p.id !== patientId) return p;
+      return { ...p, contactAttempts: p.contactAttempts + 1, lastContact: today };
+    }));
+  }, []);
+
+  const addNote = useCallback((patientId: string, note: string) => {
+    setPipelineData((prev) => prev.map((p) => {
+      if (p.id !== patientId) return p;
+      const existing = p.notes ? `${p.notes}\n${note}` : note;
+      return { ...p, notes: existing };
+    }));
+  }, []);
 
   const filteredData = useMemo(() => {
     let data = pipelineData;
@@ -282,11 +312,31 @@ export function PipelinePage() {
                       patient={patient}
                       expanded={expandedCard === patient.id}
                       onToggle={() => setExpandedCard(expandedCard === patient.id ? null : patient.id)}
+                      onAdvance={() => {
+                        advancePatient(patient.id);
+                        const idx = STAGES_ORDER.indexOf(patient.stage);
+                        const nextStage = idx >= 0 && idx < STAGES_ORDER.length - 1 ? STAGE_CONFIG[STAGES_ORDER[idx + 1]!]?.label : null;
+                        if (nextStage) toast.success(`Moved to ${nextStage}`, `${patient.name} advanced in pipeline`);
+                      }}
+                      onLogCall={() => {
+                        logCall(patient.id);
+                        toast.info("Call logged", `${patient.name} — ${patient.contactAttempts + 1} total attempts`);
+                      }}
+                      onAddNote={(note) => {
+                        addNote(patient.id, note);
+                        toast.success("Note added", `${patient.name}`);
+                      }}
+                      isLastStage={STAGES_ORDER.indexOf(patient.stage) === STAGES_ORDER.length - 1}
                     />
                   ))}
                   {stagePatients.length === 0 && (
-                    <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-white/[0.06] text-[11px] text-slate-600">
-                      No patients
+                    <div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-white/[0.06] text-center">
+                      <div>
+                        <div className="mx-auto mb-1.5 flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.03]">
+                          <Users className="h-3.5 w-3.5 text-slate-600" />
+                        </div>
+                        <p className="text-[10px] text-slate-600">No patients in this stage</p>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -303,10 +353,31 @@ export function PipelinePage() {
   );
 }
 
-function PipelineCard({ patient, expanded, onToggle }: { patient: PipelinePatient; expanded: boolean; onToggle: () => void }) {
+interface PipelineCardProps {
+  patient: PipelinePatient;
+  expanded: boolean;
+  onToggle: () => void;
+  onAdvance: () => void;
+  onLogCall: () => void;
+  onAddNote: (note: string) => void;
+  isLastStage: boolean;
+}
+
+function PipelineCard({ patient, expanded, onToggle, onAdvance, onLogCall, onAddNote, isLastStage }: PipelineCardProps) {
+  const [showNoteInput, setShowNoteInput] = useState(false);
+  const [noteText, setNoteText] = useState("");
+
+  const handleSubmitNote = () => {
+    const trimmed = noteText.trim();
+    if (!trimmed) return;
+    onAddNote(trimmed);
+    setNoteText("");
+    setShowNoteInput(false);
+  };
+
   return (
     <div
-      className={`rounded-lg border border-white/[0.06] bg-white/[0.02] transition-all hover:border-white/[0.12] ${expanded ? "ring-1 ring-indigo-500/20" : ""}`}
+      className={`rounded-lg border border-white/[0.06] bg-white/[0.02] transition-all duration-200 hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/10 hover:-translate-y-0.5 ${expanded ? "ring-1 ring-indigo-500/20" : ""}`}
     >
       <button onClick={onToggle} className="w-full px-3 py-2.5 text-left">
         <div className="flex items-center justify-between">
@@ -343,7 +414,7 @@ function PipelineCard({ patient, expanded, onToggle }: { patient: PipelinePatien
             <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-600">Eligibility Score</span>
             <div className="mt-0.5 flex items-center gap-2">
               <div className="h-1.5 flex-1 rounded-full bg-white/[0.06]">
-                <div className="h-full rounded-full bg-indigo-500" style={{ width: `${patient.score}%` }} />
+                <div className="h-full rounded-full bg-indigo-500 animate-bar-fill" style={{ width: `${patient.score}%` }} />
               </div>
               <span className="text-[11px] font-bold text-indigo-400">{patient.score}</span>
             </div>
@@ -351,7 +422,7 @@ function PipelineCard({ patient, expanded, onToggle }: { patient: PipelinePatien
           {patient.notes && (
             <div>
               <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-600">Notes</span>
-              <p className="text-[11px] text-slate-400">{patient.notes}</p>
+              <p className="text-[11px] text-slate-400 whitespace-pre-line">{patient.notes}</p>
             </div>
           )}
           <div>
@@ -364,16 +435,65 @@ function PipelineCard({ patient, expanded, onToggle }: { patient: PipelinePatien
               <p className="text-[11px] text-indigo-300">{patient.nextAction}</p>
             </div>
           )}
+
+          {/* Note input */}
+          {showNoteInput && (
+            <div className="flex items-center gap-1.5">
+              <input
+                autoFocus
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleSubmitNote(); if (e.key === "Escape") { setShowNoteInput(false); setNoteText(""); } }}
+                placeholder="Add a note..."
+                className="flex-1 rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-1 text-[11px] text-slate-200 placeholder-slate-600 focus:border-indigo-500/40 focus:outline-none"
+              />
+              <button
+                onClick={handleSubmitNote}
+                disabled={!noteText.trim()}
+                className="rounded-md bg-indigo-600 p-1.5 text-white transition-colors hover:bg-indigo-500 disabled:opacity-30 disabled:hover:bg-indigo-600"
+              >
+                <Send className="h-3 w-3" />
+              </button>
+              <button
+                onClick={() => { setShowNoteInput(false); setNoteText(""); }}
+                className="rounded-md p-1.5 text-slate-500 hover:bg-white/[0.05] hover:text-slate-300"
+              >
+                <XIcon className="h-3 w-3" />
+              </button>
+            </div>
+          )}
+
+          {/* Action buttons */}
           <div className="flex items-center gap-1.5 pt-1">
-            <button className="flex items-center gap-1 rounded-md bg-white/[0.04] px-2 py-1 text-[10px] text-slate-400 hover:bg-white/[0.08] hover:text-slate-200 transition-colors">
+            <button
+              onClick={onLogCall}
+              className="flex items-center gap-1 rounded-md bg-white/[0.04] px-2 py-1 text-[10px] text-slate-400 hover:bg-white/[0.08] hover:text-slate-200 transition-colors active:scale-[0.97]"
+            >
               <PhoneCall className="h-3 w-3" /> Log Call
             </button>
-            <button className="flex items-center gap-1 rounded-md bg-white/[0.04] px-2 py-1 text-[10px] text-slate-400 hover:bg-white/[0.08] hover:text-slate-200 transition-colors">
+            <button
+              onClick={() => setShowNoteInput(!showNoteInput)}
+              className={`flex items-center gap-1 rounded-md px-2 py-1 text-[10px] transition-colors active:scale-[0.97] ${
+                showNoteInput
+                  ? "bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-500/20"
+                  : "bg-white/[0.04] text-slate-400 hover:bg-white/[0.08] hover:text-slate-200"
+              }`}
+            >
               <MessageSquare className="h-3 w-3" /> Note
             </button>
-            <button className="flex items-center gap-1 rounded-md bg-emerald-600/80 px-2 py-1 text-[10px] font-medium text-white hover:bg-emerald-500 transition-colors">
-              <ArrowRight className="h-3 w-3" /> Advance
-            </button>
+            {!isLastStage && (
+              <button
+                onClick={onAdvance}
+                className="flex items-center gap-1 rounded-md bg-emerald-600/80 px-2 py-1 text-[10px] font-medium text-white hover:bg-emerald-500 transition-colors active:scale-[0.97]"
+              >
+                <ArrowRight className="h-3 w-3" /> Advance
+              </button>
+            )}
+            {isLastStage && (
+              <span className="flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-1 text-[10px] font-medium text-emerald-400 ring-1 ring-emerald-500/20">
+                <Check className="h-3 w-3" /> Enrolled
+              </span>
+            )}
           </div>
         </div>
       )}

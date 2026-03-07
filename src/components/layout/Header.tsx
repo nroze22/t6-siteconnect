@@ -1,7 +1,8 @@
-import { Lock, WifiOff, Search, Command } from "lucide-react";
+import { Lock, WifiOff, Search, Command, HelpCircle } from "lucide-react";
 import { useAppStore } from "@/stores/use-app-store";
 import { useScreeningStore } from "@/stores/use-screening-store";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { useHelpDrawer } from "@/components/ui/HelpDrawer";
 
 const pageConfig: Record<string, { title: string; subtitle: string }> = {
   screening: {
@@ -42,6 +43,7 @@ export function Header() {
   const currentPage = useAppStore((s) => s.currentPage);
   const lock = useAppStore((s) => s.lock);
   const patientCount = useScreeningStore((s) => s.patients.length);
+  const helpDrawer = useHelpDrawer();
   const config = pageConfig[currentPage] ?? { title: "SiteConnect", subtitle: "" };
   const screeningSub = currentPage === "screening" && patientCount > 0
     ? `Screening ${patientCount} patients`
@@ -97,6 +99,16 @@ export function Header() {
             <kbd className="flex h-[18px] items-center rounded bg-white/[0.06] px-1.5 text-[10px] font-medium text-slate-500 ring-1 ring-white/[0.08]">
               ?
             </kbd>
+          </button>
+        </Tooltip>
+
+        {/* Help button */}
+        <Tooltip content="Help & Guide" shortcut="F1" side="bottom">
+          <button
+            onClick={helpDrawer.toggle}
+            className="flex items-center justify-center rounded-md px-2 py-1 text-slate-500 transition-colors hover:bg-white/[0.05] hover:text-slate-300"
+          >
+            <HelpCircle className="h-3.5 w-3.5" />
           </button>
         </Tooltip>
 

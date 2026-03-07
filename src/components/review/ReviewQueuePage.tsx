@@ -22,6 +22,7 @@ import { useAppStore } from "@/stores/use-app-store";
 import { useToast } from "@/components/ui/Toast";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { scoreColorClass, formatStatus } from "@/lib/formatters";
 import { buildScreeningCSV, buildDetailedCSV, downloadCSV } from "@/lib/export-csv";
 import type { ReviewStatus, PatientSummary } from "@/types";
@@ -471,10 +472,17 @@ export function ReviewQueuePage() {
         </table>
 
         {filteredPatients.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <p className="text-[13px] font-semibold text-slate-300">No patients match this filter</p>
-            <p className="mt-1 text-[11px] text-slate-500">Try changing the filter or reviewing more patients in the Screening view.</p>
-          </div>
+          <EmptyState
+            icon={<ClipboardList className="h-7 w-7" />}
+            title={patients.length === 0 ? "No screening results yet" : "No patients match this filter"}
+            description={patients.length === 0
+              ? "Screen patients against a study in the Screening view first. Results will appear here for review and export."
+              : "Try changing the filter above, or review more patients in the Screening view."}
+            action={patients.length === 0 ? {
+              label: "Go to Screening",
+              onClick: () => setCurrentPage("screening"),
+            } : undefined}
+          />
         )}
       </div>
 
