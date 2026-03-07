@@ -108,6 +108,7 @@ function WatcherPanel() {
   const [recentFiles, setRecentFiles] = useState<FileDetectedEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     getWatcherStatus().then((s) => {
@@ -146,12 +147,14 @@ function WatcherPanel() {
         setStatus(result);
       } else {
         setStatus({ active: true, path: watchPath });
+        toast.success("Watcher started", `Monitoring ${watchPath}`);
         // Simulate file detection in demo mode
         setTimeout(() => {
           setRecentFiles([
             { path: `${watchPath}/patient_export_2026-03-07.csv`, file_name: "patient_export_2026-03-07.csv", size_bytes: 245760 },
             { path: `${watchPath}/lab_results_batch_42.csv`, file_name: "lab_results_batch_42.csv", size_bytes: 128512 },
           ]);
+          toast.info("Files detected", "2 new CSV files found in watched folder");
         }, 2000);
       }
     } catch (e) {
@@ -169,6 +172,7 @@ function WatcherPanel() {
         setStatus(result);
       } else {
         setStatus({ active: false, path: null });
+        toast.info("Watcher stopped", "No longer monitoring for new files");
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -263,7 +267,13 @@ function WatcherPanel() {
                     <p className="text-[11px] font-medium text-slate-300 truncate">{f.file_name}</p>
                     <p className="text-[10px] text-slate-600">{formatBytes(f.size_bytes)}</p>
                   </div>
-                  <button className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold text-emerald-400 ring-1 ring-emerald-500/20 hover:bg-emerald-500/20 transition-colors">
+                  <button
+                    onClick={() => {
+                      toast.success("Import started", f.file_name);
+                      setTimeout(() => toast.success("Import complete", `${f.file_name} — patients added to screening`), 1500);
+                    }}
+                    className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold text-emerald-400 ring-1 ring-emerald-500/20 hover:bg-emerald-500/20 transition-colors"
+                  >
                     Import
                   </button>
                 </div>

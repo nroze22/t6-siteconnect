@@ -38,11 +38,11 @@ export function SourceDataPanel() {
   const selectedCriterion = criteria.find((c) => c.id === selectedCriterionId);
 
   useEffect(() => {
-    if (selectedCriterion?.evidenceSource) {
+    if (selectedCriterion?.evidence && selectedCriterion.evidenceSource) {
       const targetTab = evidenceSourceToTab(selectedCriterion.evidenceSource);
       if (targetTab) setActiveTab(targetTab);
     }
-  }, [selectedCriterionId, selectedCriterion?.evidenceSource]);
+  }, [selectedCriterionId, selectedCriterion?.evidence, selectedCriterion?.evidenceSource]);
 
   if (!selectedPatientId || !clinicalData) {
     return (
@@ -86,12 +86,20 @@ export function SourceDataPanel() {
         })}
       </div>
 
-      {/* Criterion context bar */}
-      {selectedCriterion && (
+      {/* Criterion context bar — only show when there's actual evidence tied to a data source */}
+      {selectedCriterion && selectedCriterion.evidence && highlightTab && (
         <div className="flex items-center gap-2 border-b border-border bg-indigo-500/5 px-3 py-2">
           <ArrowRight className="h-3 w-3 text-indigo-400" />
           <p className="truncate text-[10px] text-indigo-300/80">
-            Showing evidence for: <span className="font-medium text-indigo-300">{selectedCriterion.criterionText.slice(0, 60)}...</span>
+            Evidence for: <span className="font-medium text-indigo-300">{selectedCriterion.criterionText.slice(0, 60)}{selectedCriterion.criterionText.length > 60 ? "..." : ""}</span>
+          </p>
+        </div>
+      )}
+      {selectedCriterion && (!selectedCriterion.evidence || !highlightTab) && (
+        <div className="flex items-center gap-2 border-b border-border bg-amber-500/5 px-3 py-2">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-400/60" />
+          <p className="truncate text-[10px] text-amber-300/70">
+            No structured evidence found for: <span className="font-medium text-amber-300/80">{selectedCriterion.criterionText.slice(0, 50)}{selectedCriterion.criterionText.length > 50 ? "..." : ""}</span>
           </p>
         </div>
       )}

@@ -242,6 +242,23 @@ interface CriterionDef {
   evaluate: (p: ParsedPatient, age: number) => { result: CriterionResult["result"]; evidence: string | null; reasoning: string; confidence: number; ai: boolean };
 }
 
+// Infer which data source the evidence came from based on criterion text, evidence, and reasoning
+function inferEvidenceSource(criterionText: string, evidence: string | null, reasoning: string): string | null {
+  if (!evidence) return null;
+  const text = `${criterionText} ${evidence} ${reasoning}`.toLowerCase();
+  // Lab-related keywords
+  if (/\b(hgb|plt|anc|wbc|egfr|creatinine|bilirubin|ast|alt|a1c|lab|g\/dl|u\/l|ml\/min|mg\/dl|\/ul)\b/.test(text)) return "labs";
+  // Medication keywords
+  if (/\b(therap|medication|drug|regimen|chemo|immunosup|systemic treatment|prior.*therapy)\b/.test(text)) return "medications";
+  // Diagnosis keywords
+  if (/\b(icd-?10|diagnosis|diagnosed|c34|autoimmune|hiv|hepatitis|m06|m05|m32|b20|b18|c\d{2}|e11|i\d{2}|j\d{2}|k\d{2}|n\d{2}|g\d{2})\b/.test(text)) return "diagnoses";
+  // Vitals keywords
+  if (/\b(bmi|ecog|performance status|weight|bp|heart rate|vital)\b/.test(text)) return "vitals";
+  // Age/demographics
+  if (/\b(age|gender|sex|years old|patient age)\b/.test(text)) return "demographics";
+  return null;
+}
+
 // Helper to check if patient has a specific lab
 function findLab(p: ParsedPatient, name: string): { value: number; unit: string; date: string } | null {
   const lab = p.labs.find((l) => l.test.toLowerCase() === name.toLowerCase());
@@ -503,7 +520,7 @@ export function screenPatientsForStudy(
         criterionText: def.text,
         result: ev.result,
         evidence: ev.evidence,
-        evidenceSource: null,
+        evidenceSource: inferEvidenceSource(def.text, ev.evidence, ev.reasoning),
         confidence: ev.confidence,
         reasoning: ev.reasoning,
         aiDetermined: ev.ai,
@@ -525,7 +542,7 @@ export function screenPatientsForStudy(
         criterionText: def.text,
         result: ev.result,
         evidence: ev.evidence,
-        evidenceSource: null,
+        evidenceSource: inferEvidenceSource(def.text, ev.evidence, ev.reasoning),
         confidence: ev.confidence,
         reasoning: ev.reasoning,
         aiDetermined: ev.ai,
