@@ -14,7 +14,8 @@ import {
   Zap,
 } from "lucide-react";
 import { formatCurrency, formatCurrencyCompact, formatNumber } from "@/lib/formatters";
-import { parseEpicRows, screenPatientsForStudy } from "@/lib/epic-demo-data";
+import { screenPatientsForStudy } from "@/lib/epic-demo-data";
+import { getPatients } from "@/lib/data-provider";
 import { useScreeningStore } from "@/stores/use-screening-store";
 import { useAppStore } from "@/stores/use-app-store";
 import type { Study } from "@/types";
@@ -284,8 +285,8 @@ export function TrialsPage() {
   const selectStudy = useScreeningStore((s) => s.selectStudy);
   const setCurrentPage = useAppStore((s) => s.setCurrentPage);
 
-  const handleScreenPatients = (studyId: string) => {
-    const parsed = parseEpicRows();
+  const handleScreenPatients = async (studyId: string) => {
+    const parsed = await getPatients();
     const screening = screenPatientsForStudy(parsed, studyId);
     if (screening.length === 0) return;
     setPatients(screening.map((s) => s.summary));

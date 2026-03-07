@@ -1,11 +1,13 @@
 import { useEffect } from "react";
 import { useScreeningStore } from "@/stores/use-screening-store";
 import { useAppStore } from "@/stores/use-app-store";
-import { parseEpicRows, screenPatientsForStudy } from "@/lib/epic-demo-data";
+import { screenPatientsForStudy } from "@/lib/epic-demo-data";
+import { getPatients } from "@/lib/data-provider";
 
 /**
- * Loads demo data into the Zustand stores on mount.
- * Uses realistic Epic patient data screened against KEYNOTE-789.
+ * Loads patient data into the Zustand stores on mount.
+ * In Tauri mode, queries real data from SQLite.
+ * In web mode, falls back to demo data.
  */
 export function useDemoData() {
   const setPatients = useScreeningStore((s) => s.setPatients);
@@ -15,29 +17,25 @@ export function useDemoData() {
   const setStatus = useAppStore((s) => s.setStatus);
 
   useEffect(() => {
-    // Parse Epic demo data and screen against KEYNOTE-789
-    const parsed = parseEpicRows();
-    const screening = screenPatientsForStudy(parsed, "study-1");
+    getPatients().then((parsed) => {
+      const screening = screenPatientsForStudy(parsed, "study-1");
 
-    // Load patients
-    setPatients(screening.map((s) => s.summary));
+      setPatients(screening.map((s) => s.summary));
 
-    // Load screening results and criteria
-    for (const s of screening) {
-      setScreeningResult(s.summary.id, s.result);
-      setCriteriaResults(s.result.id, s.criteria);
-    }
+      for (const s of screening) {
+        setScreeningResult(s.summary.id, s.result);
+        setCriteriaResults(s.result.id, s.criteria);
+      }
 
-    // Set active study
-    selectStudy("study-1");
+      selectStudy("study-1");
 
-    // Update app status
-    setStatus({
-      databaseReady: true,
-      patientCount: parsed.length,
-      studyCount: 6,
-      llmStatus: "ready",
-      llmModel: "BioMistral-7B",
+      setStatus({
+        databaseReady: true,
+        patientCount: parsed.length,
+        studyCount: 6,
+        llmStatus: "ready",
+        llmModel: "BioMistral-7B",
+      });
     });
   }, []);
 }

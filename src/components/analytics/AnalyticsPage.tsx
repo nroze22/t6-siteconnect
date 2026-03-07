@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   BarChart3,
   TrendingUp,
@@ -40,7 +40,8 @@ import {
   AreaChart,
   Area,
 } from "recharts";
-import { parseEpicRows } from "@/lib/epic-demo-data";
+import { getPatients } from "@/lib/data-provider";
+import type { ParsedPatient } from "@/lib/epic-demo-data";
 import {
   runFeasibilityQuery,
   forecastEnrollment,
@@ -63,7 +64,11 @@ const tooltipStyle = {
 
 export function AnalyticsPage() {
   const [activeTab, setActiveTab] = useState<AnalyticsTab>("feasibility");
-  const patients = useMemo(() => parseEpicRows(), []);
+  const [patients, setPatients] = useState<ParsedPatient[]>([]);
+
+  useEffect(() => {
+    getPatients().then(setPatients);
+  }, []);
 
   const tabs: { id: AnalyticsTab; label: string; icon: React.ReactNode; desc: string }[] = [
     { id: "feasibility", label: "Protocol Feasibility", icon: <Calculator className="h-4 w-4" />, desc: "Can you run this study?" },
@@ -125,7 +130,7 @@ export function AnalyticsPage() {
 // TAB 1: PROTOCOL FEASIBILITY CALCULATOR
 // ============================================================
 
-function FeasibilityTab({ patients }: { patients: ReturnType<typeof parseEpicRows> }) {
+function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
   const [selectedQueryId, setSelectedQueryId] = useState(PRESET_QUERIES[0]!.id);
   const [forecast, setForecast] = useState<EnrollmentForecast | null>(null);
   const [showInfo, setShowInfo] = useState(false);
@@ -291,7 +296,7 @@ function FeasibilityTab({ patients }: { patients: ReturnType<typeof parseEpicRow
 // TAB 2: LAB TRAJECTORIES
 // ============================================================
 
-function TrajectoryTab({ patients }: { patients: ReturnType<typeof parseEpicRows> }) {
+function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
   const [selectedPreset, setSelectedPreset] = useState(LAB_THRESHOLD_PRESETS[0]!.id);
   const [showInfo, setShowInfo] = useState(false);
   const preset = LAB_THRESHOLD_PRESETS.find((p) => p.id === selectedPreset) ?? LAB_THRESHOLD_PRESETS[0]!;
@@ -456,7 +461,7 @@ function TrajectoryTab({ patients }: { patients: ReturnType<typeof parseEpicRows
 // TAB 3: DIVERSITY DASHBOARD
 // ============================================================
 
-function DiversityTab({ patients }: { patients: ReturnType<typeof parseEpicRows> }) {
+function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
   const profile = useMemo(() => computeDiversityProfile(patients), [patients]);
   const [showInfo, setShowInfo] = useState(false);
 

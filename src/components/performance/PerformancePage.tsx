@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   TrendingUp,
   Users,
@@ -23,7 +23,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { parseEpicRows, screenPatientsForStudy, STUDY_SCREENING_DEFS } from "@/lib/epic-demo-data";
+import { screenPatientsForStudy, STUDY_SCREENING_DEFS } from "@/lib/epic-demo-data";
+import type { ParsedPatient } from "@/lib/epic-demo-data";
+import { getPatients } from "@/lib/data-provider";
 
 const STUDY_NAMES: Record<string, string> = {
   "study-1": "KEYNOTE-789",
@@ -58,8 +60,7 @@ interface StudyMetrics {
   projectedRevenue: number;
 }
 
-function computeStudyMetrics(): StudyMetrics[] {
-  const parsed = parseEpicRows();
+function computeStudyMetrics(parsed: ParsedPatient[]): StudyMetrics[] {
   const metrics: StudyMetrics[] = [];
 
   for (const studyDef of STUDY_SCREENING_DEFS) {
@@ -141,8 +142,7 @@ function computeFailureIntelligence(metrics: StudyMetrics[]) {
 }
 
 // Multi-study matching
-function computeMultiStudyMatches() {
-  const parsed = parseEpicRows();
+function computeMultiStudyMatches(parsed: ParsedPatient[]) {
   const patientStudyMap = new Map<string, { name: string; studies: { id: string; name: string; score: number; status: string }[] }>();
 
   for (const studyDef of STUDY_SCREENING_DEFS) {
@@ -175,8 +175,16 @@ type PerformanceTab = "overview" | "failures" | "matching";
 
 export function PerformancePage() {
   const [tab, setTab] = useState<PerformanceTab>("overview");
-  const [metrics] = useState(() => computeStudyMetrics());
+  const [metrics, setMetrics] = useState<StudyMetrics[]>([]);
+  const [patients, setPatients] = useState<ParsedPatient[]>([]);
   const [showInfoModal, setShowInfoModal] = useState(false);
+
+  useEffect(() => {
+    getPatients().then((parsed) => {
+      setPatients(parsed);
+      setMetrics(computeStudyMetrics(parsed));
+    });
+  }, []);
 
   const totalRevenue = useMemo(() => metrics.reduce((sum, m) => sum + m.projectedRevenue, 0), [metrics]);
   const totalEligible = useMemo(() => metrics.reduce((sum, m) => sum + m.eligible, 0), [metrics]);
@@ -245,7 +253,7 @@ export function PerformancePage() {
       <div className="flex-1 overflow-y-auto p-6">
         {tab === "overview" && <OverviewTab metrics={metrics} />}
         {tab === "failures" && <FailureIntelligenceTab metrics={metrics} />}
-        {tab === "matching" && <MultiStudyMatchingTab />}
+        {tab === "matching" && <MultiStudyMatchingTab patients={patients} />}
       </div>
 
       {showInfoModal && <PerformanceInfoModal onClose={() => setShowInfoModal(false)} />}
@@ -505,8 +513,8 @@ function FailureIntelligenceTab({ metrics }: { metrics: StudyMetrics[] }) {
   );
 }
 
-function MultiStudyMatchingTab() {
-  const matches = useMemo(() => computeMultiStudyMatches(), []);
+function MultiStudyMatchingTab({ patients }: { patients: ParsedPatient[] }) {
+  const matches = useMemo(() => computeMultiStudyMatches(patients), [patients]);
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">

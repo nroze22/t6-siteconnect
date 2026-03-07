@@ -8,6 +8,8 @@ use commands::database::{init_database, unlock_database, check_database_exists};
 use commands::import::{detect_file_format, preview_import, execute_import};
 use commands::screening::{screen_patients, override_criterion, get_study_criteria};
 use commands::watcher::{start_folder_watcher, stop_folder_watcher, get_watcher_status, WatcherState};
+use commands::analytics::{get_analytics_patients, get_analytics_studies, get_analytics_summary, screen_patients_for_study};
+use commands::llm::{get_llm_status, set_llm_model, start_llm_server, stop_llm_server, check_llm_health, evaluate_criterion_with_llm, pick_llm_model, LlmState};
 use db::DbState;
 use tauri::Manager;
 
@@ -31,6 +33,9 @@ pub fn run() {
             // Initialize folder watcher state
             app.manage(WatcherState::new());
 
+            // Initialize LLM sidecar state
+            app.manage(LlmState::new());
+
             // Ensure app data directory exists
             let app_data_dir = app
                 .path()
@@ -38,10 +43,11 @@ pub fn run() {
                 .expect("Failed to get app data directory");
             std::fs::create_dir_all(&app_data_dir).ok();
 
+            // Create models directory for GGUF files
+            std::fs::create_dir_all(app_data_dir.join("models")).ok();
+
             let db_path = app_data_dir.join("siteconnect.db");
             tracing::info!("Database path: {:?}", db_path);
-
-            // TODO: Start LLM sidecar
 
             Ok(())
         })
@@ -60,6 +66,19 @@ pub fn run() {
             start_folder_watcher,
             stop_folder_watcher,
             get_watcher_status,
+            // Analytics
+            get_analytics_patients,
+            get_analytics_studies,
+            get_analytics_summary,
+            screen_patients_for_study,
+            // LLM
+            get_llm_status,
+            set_llm_model,
+            start_llm_server,
+            stop_llm_server,
+            check_llm_health,
+            evaluate_criterion_with_llm,
+            pick_llm_model,
         ])
         .run(tauri::generate_context!())
         .expect("error while running TalOS SiteConnect");

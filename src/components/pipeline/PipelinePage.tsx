@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Users,
   Phone,
@@ -19,7 +19,9 @@ import {
   Target,
   Timer,
 } from "lucide-react";
-import { parseEpicRows, screenPatientsForStudy, STUDY_SCREENING_DEFS } from "@/lib/epic-demo-data";
+import { screenPatientsForStudy, STUDY_SCREENING_DEFS } from "@/lib/epic-demo-data";
+import { getPatients } from "@/lib/data-provider";
+import type { ParsedPatient } from "@/lib/epic-demo-data";
 
 // Pipeline stages
 type PipelineStage = "identified" | "contacted" | "interested" | "consented" | "enrolled" | "screen_failed";
@@ -65,8 +67,7 @@ const STUDY_NAMES: Record<string, string> = {
 
 const STAFF = ["Sarah Chen, CRC", "James Wright, CRC", "Maria Lopez, CRC", "Kevin Park, RN"];
 
-function generatePipelineData(): PipelinePatient[] {
-  const parsed = parseEpicRows();
+function generatePipelineData(parsed: ParsedPatient[]): PipelinePatient[] {
   const patients: PipelinePatient[] = [];
 
   // Screen all patients across all studies and place top candidates in pipeline
@@ -125,7 +126,13 @@ function generatePipelineData(): PipelinePatient[] {
 }
 
 export function PipelinePage() {
-  const [pipelineData] = useState(() => generatePipelineData());
+  const [pipelineData, setPipelineData] = useState<PipelinePatient[]>([]);
+
+  useEffect(() => {
+    getPatients().then((parsed) => {
+      setPipelineData(generatePipelineData(parsed));
+    });
+  }, []);
   const [selectedStudy, setSelectedStudy] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showInfoModal, setShowInfoModal] = useState(false);

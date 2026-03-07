@@ -10,6 +10,7 @@ use super::DbError;
 pub enum AuditAction {
     PatientImported,
     PatientUpdated,
+    DataImported,
     ScreeningExecuted,
     CriterionOverridden,
     PatientReviewed,
@@ -23,6 +24,7 @@ impl AuditAction {
         match self {
             Self::PatientImported => "patient_imported",
             Self::PatientUpdated => "patient_updated",
+            Self::DataImported => "data_imported",
             Self::ScreeningExecuted => "screening_executed",
             Self::CriterionOverridden => "criterion_overridden",
             Self::PatientReviewed => "patient_reviewed",

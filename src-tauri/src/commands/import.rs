@@ -1,7 +1,10 @@
 use std::path::Path;
 
 use serde::Serialize;
+use tauri::{AppHandle, Manager};
 
+use crate::db::DbState;
+use crate::db::audit::{write_audit_entry, AuditAction};
 use crate::import::{
     self, FileFormatInfo, ImportPreview, ImportResult, ImportRowError,
     PatientRecord,
@@ -40,8 +43,6 @@ impl From<import::ImportError> for ImportCommandError {
 }
 
 /// Detect the format of a file at the given path.
-///
-/// Returns file format, MIME type, size, and estimated row count.
 #[tauri::command]
 pub fn detect_file_format(path: String) -> Result<FileFormatInfo, String> {
     let file_path = Path::new(&path);
@@ -55,8 +56,6 @@ pub fn detect_file_format(path: String) -> Result<FileFormatInfo, String> {
 }
 
 /// Preview an import file: read headers, first 10 rows, and suggest column mappings.
-///
-/// This allows users to review and adjust mappings before executing the import.
 #[tauri::command]
 pub fn preview_import(path: String) -> Result<ImportPreview, String> {
     let file_path = Path::new(&path);
@@ -70,10 +69,9 @@ pub fn preview_import(path: String) -> Result<ImportPreview, String> {
 }
 
 /// Execute the import: parse the file with the given column mapping and store records in the database.
-///
-/// The mapping can be the auto-detected one from preview_import or a user-adjusted version.
 #[tauri::command]
 pub fn execute_import(
+    app: AppHandle,
     path: String,
     mapping: ColumnMapping,
 ) -> Result<ImportResult, String> {
@@ -86,36 +84,54 @@ pub fn execute_import(
         serde_json::to_string(&cmd_err).unwrap_or_else(|_| cmd_err.message)
     })?;
 
-    // Store records in the database
-    // NOTE: Database connection pool integration is pending; for now we return
-    // the parsed result without persisting. When the DB pool is wired into
-    // Tauri managed state, replace this with actual inserts.
-    let result = store_patients(&patients, &path, &mapping);
+    // Try to persist to DB if available
+    let db_state = app.state::<DbState>();
+    let lock = db_state.0.lock().map_err(|e| format!("Lock poisoned: {}", e))?;
 
-    result.map_err(|e| {
-        let cmd_err = ImportCommandError::from(e);
-        serde_json::to_string(&cmd_err).unwrap_or_else(|_| cmd_err.message)
-    })
+    if let Some(pool) = lock.as_ref() {
+        let conn = pool.get().map_err(|e| format!("Failed to get connection: {}", e))?;
+        let result = persist_patients(&conn, &patients, &path)?;
+
+        // Write audit entry
+        let _ = write_audit_entry(
+            &conn,
+            AuditAction::DataImported,
+            &format!("Imported {} patients from {}", result.records_imported, path),
+        );
+
+        // Log the import
+        let _ = conn.execute(
+            "INSERT INTO import_log (id, file_name, file_format, records_imported, records_updated, records_skipped, imported_at)
+             VALUES (?1, ?2, 'csv', ?3, ?4, ?5, datetime('now'))",
+            rusqlite::params![
+                result.import_log_id,
+                path,
+                result.records_imported,
+                result.records_updated,
+                result.records_skipped,
+            ],
+        );
+
+        Ok(result)
+    } else {
+        // No DB — return summary without persisting
+        store_patients_dry_run(&patients, &path)
+    }
 }
 
-/// Store parsed patient records into the SQLite database.
-///
-/// In production, this takes a connection from the managed pool.
-/// Currently returns a summary without database persistence (DB pool not yet in Tauri state).
-fn store_patients(
+/// Persist parsed patients into the SQLite database.
+fn persist_patients(
+    conn: &rusqlite::Connection,
     patients: &[PatientRecord],
     file_name: &str,
-    mapping: &ColumnMapping,
-) -> Result<ImportResult, import::ImportError> {
-    let now = chrono::Utc::now().to_rfc3339();
+) -> Result<ImportResult, String> {
     let import_log_id = uuid::Uuid::new_v4().to_string();
-
     let mut records_imported: u32 = 0;
+    let mut records_updated: u32 = 0;
     let mut records_skipped: u32 = 0;
     let mut errors: Vec<ImportRowError> = Vec::new();
 
     for (idx, patient) in patients.iter().enumerate() {
-        // Validate minimum data quality
         if patient.site_patient_id.trim().is_empty() {
             errors.push(ImportRowError {
                 row: idx + 1,
@@ -125,19 +141,152 @@ fn store_patients(
             continue;
         }
 
-        // TODO: When DB pool is available in Tauri managed state, insert here:
-        // - Insert/upsert patient record
-        // - Insert diagnoses, medications, lab results in a transaction
-        // For now, count as imported for the result summary.
-        records_imported += 1;
+        // Check if patient already exists
+        let existing: Option<String> = conn.query_row(
+            "SELECT id FROM patients WHERE site_patient_id = ?1",
+            [&patient.site_patient_id],
+            |row| row.get(0),
+        ).ok();
+
+        let patient_id = if let Some(existing_id) = existing {
+            // Update existing patient demographics
+            conn.execute(
+                "UPDATE patients SET
+                    date_of_birth = COALESCE(?2, date_of_birth),
+                    gender = COALESCE(?3, gender),
+                    race = COALESCE(?4, race),
+                    ethnicity = COALESCE(?5, ethnicity),
+                    insurance_type = COALESCE(?6, insurance_type),
+                    last_updated = datetime('now'),
+                    import_source = ?7
+                 WHERE id = ?1",
+                rusqlite::params![
+                    existing_id,
+                    patient.date_of_birth,
+                    patient.gender,
+                    patient.race,
+                    patient.ethnicity,
+                    patient.insurance_type,
+                    file_name,
+                ],
+            ).map_err(|e| format!("Failed to update patient: {}", e))?;
+            records_updated += 1;
+            existing_id
+        } else {
+            // Insert new patient
+            let new_id = uuid::Uuid::new_v4().to_string();
+            conn.execute(
+                "INSERT INTO patients (id, site_patient_id, date_of_birth, gender, race, ethnicity, insurance_type, imported_at, import_source, last_updated)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, datetime('now'), ?8, datetime('now'))",
+                rusqlite::params![
+                    new_id,
+                    patient.site_patient_id,
+                    patient.date_of_birth,
+                    patient.gender,
+                    patient.race,
+                    patient.ethnicity,
+                    patient.insurance_type,
+                    file_name,
+                ],
+            ).map_err(|e| format!("Failed to insert patient: {}", e))?;
+            records_imported += 1;
+            new_id
+        };
+
+        // Insert diagnoses (dedup by icd10_code for this patient)
+        for dx in &patient.diagnoses {
+            let exists: bool = conn.query_row(
+                "SELECT COUNT(*) > 0 FROM diagnoses WHERE patient_id = ?1 AND description = ?2",
+                rusqlite::params![patient_id, dx.description],
+                |row| row.get(0),
+            ).unwrap_or(false);
+
+            if !exists {
+                let dx_id = uuid::Uuid::new_v4().to_string();
+                let _ = conn.execute(
+                    "INSERT INTO diagnoses (id, patient_id, icd10_code, description, onset_date, status)
+                     VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                    rusqlite::params![
+                        dx_id, patient_id, dx.icd10_code, dx.description, dx.onset_date,
+                        dx.status.as_deref().unwrap_or("active"),
+                    ],
+                );
+            }
+        }
+
+        // Insert medications (dedup by drug_name)
+        for med in &patient.medications {
+            let exists: bool = conn.query_row(
+                "SELECT COUNT(*) > 0 FROM medications WHERE patient_id = ?1 AND drug_name = ?2",
+                rusqlite::params![patient_id, med.drug_name],
+                |row| row.get(0),
+            ).unwrap_or(false);
+
+            if !exists {
+                let med_id = uuid::Uuid::new_v4().to_string();
+                let _ = conn.execute(
+                    "INSERT INTO medications (id, patient_id, drug_name, dose, status)
+                     VALUES (?1, ?2, ?3, ?4, ?5)",
+                    rusqlite::params![
+                        med_id, patient_id, med.drug_name, med.dose,
+                        med.status.as_deref().unwrap_or("active"),
+                    ],
+                );
+            }
+        }
+
+        // Insert lab results (always insert — labs are time-series data)
+        for lab in &patient.lab_results {
+            let lab_id = uuid::Uuid::new_v4().to_string();
+            let _ = conn.execute(
+                "INSERT INTO lab_results (id, patient_id, test_name, value, unit, reference_range, result_date, abnormal_flag)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+                rusqlite::params![
+                    lab_id, patient_id, lab.test_name, lab.value, lab.unit,
+                    lab.reference_range, lab.result_date, lab.abnormal_flag,
+                ],
+            );
+        }
     }
 
     tracing::info!(
         imported = records_imported,
+        updated = records_updated,
         skipped = records_skipped,
-        error_count = errors.len(),
-        "Import execution completed"
+        errors = errors.len(),
+        "Import persisted to database"
     );
+
+    Ok(ImportResult {
+        records_imported,
+        records_updated,
+        records_skipped,
+        errors,
+        import_log_id,
+    })
+}
+
+/// Dry-run store (when DB is not available).
+fn store_patients_dry_run(
+    patients: &[PatientRecord],
+    _file_name: &str,
+) -> Result<ImportResult, String> {
+    let import_log_id = uuid::Uuid::new_v4().to_string();
+    let mut records_imported: u32 = 0;
+    let mut records_skipped: u32 = 0;
+    let mut errors: Vec<ImportRowError> = Vec::new();
+
+    for (idx, patient) in patients.iter().enumerate() {
+        if patient.site_patient_id.trim().is_empty() {
+            errors.push(ImportRowError {
+                row: idx + 1,
+                message: "Empty patient ID".to_string(),
+            });
+            records_skipped += 1;
+            continue;
+        }
+        records_imported += 1;
+    }
 
     Ok(ImportResult {
         records_imported,

@@ -1,5 +1,7 @@
+pub mod analytics;
 pub mod database;
 pub mod import;
+pub mod llm;
 pub mod screening;
 pub mod watcher;
 
