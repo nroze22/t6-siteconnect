@@ -10,56 +10,65 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useAppStore } from "@/stores/use-app-store";
+import { Tooltip } from "@/components/ui/Tooltip";
 import type { NavigationPage } from "@/types";
 
-const navItems: { id: NavigationPage; label: string; hint: string; icon: React.ReactNode }[] = [
+const navItems: { id: NavigationPage; label: string; hint: string; icon: React.ReactNode; shortcut: string }[] = [
   {
     id: "screening",
     label: "Screening",
     hint: "Review patient eligibility",
     icon: <Search className="h-4.5 w-4.5" />,
+    shortcut: "1",
   },
   {
     id: "import",
     label: "Import Data",
     hint: "CSV, FHIR, HL7 files",
     icon: <FileUp className="h-4.5 w-4.5" />,
+    shortcut: "2",
   },
   {
     id: "trials",
     label: "Trial Discovery",
     hint: "Browse & match trials",
     icon: <FlaskConical className="h-4.5 w-4.5" />,
+    shortcut: "3",
   },
   {
     id: "review",
     label: "Review Queue",
     hint: "Decisions & export",
     icon: <ClipboardCheck className="h-4.5 w-4.5" />,
+    shortcut: "4",
   },
   {
     id: "pipeline",
     label: "Enrollment Pipeline",
     hint: "Track patient outreach",
     icon: <GitBranch className="h-4.5 w-4.5" />,
+    shortcut: "5",
   },
   {
     id: "analytics",
     label: "Population Intel",
     hint: "Feasibility & diversity",
     icon: <BarChart3 className="h-4.5 w-4.5" />,
+    shortcut: "6",
   },
   {
     id: "performance",
     label: "Site Performance",
     hint: "Metrics & revenue",
     icon: <TrendingUp className="h-4.5 w-4.5" />,
+    shortcut: "7",
   },
   {
     id: "settings",
     label: "Settings",
     hint: "LLM, database, export",
     icon: <Settings className="h-4.5 w-4.5" />,
+    shortcut: "8",
   },
 ];
 
@@ -108,8 +117,12 @@ export function Sidebar() {
                   {item.hint}
                 </span>
               </div>
-              {isActive && (
+              {isActive ? (
                 <ChevronRight className="h-3 w-3 text-indigo-500/50" />
+              ) : (
+                <kbd className="hidden group-hover:flex h-[18px] items-center rounded bg-white/[0.06] px-1.5 text-[9px] font-medium text-slate-600 ring-1 ring-white/[0.06]">
+                  {item.shortcut}
+                </kbd>
               )}
             </button>
           );
@@ -118,12 +131,14 @@ export function Sidebar() {
 
       {/* Security Footer */}
       <div className="border-t border-border px-4 py-3">
-        <div className="flex items-center gap-2.5 rounded-lg bg-emerald-500/8 px-3 py-2 ring-1 ring-emerald-500/15">
-          <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
-          <span className="text-[11px] font-medium text-emerald-400/90">
-            100% On-Premise
-          </span>
-        </div>
+        <Tooltip content="Zero data leaves this device. HIPAA-ready architecture." side="right">
+          <div className="flex items-center gap-2.5 rounded-lg bg-emerald-500/8 px-3 py-2 ring-1 ring-emerald-500/15">
+            <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
+            <span className="text-[11px] font-medium text-emerald-400/90">
+              100% On-Premise
+            </span>
+          </div>
+        </Tooltip>
         <p className="mt-2 px-1 text-[10px] leading-relaxed text-slate-600">
           All data encrypted on this device. No PHI ever leaves your machine.
         </p>

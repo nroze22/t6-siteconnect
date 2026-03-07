@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useScreeningStore } from "@/stores/use-screening-store";
 import { useAppStore } from "@/stores/use-app-store";
+import { useToast } from "@/components/ui/Toast";
 import { scoreColorClass, formatStatus } from "@/lib/formatters";
 import { buildScreeningCSV, buildDetailedCSV, downloadCSV } from "@/lib/export-csv";
 import type { ReviewStatus } from "@/types";
@@ -48,6 +49,7 @@ export function ReviewQueuePage() {
   const reviewPatient = useScreeningStore((s) => s.reviewPatient);
   const setCurrentPage = useAppStore((s) => s.setCurrentPage);
   const selectPatient = useScreeningStore((s) => s.selectPatient);
+  const toast = useToast();
 
   const [filter, setFilter] = useState<ReviewFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -91,6 +93,7 @@ export function ReviewQueuePage() {
     if (csv) {
       const timestamp = new Date().toISOString().slice(0, 10);
       downloadCSV(csv, `screening-summary-${timestamp}.csv`);
+      toast.success("Summary exported", "Screening summary CSV downloaded");
     }
     setShowExportMenu(false);
   };
@@ -100,6 +103,7 @@ export function ReviewQueuePage() {
     if (csv) {
       const timestamp = new Date().toISOString().slice(0, 10);
       downloadCSV(csv, `screening-detailed-${timestamp}.csv`);
+      toast.success("Detailed export ready", "Full criteria breakdown CSV downloaded");
     }
     setShowExportMenu(false);
   };

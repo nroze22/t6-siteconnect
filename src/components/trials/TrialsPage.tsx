@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   FlaskConical,
   DollarSign,
@@ -18,6 +18,8 @@ import { screenPatientsForStudy } from "@/lib/epic-demo-data";
 import { getPatients } from "@/lib/data-provider";
 import { useScreeningStore } from "@/stores/use-screening-store";
 import { useAppStore } from "@/stores/use-app-store";
+import { useAnimatedCurrency } from "@/hooks/use-animated-number";
+import { useToast } from "@/components/ui/Toast";
 import type { Study } from "@/types";
 
 // Demo curated trial data with financials
@@ -285,10 +287,15 @@ export function TrialsPage() {
   const selectStudy = useScreeningStore((s) => s.selectStudy);
   const setCurrentPage = useAppStore((s) => s.setCurrentPage);
 
+  const toast = useToast();
+
   const handleScreenPatients = async (studyId: string) => {
     const parsed = await getPatients();
     const screening = screenPatientsForStudy(parsed, studyId);
-    if (screening.length === 0) return;
+    if (screening.length === 0) {
+      toast.warning("No patients to screen", "Import patient data first");
+      return;
+    }
     setPatients(screening.map((s) => s.summary));
     for (const s of screening) {
       setScreeningResult(s.summary.id, s.result);
@@ -296,6 +303,8 @@ export function TrialsPage() {
     }
     selectStudy(studyId);
     setCurrentPage("screening");
+    const eligible = screening.filter((s) => s.summary.overallStatus === "eligible").length;
+    toast.success(`Screened ${screening.length} patients`, `${eligible} eligible for enrollment`);
   };
 
   const areas = ["all", ...new Set(DEMO_STUDIES.map((s) => s.therapeuticArea))];
@@ -308,8 +317,9 @@ export function TrialsPage() {
     return true;
   }).sort((a, b) => (b.eligibleCount * (b.estimatedPerPatientValueCents ?? 0)) - (a.eligibleCount * (a.estimatedPerPatientValueCents ?? 0)));
 
-  const totalOpportunity = DEMO_STUDIES.reduce((sum, s) => sum + Math.round(s.eligibleCount * (s.estimatedPerPatientValueCents ?? 0) * 0.3), 0);
-  const totalEligible = DEMO_STUDIES.reduce((sum, s) => sum + s.eligibleCount, 0);
+  const totalOpportunity = useMemo(() => DEMO_STUDIES.reduce((sum, s) => sum + Math.round(s.eligibleCount * (s.estimatedPerPatientValueCents ?? 0) * 0.3), 0), []);
+  const totalEligible = useMemo(() => DEMO_STUDIES.reduce((sum, s) => sum + s.eligibleCount, 0), []);
+  const animatedRevenue = useAnimatedCurrency(totalOpportunity, 1200);
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-background">
@@ -340,7 +350,7 @@ export function TrialsPage() {
             <DollarSign className="h-5 w-5 text-emerald-400" />
             <div>
               <p className="text-[10px] font-medium text-emerald-400/60">Total Revenue Opportunity</p>
-              <p className="text-xl font-black tabular-nums text-emerald-400">{formatCurrencyCompact(totalOpportunity)}</p>
+              <p className="text-xl font-black tabular-nums text-emerald-400">{animatedRevenue}</p>
             </div>
           </div>
           <div className="flex items-center gap-2.5 rounded-lg bg-blue-500/8 px-4 py-2.5 ring-1 ring-blue-500/15">

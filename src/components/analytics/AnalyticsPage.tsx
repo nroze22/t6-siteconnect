@@ -42,6 +42,8 @@ import {
 } from "recharts";
 import { getPatients } from "@/lib/data-provider";
 import type { ParsedPatient } from "@/lib/epic-demo-data";
+import { SkeletonChart, SkeletonCard } from "@/components/ui/Skeleton";
+import { useAnimatedNumber } from "@/hooks/use-animated-number";
 import {
   runFeasibilityQuery,
   forecastEnrollment,
@@ -65,9 +67,14 @@ const tooltipStyle = {
 export function AnalyticsPage() {
   const [activeTab, setActiveTab] = useState<AnalyticsTab>("feasibility");
   const [patients, setPatients] = useState<ParsedPatient[]>([]);
+  const [loading, setLoading] = useState(true);
+  const animatedCount = useAnimatedNumber(patients.length);
 
   useEffect(() => {
-    getPatients().then(setPatients);
+    getPatients().then((p) => {
+      setPatients(p);
+      setLoading(false);
+    });
   }, []);
 
   const tabs: { id: AnalyticsTab; label: string; icon: React.ReactNode; desc: string }[] = [
@@ -83,7 +90,7 @@ export function AnalyticsPage() {
           <div>
             <h2 className="text-[15px] font-bold text-white">Population Intelligence</h2>
             <p className="text-[12px] text-slate-500">
-              Operational insights derived from your patient data — {patients.length} patients loaded
+              Operational insights derived from your patient data — <span className="tabular-nums">{animatedCount}</span> patients loaded
             </p>
           </div>
           <div className="flex items-center gap-1 rounded-lg bg-emerald-500/8 px-3 py-1.5 ring-1 ring-emerald-500/15">
@@ -118,9 +125,19 @@ export function AnalyticsPage() {
 
       {/* Tab content */}
       <div className="flex-1 overflow-y-auto p-6">
-        {activeTab === "feasibility" && <FeasibilityTab patients={patients} />}
-        {activeTab === "trajectory" && <TrajectoryTab patients={patients} />}
-        {activeTab === "diversity" && <DiversityTab patients={patients} />}
+        {loading ? (
+          <div className="grid grid-cols-2 gap-4">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonChart className="col-span-2" />
+          </div>
+        ) : (
+          <>
+            {activeTab === "feasibility" && <FeasibilityTab patients={patients} />}
+            {activeTab === "trajectory" && <TrajectoryTab patients={patients} />}
+            {activeTab === "diversity" && <DiversityTab patients={patients} />}
+          </>
+        )}
       </div>
     </div>
   );

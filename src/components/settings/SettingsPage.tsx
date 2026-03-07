@@ -46,6 +46,7 @@ import {
   type LlmStatus,
   type AuditEntry,
 } from "@/lib/data-provider";
+import { useToast } from "@/components/ui/Toast";
 
 export function SettingsPage() {
   return (
@@ -461,11 +462,18 @@ function AuditTrailPanel() {
     getAuditTrail().then(setEntries);
   }, []);
 
+  const toast = useToast();
+
   const handleVerify = useCallback(async () => {
     setVerifying(true);
     const result = await verifyAuditChain();
     setChainStatus(result);
     setVerifying(false);
+    if (result.valid) {
+      toast.success("Chain integrity verified", `${result.count} entries validated`);
+    } else {
+      toast.error("Chain integrity check failed", result.error);
+    }
   }, []);
 
   const handleExport = useCallback(async () => {
@@ -512,6 +520,7 @@ function AuditTrailPanel() {
       a.download = `siteconnect-audit-trail-${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
+      toast.success("Audit trail exported", "21 CFR Part 11 compliant CSV downloaded");
     } finally {
       setExporting(false);
     }

@@ -31,6 +31,7 @@ import {
 } from "@/lib/epic-demo-data";
 import { useScreeningStore } from "@/stores/use-screening-store";
 import { useAppStore } from "@/stores/use-app-store";
+import { useToast } from "@/components/ui/Toast";
 import { isTauri } from "@/lib/tauri";
 import {
   previewRealFile,
@@ -142,6 +143,7 @@ export function ImportPage() {
   const selectStudy = useScreeningStore((s) => s.selectStudy);
   const setAppStatus = useAppStore((s) => s.setStatus);
   const setCurrentPage = useAppStore((s) => s.setCurrentPage);
+  const toast = useToast();
 
   // Handle file selection — auto-detect Epic format
   const handleFileSelected = useCallback(async (file: SelectedFile) => {
@@ -256,9 +258,11 @@ export function ImportPage() {
             errors: result.errors.map((e) => `Row ${e.row}: ${e.message}`),
           });
           setStep("complete");
+          toast.success(`Imported ${result.records_imported} patients`, result.records_updated > 0 ? `${result.records_updated} records updated` : undefined);
           return;
         } catch (err) {
           setImportError(err instanceof Error ? err.message : String(err));
+          toast.error("Import failed", err instanceof Error ? err.message : String(err));
           // Fall through to demo mode
         }
       }
@@ -319,6 +323,7 @@ export function ImportPage() {
         ],
       });
       setStep("complete");
+      toast.success(`Imported ${uniquePatients} patients`, `${eligibleCount} pre-screened as eligible`);
     };
 
     runImport();

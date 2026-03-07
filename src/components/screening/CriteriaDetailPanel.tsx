@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import {
   CheckCircle2,
   XCircle,
@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { useScreeningStore } from "@/stores/use-screening-store";
 import { useAppStore } from "@/stores/use-app-store";
+import { useToast } from "@/components/ui/Toast";
+import { Tooltip } from "@/components/ui/Tooltip";
 import { scoreColorClass, formatStatus } from "@/lib/formatters";
 import type { CriterionResult, CriterionResultType, ReviewStatus } from "@/types";
 
@@ -273,6 +275,9 @@ function ReviewActionBar({ patientId, reviewStatus }: { patientId: string; revie
   const patients = useScreeningStore((s) => s.patients);
   const selectPatient = useScreeningStore((s) => s.selectPatient);
   const setCurrentPage = useAppStore((s) => s.setCurrentPage);
+  const toast = useToast();
+
+  const currentPatient = patients.find((p) => p.id === patientId);
 
   const reviewProgress = useMemo(() => {
     const reviewed = patients.filter((p) => p.reviewStatus !== "pending").length;
@@ -281,7 +286,6 @@ function ReviewActionBar({ patientId, reviewStatus }: { patientId: string; revie
 
   const nextPendingPatient = useMemo(() => {
     const currentIdx = patients.findIndex((p) => p.id === patientId);
-    // Look forward first, then wrap around
     for (let i = currentIdx + 1; i < patients.length; i++) {
       if (patients[i]?.reviewStatus === "pending") return patients[i];
     }
@@ -293,7 +297,31 @@ function ReviewActionBar({ patientId, reviewStatus }: { patientId: string; revie
 
   const handleReview = (status: ReviewStatus) => {
     reviewPatient(patientId, status);
+    const pid = currentPatient?.sitePatientId ?? patientId;
+    if (status === "accepted") {
+      toast.success(`Patient ${pid} accepted`, `${reviewProgress.pending - 1} remaining`);
+    } else if (status === "rejected") {
+      toast.error(`Patient ${pid} rejected`, `${reviewProgress.pending - 1} remaining`);
+    } else if (status === "deferred") {
+      toast.warning(`Patient ${pid} deferred`, "Will revisit later");
+    }
   };
+
+  // Keyboard shortcuts: A=Accept, R=Reject, D=Defer
+  useEffect(() => {
+    if (reviewStatus !== "pending") return;
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      if (e.key === "a" || e.key === "A") { e.preventDefault(); handleReview("accepted"); }
+      else if (e.key === "r" || e.key === "R") { e.preventDefault(); handleReview("rejected"); }
+      else if (e.key === "d" || e.key === "D") { e.preventDefault(); handleReview("deferred"); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  });
 
   const handleNextPatient = () => {
     if (nextPendingPatient) {
@@ -404,27 +432,33 @@ function ReviewActionBar({ patientId, reviewStatus }: { patientId: string; revie
         </div>
       )}
       <div className="flex gap-2">
-        <button
-          onClick={() => handleReview("accepted")}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 py-2.5 text-[12px] font-semibold text-white shadow-sm transition-all hover:bg-emerald-500 hover:shadow-emerald-500/20"
-        >
-          <Check className="h-3.5 w-3.5" />
-          Accept
-        </button>
-        <button
-          onClick={() => handleReview("rejected")}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-red-600 py-2.5 text-[12px] font-semibold text-white shadow-sm transition-all hover:bg-red-500 hover:shadow-red-500/20"
-        >
-          <XIcon className="h-3.5 w-3.5" />
-          Reject
-        </button>
-        <button
-          onClick={() => handleReview("deferred")}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-amber-600 py-2.5 text-[12px] font-semibold text-white shadow-sm transition-all hover:bg-amber-500 hover:shadow-amber-500/20"
-        >
-          <Clock className="h-3.5 w-3.5" />
-          Defer
-        </button>
+        <Tooltip content="Accept this patient" shortcut="A" side="top">
+          <button
+            onClick={() => handleReview("accepted")}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 py-2.5 text-[12px] font-semibold text-white shadow-sm transition-all hover:bg-emerald-500 hover:shadow-emerald-500/20 active:scale-[0.97]"
+          >
+            <Check className="h-3.5 w-3.5" />
+            Accept
+          </button>
+        </Tooltip>
+        <Tooltip content="Reject this patient" shortcut="R" side="top">
+          <button
+            onClick={() => handleReview("rejected")}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-red-600 py-2.5 text-[12px] font-semibold text-white shadow-sm transition-all hover:bg-red-500 hover:shadow-red-500/20 active:scale-[0.97]"
+          >
+            <XIcon className="h-3.5 w-3.5" />
+            Reject
+          </button>
+        </Tooltip>
+        <Tooltip content="Defer for later review" shortcut="D" side="top">
+          <button
+            onClick={() => handleReview("deferred")}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-amber-600 py-2.5 text-[12px] font-semibold text-white shadow-sm transition-all hover:bg-amber-500 hover:shadow-amber-500/20 active:scale-[0.97]"
+          >
+            <Clock className="h-3.5 w-3.5" />
+            Defer
+          </button>
+        </Tooltip>
       </div>
     </div>
   );

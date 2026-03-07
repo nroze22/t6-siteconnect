@@ -122,8 +122,50 @@
     transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Butter-smooth hover transitions */
+  /* Butter-smooth hover transitions + micro press feedback */
   button, a, [role="tab"] {
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  button:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  /* Tooltip fade-in */
+  @keyframes tooltip-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* Shimmer animation for skeleton loaders */
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* Subtle pulse for live indicators */
+  @keyframes live-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  .animate-live-pulse {
+    animation: live-pulse 2s ease-in-out infinite;
+  }
+
+  /* Number count-up flash */
+  @keyframes number-highlight {
+    0% { color: #6366f1; }
+    100% { color: inherit; }
+  }
+
+  /* Focus ring for accessibility */
+  *:focus-visible {
+    outline: 2px solid rgba(99, 102, 241, 0.5);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Smooth tooltip arrows */
+  [data-tooltip] {
+    position: relative;
   }
 }
