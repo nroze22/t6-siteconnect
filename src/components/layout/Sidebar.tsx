@@ -37,8 +37,8 @@ const navItems: { id: NavigationPage; label: string; hint: string; icon: React.R
   },
   {
     id: "analytics",
-    label: "Analytics",
-    hint: "Population insights",
+    label: "Population Intel",
+    hint: "Feasibility & diversity",
     icon: <BarChart3 className="h-4.5 w-4.5" />,
   },
   {

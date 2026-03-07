@@ -20,8 +20,8 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
     subtitle: "Review screening decisions and export results",
   },
   analytics: {
-    title: "Population Analytics",
-    subtitle: "Insights across your screened patient cohort",
+    title: "Population Intelligence",
+    subtitle: "Feasibility, lab trajectories, and diversity analytics",
   },
   settings: {
     title: "Settings",

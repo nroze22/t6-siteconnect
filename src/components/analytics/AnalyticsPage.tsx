@@ -1,13 +1,20 @@
+import { useState, useMemo } from "react";
 import {
   BarChart3,
   TrendingUp,
-  PieChart,
   Users,
   Activity,
   Brain,
-  Stethoscope,
-  Pill,
-  Heart,
+  Target,
+  Sparkles,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  Download,
+  Calculator,
+  Eye,
+  Gauge,
+  ShieldCheck,
 } from "lucide-react";
 import {
   BarChart,
@@ -20,52 +27,21 @@ import {
   PieChart as RePieChart,
   Pie,
   Cell,
+  AreaChart,
+  Area,
 } from "recharts";
+import { parseEpicRows } from "@/lib/epic-demo-data";
+import {
+  runFeasibilityQuery,
+  forecastEnrollment,
+  findPatientsApproachingThreshold,
+  computeDiversityProfile,
+  PRESET_QUERIES,
+  LAB_THRESHOLD_PRESETS,
+  type EnrollmentForecast,
+} from "@/lib/population-analytics";
 
-const diseasePrevalence = [
-  { name: "Hypertension", count: 342, icd10: "I10" },
-  { name: "Type 2 Diabetes", count: 278, icd10: "E11" },
-  { name: "Hyperlipidemia", count: 245, icd10: "E78.5" },
-  { name: "NSCLC", count: 89, icd10: "C34" },
-  { name: "Heart Failure", count: 76, icd10: "I50" },
-  { name: "COPD", count: 67, icd10: "J44" },
-  { name: "Breast Cancer", count: 54, icd10: "C50" },
-  { name: "Atrial Fib", count: 48, icd10: "I48" },
-  { name: "CKD", count: 43, icd10: "N18" },
-  { name: "Depression", count: 39, icd10: "F33" },
-];
-
-const ageDistribution = [
-  { range: "18-30", count: 45 },
-  { range: "31-40", count: 89 },
-  { range: "41-50", count: 156 },
-  { range: "51-60", count: 234 },
-  { range: "61-70", count: 215 },
-  { range: "71-80", count: 112 },
-  { range: "80+", count: 49 },
-];
-
-const genderData = [
-  { name: "Female", value: 486, color: "#ec4899" },
-  { name: "Male", value: 401, color: "#3b82f6" },
-  { name: "Other", value: 13, color: "#a78bfa" },
-];
-
-const insuranceMix = [
-  { name: "Commercial", value: 412, color: "#3b82f6" },
-  { name: "Medicare", value: 298, color: "#10b981" },
-  { name: "Medicaid", value: 112, color: "#f59e0b" },
-  { name: "Uninsured", value: 45, color: "#ef4444" },
-  { name: "Other", value: 33, color: "#8b5cf6" },
-];
-
-const researchCapacity = [
-  { area: "Oncology", eligible: 143, studies: 4, opportunity: "$892K" },
-  { area: "Cardiology", eligible: 124, studies: 3, opportunity: "$558K" },
-  { area: "Metabolic", eligible: 278, studies: 2, opportunity: "$421K" },
-  { area: "Neurology", eligible: 39, studies: 1, opportunity: "$175K" },
-  { area: "Immunology", eligible: 67, studies: 2, opportunity: "$312K" },
-];
+type AnalyticsTab = "feasibility" | "trajectory" | "diversity";
 
 const tooltipStyle = {
   backgroundColor: "#1a1f2e",
@@ -75,7 +51,602 @@ const tooltipStyle = {
   color: "#e2e8f0",
 };
 
-function StatCard({ icon, label, value, subtext, color }: {
+export function AnalyticsPage() {
+  const [activeTab, setActiveTab] = useState<AnalyticsTab>("feasibility");
+  const patients = useMemo(() => parseEpicRows(), []);
+
+  const tabs: { id: AnalyticsTab; label: string; icon: React.ReactNode; desc: string }[] = [
+    { id: "feasibility", label: "Protocol Feasibility", icon: <Calculator className="h-4 w-4" />, desc: "Can you run this study?" },
+    { id: "trajectory", label: "Lab Trajectories", icon: <TrendingUp className="h-4 w-4" />, desc: "Patients becoming eligible" },
+    { id: "diversity", label: "Diversity Profile", icon: <Users className="h-4 w-4" />, desc: "FDA diversity compliance" },
+  ];
+
+  return (
+    <div className="flex h-full flex-col overflow-hidden bg-background">
+      <div className="shrink-0 border-b border-border bg-card/50 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-[15px] font-bold text-white">Population Intelligence</h2>
+            <p className="text-[12px] text-slate-500">
+              Operational insights derived from your patient data — {patients.length} patients loaded
+            </p>
+          </div>
+          <div className="flex items-center gap-1 rounded-lg bg-emerald-500/8 px-3 py-1.5 ring-1 ring-emerald-500/15">
+            <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[11px] font-medium text-emerald-400">Live from your data</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Tab bar */}
+      <div className="shrink-0 border-b border-border px-6 py-2">
+        <div className="flex gap-1">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-[12px] font-medium transition-all ${
+                activeTab === tab.id
+                  ? "bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-500/25"
+                  : "text-slate-500 hover:bg-white/[0.04] hover:text-slate-300"
+              }`}
+            >
+              <span className={activeTab === tab.id ? "text-indigo-400" : ""}>{tab.icon}</span>
+              {tab.label}
+              <span className={`text-[10px] ${activeTab === tab.id ? "text-indigo-400/60" : "text-slate-600"}`}>
+                {tab.desc}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Tab content */}
+      <div className="flex-1 overflow-y-auto p-6">
+        {activeTab === "feasibility" && <FeasibilityTab patients={patients} />}
+        {activeTab === "trajectory" && <TrajectoryTab patients={patients} />}
+        {activeTab === "diversity" && <DiversityTab patients={patients} />}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// TAB 1: PROTOCOL FEASIBILITY CALCULATOR
+// ============================================================
+
+function FeasibilityTab({ patients }: { patients: ReturnType<typeof parseEpicRows> }) {
+  const [selectedQueryId, setSelectedQueryId] = useState(PRESET_QUERIES[0]!.id);
+  const [forecast, setForecast] = useState<EnrollmentForecast | null>(null);
+
+  const selectedQuery = PRESET_QUERIES.find((q) => q.id === selectedQueryId) ?? PRESET_QUERIES[0]!;
+
+  const result = useMemo(
+    () => runFeasibilityQuery(patients, selectedQuery),
+    [patients, selectedQuery],
+  );
+
+  const handleForecast = () => {
+    const fc = forecastEnrollment(patients, result.matchingPatients, selectedQuery.name, 20);
+    setForecast(fc);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Query selector */}
+      <div className="flex items-center gap-3">
+        <Target className="h-5 w-5 text-indigo-400" />
+        <h3 className="text-[14px] font-bold text-white">Select Protocol Template</h3>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        {PRESET_QUERIES.map((q) => (
+          <button
+            key={q.id}
+            onClick={() => { setSelectedQueryId(q.id); setForecast(null); }}
+            className={`rounded-lg border p-3 text-left transition-all ${
+              selectedQueryId === q.id
+                ? "border-indigo-500/30 bg-indigo-500/10 ring-1 ring-indigo-500/20"
+                : "border-white/[0.06] bg-card hover:border-white/[0.1]"
+            }`}
+          >
+            <p className={`text-[12px] font-semibold ${selectedQueryId === q.id ? "text-indigo-300" : "text-slate-200"}`}>
+              {q.name}
+            </p>
+            <p className="mt-0.5 text-[10px] text-slate-500">
+              {q.criteria.length} criteria
+            </p>
+          </button>
+        ))}
+      </div>
+
+      {/* Results */}
+      <div className="grid grid-cols-4 gap-3">
+        <ResultCard
+          icon={<Users className="h-4 w-4 text-blue-400" />}
+          label="Total Population"
+          value={String(result.totalPatients)}
+          color="bg-blue-500/10 ring-1 ring-blue-500/20"
+        />
+        <ResultCard
+          icon={<CheckCircle2 className="h-4 w-4 text-emerald-400" />}
+          label="Matching Patients"
+          value={String(result.matchingPatients)}
+          subtext={`${(result.matchRate * 100).toFixed(1)}% match rate`}
+          color="bg-emerald-500/10 ring-1 ring-emerald-500/20"
+        />
+        <ResultCard
+          icon={<Gauge className="h-4 w-4 text-amber-400" />}
+          label="Avg Age (Matched)"
+          value={result.demographics.avgAge > 0 ? `${result.demographics.avgAge}y` : "—"}
+          color="bg-amber-500/10 ring-1 ring-amber-500/20"
+        />
+        <ResultCard
+          icon={<Activity className="h-4 w-4 text-purple-400" />}
+          label="Gender Split"
+          value={result.demographics.avgAge > 0
+            ? `${result.demographics.genderSplit.male}M / ${result.demographics.genderSplit.female}F`
+            : "—"}
+          color="bg-purple-500/10 ring-1 ring-purple-500/20"
+        />
+      </div>
+
+      {/* Criterion breakdown */}
+      <div className="rounded-xl border border-white/[0.06] bg-card p-4">
+        <h4 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
+          <BarChart3 className="h-4 w-4 text-indigo-400" />
+          Criterion-by-Criterion Feasibility
+        </h4>
+        <p className="mt-1 text-[11px] text-slate-500">
+          See which criteria are the bottleneck — this is what you'd show to a sponsor.
+        </p>
+        <div className="mt-4 space-y-2.5">
+          {result.criterionBreakdown.map((cb, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <span className="w-48 shrink-0 text-[12px] text-slate-300">{cb.criterion}</span>
+              <div className="flex-1">
+                <div className="h-5 w-full overflow-hidden rounded-full bg-white/[0.04]">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-400 transition-all duration-500"
+                    style={{ width: `${cb.matchRate * 100}%` }}
+                  />
+                </div>
+              </div>
+              <span className="w-16 shrink-0 text-right text-[12px] font-bold tabular-nums text-slate-200">
+                {cb.matchCount}
+              </span>
+              <span className="w-12 shrink-0 text-right text-[10px] tabular-nums text-slate-500">
+                {(cb.matchRate * 100).toFixed(0)}%
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Enrollment Forecast */}
+      <div className="rounded-xl border border-white/[0.06] bg-card p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h4 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
+              <TrendingUp className="h-4 w-4 text-emerald-400" />
+              Enrollment Forecast
+            </h4>
+            <p className="mt-0.5 text-[11px] text-slate-500">
+              Project how quickly you could enroll based on your patient volume.
+            </p>
+          </div>
+          {!forecast && (
+            <button
+              onClick={handleForecast}
+              disabled={result.matchingPatients === 0}
+              className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-emerald-500 disabled:opacity-40"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              Generate Forecast
+            </button>
+          )}
+        </div>
+
+        {forecast && (
+          <div className="mt-4 space-y-4">
+            <div className="grid grid-cols-4 gap-3">
+              <MiniStat label="Monthly Enrollment" value={`~${forecast.estimatedMonthlyEnrollment}/mo`} />
+              <MiniStat label="Time to Target (20)" value={`${forecast.projectedMonths} months`} />
+              <MiniStat label="Consent Rate" value={`${(forecast.consentRate * 100).toFixed(0)}%`} />
+              <MiniStat label="Screen Failure Rate" value={`${(forecast.screenFailureRate * 100).toFixed(0)}%`} />
+            </div>
+            <div className="h-52">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={forecast.projectedTimeline}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                  <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#94a3b8" }} />
+                  <YAxis tick={{ fontSize: 10, fill: "#64748b" }} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Area type="monotone" dataKey="target" stroke="rgba(239,68,68,0.3)" fill="rgba(239,68,68,0.05)" strokeDasharray="4 4" name="Target" />
+                  <Area type="monotone" dataKey="cumulative" stroke="#10b981" fill="rgba(16,185,129,0.15)" name="Projected" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// TAB 2: LAB TRAJECTORIES
+// ============================================================
+
+function TrajectoryTab({ patients }: { patients: ReturnType<typeof parseEpicRows> }) {
+  const [selectedPreset, setSelectedPreset] = useState(LAB_THRESHOLD_PRESETS[0]!.id);
+  const preset = LAB_THRESHOLD_PRESETS.find((p) => p.id === selectedPreset) ?? LAB_THRESHOLD_PRESETS[0]!;
+
+  const trajectoryGroup = useMemo(
+    () => findPatientsApproachingThreshold(patients, preset.labName, preset.threshold, preset.direction, 25),
+    [patients, preset],
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <TrendingUp className="h-5 w-5 text-amber-400" />
+        <div>
+          <h3 className="text-[14px] font-bold text-white">Patients Approaching Eligibility</h3>
+          <p className="text-[11px] text-slate-500">
+            These patients are near a lab threshold — they may become eligible soon with natural disease progression.
+          </p>
+        </div>
+      </div>
+
+      {/* Threshold selector */}
+      <div className="grid grid-cols-3 gap-2">
+        {LAB_THRESHOLD_PRESETS.map((p) => (
+          <button
+            key={p.id}
+            onClick={() => setSelectedPreset(p.id)}
+            className={`rounded-lg border p-3 text-left transition-all ${
+              selectedPreset === p.id
+                ? "border-amber-500/30 bg-amber-500/10 ring-1 ring-amber-500/20"
+                : "border-white/[0.06] bg-card hover:border-white/[0.1]"
+            }`}
+          >
+            <p className={`text-[12px] font-semibold ${selectedPreset === p.id ? "text-amber-300" : "text-slate-200"}`}>
+              {p.name}
+            </p>
+            <p className="mt-0.5 text-[10px] text-slate-500">{p.trialContext}</p>
+          </button>
+        ))}
+      </div>
+
+      {/* Results */}
+      <div className="grid grid-cols-3 gap-3">
+        <ResultCard
+          icon={<Eye className="h-4 w-4 text-amber-400" />}
+          label="Approaching Threshold"
+          value={String(trajectoryGroup.patients.length)}
+          subtext={`within 25% of ${preset.labName} ${preset.direction === "above" ? "≥" : "≤"} ${preset.threshold}`}
+          color="bg-amber-500/10 ring-1 ring-amber-500/20"
+        />
+        <ResultCard
+          icon={<Clock className="h-4 w-4 text-blue-400" />}
+          label="Closest Patient"
+          value={trajectoryGroup.patients[0]
+            ? `${trajectoryGroup.patients[0].distanceToThreshold.toFixed(1)} ${preset.unit} away`
+            : "—"}
+          color="bg-blue-500/10 ring-1 ring-blue-500/20"
+        />
+        <ResultCard
+          icon={<TrendingUp className="h-4 w-4 text-emerald-400" />}
+          label="Avg. Time to Threshold"
+          value={trajectoryGroup.patients[0]?.estimatedWeeksToThreshold
+            ? `~${Math.round(trajectoryGroup.patients.reduce((s, p) => s + (p.estimatedWeeksToThreshold ?? 0), 0) / trajectoryGroup.patients.length)} weeks`
+            : "—"}
+          color="bg-emerald-500/10 ring-1 ring-emerald-500/20"
+        />
+      </div>
+
+      {/* Patient watchlist */}
+      {trajectoryGroup.patients.length > 0 ? (
+        <div className="rounded-xl border border-white/[0.06] bg-card overflow-hidden">
+          <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
+            <h4 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
+              <AlertTriangle className="h-4 w-4 text-amber-400" />
+              Watchlist — Schedule Re-screening
+            </h4>
+            <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400 ring-1 ring-amber-500/20">
+              {trajectoryGroup.patients.length} patients
+            </span>
+          </div>
+          <table className="w-full text-[12px]">
+            <thead>
+              <tr className="bg-white/[0.02] text-[10px] uppercase tracking-wider text-slate-500">
+                <th className="px-4 py-2.5 text-left font-semibold">Patient</th>
+                <th className="px-4 py-2.5 text-left font-semibold">Lab</th>
+                <th className="px-4 py-2.5 text-right font-semibold">Current</th>
+                <th className="px-4 py-2.5 text-center font-semibold">Threshold</th>
+                <th className="px-4 py-2.5 text-right font-semibold">Distance</th>
+                <th className="px-4 py-2.5 text-right font-semibold">Proximity</th>
+                <th className="px-4 py-2.5 text-right font-semibold">Est. Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {trajectoryGroup.patients.map((tp) => (
+                <tr key={tp.mrn} className="border-t border-white/[0.03] hover:bg-white/[0.02]">
+                  <td className="px-4 py-2.5">
+                    <p className="font-semibold font-mono text-slate-200">{tp.mrn}</p>
+                    <p className="text-[10px] text-slate-500">{tp.name}</p>
+                  </td>
+                  <td className="px-4 py-2.5 text-slate-400">{tp.labName}</td>
+                  <td className="px-4 py-2.5 text-right font-mono font-bold text-slate-200">
+                    {tp.currentValue} <span className="text-[10px] font-normal text-slate-500">{tp.unit}</span>
+                  </td>
+                  <td className="px-4 py-2.5 text-center">
+                    <span className="rounded-md bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold text-slate-400 ring-1 ring-white/[0.06]">
+                      {tp.direction === "rising" ? "≥" : "≤"} {tp.threshold}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2.5 text-right font-mono text-amber-400">
+                    {tp.distanceToThreshold.toFixed(1)}
+                  </td>
+                  <td className="px-4 py-2.5 text-right">
+                    <div className="inline-flex items-center gap-1.5">
+                      <div className="h-1.5 w-16 overflow-hidden rounded-full bg-white/[0.06]">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-amber-500 to-emerald-500"
+                          style={{ width: `${Math.min(tp.percentToThreshold, 100)}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] tabular-nums text-slate-400">{tp.percentToThreshold.toFixed(0)}%</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-2.5 text-right text-slate-400">
+                    {tp.estimatedWeeksToThreshold ? `~${tp.estimatedWeeksToThreshold}w` : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-white/[0.06] bg-card p-8 text-center">
+          <CheckCircle2 className="mx-auto h-8 w-8 text-emerald-400/50" />
+          <p className="mt-3 text-[13px] font-semibold text-slate-300">No patients approaching this threshold</p>
+          <p className="mt-1 text-[11px] text-slate-500">
+            No patients have {preset.labName} values within 25% of the {preset.threshold} {preset.unit} threshold.
+          </p>
+        </div>
+      )}
+
+      {/* Insight */}
+      <div className="rounded-xl border border-indigo-500/15 bg-indigo-500/5 p-4">
+        <div className="flex items-center gap-2">
+          <Brain className="h-4 w-4 text-indigo-400" />
+          <span className="text-[12px] font-bold text-indigo-300">Why this matters</span>
+        </div>
+        <p className="mt-2 text-[12px] leading-relaxed text-slate-400">
+          Patients near eligibility thresholds represent your future pipeline. By monitoring lab trajectories,
+          you can proactively schedule follow-up visits and labs at the right time — turning "almost eligible"
+          patients into enrolled subjects without missing the window. This is predictive enrollment that
+          no other site tool provides.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// TAB 3: DIVERSITY DASHBOARD
+// ============================================================
+
+function DiversityTab({ patients }: { patients: ReturnType<typeof parseEpicRows> }) {
+  const profile = useMemo(() => computeDiversityProfile(patients), [patients]);
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <ShieldCheck className="h-5 w-5 text-emerald-400" />
+          <div>
+            <h3 className="text-[14px] font-bold text-white">Site Diversity Profile</h3>
+            <p className="text-[11px] text-slate-500">
+              FDA diversity action plan compliance — generate a report for sponsor site selection packages.
+            </p>
+          </div>
+        </div>
+        <button className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-[12px] font-medium text-slate-300 hover:bg-white/[0.06]">
+          <Download className="h-3.5 w-3.5" />
+          Export PDF
+        </button>
+      </div>
+
+      {/* Diversity Score + Summary */}
+      <div className="grid grid-cols-4 gap-3">
+        <div className="col-span-1 flex flex-col items-center justify-center rounded-xl border border-white/[0.06] bg-card p-4">
+          <div className="relative flex h-24 w-24 items-center justify-center">
+            <svg className="h-24 w-24 -rotate-90" viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="2.5" />
+              <circle
+                cx="18" cy="18" r="15.9" fill="none"
+                stroke={profile.diversityScore >= 60 ? "#10b981" : profile.diversityScore >= 40 ? "#f59e0b" : "#ef4444"}
+                strokeWidth="2.5"
+                strokeDasharray={`${profile.diversityScore} ${100 - profile.diversityScore}`}
+                strokeLinecap="round"
+              />
+            </svg>
+            <span className="absolute text-2xl font-black text-white">{profile.diversityScore}</span>
+          </div>
+          <p className="mt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Diversity Score</p>
+        </div>
+
+        <div className="col-span-3 rounded-xl border border-white/[0.06] bg-card p-4">
+          <h4 className="flex items-center gap-2 text-[12px] font-bold text-slate-200">
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+            FDA Compliance Assessment
+          </h4>
+          <div className="mt-2.5 space-y-1.5">
+            {profile.fdaComplianceNotes.map((note, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-400" />
+                <p className="text-[11px] leading-relaxed text-slate-400">{note}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Charts Grid */}
+      <div className="grid grid-cols-2 gap-6">
+        {/* Race/Ethnicity */}
+        <div className="rounded-xl border border-white/[0.06] bg-card p-4">
+          <h4 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
+            <Users className="h-4 w-4 text-indigo-400" />
+            Race Distribution
+          </h4>
+          <div className="mt-3 h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={profile.raceBreakdown} layout="vertical" margin={{ left: 120 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis type="number" tick={{ fontSize: 10, fill: "#64748b" }} />
+                <YAxis dataKey="label" type="category" tick={{ fontSize: 10, fill: "#94a3b8" }} width={115} />
+                <Tooltip
+                  contentStyle={tooltipStyle}
+                  formatter={(value) => [`${value} (${((Number(value) / profile.totalPatients) * 100).toFixed(1)}%)`, "Patients"]}
+                />
+                <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                  {profile.raceBreakdown.map((entry) => (
+                    <Cell key={entry.label} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Gender */}
+        <div className="rounded-xl border border-white/[0.06] bg-card p-4">
+          <h4 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
+            <Users className="h-4 w-4 text-indigo-400" />
+            Gender Distribution
+          </h4>
+          <div className="mt-3 h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <RePieChart>
+                <Pie
+                  data={profile.genderBreakdown}
+                  cx="50%" cy="50%"
+                  innerRadius={60} outerRadius={90}
+                  dataKey="count"
+                  label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                  labelLine={false}
+                >
+                  {profile.genderBreakdown.map((entry) => (
+                    <Cell key={entry.label} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={tooltipStyle} />
+              </RePieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Age Distribution */}
+        <div className="rounded-xl border border-white/[0.06] bg-card p-4">
+          <h4 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
+            <BarChart3 className="h-4 w-4 text-indigo-400" />
+            Age Distribution
+          </h4>
+          <div className="mt-3 h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={profile.ageBreakdown}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="range" tick={{ fontSize: 10, fill: "#94a3b8" }} />
+                <YAxis tick={{ fontSize: 10, fill: "#64748b" }} />
+                <Tooltip
+                  contentStyle={tooltipStyle}
+                  formatter={(value) => [`${value} patients (${((Number(value) / profile.totalPatients) * 100).toFixed(1)}%)`, ""]}
+                />
+                <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Insurance Mix */}
+        <div className="rounded-xl border border-white/[0.06] bg-card p-4">
+          <h4 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
+            <Activity className="h-4 w-4 text-indigo-400" />
+            Insurance / Payor Mix
+          </h4>
+          <div className="mt-3 h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <RePieChart>
+                <Pie
+                  data={profile.insuranceBreakdown}
+                  cx="50%" cy="50%"
+                  innerRadius={60} outerRadius={90}
+                  dataKey="count"
+                  label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                  labelLine={false}
+                >
+                  {profile.insuranceBreakdown.map((entry) => (
+                    <Cell key={entry.label} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={tooltipStyle} />
+              </RePieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Ethnicity detail */}
+      <div className="rounded-xl border border-white/[0.06] bg-card p-4">
+        <h4 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
+          <Users className="h-4 w-4 text-indigo-400" />
+          Ethnicity Breakdown
+        </h4>
+        <div className="mt-3 space-y-2">
+          {profile.ethnicityBreakdown.map((e) => (
+            <div key={e.label} className="flex items-center gap-3">
+              <span className="w-36 shrink-0 text-[12px] text-slate-300">{e.label}</span>
+              <div className="flex-1">
+                <div className="h-4 w-full overflow-hidden rounded-full bg-white/[0.04]">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{ width: `${e.percent}%`, backgroundColor: e.color }}
+                  />
+                </div>
+              </div>
+              <span className="w-12 shrink-0 text-right text-[12px] font-bold tabular-nums text-slate-200">{e.count}</span>
+              <span className="w-12 shrink-0 text-right text-[10px] tabular-nums text-slate-500">{e.percent.toFixed(1)}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Sponsor-ready insight */}
+      <div className="rounded-xl border border-indigo-500/15 bg-indigo-500/5 p-4">
+        <div className="flex items-center gap-2">
+          <Brain className="h-4 w-4 text-indigo-400" />
+          <span className="text-[12px] font-bold text-indigo-300">Sponsor Site Selection Advantage</span>
+        </div>
+        <p className="mt-2 text-[12px] leading-relaxed text-slate-400">
+          This diversity profile demonstrates your site's ability to meet FDA diversity action plan requirements.
+          Sites with strong demographic representation are increasingly preferred during site selection.
+          Export this profile as a PDF to include in your site feasibility questionnaire responses — it gives
+          sponsors quantitative proof of your patient diversity before they even visit your site.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// SHARED COMPONENTS
+// ============================================================
+
+function ResultCard({ icon, label, value, subtext, color }: {
   icon: React.ReactNode;
   label: string;
   value: string;
@@ -96,157 +667,11 @@ function StatCard({ icon, label, value, subtext, color }: {
   );
 }
 
-export function AnalyticsPage() {
+function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-background">
-      <div className="border-b border-border bg-card/50 px-6 py-4">
-        <h2 className="text-[15px] font-bold text-white">Population Analytics</h2>
-        <p className="text-[12px] text-slate-500">
-          AI-powered insights about your patient population — operational intelligence you can't get from your EMR.
-        </p>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-6">
-        {/* Summary stats */}
-        <div className="grid grid-cols-5 gap-3">
-          <StatCard icon={<Users className="h-4 w-4 text-blue-400" />} label="Total Patients" value="900" color="bg-blue-500/10 ring-1 ring-blue-500/20" />
-          <StatCard icon={<Stethoscope className="h-4 w-4 text-emerald-400" />} label="Unique Diagnoses" value="347" color="bg-emerald-500/10 ring-1 ring-emerald-500/20" />
-          <StatCard icon={<Pill className="h-4 w-4 text-purple-400" />} label="Active Medications" value="1,284" color="bg-purple-500/10 ring-1 ring-purple-500/20" />
-          <StatCard icon={<Activity className="h-4 w-4 text-amber-400" />} label="Lab Results" value="8,432" color="bg-amber-500/10 ring-1 ring-amber-500/20" />
-          <StatCard icon={<Heart className="h-4 w-4 text-red-400" />} label="Trial-Eligible" value="651" subtext="72% of population" color="bg-red-500/10 ring-1 ring-red-500/20" />
-        </div>
-
-        <div className="mt-6 grid grid-cols-2 gap-6">
-          {/* Disease Prevalence */}
-          <div className="rounded-xl border border-white/[0.06] bg-card p-4">
-            <h3 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
-              <BarChart3 className="h-4 w-4 text-indigo-400" />
-              Disease Prevalence (Top 10)
-            </h3>
-            <div className="mt-3 h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={diseasePrevalence} layout="vertical" margin={{ left: 80 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                  <XAxis type="number" tick={{ fontSize: 10, fill: "#64748b" }} />
-                  <YAxis dataKey="name" type="category" tick={{ fontSize: 10, fill: "#94a3b8" }} width={75} />
-                  <Tooltip contentStyle={tooltipStyle} formatter={(value) => [String(value), "Patients"]} />
-                  <Bar dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Age Distribution */}
-          <div className="rounded-xl border border-white/[0.06] bg-card p-4">
-            <h3 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
-              <TrendingUp className="h-4 w-4 text-indigo-400" />
-              Age Distribution
-            </h3>
-            <div className="mt-3 h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={ageDistribution}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                  <XAxis dataKey="range" tick={{ fontSize: 10, fill: "#94a3b8" }} />
-                  <YAxis tick={{ fontSize: 10, fill: "#64748b" }} />
-                  <Tooltip contentStyle={tooltipStyle} formatter={(value) => [String(value), "Patients"]} />
-                  <Bar dataKey="count" fill="#10b981" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Gender */}
-          <div className="rounded-xl border border-white/[0.06] bg-card p-4">
-            <h3 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
-              <PieChart className="h-4 w-4 text-indigo-400" />
-              Gender Distribution
-            </h3>
-            <div className="mt-3 h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <RePieChart>
-                  <Pie data={genderData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value"
-                    label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`} labelLine={false}>
-                    {genderData.map((entry) => (<Cell key={entry.name} fill={entry.color} />))}
-                  </Pie>
-                  <Tooltip contentStyle={tooltipStyle} />
-                </RePieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Insurance Mix */}
-          <div className="rounded-xl border border-white/[0.06] bg-card p-4">
-            <h3 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
-              <PieChart className="h-4 w-4 text-indigo-400" />
-              Insurance Mix
-            </h3>
-            <div className="mt-3 h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <RePieChart>
-                  <Pie data={insuranceMix} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value"
-                    label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`} labelLine={false}>
-                    {insuranceMix.map((entry) => (<Cell key={entry.name} fill={entry.color} />))}
-                  </Pie>
-                  <Tooltip contentStyle={tooltipStyle} />
-                </RePieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-
-        {/* Research Capacity */}
-        <div className="mt-6 rounded-xl border border-white/[0.06] bg-card p-4">
-          <h3 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
-            <Brain className="h-4 w-4 text-indigo-400" />
-            Research Capacity Assessment
-          </h3>
-          <p className="mt-1 text-[11px] text-slate-500">
-            Based on your patient population, your site has capacity across multiple therapeutic areas.
-          </p>
-          <div className="mt-3 overflow-hidden rounded-lg border border-white/[0.06]">
-            <table className="w-full text-[12px]">
-              <thead>
-                <tr className="bg-white/[0.02]">
-                  <th className="px-4 py-2.5 text-left font-semibold text-slate-400">Therapeutic Area</th>
-                  <th className="px-4 py-2.5 text-right font-semibold text-slate-400">Eligible Patients</th>
-                  <th className="px-4 py-2.5 text-right font-semibold text-slate-400">Matching Studies</th>
-                  <th className="px-4 py-2.5 text-right font-semibold text-slate-400">Revenue Opportunity</th>
-                </tr>
-              </thead>
-              <tbody>
-                {researchCapacity.map((row) => (
-                  <tr key={row.area} className="border-t border-white/[0.04]">
-                    <td className="px-4 py-2.5 font-medium text-slate-200">{row.area}</td>
-                    <td className="px-4 py-2.5 text-right font-mono text-slate-300">{row.eligible}</td>
-                    <td className="px-4 py-2.5 text-right text-slate-300">{row.studies}</td>
-                    <td className="px-4 py-2.5 text-right font-bold text-emerald-400">{row.opportunity}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* AI Insights */}
-        <div className="mt-6 rounded-xl border border-indigo-500/15 bg-indigo-500/5 p-4">
-          <h3 className="flex items-center gap-2 text-[13px] font-bold text-indigo-300">
-            <Brain className="h-4 w-4 text-indigo-400" />
-            AI-Generated Insights
-          </h3>
-          <div className="mt-3 space-y-2">
-            {[
-              "Your site has a strong oncology population with 89 patients with lung cancer diagnoses. 47 of these patients appear to be on first-line therapy, making them potential candidates for second-line checkpoint inhibitor studies.",
-              "The high prevalence of Type 2 Diabetes (278 patients) and Obesity (189 patients with BMI > 30) creates a significant opportunity for GLP-1 receptor agonist trials.",
-              "34% of your heart failure population (26 of 76 patients) have preserved ejection fraction (HFpEF), aligning well with several SGLT2 inhibitor studies currently in recruitment.",
-              "Your patient demographics show strong diversity: 54% female, 18% Black/African American, 12% Hispanic — meeting FDA diversity requirements for multiple therapeutic areas.",
-            ].map((insight, i) => (
-              <div key={i} className="rounded-lg bg-card p-3 text-[12px] leading-relaxed text-slate-300 ring-1 ring-white/[0.06]">
-                {insight}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+    <div className="rounded-lg bg-white/[0.03] p-3 ring-1 ring-white/[0.06]">
+      <p className="text-[10px] font-medium text-slate-500">{label}</p>
+      <p className="mt-0.5 text-[14px] font-bold text-white">{value}</p>
     </div>
   );
 }
