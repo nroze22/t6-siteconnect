@@ -22,6 +22,7 @@ import {
 import { screenPatientsForStudy, STUDY_SCREENING_DEFS } from "@/lib/epic-demo-data";
 import { getPatients } from "@/lib/data-provider";
 import type { ParsedPatient } from "@/lib/epic-demo-data";
+import { SkeletonCard } from "@/components/ui/Skeleton";
 
 // Pipeline stages
 type PipelineStage = "identified" | "contacted" | "interested" | "consented" | "enrolled" | "screen_failed";
@@ -127,10 +128,12 @@ function generatePipelineData(parsed: ParsedPatient[]): PipelinePatient[] {
 
 export function PipelinePage() {
   const [pipelineData, setPipelineData] = useState<PipelinePatient[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     getPatients().then((parsed) => {
       setPipelineData(generatePipelineData(parsed));
+      setLoading(false);
     });
   }, []);
   const [selectedStudy, setSelectedStudy] = useState<string>("all");
@@ -196,8 +199,16 @@ export function PipelinePage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search patients..."
-                className="h-8 w-48 rounded-lg border border-white/[0.06] bg-white/[0.03] pl-8 pr-3 text-[12px] text-slate-200 placeholder-slate-600 focus:border-indigo-500/40 focus:outline-none"
+                className="h-8 w-48 rounded-lg border border-white/[0.06] bg-white/[0.03] pl-8 pr-8 text-[12px] text-slate-200 placeholder-slate-600 focus:border-indigo-500/40 focus:outline-none"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-500 hover:text-slate-300"
+                >
+                  <XCircle className="h-3 w-3" />
+                </button>
+              )}
             </div>
             <select
               value={selectedStudy}
@@ -236,6 +247,16 @@ export function PipelinePage() {
 
       {/* Kanban Board */}
       <div className="flex-1 overflow-x-auto overflow-y-hidden p-4">
+        {loading ? (
+          <div className="flex h-full gap-3">
+            {Array.from({ length: 6 }, (_, i) => (
+              <div key={i} className="flex w-[260px] shrink-0 flex-col rounded-xl bg-white/[0.02] p-3 ring-1 ring-white/[0.04]">
+                <SkeletonCard />
+                <div className="mt-2"><SkeletonCard /></div>
+              </div>
+            ))}
+          </div>
+        ) : (
         <div className="flex h-full gap-3" style={{ minWidth: STAGES_ORDER.length * 280 }}>
           {STAGES_ORDER.map((stage) => {
             const config = STAGE_CONFIG[stage];
@@ -273,6 +294,7 @@ export function PipelinePage() {
             );
           })}
         </div>
+        )}
       </div>
 
       {/* Info Modal */}

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   Check,
   X as XIcon,
@@ -7,20 +7,24 @@ import {
   FileSpreadsheet,
   ClipboardList,
   ChevronDown,
+  ChevronUp,
   Users,
   CheckCircle2,
   XCircle,
   AlertCircle,
   ArrowRight,
+  ArrowUpDown,
   Filter,
   Search,
 } from "lucide-react";
 import { useScreeningStore } from "@/stores/use-screening-store";
 import { useAppStore } from "@/stores/use-app-store";
 import { useToast } from "@/components/ui/Toast";
+import { Tooltip } from "@/components/ui/Tooltip";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { scoreColorClass, formatStatus } from "@/lib/formatters";
 import { buildScreeningCSV, buildDetailedCSV, downloadCSV } from "@/lib/export-csv";
-import type { ReviewStatus } from "@/types";
+import type { ReviewStatus, PatientSummary } from "@/types";
 
 const STUDY_NAMES: Record<string, string> = {
   "study-1": "KEYNOTE-789: Pembro + Chemo in NSCLC",
@@ -32,6 +36,8 @@ const STUDY_NAMES: Record<string, string> = {
 };
 
 type ReviewFilter = ReviewStatus | "all";
+type SortField = "patient" | "score" | "status" | "decision";
+type SortDir = "asc" | "desc";
 
 const filterConfig: { value: ReviewFilter; label: string; icon: React.ReactNode; color: string }[] = [
   { value: "all", label: "All Patients", icon: <Users className="h-3.5 w-3.5" />, color: "text-slate-400" },
@@ -40,6 +46,22 @@ const filterConfig: { value: ReviewFilter; label: string; icon: React.ReactNode;
   { value: "deferred", label: "Deferred", icon: <Clock className="h-3.5 w-3.5" />, color: "text-amber-400" },
   { value: "pending", label: "Pending Review", icon: <AlertCircle className="h-3.5 w-3.5" />, color: "text-blue-400" },
 ];
+
+const statusOrder: Record<string, number> = { eligible: 0, potentially_eligible: 1, needs_review: 2, ineligible: 3 };
+const decisionOrder: Record<string, number> = { accepted: 0, rejected: 1, deferred: 2, pending: 3 };
+
+function sortPatients(patients: PatientSummary[], field: SortField, dir: SortDir): PatientSummary[] {
+  return [...patients].sort((a, b) => {
+    let cmp = 0;
+    switch (field) {
+      case "patient": cmp = a.sitePatientId.localeCompare(b.sitePatientId); break;
+      case "score": cmp = a.score - b.score; break;
+      case "status": cmp = (statusOrder[a.overallStatus] ?? 9) - (statusOrder[b.overallStatus] ?? 9); break;
+      case "decision": cmp = (decisionOrder[a.reviewStatus] ?? 9) - (decisionOrder[b.reviewStatus] ?? 9); break;
+    }
+    return dir === "asc" ? cmp : -cmp;
+  });
+}
 
 export function ReviewQueuePage() {
   const patients = useScreeningStore((s) => s.patients);
@@ -54,24 +76,21 @@ export function ReviewQueuePage() {
   const [filter, setFilter] = useState<ReviewFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [sortField, setSortField] = useState<SortField>("score");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkConfirm, setBulkConfirm] = useState<{ action: ReviewStatus; count: number } | null>(null);
 
   const studyName = selectedStudyId ? (STUDY_NAMES[selectedStudyId] ?? selectedStudyId) : "No Study Selected";
 
   const filteredPatients = useMemo(() => {
-    return patients
-      .filter((p) => {
-        if (filter !== "all" && p.reviewStatus !== filter) return false;
-        if (searchQuery && !p.sitePatientId.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-        return true;
-      })
-      .sort((a, b) => {
-        // Sort by review status: accepted first, then rejected, deferred, pending
-        const order: Record<string, number> = { accepted: 0, rejected: 1, deferred: 2, pending: 3 };
-        const diff = (order[a.reviewStatus] ?? 3) - (order[b.reviewStatus] ?? 3);
-        if (diff !== 0) return diff;
-        return b.score - a.score;
-      });
-  }, [patients, filter, searchQuery]);
+    const filtered = patients.filter((p) => {
+      if (filter !== "all" && p.reviewStatus !== filter) return false;
+      if (searchQuery && !p.sitePatientId.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      return true;
+    });
+    return sortPatients(filtered, sortField, sortDir);
+  }, [patients, filter, searchQuery, sortField, sortDir]);
 
   const counts = useMemo(() => {
     const c = { accepted: 0, rejected: 0, deferred: 0, pending: 0, total: patients.length };
@@ -113,6 +132,56 @@ export function ReviewQueuePage() {
     setCurrentPage("screening");
   };
 
+  const handleSort = useCallback((field: SortField) => {
+    setSortField((prev) => {
+      if (prev === field) {
+        setSortDir((d) => d === "asc" ? "desc" : "asc");
+        return prev;
+      }
+      setSortDir(field === "score" ? "desc" : "asc");
+      return field;
+    });
+  }, []);
+
+  // Select/deselect
+  const toggleSelect = useCallback((id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    if (selected.size === filteredPatients.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filteredPatients.map((p) => p.id)));
+    }
+  }, [selected.size, filteredPatients]);
+
+  // Bulk actions
+  const handleBulkAction = useCallback((action: ReviewStatus) => {
+    const pendingSelected = filteredPatients.filter((p) => selected.has(p.id) && p.reviewStatus === "pending");
+    if (pendingSelected.length === 0) {
+      toast.warning("No pending patients selected", "Bulk actions only apply to pending patients");
+      return;
+    }
+    setBulkConfirm({ action, count: pendingSelected.length });
+  }, [selected, filteredPatients, toast]);
+
+  const executeBulkAction = useCallback(() => {
+    if (!bulkConfirm) return;
+    const pendingSelected = filteredPatients.filter((p) => selected.has(p.id) && p.reviewStatus === "pending");
+    for (const p of pendingSelected) {
+      reviewPatient(p.id, bulkConfirm.action);
+    }
+    const labels: Record<string, string> = { accepted: "accepted", rejected: "rejected", deferred: "deferred" };
+    toast.success(`${pendingSelected.length} patients ${labels[bulkConfirm.action] ?? bulkConfirm.action}`, "Bulk action complete");
+    setSelected(new Set());
+    setBulkConfirm(null);
+  }, [bulkConfirm, filteredPatients, selected, reviewPatient, toast]);
+
   if (patients.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center bg-background p-8 text-center">
@@ -134,6 +203,9 @@ export function ReviewQueuePage() {
     );
   }
 
+  const allSelected = selected.size === filteredPatients.length && filteredPatients.length > 0;
+  const someSelected = selected.size > 0;
+
   return (
     <div className="flex h-full flex-col bg-background">
       {/* Header */}
@@ -141,11 +213,35 @@ export function ReviewQueuePage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-[15px] font-bold text-white">Review Queue</h2>
-            <p className="mt-0.5 text-[11px] text-slate-500">
-              {studyName}
-            </p>
+            <p className="mt-0.5 text-[11px] text-slate-500">{studyName}</p>
           </div>
           <div className="flex items-center gap-3">
+            {/* Bulk actions (visible when selected) */}
+            {someSelected && (
+              <div className="flex items-center gap-1.5 rounded-lg bg-white/[0.04] px-3 py-1.5 ring-1 ring-white/[0.08]">
+                <span className="text-[11px] font-medium text-slate-300 tabular-nums">{selected.size} selected</span>
+                <div className="mx-1.5 h-4 w-px bg-white/[0.08]" />
+                <Tooltip content="Accept selected" side="bottom">
+                  <button onClick={() => handleBulkAction("accepted")} className="rounded-md bg-emerald-600/80 p-1.5 text-white transition-colors hover:bg-emerald-500">
+                    <Check className="h-3 w-3" />
+                  </button>
+                </Tooltip>
+                <Tooltip content="Reject selected" side="bottom">
+                  <button onClick={() => handleBulkAction("rejected")} className="rounded-md bg-red-600/80 p-1.5 text-white transition-colors hover:bg-red-500">
+                    <XIcon className="h-3 w-3" />
+                  </button>
+                </Tooltip>
+                <Tooltip content="Defer selected" side="bottom">
+                  <button onClick={() => handleBulkAction("deferred")} className="rounded-md bg-amber-600/80 p-1.5 text-white transition-colors hover:bg-amber-500">
+                    <Clock className="h-3 w-3" />
+                  </button>
+                </Tooltip>
+                <button onClick={() => setSelected(new Set())} className="ml-1 rounded-md p-1 text-slate-500 hover:text-slate-300">
+                  <XIcon className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+
             {/* Export dropdown */}
             <div className="relative">
               <button
@@ -191,7 +287,6 @@ export function ReviewQueuePage() {
       {/* Progress + Stats Bar */}
       <div className="shrink-0 border-b border-border bg-card/30 px-6 py-3">
         <div className="flex items-center gap-6">
-          {/* Progress */}
           <div className="flex-1">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[11px] font-medium text-slate-400">Review Progress</span>
@@ -204,8 +299,6 @@ export function ReviewQueuePage() {
               />
             </div>
           </div>
-
-          {/* Stat pills */}
           <div className="flex items-center gap-2">
             <StatPill icon={<CheckCircle2 className="h-3 w-3" />} count={counts.accepted} label="Accepted" color="emerald" />
             <StatPill icon={<XCircle className="h-3 w-3" />} count={counts.rejected} label="Rejected" color="red" />
@@ -243,8 +336,16 @@ export function ReviewQueuePage() {
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-44 rounded-md border border-white/[0.06] bg-white/[0.03] py-1.5 pl-8 pr-3 text-[11px] text-slate-200 placeholder-slate-600 focus:border-indigo-500/40 focus:outline-none focus:ring-1 focus:ring-indigo-500/20"
+              className="w-48 rounded-md border border-white/[0.06] bg-white/[0.03] py-1.5 pl-8 pr-8 text-[11px] text-slate-200 placeholder-slate-600 focus:border-indigo-500/40 focus:outline-none focus:ring-1 focus:ring-indigo-500/20"
             />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-500 hover:text-slate-300"
+              >
+                <XIcon className="h-3 w-3" />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -254,94 +355,118 @@ export function ReviewQueuePage() {
         <table className="w-full">
           <thead className="sticky top-0 z-10 bg-[#0e1119]">
             <tr className="border-b border-white/[0.06]">
-              <th className="px-6 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500">Patient</th>
+              {/* Select all */}
+              <th className="w-10 px-4 py-2.5">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={toggleSelectAll}
+                  className="h-3.5 w-3.5 rounded border-white/20 bg-transparent text-indigo-500 focus:ring-indigo-500/30 cursor-pointer"
+                />
+              </th>
+              <SortHeader field="patient" label="Patient" current={sortField} dir={sortDir} onSort={handleSort} align="left" />
               <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500">Diagnosis</th>
-              <th className="px-4 py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-slate-500">Score</th>
+              <SortHeader field="score" label="Score" current={sortField} dir={sortDir} onSort={handleSort} align="center" />
               <th className="px-4 py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-slate-500">Criteria</th>
-              <th className="px-4 py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-slate-500">Status</th>
-              <th className="px-4 py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-slate-500">Decision</th>
+              <SortHeader field="status" label="Status" current={sortField} dir={sortDir} onSort={handleSort} align="center" />
+              <SortHeader field="decision" label="Decision" current={sortField} dir={sortDir} onSort={handleSort} align="center" />
               <th className="px-4 py-2.5 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-500">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredPatients.map((p) => (
-              <tr
-                key={p.id}
-                className="group border-b border-white/[0.03] transition-colors hover:bg-white/[0.02]"
-              >
-                <td className="px-6 py-3">
-                  <p className="text-[12px] font-semibold font-mono text-slate-200">{p.sitePatientId}</p>
-                  <p className="text-[10px] text-slate-500">{p.age}y {p.gender === "male" ? "M" : p.gender === "female" ? "F" : "O"}</p>
-                </td>
-                <td className="px-4 py-3">
-                  <p className="max-w-[200px] truncate text-[11px] text-slate-400">{p.primaryDiagnosis ?? "—"}</p>
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <span className={`inline-block rounded-lg px-2.5 py-1 text-[12px] font-black tabular-nums ${scoreColorClass(p.score)}`}>
-                    {p.score}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <div className="flex items-center justify-center gap-2 text-[10px]">
-                    <span className="text-emerald-400 tabular-nums">{p.inclusionMet}/{p.inclusionTotal} inc</span>
-                    {p.exclusionTriggered > 0 && (
-                      <span className="text-red-400 tabular-nums">{p.exclusionTriggered} exc</span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <span className={`rounded-md px-2 py-0.5 text-[10px] font-semibold ${statusBadgeClass(p.overallStatus)}`}>
-                    {formatStatus(p.overallStatus)}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <DecisionBadge status={p.reviewStatus} />
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center justify-end gap-1">
-                    {p.reviewStatus === "pending" ? (
-                      <>
+            {filteredPatients.map((p) => {
+              const isSelected = selected.has(p.id);
+              return (
+                <tr
+                  key={p.id}
+                  className={`group border-b border-white/[0.03] transition-colors ${isSelected ? "bg-indigo-500/[0.06]" : "hover:bg-white/[0.02]"}`}
+                >
+                  <td className="w-10 px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleSelect(p.id)}
+                      className="h-3.5 w-3.5 rounded border-white/20 bg-transparent text-indigo-500 focus:ring-indigo-500/30 cursor-pointer"
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="text-[12px] font-semibold font-mono text-slate-200">{p.sitePatientId}</p>
+                    <p className="text-[10px] text-slate-500">{p.age}y {p.gender === "male" ? "M" : p.gender === "female" ? "F" : "O"}</p>
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="max-w-[200px] truncate text-[11px] text-slate-400">{p.primaryDiagnosis ?? "—"}</p>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`inline-block rounded-lg px-2.5 py-1 text-[12px] font-black tabular-nums ${scoreColorClass(p.score)}`}>
+                      {p.score}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <div className="flex items-center justify-center gap-2 text-[10px]">
+                      <span className="text-emerald-400 tabular-nums">{p.inclusionMet}/{p.inclusionTotal} inc</span>
+                      {p.exclusionTriggered > 0 && (
+                        <span className="text-red-400 tabular-nums">{p.exclusionTriggered} exc</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`rounded-md px-2 py-0.5 text-[10px] font-semibold ${statusBadgeClass(p.overallStatus)}`}>
+                      {formatStatus(p.overallStatus)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <DecisionBadge status={p.reviewStatus} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-1">
+                      {p.reviewStatus === "pending" ? (
+                        <>
+                          <Tooltip content="Accept" side="top">
+                            <button
+                              onClick={() => { reviewPatient(p.id, "accepted"); toast.success(`${p.sitePatientId} accepted`); }}
+                              className="rounded-md bg-emerald-600/80 p-1.5 text-white transition-colors hover:bg-emerald-500"
+                            >
+                              <Check className="h-3 w-3" />
+                            </button>
+                          </Tooltip>
+                          <Tooltip content="Reject" side="top">
+                            <button
+                              onClick={() => { reviewPatient(p.id, "rejected"); toast.error(`${p.sitePatientId} rejected`); }}
+                              className="rounded-md bg-red-600/80 p-1.5 text-white transition-colors hover:bg-red-500"
+                            >
+                              <XIcon className="h-3 w-3" />
+                            </button>
+                          </Tooltip>
+                          <Tooltip content="Defer" side="top">
+                            <button
+                              onClick={() => { reviewPatient(p.id, "deferred"); toast.warning(`${p.sitePatientId} deferred`); }}
+                              className="rounded-md bg-amber-600/80 p-1.5 text-white transition-colors hover:bg-amber-500"
+                            >
+                              <Clock className="h-3 w-3" />
+                            </button>
+                          </Tooltip>
+                        </>
+                      ) : (
                         <button
-                          onClick={() => reviewPatient(p.id, "accepted")}
-                          className="rounded-md bg-emerald-600/80 p-1.5 text-white transition-colors hover:bg-emerald-500"
-                          title="Accept"
+                          onClick={() => { reviewPatient(p.id, "pending"); toast.info(`${p.sitePatientId} reset to pending`); }}
+                          className="rounded-md border border-white/[0.08] px-2 py-1 text-[10px] font-medium text-slate-500 hover:bg-white/[0.04] hover:text-slate-300"
                         >
-                          <Check className="h-3 w-3" />
+                          Undo
                         </button>
+                      )}
+                      <Tooltip content="View in Screening" side="top">
                         <button
-                          onClick={() => reviewPatient(p.id, "rejected")}
-                          className="rounded-md bg-red-600/80 p-1.5 text-white transition-colors hover:bg-red-500"
-                          title="Reject"
+                          onClick={() => handleGoToPatient(p.id)}
+                          className="ml-1 rounded-md border border-white/[0.08] p-1.5 text-slate-500 transition-colors hover:bg-white/[0.04] hover:text-slate-300"
                         >
-                          <XIcon className="h-3 w-3" />
+                          <ArrowRight className="h-3 w-3" />
                         </button>
-                        <button
-                          onClick={() => reviewPatient(p.id, "deferred")}
-                          className="rounded-md bg-amber-600/80 p-1.5 text-white transition-colors hover:bg-amber-500"
-                          title="Defer"
-                        >
-                          <Clock className="h-3 w-3" />
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => reviewPatient(p.id, "pending")}
-                        className="rounded-md border border-white/[0.08] px-2 py-1 text-[10px] font-medium text-slate-500 hover:bg-white/[0.04] hover:text-slate-300"
-                      >
-                        Undo
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleGoToPatient(p.id)}
-                      className="ml-1 rounded-md border border-white/[0.08] p-1.5 text-slate-500 transition-colors hover:bg-white/[0.04] hover:text-slate-300"
-                      title="View in Screening"
-                    >
-                      <ArrowRight className="h-3 w-3" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                      </Tooltip>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 
@@ -357,7 +482,8 @@ export function ReviewQueuePage() {
       <div className="shrink-0 border-t border-border bg-card/50 px-6 py-2.5">
         <div className="flex items-center justify-between">
           <p className="text-[11px] text-slate-500">
-            Showing {filteredPatients.length} of {patients.length} patients
+            Showing <span className="font-semibold text-slate-400 tabular-nums">{filteredPatients.length}</span> of {patients.length} patients
+            {someSelected && <span className="ml-2 text-indigo-400">({selected.size} selected)</span>}
           </p>
           <div className="flex items-center gap-3">
             <button
@@ -376,7 +502,42 @@ export function ReviewQueuePage() {
           </div>
         </div>
       </div>
+
+      {/* Bulk action confirmation */}
+      <ConfirmDialog
+        open={bulkConfirm !== null}
+        title={`Bulk ${bulkConfirm?.action ?? ""} ${bulkConfirm?.count ?? 0} patients?`}
+        description={`This will mark ${bulkConfirm?.count ?? 0} pending patients as "${bulkConfirm?.action ?? ""}". You can undo individual decisions later.`}
+        confirmLabel={`${bulkConfirm?.action === "accepted" ? "Accept" : bulkConfirm?.action === "rejected" ? "Reject" : "Defer"} All`}
+        variant={bulkConfirm?.action === "rejected" ? "danger" : bulkConfirm?.action === "deferred" ? "warning" : "info"}
+        onConfirm={executeBulkAction}
+        onCancel={() => setBulkConfirm(null)}
+      />
     </div>
+  );
+}
+
+// Sortable column header
+function SortHeader({ field, label, current, dir, onSort, align }: {
+  field: SortField; label: string; current: SortField; dir: SortDir; onSort: (f: SortField) => void; align: "left" | "center" | "right";
+}) {
+  const isActive = current === field;
+  return (
+    <th className={`px-4 py-2.5 text-${align}`}>
+      <button
+        onClick={() => onSort(field)}
+        className={`inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider transition-colors ${
+          isActive ? "text-indigo-400" : "text-slate-500 hover:text-slate-300"
+        }`}
+      >
+        {label}
+        {isActive ? (
+          dir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+        ) : (
+          <ArrowUpDown className="h-2.5 w-2.5 opacity-40" />
+        )}
+      </button>
+    </th>
   );
 }
 

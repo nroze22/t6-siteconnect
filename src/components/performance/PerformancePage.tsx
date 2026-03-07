@@ -26,6 +26,8 @@ import {
 import { screenPatientsForStudy, STUDY_SCREENING_DEFS } from "@/lib/epic-demo-data";
 import type { ParsedPatient } from "@/lib/epic-demo-data";
 import { getPatients } from "@/lib/data-provider";
+import { SkeletonCard, SkeletonChart } from "@/components/ui/Skeleton";
+import { useAnimatedNumber } from "@/hooks/use-animated-number";
 
 const STUDY_NAMES: Record<string, string> = {
   "study-1": "KEYNOTE-789",
@@ -178,17 +180,22 @@ export function PerformancePage() {
   const [metrics, setMetrics] = useState<StudyMetrics[]>([]);
   const [patients, setPatients] = useState<ParsedPatient[]>([]);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     getPatients().then((parsed) => {
       setPatients(parsed);
       setMetrics(computeStudyMetrics(parsed));
+      setLoading(false);
     });
   }, []);
 
   const totalRevenue = useMemo(() => metrics.reduce((sum, m) => sum + m.projectedRevenue, 0), [metrics]);
   const totalEligible = useMemo(() => metrics.reduce((sum, m) => sum + m.eligible, 0), [metrics]);
   const totalScreened = useMemo(() => metrics.reduce((sum, m) => sum + m.totalScreened, 0), [metrics]);
+  const animatedScreened = useAnimatedNumber(totalScreened);
+  const animatedEligible = useAnimatedNumber(totalEligible);
+  const animatedRevenue = useAnimatedNumber(Math.round(totalRevenue / 1000));
   const avgPassRate = useMemo(() => {
     const rates = metrics.filter((m) => m.totalScreened > 0).map((m) => m.screenPassRate);
     return rates.length > 0 ? Math.round(rates.reduce((a, b) => a + b, 0) / rates.length) : 0;
@@ -214,10 +221,10 @@ export function PerformancePage() {
         <div className="mt-3 flex items-center gap-3">
           {[
             { label: "Active Studies", value: `${metrics.length}`, icon: <Layers className="h-3.5 w-3.5 text-indigo-400" />, color: "text-indigo-400" },
-            { label: "Patients Screened", value: `${totalScreened}`, icon: <Users className="h-3.5 w-3.5 text-blue-400" />, color: "text-blue-400" },
-            { label: "Eligible", value: `${totalEligible}`, icon: <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />, color: "text-emerald-400" },
+            { label: "Patients Screened", value: `${animatedScreened}`, icon: <Users className="h-3.5 w-3.5 text-blue-400" />, color: "text-blue-400" },
+            { label: "Eligible", value: `${animatedEligible}`, icon: <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />, color: "text-emerald-400" },
             { label: "Avg Pass Rate", value: `${avgPassRate}%`, icon: <Target className="h-3.5 w-3.5 text-amber-400" />, color: "text-amber-400" },
-            { label: "Projected Revenue", value: `$${Math.round(totalRevenue / 1000)}K`, icon: <DollarSign className="h-3.5 w-3.5 text-emerald-400" />, color: "text-emerald-400" },
+            { label: "Projected Revenue", value: `$${animatedRevenue}K`, icon: <DollarSign className="h-3.5 w-3.5 text-emerald-400" />, color: "text-emerald-400" },
           ].map((kpi) => (
             <div key={kpi.label} className="flex items-center gap-2 rounded-lg bg-white/[0.03] px-3 py-1.5 ring-1 ring-white/[0.06]">
               {kpi.icon}
@@ -251,9 +258,20 @@ export function PerformancePage() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-6">
-        {tab === "overview" && <OverviewTab metrics={metrics} />}
-        {tab === "failures" && <FailureIntelligenceTab metrics={metrics} />}
-        {tab === "matching" && <MultiStudyMatchingTab patients={patients} />}
+        {loading ? (
+          <div className="grid grid-cols-3 gap-4">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonChart className="col-span-3" />
+          </div>
+        ) : (
+          <>
+            {tab === "overview" && <OverviewTab metrics={metrics} />}
+            {tab === "failures" && <FailureIntelligenceTab metrics={metrics} />}
+            {tab === "matching" && <MultiStudyMatchingTab patients={patients} />}
+          </>
+        )}
       </div>
 
       {showInfoModal && <PerformanceInfoModal onClose={() => setShowInfoModal(false)} />}

@@ -32,14 +32,55 @@ class ErrorBoundary extends React.Component<
   render() {
     if (this.state.error) {
       return (
-        <div style={{ padding: 40, fontFamily: "monospace", color: "#ef4444", background: "#0a0a0a", minHeight: "100vh" }}>
-          <h1 style={{ fontSize: 20, marginBottom: 16 }}>Rendering Error</h1>
-          <pre style={{ whiteSpace: "pre-wrap", fontSize: 13, color: "#fca5a5" }}>
-            {this.state.error.message}
-          </pre>
-          <pre style={{ whiteSpace: "pre-wrap", fontSize: 11, color: "#94a3b8", marginTop: 12 }}>
-            {this.state.error.stack}
-          </pre>
+        <div className="flex h-screen w-screen items-center justify-center bg-[#0c0f17] p-8">
+          <div className="w-full max-w-lg text-center">
+            {/* Icon */}
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 ring-1 ring-red-500/20">
+              <svg className="h-7 w-7 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+              </svg>
+            </div>
+
+            <h1 className="text-[17px] font-bold text-white">Something went wrong</h1>
+            <p className="mt-2 text-[13px] text-slate-400">
+              An unexpected error occurred. Your data is safe — try reloading the application.
+            </p>
+
+            {/* Error details (collapsed) */}
+            <details className="mt-5 text-left">
+              <summary className="cursor-pointer rounded-lg bg-white/[0.03] px-4 py-2 text-[11px] font-medium text-slate-500 ring-1 ring-white/[0.06] hover:bg-white/[0.05]">
+                Technical details
+              </summary>
+              <div className="mt-2 rounded-lg bg-red-500/5 p-4 ring-1 ring-red-500/10">
+                <p className="font-mono text-[12px] font-semibold text-red-400">{this.state.error.message}</p>
+                <pre className="mt-2 max-h-[200px] overflow-auto whitespace-pre-wrap font-mono text-[10px] text-slate-500">
+                  {this.state.error.stack}
+                </pre>
+              </div>
+            </details>
+
+            {/* Actions */}
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <button
+                onClick={() => window.location.reload()}
+                className="rounded-lg bg-indigo-600 px-5 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-indigo-500"
+              >
+                Reload Application
+              </button>
+              <button
+                onClick={() => this.setState({ error: null })}
+                className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-5 py-2.5 text-[13px] font-medium text-slate-400 transition-colors hover:bg-white/[0.06]"
+              >
+                Try Again
+              </button>
+            </div>
+
+            {/* Security reassurance */}
+            <div className="mt-6 flex items-center justify-center gap-2 text-[10px] text-slate-600">
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-400/50" />
+              <span>Your encrypted data remains safe on this device</span>
+            </div>
+          </div>
         </div>
       );
     }

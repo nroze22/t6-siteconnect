@@ -12,6 +12,7 @@ import {
   ExternalLink,
   FileText,
   Zap,
+  X as XIcon,
 } from "lucide-react";
 import { formatCurrency, formatCurrencyCompact, formatNumber } from "@/lib/formatters";
 import { screenPatientsForStudy } from "@/lib/epic-demo-data";
@@ -339,8 +340,16 @@ export function TrialsPage() {
               placeholder="Search trials, sponsors, indications..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-80 rounded-lg border border-white/[0.06] bg-white/[0.03] py-2 pl-9 pr-4 text-[12px] text-slate-200 placeholder-slate-600 focus:border-indigo-500/40 focus:outline-none focus:ring-1 focus:ring-indigo-500/20"
+              className="w-80 rounded-lg border border-white/[0.06] bg-white/[0.03] py-2 pl-9 pr-9 text-[12px] text-slate-200 placeholder-slate-600 focus:border-indigo-500/40 focus:outline-none focus:ring-1 focus:ring-indigo-500/20"
             />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-2.5 rounded p-0.5 text-slate-500 hover:text-slate-300"
+              >
+                <XIcon className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
         </div>
 
