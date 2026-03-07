@@ -23,6 +23,14 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
     title: "Population Intelligence",
     subtitle: "Feasibility, lab trajectories, and diversity analytics",
   },
+  pipeline: {
+    title: "Enrollment Pipeline",
+    subtitle: "Track patients from screening through enrollment",
+  },
+  performance: {
+    title: "Site Performance",
+    subtitle: "Screen failure intelligence, multi-study matching, and revenue",
+  },
   settings: {
     title: "Settings",
     subtitle: "Configure LLM, database, and export options",

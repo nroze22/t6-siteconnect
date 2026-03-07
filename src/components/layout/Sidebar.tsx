@@ -6,6 +6,8 @@ import {
   BarChart3,
   Settings,
   ChevronRight,
+  GitBranch,
+  TrendingUp,
 } from "lucide-react";
 import { useAppStore } from "@/stores/use-app-store";
 import type { NavigationPage } from "@/types";
@@ -36,10 +38,22 @@ const navItems: { id: NavigationPage; label: string; hint: string; icon: React.R
     icon: <ClipboardCheck className="h-4.5 w-4.5" />,
   },
   {
+    id: "pipeline",
+    label: "Enrollment Pipeline",
+    hint: "Track patient outreach",
+    icon: <GitBranch className="h-4.5 w-4.5" />,
+  },
+  {
     id: "analytics",
     label: "Population Intel",
     hint: "Feasibility & diversity",
     icon: <BarChart3 className="h-4.5 w-4.5" />,
+  },
+  {
+    id: "performance",
+    label: "Site Performance",
+    hint: "Metrics & revenue",
+    icon: <TrendingUp className="h-4.5 w-4.5" />,
   },
   {
     id: "settings",

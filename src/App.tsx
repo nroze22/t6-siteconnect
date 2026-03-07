@@ -7,6 +7,8 @@ import { ImportPage } from "@/components/import/ImportPage";
 import { TrialsPage } from "@/components/trials/TrialsPage";
 import { ReviewQueuePage } from "@/components/review/ReviewQueuePage";
 import { AnalyticsPage } from "@/components/analytics/AnalyticsPage";
+import { PipelinePage } from "@/components/pipeline/PipelinePage";
+import { PerformancePage } from "@/components/performance/PerformancePage";
 import { SettingsPage } from "@/components/settings/SettingsPage";
 import { SetupScreen } from "@/components/setup/SetupScreen";
 import { UnlockScreen } from "@/components/setup/UnlockScreen";
@@ -57,6 +59,10 @@ function PageRouter() {
       return <ReviewQueuePage />;
     case "analytics":
       return <AnalyticsPage />;
+    case "pipeline":
+      return <PipelinePage />;
+    case "performance":
+      return <PerformancePage />;
     case "settings":
       return <SettingsPage />;
     default:

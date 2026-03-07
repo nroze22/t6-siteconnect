@@ -215,4 +215,6 @@ export type NavigationPage =
   | "trials"
   | "review"
   | "analytics"
+  | "pipeline"
+  | "performance"
   | "settings";
