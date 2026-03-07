@@ -262,6 +262,114 @@ pub fn get_analytics_summary(app: AppHandle) -> Result<AnalyticsSummary, String>
     })
 }
 
+// --- Audit Trail ---
+
+#[derive(Debug, Clone, Serialize)]
+pub struct AuditEntry {
+    pub id: String,
+    pub timestamp: String,
+    pub action: String,
+    pub details: Option<String>,
+    pub checksum: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct AuditExport {
+    pub entries: Vec<AuditEntry>,
+    pub total_entries: u64,
+    pub chain_valid: bool,
+    pub chain_error: Option<String>,
+    pub exported_at: String,
+    pub app_version: String,
+}
+
+/// Get all audit trail entries.
+#[tauri::command]
+pub fn get_audit_trail(app: AppHandle) -> Result<Vec<AuditEntry>, String> {
+    let db_state = app.state::<DbState>();
+    let lock = db_state.0.lock().map_err(|e| format!("Lock poisoned: {}", e))?;
+    let pool = lock.as_ref().ok_or("Database not initialized")?;
+    let conn = pool.get().map_err(|e| format!("Failed to get connection: {}", e))?;
+
+    let mut stmt = conn.prepare(
+        "SELECT id, timestamp, action, details, checksum FROM audit_log ORDER BY timestamp ASC"
+    ).map_err(|e| format!("Query error: {}", e))?;
+
+    let entries = stmt.query_map([], |row| {
+        Ok(AuditEntry {
+            id: row.get(0)?,
+            timestamp: row.get(1)?,
+            action: row.get(2)?,
+            details: row.get(3)?,
+            checksum: row.get(4)?,
+        })
+    })
+    .map_err(|e| format!("Query error: {}", e))?
+    .collect::<Result<Vec<_>, _>>()
+    .map_err(|e| format!("Row error: {}", e))?;
+
+    Ok(entries)
+}
+
+/// Export the full audit trail as a verified package.
+/// Includes chain integrity verification result.
+#[tauri::command]
+pub fn export_audit_trail(app: AppHandle) -> Result<AuditExport, String> {
+    let db_state = app.state::<DbState>();
+    let lock = db_state.0.lock().map_err(|e| format!("Lock poisoned: {}", e))?;
+    let pool = lock.as_ref().ok_or("Database not initialized")?;
+    let conn = pool.get().map_err(|e| format!("Failed to get connection: {}", e))?;
+
+    // Get all entries
+    let mut stmt = conn.prepare(
+        "SELECT id, timestamp, action, details, checksum FROM audit_log ORDER BY timestamp ASC"
+    ).map_err(|e| format!("Query error: {}", e))?;
+
+    let entries: Vec<AuditEntry> = stmt.query_map([], |row| {
+        Ok(AuditEntry {
+            id: row.get(0)?,
+            timestamp: row.get(1)?,
+            action: row.get(2)?,
+            details: row.get(3)?,
+            checksum: row.get(4)?,
+        })
+    })
+    .map_err(|e| format!("Query error: {}", e))?
+    .collect::<Result<Vec<_>, _>>()
+    .map_err(|e| format!("Row error: {}", e))?;
+
+    let total_entries = entries.len() as u64;
+
+    // Verify chain integrity
+    let (chain_valid, chain_error) = match crate::db::audit::verify_audit_chain(&conn) {
+        Ok(_) => (true, None),
+        Err(e) => (false, Some(e)),
+    };
+
+    Ok(AuditExport {
+        entries,
+        total_entries,
+        chain_valid,
+        chain_error,
+        exported_at: chrono::Utc::now().to_rfc3339(),
+        app_version: "0.1.0".to_string(),
+    })
+}
+
+/// Verify the audit trail chain integrity.
+#[tauri::command]
+pub fn verify_audit_chain_cmd(app: AppHandle) -> Result<(bool, u64), String> {
+    let db_state = app.state::<DbState>();
+    let lock = db_state.0.lock().map_err(|e| format!("Lock poisoned: {}", e))?;
+    let pool = lock.as_ref().ok_or("Database not initialized")?;
+    let conn = pool.get().map_err(|e| format!("Failed to get connection: {}", e))?;
+
+    match crate::db::audit::verify_audit_chain(&conn) {
+        Ok(count) => Ok((true, count)),
+        Err(e) => Err(e),
+    }
+}
+
 /// Screen all patients against a specific study using the Rust screening engine.
 #[tauri::command]
 pub fn screen_patients_for_study(app: AppHandle, study_id: String) -> Result<Vec<crate::screening::engine::PatientScreeningResult>, String> {

@@ -251,6 +251,77 @@ export async function checkLlmHealth(): Promise<boolean> {
   }
 }
 
+// --- Audit Trail ---
+
+export interface AuditEntry {
+  id: string;
+  timestamp: string;
+  action: string;
+  details: string | null;
+  checksum: string;
+}
+
+export interface AuditExport {
+  entries: AuditEntry[];
+  total_entries: number;
+  chain_valid: boolean;
+  chain_error: string | null;
+  exported_at: string;
+  app_version: string;
+}
+
+const DEMO_AUDIT_ENTRIES: AuditEntry[] = [
+  { id: "a001", timestamp: "2026-03-07T08:00:00Z", action: "database_initialized", details: "Database created with SQLCipher AES-256", checksum: "a1b2c3d4..." },
+  { id: "a002", timestamp: "2026-03-07T08:00:01Z", action: "study_seeded", details: "Seeded KEYNOTE-789 with 16 criteria", checksum: "e5f6a7b8..." },
+  { id: "a003", timestamp: "2026-03-07T08:05:22Z", action: "database_unlocked", details: "Database unlocked", checksum: "c9d0e1f2..." },
+  { id: "a004", timestamp: "2026-03-07T08:12:45Z", action: "data_imported", details: "Imported 18 patients from epic_export_2026-03.csv", checksum: "d3e4f5a6..." },
+  { id: "a005", timestamp: "2026-03-07T08:13:02Z", action: "screening_executed", details: "Screened 18 patients against KEYNOTE-789", checksum: "b7c8d9e0..." },
+  { id: "a006", timestamp: "2026-03-07T09:30:15Z", action: "criterion_overridden", details: "Criterion sc003: unknown → met. Justification: Lab results confirmed via chart review", checksum: "f1a2b3c4..." },
+  { id: "a007", timestamp: "2026-03-07T09:45:33Z", action: "patient_reviewed", details: "Patient E10042 accepted for KEYNOTE-789. Notes: Strong candidate, all inclusion met", checksum: "a5b6c7d8..." },
+  { id: "a008", timestamp: "2026-03-07T10:02:11Z", action: "data_imported", details: "Imported 5 patients from cardiology_export.csv", checksum: "e9f0a1b2..." },
+];
+
+export async function getAuditTrail(): Promise<AuditEntry[]> {
+  if (isTauri) {
+    try {
+      return await tauriInvoke<AuditEntry[]>("get_audit_trail");
+    } catch {
+      // DB not initialized
+    }
+  }
+  return DEMO_AUDIT_ENTRIES;
+}
+
+export async function exportAuditTrail(): Promise<AuditExport> {
+  if (isTauri) {
+    try {
+      return await tauriInvoke<AuditExport>("export_audit_trail");
+    } catch {
+      // DB not initialized
+    }
+  }
+  return {
+    entries: DEMO_AUDIT_ENTRIES,
+    total_entries: DEMO_AUDIT_ENTRIES.length,
+    chain_valid: true,
+    chain_error: null,
+    exported_at: new Date().toISOString(),
+    app_version: "0.1.0",
+  };
+}
+
+export async function verifyAuditChain(): Promise<{ valid: boolean; count: number; error?: string }> {
+  if (isTauri) {
+    try {
+      const [valid, count] = await tauriInvoke<[boolean, number]>("verify_audit_chain_cmd");
+      return { valid, count };
+    } catch (e) {
+      return { valid: false, count: 0, error: String(e) };
+    }
+  }
+  return { valid: true, count: DEMO_AUDIT_ENTRIES.length };
+}
+
 // --- Converter: AnalyticsPatient → ParsedPatient ---
 
 function analyticsPatientToParsed(p: AnalyticsPatient): ParsedPatient {

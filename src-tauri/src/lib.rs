@@ -8,7 +8,7 @@ use commands::database::{init_database, unlock_database, check_database_exists};
 use commands::import::{detect_file_format, preview_import, execute_import};
 use commands::screening::{screen_patients, override_criterion, get_study_criteria};
 use commands::watcher::{start_folder_watcher, stop_folder_watcher, get_watcher_status, WatcherState};
-use commands::analytics::{get_analytics_patients, get_analytics_studies, get_analytics_summary, screen_patients_for_study};
+use commands::analytics::{get_analytics_patients, get_analytics_studies, get_analytics_summary, screen_patients_for_study, get_audit_trail, export_audit_trail, verify_audit_chain_cmd};
 use commands::llm::{get_llm_status, set_llm_model, start_llm_server, stop_llm_server, check_llm_health, evaluate_criterion_with_llm, pick_llm_model, LlmState};
 use db::DbState;
 use tauri::Manager;
@@ -71,6 +71,9 @@ pub fn run() {
             get_analytics_studies,
             get_analytics_summary,
             screen_patients_for_study,
+            get_audit_trail,
+            export_audit_trail,
+            verify_audit_chain_cmd,
             // LLM
             get_llm_status,
             set_llm_model,
