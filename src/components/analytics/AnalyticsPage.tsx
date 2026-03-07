@@ -356,7 +356,7 @@ function TrajectoryTab({ patients }: { patients: ReturnType<typeof parseEpicRows
         <ResultCard
           icon={<TrendingUp className="h-4 w-4 text-emerald-400" />}
           label="Avg. Time to Threshold"
-          value={trajectoryGroup.patients[0]?.estimatedWeeksToThreshold
+          value={trajectoryGroup.patients.length > 0 && trajectoryGroup.patients[0]?.estimatedWeeksToThreshold
             ? `~${Math.round(trajectoryGroup.patients.reduce((s, p) => s + (p.estimatedWeeksToThreshold ?? 0), 0) / trajectoryGroup.patients.length)} weeks`
             : "—"}
           color="bg-emerald-500/10 ring-1 ring-emerald-500/20"

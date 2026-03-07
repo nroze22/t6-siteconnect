@@ -10,6 +10,7 @@ import { AnalyticsPage } from "@/components/analytics/AnalyticsPage";
 import { PipelinePage } from "@/components/pipeline/PipelinePage";
 import { PerformancePage } from "@/components/performance/PerformancePage";
 import { SettingsPage } from "@/components/settings/SettingsPage";
+import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import { SetupScreen } from "@/components/setup/SetupScreen";
 import { UnlockScreen } from "@/components/setup/UnlockScreen";
 import { useAppStore } from "@/stores/use-app-store";
@@ -72,7 +73,22 @@ function PageRouter() {
 
 function MainApp() {
   useDemoData();
-  console.log("[MainApp] Rendering main application");
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    try {
+      return !localStorage.getItem("siteconnect-onboarded");
+    } catch {
+      return true;
+    }
+  });
+
+  const handleOnboardingComplete = useCallback(() => {
+    setShowOnboarding(false);
+    try {
+      localStorage.setItem("siteconnect-onboarded", "1");
+    } catch {
+      // localStorage unavailable — silently ignore
+    }
+  }, []);
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background">
@@ -84,6 +100,7 @@ function MainApp() {
         </main>
         <StatusBar />
       </div>
+      {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
     </div>
   );
 }

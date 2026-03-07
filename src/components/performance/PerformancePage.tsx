@@ -155,7 +155,7 @@ function computeMultiStudyMatches() {
         if (!patientStudyMap.has(key)) {
           patientStudyMap.set(key, { name: `${p.firstName} ${p.lastName}`, studies: [] });
         }
-        patientStudyMap.get(key)!.studies.push({
+        patientStudyMap.get(key)?.studies.push({
           id: studyDef.studyId,
           name: STUDY_NAMES[studyDef.studyId] ?? studyDef.studyId,
           score: s.summary.score,
