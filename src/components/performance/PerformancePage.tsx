@@ -13,6 +13,8 @@ import {
   Layers,
   Brain,
   GitBranch,
+  Download,
+  FileText,
 } from "lucide-react";
 import {
   BarChart,
@@ -28,6 +30,10 @@ import type { ParsedPatient } from "@/lib/epic-demo-data";
 import { getPatients } from "@/lib/data-provider";
 import { SkeletonCard, SkeletonChart } from "@/components/ui/Skeleton";
 import { useAnimatedNumber } from "@/hooks/use-animated-number";
+import { PerformanceInsights } from "@/components/analytics/InsightsPanel";
+import { exportCSV, exportReportDeck } from "@/lib/analytics-export";
+import { useAnalyticsStore } from "@/stores/use-analytics-store";
+import { DrillDownPanel } from "@/components/analytics/DrillDownPanel";
 
 const STUDY_NAMES: Record<string, string> = {
   "study-1": "KEYNOTE-789",
@@ -206,14 +212,76 @@ export function PerformancePage() {
       {/* Header */}
       <div className="border-b border-border bg-card/50 px-6 py-3">
         <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-[15px] font-bold text-white">Site Performance</h2>
-              <button onClick={() => setShowInfoModal(true)} className="rounded-full p-1 text-slate-500 hover:bg-white/[0.05] hover:text-slate-300 transition-colors">
-                <Info className="h-3.5 w-3.5" />
-              </button>
-            </div>
+          <div className="flex items-center gap-2">
             <p className="text-[11px] text-slate-500">Screen failure intelligence, multi-study matching, and revenue projections</p>
+            <button onClick={() => setShowInfoModal(true)} className="rounded-full p-1 text-slate-500 hover:bg-white/[0.05] hover:text-slate-300 transition-colors">
+              <Info className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                const headers = ["Study", "Screened", "Eligible", "Potentially Eligible", "Ineligible", "Needs Review", "Pass Rate (%)", "Avg Score", "Revenue/Patient ($)", "Projected Revenue ($)"];
+                const rows = metrics.map((m) => [
+                  m.studyName,
+                  m.totalScreened,
+                  m.eligible,
+                  m.potentiallyEligible,
+                  m.ineligible,
+                  m.needsReview,
+                  m.screenPassRate,
+                  m.avgScore,
+                  m.revenuePerPatient,
+                  m.projectedRevenue,
+                ] as (string | number | null)[]);
+                exportCSV({ filename: "site-performance-metrics", headers, rows, includeTimestamp: true });
+              }}
+              disabled={metrics.length === 0}
+              className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-slate-400 hover:bg-white/[0.06] hover:text-slate-200 transition-colors disabled:opacity-40 disabled:pointer-events-none"
+            >
+              <Download className="h-3.5 w-3.5" />
+              CSV
+            </button>
+            <button
+              onClick={() => {
+                exportReportDeck({
+                  title: "Site Performance Report",
+                  subtitle: `${metrics.length} Active Studies`,
+                  confidential: true,
+                  sections: [
+                    {
+                      type: "metrics",
+                      title: "Aggregate KPIs",
+                      columns: 4,
+                      metrics: [
+                        { label: "Active Studies", value: String(metrics.length) },
+                        { label: "Subjects Screened", value: String(totalScreened), accent: true },
+                        { label: "Eligible", value: String(totalEligible), accent: true },
+                        { label: "Projected Revenue", value: `$${Math.round(totalRevenue / 1000)}K` },
+                      ],
+                    },
+                    {
+                      type: "table",
+                      title: "Study Breakdown",
+                      headers: ["Study", "Screened", "Eligible", "Pass Rate", "Avg Score", "Projected Revenue"],
+                      rows: metrics.map((m) => [
+                        m.studyName,
+                        m.totalScreened,
+                        m.eligible,
+                        `${m.screenPassRate}%`,
+                        m.avgScore,
+                        `$${Math.round(m.projectedRevenue / 1000)}K`,
+                      ]),
+                    },
+                  ],
+                });
+              }}
+              disabled={metrics.length === 0}
+              className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-slate-400 hover:bg-white/[0.06] hover:text-slate-200 transition-colors disabled:opacity-40 disabled:pointer-events-none"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              PDF
+            </button>
           </div>
         </div>
 
@@ -221,7 +289,7 @@ export function PerformancePage() {
         <div className="mt-3 flex items-center gap-3">
           {[
             { label: "Active Studies", value: `${metrics.length}`, icon: <Layers className="h-3.5 w-3.5 text-indigo-400" />, color: "text-indigo-400" },
-            { label: "Patients Screened", value: `${animatedScreened}`, icon: <Users className="h-3.5 w-3.5 text-blue-400" />, color: "text-blue-400" },
+            { label: "Subjects Screened", value: `${animatedScreened}`, icon: <Users className="h-3.5 w-3.5 text-blue-400" />, color: "text-blue-400" },
             { label: "Eligible", value: `${animatedEligible}`, icon: <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />, color: "text-emerald-400" },
             { label: "Avg Pass Rate", value: `${avgPassRate}%`, icon: <Target className="h-3.5 w-3.5 text-amber-400" />, color: "text-amber-400" },
             { label: "Projected Revenue", value: `$${animatedRevenue}K`, icon: <DollarSign className="h-3.5 w-3.5 text-emerald-400" />, color: "text-emerald-400" },
@@ -267,7 +335,7 @@ export function PerformancePage() {
           </div>
         ) : (
           <>
-            {tab === "overview" && <OverviewTab metrics={metrics} />}
+            {tab === "overview" && <OverviewTab metrics={metrics} patients={patients} />}
             {tab === "failures" && <FailureIntelligenceTab metrics={metrics} />}
             {tab === "matching" && <MultiStudyMatchingTab patients={patients} />}
           </>
@@ -275,11 +343,14 @@ export function PerformancePage() {
       </div>
 
       {showInfoModal && <PerformanceInfoModal onClose={() => setShowInfoModal(false)} />}
+      <DrillDownPanel />
     </div>
   );
 }
 
-function OverviewTab({ metrics }: { metrics: StudyMetrics[] }) {
+function OverviewTab({ metrics, patients }: { metrics: StudyMetrics[]; patients: ParsedPatient[] }) {
+  const openDrillDown = useAnalyticsStore((s) => s.openDrillDown);
+
   const chartData = metrics.map((m) => ({
     name: m.studyName,
     eligible: m.eligible,
@@ -294,8 +365,55 @@ function OverviewTab({ metrics }: { metrics: StudyMetrics[] }) {
     patients: m.eligible + Math.round(m.potentiallyEligible * 0.4),
   }));
 
+  const totalScreened = metrics.reduce((sum, m) => sum + m.totalScreened, 0);
+  const totalEligible = metrics.reduce((sum, m) => sum + m.eligible, 0);
+
+  const performanceStudies = useMemo(() => metrics.map((m) => ({
+    name: m.studyName,
+    passRate: m.screenPassRate,
+    eligible: m.eligible,
+    revenue: m.projectedRevenue,
+  })), [metrics]);
+
+  // Pre-compute eligible patient IDs per study for drill-down
+  const eligibleByStudy = useMemo(() => {
+    const map = new Map<string, string[]>();
+    for (const studyDef of STUDY_SCREENING_DEFS) {
+      const screening = screenPatientsForStudy(patients, studyDef.studyId);
+      const eligibleIds = screening
+        .filter((s) => s.summary.overallStatus === "eligible")
+        .map((s) => s.summary.sitePatientId);
+      map.set(studyDef.studyId, eligibleIds);
+    }
+    return map;
+  }, [patients]);
+
+  const handleStudyClick = (m: StudyMetrics) => {
+    const patientIds = eligibleByStudy.get(m.studyId) ?? [];
+    openDrillDown({
+      type: "study",
+      title: `${m.studyName} — Eligible Subjects`,
+      description: `${m.eligible} eligible subjects out of ${m.totalScreened} screened (${m.screenPassRate}% pass rate)`,
+      patientIds,
+      sourceChart: "Study Overview",
+      sourceValue: m.studyName,
+      metadata: {
+        studyId: m.studyId,
+        screenPassRate: m.screenPassRate,
+        projectedRevenue: m.projectedRevenue,
+      },
+    });
+  };
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
+      {/* Performance Insights */}
+      <PerformanceInsights
+        studies={performanceStudies}
+        overallScreened={totalScreened}
+        overallEligible={totalEligible}
+      />
+
       {/* Screening Results by Study */}
       <div className="rounded-xl border border-white/[0.06] bg-card p-5">
         <h3 className="text-[13px] font-bold text-white mb-4">Screening Results by Study</h3>
@@ -321,7 +439,14 @@ function OverviewTab({ metrics }: { metrics: StudyMetrics[] }) {
       {/* Study Cards */}
       <div className="grid grid-cols-2 gap-4">
         {metrics.map((m) => (
-          <div key={m.studyId} className="rounded-xl border border-white/[0.06] bg-card p-4">
+          <div
+            key={m.studyId}
+            className="rounded-xl border border-white/[0.06] bg-card p-4 cursor-pointer hover:border-indigo-500/30 hover:bg-white/[0.02] transition-colors"
+            onClick={() => handleStudyClick(m)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleStudyClick(m); } }}
+          >
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-[13px] font-bold text-slate-200">{m.studyName}</h4>
               <span className="text-[11px] font-bold text-emerald-400">${Math.round(m.projectedRevenue / 1000)}K proj.</span>
@@ -399,13 +524,13 @@ function FailureIntelligenceTab({ metrics }: { metrics: StudyMetrics[] }) {
 
     for (const f of failures.slice(0, 5)) {
       if (f.criterion.toLowerCase().includes("age")) {
-        recs.push({ severity: "low", text: `Age criteria blocking ${f.count} patients. Consider protocol amendments for expanded age ranges.`, impact: `+${f.count} potential candidates` });
+        recs.push({ severity: "low", text: `Age criteria blocking ${f.count} subjects. Consider protocol amendments for expanded age ranges.`, impact: `+${f.count} potential candidates` });
       } else if (f.criterion.toLowerCase().includes("lab") || f.criterion.toLowerCase().includes("egfr") || f.criterion.toLowerCase().includes("hba1c") || f.criterion.toLowerCase().includes("hematologic")) {
         recs.push({ severity: "medium", text: `Lab-based criterion "${f.criterion.slice(0, 50)}..." is a top blocker. Review thresholds with sponsor for possible amendment.`, impact: `+${Math.round(f.count * 0.6)} if relaxed` });
       } else if (f.criterion.toLowerCase().includes("prior") || f.criterion.toLowerCase().includes("treatment")) {
-        recs.push({ severity: "high", text: `Prior treatment history blocking ${f.count} patients. Focus recruitment on treatment-naive populations.`, impact: `Adjust recruitment strategy` });
+        recs.push({ severity: "high", text: `Prior treatment history blocking ${f.count} subjects. Focus recruitment on treatment-naive populations.`, impact: `Adjust recruitment strategy` });
       } else if (f.criterion.toLowerCase().includes("diagnosis") || f.criterion.toLowerCase().includes("confirmed")) {
-        recs.push({ severity: "medium", text: `Diagnosis confirmation blocking ${f.count} patients. Ensure ICD-10 coding is current in EMR.`, impact: `${Math.round(f.count * 0.3)} may have uncoded dx` });
+        recs.push({ severity: "medium", text: `Diagnosis confirmation blocking ${f.count} subjects. Ensure ICD-10 coding is current in EMR.`, impact: `${Math.round(f.count * 0.3)} may have uncoded dx` });
       }
     }
 
@@ -540,11 +665,11 @@ function MultiStudyMatchingTab({ patients }: { patients: ParsedPatient[] }) {
       <div className="rounded-xl border border-purple-500/15 bg-purple-500/5 p-5">
         <div className="flex items-center gap-2 mb-2">
           <GitBranch className="h-4.5 w-4.5 text-purple-400" />
-          <h3 className="text-[13px] font-bold text-purple-300">Multi-Study Eligible Patients</h3>
+          <h3 className="text-[13px] font-bold text-purple-300">Multi-Study Eligible Subjects</h3>
         </div>
         <p className="text-[12px] text-slate-400">
-          <span className="font-bold text-purple-400">{matches.length} patients</span> are eligible for multiple studies simultaneously.
-          Cross-enrolling maximizes per-patient revenue and reduces recruitment costs.
+          <span className="font-bold text-purple-400">{matches.length} subjects</span> are eligible for multiple studies simultaneously.
+          Cross-enrolling maximizes per-subject revenue and reduces recruitment costs.
         </p>
       </div>
 
@@ -597,7 +722,7 @@ function MultiStudyMatchingTab({ patients }: { patients: ParsedPatient[] }) {
             <div className="text-center">
               <GitBranch className="mx-auto h-8 w-8 text-slate-600 mb-2" />
               <p className="text-[13px] text-slate-500">No cross-study matches found</p>
-              <p className="text-[11px] text-slate-600">Import more patient data to find multi-study candidates</p>
+              <p className="text-[11px] text-slate-600">Import more subject data to find multi-study candidates</p>
             </div>
           </div>
         )}
@@ -627,9 +752,9 @@ function PerformanceInfoModal({ onClose }: { onClose: () => void }) {
 
         <div className="px-6 py-5 space-y-4">
           {[
-            { icon: <AlertTriangle className="h-4 w-4 text-red-400" />, title: "Screen Failure Intelligence", desc: "See exactly which criteria block the most patients. Get AI-powered recommendations to adjust recruitment strategy or discuss protocol amendments." },
-            { icon: <GitBranch className="h-4 w-4 text-purple-400" />, title: "Multi-Study Smart Matching", desc: "Automatically identifies patients eligible for multiple studies. Maximize per-patient revenue by cross-enrolling across your trial portfolio." },
-            { icon: <DollarSign className="h-4 w-4 text-emerald-400" />, title: "Revenue Projections", desc: "Real-time revenue forecasting based on your actual patient population. Project enrollment numbers and financial outcomes per study." },
+            { icon: <AlertTriangle className="h-4 w-4 text-red-400" />, title: "Screen Failure Intelligence", desc: "See exactly which criteria block the most subjects. Get AI-powered recommendations to adjust recruitment strategy or discuss protocol amendments." },
+            { icon: <GitBranch className="h-4 w-4 text-purple-400" />, title: "Multi-Study Smart Matching", desc: "Automatically identifies subjects eligible for multiple studies. Maximize per-subject revenue by cross-enrolling across your trial portfolio." },
+            { icon: <DollarSign className="h-4 w-4 text-emerald-400" />, title: "Revenue Projections", desc: "Real-time revenue forecasting based on your actual subject population. Project enrollment numbers and financial outcomes per study." },
             { icon: <Award className="h-4 w-4 text-amber-400" />, title: "Competitive Benchmarking", desc: "Track your screen pass rates, enrollment velocity, and conversion metrics. Use these numbers to demonstrate site capability to sponsors." },
           ].map((item) => (
             <div key={item.title} className="flex gap-3">
@@ -644,7 +769,7 @@ function PerformanceInfoModal({ onClose }: { onClose: () => void }) {
           <div className="rounded-lg bg-white/[0.02] px-4 py-3 ring-1 ring-white/[0.06]">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">The Bottom Line</p>
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              Sponsors select sites based on metrics. Sites that can demonstrate strong screen pass rates, fast enrollment velocity, and diverse patient populations win more studies. This dashboard gives you the data to prove it.
+              Sponsors select sites based on metrics. Sites that can demonstrate strong screen pass rates, fast enrollment velocity, and diverse subject populations win more studies. This dashboard gives you the data to prove it.
             </p>
           </div>
         </div>

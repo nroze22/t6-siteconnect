@@ -5,10 +5,11 @@ interface TooltipProps {
   shortcut?: string;
   side?: "top" | "bottom" | "left" | "right";
   delay?: number;
+  className?: string;
   children: React.ReactNode;
 }
 
-export function Tooltip({ content, shortcut, side = "top", delay = 400, children }: TooltipProps) {
+export function Tooltip({ content, shortcut, side = "top", delay = 400, className, children }: TooltipProps) {
   const [visible, setVisible] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -29,7 +30,7 @@ export function Tooltip({ content, shortcut, side = "top", delay = 400, children
   };
 
   return (
-    <span className="relative inline-flex" onMouseEnter={show} onMouseLeave={hide} onFocus={show} onBlur={hide}>
+    <span className={`relative inline-flex ${className ?? ""}`} onMouseEnter={show} onMouseLeave={hide} onFocus={show} onBlur={hide}>
       {children}
       {visible && (
         <div

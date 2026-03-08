@@ -301,10 +301,13 @@ fn find_llama_server(app: &AppHandle) -> Result<String, String> {
         }
     }
 
-    // Check PATH
-    if let Ok(output) = std::process::Command::new("which").arg("llama-server").output() {
+    // Check PATH using platform-appropriate command
+    let lookup_cmd = if cfg!(target_os = "windows") { "where" } else { "which" };
+    let binary_name = if cfg!(target_os = "windows") { "llama-server.exe" } else { "llama-server" };
+
+    if let Ok(output) = std::process::Command::new(lookup_cmd).arg(binary_name).output() {
         if output.status.success() {
-            let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            let path = String::from_utf8_lossy(&output.stdout).lines().next().unwrap_or("").trim().to_string();
             if !path.is_empty() {
                 return Ok(path);
             }
@@ -312,13 +315,31 @@ fn find_llama_server(app: &AppHandle) -> Result<String, String> {
     }
 
     // Also check common install locations
-    let common_paths = [
+    #[cfg(not(target_os = "windows"))]
+    let common_paths: &[&str] = &[
         "/usr/local/bin/llama-server",
         "/opt/homebrew/bin/llama-server",
     ];
+    #[cfg(target_os = "windows")]
+    let common_paths: &[&str] = &[
+        r"C:\Program Files\llama-cpp\llama-server.exe",
+        r"C:\Program Files (x86)\llama-cpp\llama-server.exe",
+    ];
+
     for path in common_paths {
         if std::path::Path::new(path).exists() {
             return Ok(path.to_string());
+        }
+    }
+
+    // Windows: also check next to the app executable
+    #[cfg(target_os = "windows")]
+    if let Ok(exe_path) = std::env::current_exe() {
+        if let Some(exe_dir) = exe_path.parent() {
+            let beside_exe = exe_dir.join("llama-server.exe");
+            if beside_exe.exists() {
+                return Ok(beside_exe.to_string_lossy().to_string());
+            }
         }
     }
 

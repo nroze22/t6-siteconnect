@@ -194,13 +194,13 @@ export async function listenForFileDetected(
 /** Get the full path to the database file */
 export async function getDatabasePath(): Promise<string | null> {
   if (!isTauri) return null;
-  const { appDataDir } = await import("@tauri-apps/api/path");
+  const { appDataDir, join } = await import("@tauri-apps/api/path");
   const dir = await appDataDir();
-  return `${dir}siteconnect.db`;
+  return join(dir, "siteconnect.db");
 }
 
-/** Reveal the app data directory in the system file manager */
-export async function revealDatabaseInFinder(): Promise<void> {
+/** Reveal the app data directory in the system file manager (Finder/Explorer) */
+export async function revealDatabaseInFileManager(): Promise<void> {
   if (!isTauri) return;
   const { appDataDir } = await import("@tauri-apps/api/path");
   const { open } = await import("@tauri-apps/plugin-shell");
@@ -208,11 +208,15 @@ export async function revealDatabaseInFinder(): Promise<void> {
   await open(dir);
 }
 
+/** @deprecated Use revealDatabaseInFileManager instead */
+export const revealDatabaseInFinder = revealDatabaseInFileManager;
+
 /** Delete the database file so the user can start fresh */
 export async function deleteDatabaseFile(): Promise<void> {
   if (!isTauri) return;
   const { remove } = await import("@tauri-apps/plugin-fs");
-  const { appDataDir } = await import("@tauri-apps/api/path");
+  const { appDataDir, join } = await import("@tauri-apps/api/path");
   const dir = await appDataDir();
-  await remove(`${dir}siteconnect.db`);
+  const dbPath = await join(dir, "siteconnect.db");
+  await remove(dbPath);
 }

@@ -17,6 +17,7 @@ import {
 import { formatCurrency, formatCurrencyCompact, formatNumber } from "@/lib/formatters";
 import { screenPatientsForStudy } from "@/lib/epic-demo-data";
 import { getPatients } from "@/lib/data-provider";
+import { generatePitchPDF } from "@/lib/generate-pitch";
 import { useScreeningStore } from "@/stores/use-screening-store";
 import { useAppStore } from "@/stores/use-app-store";
 import { useAnimatedCurrency } from "@/hooks/use-animated-number";
@@ -153,7 +154,7 @@ const DEMO_STUDIES: (Study & { eligibleCount: number })[] = [
   },
 ];
 
-function StudyCard({ study, onScreenPatients }: { study: (typeof DEMO_STUDIES)[number]; onScreenPatients: (studyId: string) => void }) {
+function StudyCard({ study, onScreenPatients, onGeneratePitch }: { study: (typeof DEMO_STUDIES)[number]; onScreenPatients: (studyId: string) => void; onGeneratePitch: (study: (typeof DEMO_STUDIES)[number]) => void }) {
   const [expanded, setExpanded] = useState(false);
   const projectedRevenue = Math.round(study.eligibleCount * (study.estimatedPerPatientValueCents ?? 0) * 0.3);
 
@@ -189,7 +190,7 @@ function StudyCard({ study, onScreenPatients }: { study: (typeof DEMO_STUDIES)[n
 
           {/* Financial highlight */}
           <div className="shrink-0 rounded-xl bg-emerald-500/10 p-3 text-center ring-1 ring-emerald-500/20">
-            <p className="text-[10px] font-medium text-emerald-400/70">Per Patient</p>
+            <p className="text-[10px] font-medium text-emerald-400/70">Per Subject</p>
             <p className="text-lg font-black text-emerald-400">
               {formatCurrency(study.estimatedPerPatientValueCents ?? 0)}
             </p>
@@ -233,7 +234,7 @@ function StudyCard({ study, onScreenPatients }: { study: (typeof DEMO_STUDIES)[n
               </h4>
               <div className="mt-2 grid grid-cols-3 gap-3 text-[12px]">
                 <div>
-                  <p className="text-[10px] text-emerald-400/60">Per Patient</p>
+                  <p className="text-[10px] text-emerald-400/60">Per Subject</p>
                   <p className="font-bold text-emerald-400">{formatCurrency(study.estimatedPerPatientValueCents ?? 0)}</p>
                 </div>
                 <div>
@@ -247,7 +248,7 @@ function StudyCard({ study, onScreenPatients }: { study: (typeof DEMO_STUDIES)[n
               </div>
               <div className="mt-2 rounded-md bg-emerald-500/8 p-2 ring-1 ring-emerald-500/10">
                 <p className="text-[10px] text-emerald-300/70">
-                  With {study.eligibleCount} eligible patients and a 30% enrollment rate, your site could earn an estimated{" "}
+                  With {study.eligibleCount} eligible subjects and a 30% enrollment rate, your site could earn an estimated{" "}
                   <span className="font-bold text-emerald-300">{formatCurrency(projectedRevenue)}</span>.
                 </p>
               </div>
@@ -260,13 +261,19 @@ function StudyCard({ study, onScreenPatients }: { study: (typeof DEMO_STUDIES)[n
                 className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-indigo-500"
               >
                 <Search className="h-3 w-3" />
-                Screen Patients
+                Screen Subjects
               </button>
-              <button className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-200">
+              <button
+                onClick={() => onGeneratePitch(study)}
+                className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-200"
+              >
                 <FileText className="h-3 w-3" />
                 Generate Pitch
               </button>
-              <button className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-200">
+              <button
+                onClick={() => study.nctNumber && window.open(`https://clinicaltrials.gov/study/${study.nctNumber}`, "_blank")}
+                className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-200"
+              >
                 <ExternalLink className="h-3 w-3" />
                 ClinicalTrials.gov
               </button>
@@ -290,11 +297,16 @@ export function TrialsPage() {
 
   const toast = useToast();
 
+  const handleGeneratePitch = (study: (typeof DEMO_STUDIES)[number]) => {
+    generatePitchPDF(study);
+    toast.success("Pitch document generated", "Use your browser's Save as PDF to export");
+  };
+
   const handleScreenPatients = async (studyId: string) => {
     const parsed = await getPatients();
     const screening = screenPatientsForStudy(parsed, studyId);
     if (screening.length === 0) {
-      toast.warning("No patients to screen", "Import patient data first");
+      toast.warning("No subjects to screen", "Import subject data first");
       return;
     }
     setPatients(screening.map((s) => s.summary));
@@ -305,7 +317,7 @@ export function TrialsPage() {
     selectStudy(studyId);
     setCurrentPage("screening");
     const eligible = screening.filter((s) => s.summary.overallStatus === "eligible").length;
-    toast.success(`Screened ${screening.length} patients`, `${eligible} eligible for enrollment`);
+    toast.success(`Screened ${screening.length} subjects`, `${eligible} eligible for enrollment`);
   };
 
   const areas = ["all", ...new Set(DEMO_STUDIES.map((s) => s.therapeuticArea))];
@@ -325,14 +337,11 @@ export function TrialsPage() {
   return (
     <div className="flex h-full flex-col overflow-hidden bg-background">
       {/* Header */}
-      <div className="border-b border-border bg-card/50 px-6 py-4">
+      <div className="border-b border-border bg-card/50 px-6 py-3">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-[15px] font-bold text-white">Trial Discovery</h2>
-            <p className="text-[12px] text-slate-500">
-              Curated trials with financial intelligence — see the revenue opportunity at your site.
-            </p>
-          </div>
+          <p className="text-[12px] text-slate-500">
+            Curated trials with financial intelligence
+          </p>
           <div className="relative">
             <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
             <input
@@ -365,7 +374,7 @@ export function TrialsPage() {
           <div className="flex items-center gap-2.5 rounded-lg bg-blue-500/8 px-4 py-2.5 ring-1 ring-blue-500/15">
             <Users className="h-5 w-5 text-blue-400" />
             <div>
-              <p className="text-[10px] font-medium text-blue-400/60">Total Eligible Patients</p>
+              <p className="text-[10px] font-medium text-blue-400/60">Total Eligible Subjects</p>
               <p className="text-xl font-black tabular-nums text-blue-400">{formatNumber(totalEligible)}</p>
             </div>
           </div>
@@ -405,7 +414,7 @@ export function TrialsPage() {
       <div className="flex-1 overflow-y-auto p-6">
         <div className="grid gap-4">
           {filtered.map((study) => (
-            <StudyCard key={study.id} study={study} onScreenPatients={handleScreenPatients} />
+            <StudyCard key={study.id} study={study} onScreenPatients={handleScreenPatients} onGeneratePitch={handleGeneratePitch} />
           ))}
         </div>
         {filtered.length === 0 && (

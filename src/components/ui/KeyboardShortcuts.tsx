@@ -7,13 +7,16 @@ interface ShortcutGroup {
   shortcuts: { keys: string[]; description: string }[];
 }
 
+const isMac = typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
+const MOD = isMac ? "Cmd" : "Ctrl";
+
 const shortcutGroups: ShortcutGroup[] = [
   {
     title: "Global",
     shortcuts: [
-      { keys: ["Cmd", "K"], description: "Open command palette" },
+      { keys: [MOD, "K"], description: "Open command palette" },
       { keys: ["?"], description: "Show keyboard shortcuts" },
-      { keys: ["Cmd", "L"], description: "Lock application" },
+      { keys: [MOD, "L"], description: "Lock application" },
     ],
   },
   {
@@ -25,17 +28,19 @@ const shortcutGroups: ShortcutGroup[] = [
       { keys: ["4"], description: "Go to Review Queue" },
       { keys: ["5"], description: "Go to Pipeline" },
       { keys: ["6"], description: "Go to Analytics" },
-      { keys: ["7"], description: "Go to Performance" },
-      { keys: ["8"], description: "Go to Settings" },
+      { keys: ["7"], description: "Go to Cohort Builder" },
+      { keys: ["8"], description: "Go to Research Intel" },
+      { keys: ["9"], description: "Go to Performance" },
+      { keys: ["0"], description: "Go to Settings" },
     ],
   },
   {
-    title: "Patient Screening",
+    title: "Subject Screening",
     shortcuts: [
-      { keys: ["↑", "↓"], description: "Navigate patient list" },
-      { keys: ["A"], description: "Accept current patient" },
-      { keys: ["R"], description: "Reject current patient" },
-      { keys: ["D"], description: "Defer current patient" },
+      { keys: ["↑", "↓"], description: "Navigate subject list" },
+      { keys: ["A"], description: "Accept current subject" },
+      { keys: ["R"], description: "Reject current subject" },
+      { keys: ["D"], description: "Defer current subject" },
       { keys: ["O"], description: "Override selected criterion" },
       { keys: ["N"], description: "Next unreviewed patient" },
     ],

@@ -4,18 +4,20 @@ import { useScreeningStore } from "@/stores/use-screening-store";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { useHelpDrawer } from "@/components/ui/HelpDrawer";
 
+const isMac = typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
+
 const pageConfig: Record<string, { title: string; subtitle: string }> = {
   screening: {
-    title: "Patient Screening",
+    title: "Subject Screening",
     subtitle: "Review eligibility against active study criteria",
   },
   import: {
     title: "Import Data",
-    subtitle: "Load patient records from CSV, FHIR, or HL7 files",
+    subtitle: "Load subject records from CSV, FHIR, or HL7 files",
   },
   trials: {
     title: "Trial Discovery",
-    subtitle: "Browse trials and match your patient population",
+    subtitle: "Browse trials and match your subject population",
   },
   review: {
     title: "Review Queue",
@@ -27,7 +29,15 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
   },
   pipeline: {
     title: "Enrollment Pipeline",
-    subtitle: "Track patients from screening through enrollment",
+    subtitle: "Track subjects from screening through enrollment",
+  },
+  cohort: {
+    title: "Cohort Builder",
+    subtitle: "Define and explore subject populations with natural language queries",
+  },
+  intelligence: {
+    title: "Research Intelligence",
+    subtitle: "Readiness scoring, missed opportunities, enrollment funnels, and ROI analysis",
   },
   performance: {
     title: "Site Performance",
@@ -50,7 +60,7 @@ export function Header() {
     : config.subtitle;
 
   const openCommandPalette = () => {
-    window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }));
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }));
   };
 
   return (
@@ -74,7 +84,7 @@ export function Header() {
           <span className="text-[11px]">Search...</span>
           <div className="flex items-center gap-0.5 ml-2">
             <kbd className="flex h-[18px] items-center rounded bg-white/[0.06] px-1 text-[9px] font-medium text-slate-500 ring-1 ring-white/[0.08]">
-              <Command className="h-2.5 w-2.5" />
+              {isMac ? <Command className="h-2.5 w-2.5" /> : <span className="text-[9px]">Ctrl</span>}
             </kbd>
             <kbd className="flex h-[18px] items-center rounded bg-white/[0.06] px-1 text-[9px] font-medium text-slate-500 ring-1 ring-white/[0.08]">
               K
@@ -113,7 +123,7 @@ export function Header() {
         </Tooltip>
 
         {/* Lock button */}
-        <Tooltip content="Lock application" shortcut="Cmd+L" side="bottom">
+        <Tooltip content="Lock application" shortcut={isMac ? "Cmd+L" : "Ctrl+L"} side="bottom">
           <button
             onClick={lock}
             className="flex items-center gap-1.5 rounded-md px-2 py-1 text-slate-500 transition-colors hover:bg-white/[0.05] hover:text-slate-300"

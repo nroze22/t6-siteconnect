@@ -55,7 +55,7 @@ export function buildScreeningCSV(
       }).join(",")
     ),
   ];
-  return lines.join("\n");
+  return lines.join("\r\n");
 }
 
 export function buildDetailedCSV(
@@ -93,7 +93,7 @@ export function buildDetailedCSV(
     }
   }
 
-  return lines.join("\n");
+  return lines.join("\r\n");
 }
 
 function csvEscape(val: string): string {

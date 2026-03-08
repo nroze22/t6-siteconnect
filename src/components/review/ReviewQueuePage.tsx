@@ -37,11 +37,11 @@ const STUDY_NAMES: Record<string, string> = {
 };
 
 type ReviewFilter = ReviewStatus | "all";
-type SortField = "patient" | "score" | "status" | "decision";
+type SortField = "subject" | "score" | "status" | "decision";
 type SortDir = "asc" | "desc";
 
 const filterConfig: { value: ReviewFilter; label: string; icon: React.ReactNode; color: string }[] = [
-  { value: "all", label: "All Patients", icon: <Users className="h-3.5 w-3.5" />, color: "text-slate-400" },
+  { value: "all", label: "All Subjects", icon: <Users className="h-3.5 w-3.5" />, color: "text-slate-400" },
   { value: "accepted", label: "Accepted", icon: <CheckCircle2 className="h-3.5 w-3.5" />, color: "text-emerald-400" },
   { value: "rejected", label: "Rejected", icon: <XCircle className="h-3.5 w-3.5" />, color: "text-red-400" },
   { value: "deferred", label: "Deferred", icon: <Clock className="h-3.5 w-3.5" />, color: "text-amber-400" },
@@ -55,7 +55,7 @@ function sortPatients(patients: PatientSummary[], field: SortField, dir: SortDir
   return [...patients].sort((a, b) => {
     let cmp = 0;
     switch (field) {
-      case "patient": cmp = a.sitePatientId.localeCompare(b.sitePatientId); break;
+      case "subject": cmp = a.sitePatientId.localeCompare(b.sitePatientId); break;
       case "score": cmp = a.score - b.score; break;
       case "status": cmp = (statusOrder[a.overallStatus] ?? 9) - (statusOrder[b.overallStatus] ?? 9); break;
       case "decision": cmp = (decisionOrder[a.reviewStatus] ?? 9) - (decisionOrder[b.reviewStatus] ?? 9); break;
@@ -165,7 +165,7 @@ export function ReviewQueuePage() {
   const handleBulkAction = useCallback((action: ReviewStatus) => {
     const pendingSelected = filteredPatients.filter((p) => selected.has(p.id) && p.reviewStatus === "pending");
     if (pendingSelected.length === 0) {
-      toast.warning("No pending patients selected", "Bulk actions only apply to pending patients");
+      toast.warning("No pending subjects selected", "Bulk actions only apply to pending subjects");
       return;
     }
     setBulkConfirm({ action, count: pendingSelected.length });
@@ -178,7 +178,7 @@ export function ReviewQueuePage() {
       reviewPatient(p.id, bulkConfirm.action);
     }
     const labels: Record<string, string> = { accepted: "accepted", rejected: "rejected", deferred: "deferred" };
-    toast.success(`${pendingSelected.length} patients ${labels[bulkConfirm.action] ?? bulkConfirm.action}`, "Bulk action complete");
+    toast.success(`${pendingSelected.length} subjects ${labels[bulkConfirm.action] ?? bulkConfirm.action}`, "Bulk action complete");
     setSelected(new Set());
     setBulkConfirm(null);
   }, [bulkConfirm, filteredPatients, selected, reviewPatient, toast]);
@@ -191,13 +191,13 @@ export function ReviewQueuePage() {
         </div>
         <h3 className="text-[14px] font-semibold text-slate-200">No Screening Data Yet</h3>
         <p className="mt-2 max-w-[300px] text-[12px] leading-relaxed text-slate-500">
-          Import patient data and run screening against a study first. Your review decisions will appear here.
+          Import subject data and run screening against a study first. Your review decisions will appear here.
         </p>
         <button
           onClick={() => setCurrentPage("import")}
           className="mt-6 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-[12px] font-semibold text-white hover:bg-indigo-500"
         >
-          Import Patient Data
+          Import Subject Data
           <ArrowRight className="h-3.5 w-3.5" />
         </button>
       </div>
@@ -210,12 +210,9 @@ export function ReviewQueuePage() {
   return (
     <div className="flex h-full flex-col bg-background">
       {/* Header */}
-      <div className="shrink-0 border-b border-border bg-card/50 px-6 py-4">
+      <div className="shrink-0 border-b border-border bg-card/50 px-6 py-3">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-[15px] font-bold text-white">Review Queue</h2>
-            <p className="mt-0.5 text-[11px] text-slate-500">{studyName}</p>
-          </div>
+          <p className="text-[11px] text-slate-500">{studyName}</p>
           <div className="flex items-center gap-3">
             {/* Bulk actions (visible when selected) */}
             {someSelected && (
@@ -264,7 +261,7 @@ export function ReviewQueuePage() {
                       <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" />
                       <div>
                         <p className="font-medium">Summary CSV</p>
-                        <p className="text-[10px] text-slate-500">One row per patient with scores</p>
+                        <p className="text-[10px] text-slate-500">One row per subject with scores</p>
                       </div>
                     </button>
                     <button
@@ -274,7 +271,7 @@ export function ReviewQueuePage() {
                       <ClipboardList className="h-3.5 w-3.5 text-indigo-400" />
                       <div>
                         <p className="font-medium">Detailed CSV</p>
-                        <p className="text-[10px] text-slate-500">One row per criterion per patient</p>
+                        <p className="text-[10px] text-slate-500">One row per criterion per subject</p>
                       </div>
                     </button>
                   </div>
@@ -365,7 +362,7 @@ export function ReviewQueuePage() {
                   className="h-3.5 w-3.5 rounded border-white/20 bg-transparent text-indigo-500 focus:ring-indigo-500/30 cursor-pointer"
                 />
               </th>
-              <SortHeader field="patient" label="Patient" current={sortField} dir={sortDir} onSort={handleSort} align="left" />
+              <SortHeader field="subject" label="Subject" current={sortField} dir={sortDir} onSort={handleSort} align="left" />
               <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500">Diagnosis</th>
               <SortHeader field="score" label="Score" current={sortField} dir={sortDir} onSort={handleSort} align="center" />
               <th className="px-4 py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-slate-500">Criteria</th>
@@ -474,10 +471,10 @@ export function ReviewQueuePage() {
         {filteredPatients.length === 0 && (
           <EmptyState
             icon={<ClipboardList className="h-7 w-7" />}
-            title={patients.length === 0 ? "No screening results yet" : "No patients match this filter"}
+            title={patients.length === 0 ? "No screening results yet" : "No subjects match this filter"}
             description={patients.length === 0
-              ? "Screen patients against a study in the Screening view first. Results will appear here for review and export."
-              : "Try changing the filter above, or review more patients in the Screening view."}
+              ? "Screen subjects against a study in the Screening view first. Results will appear here for review and export."
+              : "Try changing the filter above, or review more subjects in the Screening view."}
             action={patients.length === 0 ? {
               label: "Go to Screening",
               onClick: () => setCurrentPage("screening"),
@@ -490,7 +487,7 @@ export function ReviewQueuePage() {
       <div className="shrink-0 border-t border-border bg-card/50 px-6 py-2.5">
         <div className="flex items-center justify-between">
           <p className="text-[11px] text-slate-500">
-            Showing <span className="font-semibold text-slate-400 tabular-nums">{filteredPatients.length}</span> of {patients.length} patients
+            Showing <span className="font-semibold text-slate-400 tabular-nums">{filteredPatients.length}</span> of {patients.length} subjects
             {someSelected && <span className="ml-2 text-indigo-400">({selected.size} selected)</span>}
           </p>
           <div className="flex items-center gap-3">
@@ -514,8 +511,8 @@ export function ReviewQueuePage() {
       {/* Bulk action confirmation */}
       <ConfirmDialog
         open={bulkConfirm !== null}
-        title={`Bulk ${bulkConfirm?.action ?? ""} ${bulkConfirm?.count ?? 0} patients?`}
-        description={`This will mark ${bulkConfirm?.count ?? 0} pending patients as "${bulkConfirm?.action ?? ""}". You can undo individual decisions later.`}
+        title={`Bulk ${bulkConfirm?.action ?? ""} ${bulkConfirm?.count ?? 0} subjects?`}
+        description={`This will mark ${bulkConfirm?.count ?? 0} pending subjects as "${bulkConfirm?.action ?? ""}". You can undo individual decisions later.`}
         confirmLabel={`${bulkConfirm?.action === "accepted" ? "Accept" : bulkConfirm?.action === "rejected" ? "Reject" : "Defer"} All`}
         variant={bulkConfirm?.action === "rejected" ? "danger" : bulkConfirm?.action === "deferred" ? "warning" : "info"}
         onConfirm={executeBulkAction}

@@ -24,6 +24,7 @@ import {
   Users,
   Target,
   ChevronRight,
+  DollarSign,
 } from "lucide-react";
 import type { NavigationPage } from "@/types";
 
@@ -48,17 +49,17 @@ interface PageHelp {
 
 const pageHelp: Record<NavigationPage, PageHelp> = {
   screening: {
-    title: "Patient Screening",
+    title: "Subject Screening",
     icon: <Search className="h-5 w-5" />,
-    description: "Review patient eligibility against study inclusion and exclusion criteria using AI-assisted screening.",
+    description: "Review subject eligibility against study inclusion and exclusion criteria using AI-assisted screening.",
     sections: [
       {
         title: "How It Works",
-        content: "The screening engine evaluates each patient against every study criterion. Tier 1 uses rule-based matching (labs, diagnoses, demographics). Tier 2 uses a local LLM for complex criteria requiring clinical judgment. All processing happens on your device.",
+        content: "The screening engine evaluates each subject against every study criterion. Tier 1 uses rule-based matching (labs, diagnoses, demographics). Tier 2 uses a local LLM for complex criteria requiring clinical judgment. All processing happens on your device.",
       },
       {
         title: "Three-Panel Layout",
-        content: "Left panel ranks patients by eligibility score. Center panel shows each criterion's result with evidence. Right panel displays the patient's source data with relevant fields highlighted.",
+        content: "Left panel ranks subjects by eligibility score. Center panel shows each criterion's result with evidence. Right panel displays the subject's source data with relevant fields highlighted.",
       },
       {
         title: "Reviewing Patients",
@@ -74,23 +75,23 @@ const pageHelp: Record<NavigationPage, PageHelp> = {
       },
     ],
     tips: [
-      { icon: <Keyboard className="h-3.5 w-3.5" />, text: "Press A to accept, R to reject, D to defer the current patient" },
-      { icon: <ArrowRight className="h-3.5 w-3.5" />, text: "Arrow keys navigate the patient list without using the mouse" },
+      { icon: <Keyboard className="h-3.5 w-3.5" />, text: "Press A to accept, R to reject, D to defer the current subject" },
+      { icon: <ArrowRight className="h-3.5 w-3.5" />, text: "Arrow keys navigate the subject list without using the mouse" },
       { icon: <Eye className="h-3.5 w-3.5" />, text: "Click any criterion to see the source evidence that was matched" },
       { icon: <Brain className="h-3.5 w-3.5" />, text: "AI-determined results show a brain icon — always verify these" },
     ],
     shortcuts: [
-      { keys: "↑ ↓", action: "Navigate patients" },
-      { keys: "A", action: "Accept patient" },
-      { keys: "R", action: "Reject patient" },
-      { keys: "D", action: "Defer patient" },
+      { keys: "↑ ↓", action: "Navigate subjects" },
+      { keys: "A", action: "Accept subject" },
+      { keys: "R", action: "Reject subject" },
+      { keys: "D", action: "Defer subject" },
       { keys: "O", action: "Override criterion" },
     ],
   },
   import: {
     title: "Import Data",
     icon: <FileUp className="h-5 w-5" />,
-    description: "Load patient records from CSV exports. The system auto-detects Epic Clarity format and maps columns automatically.",
+    description: "Load subject records from CSV exports. The system auto-detects Epic Clarity format and maps columns automatically.",
     sections: [
       {
         title: "Supported Formats",
@@ -102,7 +103,7 @@ const pageHelp: Record<NavigationPage, PageHelp> = {
       },
       {
         title: "What Happens During Import",
-        content: "Records are parsed, deduplicated by patient ID, and encrypted into the local SQLCipher database. Diagnoses, medications, labs, and vitals are extracted and linked. Duplicate patients are updated, not duplicated. An audit trail entry is created for each import.",
+        content: "Records are parsed, deduplicated by subject ID, and encrypted into the local SQLCipher database. Diagnoses, medications, labs, and vitals are extracted and linked. Duplicate subjects are updated, not duplicated. An audit trail entry is created for each import.",
       },
       {
         title: "Data Safety",
@@ -111,26 +112,26 @@ const pageHelp: Record<NavigationPage, PageHelp> = {
     ],
     tips: [
       { icon: <Shield className="h-3.5 w-3.5" />, text: "PHI never leaves your device — all parsing happens locally" },
-      { icon: <Database className="h-3.5 w-3.5" />, text: "Duplicate patients are automatically merged by patient ID" },
-      { icon: <Zap className="h-3.5 w-3.5" />, text: "Use the demo data button to explore the app with sample patients" },
+      { icon: <Database className="h-3.5 w-3.5" />, text: "Duplicate subjects are automatically merged by subject ID" },
+      { icon: <Zap className="h-3.5 w-3.5" />, text: "Use the demo data button to explore the app with sample subjects" },
     ],
   },
   trials: {
     title: "Trial Discovery",
     icon: <FlaskConical className="h-5 w-5" />,
-    description: "Browse curated clinical trials with financial intelligence. See which trials match your patient population and estimate revenue opportunity.",
+    description: "Browse curated clinical trials with financial intelligence. See which trials match your subject population and estimate revenue opportunity.",
     sections: [
       {
         title: "Curated Trial List",
-        content: "Trials shown here are curated for relevance to your site's therapeutic areas and patient population. This is not a ClinicalTrials.gov browser — it's a focused list of high-value opportunities with financial projections.",
+        content: "Trials shown here are curated for relevance to your site's therapeutic areas and subject population. This is not a ClinicalTrials.gov browser — it's a focused list of high-value opportunities with financial projections.",
       },
       {
         title: "Financial Intelligence",
-        content: "Each trial card shows estimated per-patient value, projected revenue based on your eligible patient count, and enrollment probability. These projections use industry benchmarks for screen failure rates and retention.",
+        content: "Each trial card shows estimated per-subject value, projected revenue based on your eligible subject count, and enrollment probability. These projections use industry benchmarks for screen failure rates and retention.",
       },
       {
         title: "Screen Patients",
-        content: "Click 'Screen Patients' on any trial to run your patient population against that study's criteria. Results appear immediately in the Screening view. You can screen against multiple studies to find the best opportunities.",
+        content: "Click 'Screen Subjects' on any trial to run your subject population against that study's criteria. Results appear immediately in the Screening view. You can screen against multiple studies to find the best opportunities.",
       },
     ],
     tips: [
@@ -142,35 +143,35 @@ const pageHelp: Record<NavigationPage, PageHelp> = {
   review: {
     title: "Review Queue",
     icon: <ClipboardCheck className="h-5 w-5" />,
-    description: "Review all screening decisions in one place. Accept, reject, or defer patients, then export results for sponsor submission.",
+    description: "Review all screening decisions in one place. Accept, reject, or defer subjects, then export results for sponsor submission.",
     sections: [
       {
         title: "Review Workflow",
-        content: "All patients screened against the active study appear here. Filter by decision status (Accepted, Rejected, Deferred, Pending) to focus your review. Each decision is recorded with a timestamp in the audit trail.",
+        content: "All subjects screened against the active study appear here. Filter by decision status (Accepted, Rejected, Deferred, Pending) to focus your review. Each decision is recorded with a timestamp in the audit trail.",
       },
       {
         title: "Sorting & Selection",
-        content: "Click any column header to sort (Patient ID, Score, Status, Decision). Use checkboxes to select multiple patients for bulk actions — accept, reject, or defer many patients at once with a confirmation step.",
+        content: "Click any column header to sort (Subject ID, Score, Status, Decision). Use checkboxes to select multiple subjects for bulk actions — accept, reject, or defer many subjects at once with a confirmation step.",
       },
       {
         title: "Export Options",
-        content: "Summary CSV: One row per patient with scores and decisions. Detailed CSV: One row per criterion per patient with evidence. Both formats are suitable for sponsor submission and audit documentation.",
+        content: "Summary CSV: One row per subject with scores and decisions. Detailed CSV: One row per criterion per subject with evidence. Both formats are suitable for sponsor submission and audit documentation.",
       },
     ],
     tips: [
-      { icon: <CheckCircle2 className="h-3.5 w-3.5" />, text: "Use bulk select to accept/reject multiple patients at once" },
-      { icon: <ArrowRight className="h-3.5 w-3.5" />, text: "Click the arrow button to jump back to a patient in Screening" },
+      { icon: <CheckCircle2 className="h-3.5 w-3.5" />, text: "Use bulk select to accept/reject multiple subjects at once" },
+      { icon: <ArrowRight className="h-3.5 w-3.5" />, text: "Click the arrow button to jump back to a subject in Screening" },
       { icon: <Zap className="h-3.5 w-3.5" />, text: "Quick Export in the footer downloads a summary CSV instantly" },
     ],
   },
   pipeline: {
     title: "Enrollment Pipeline",
     icon: <GitBranch className="h-5 w-5" />,
-    description: "Track patients through the enrollment funnel — from identification through consent and enrollment. Kanban-style board for CRC workflow management.",
+    description: "Track subjects through the enrollment funnel — from identification through consent and enrollment. Kanban-style board for CRC workflow management.",
     sections: [
       {
         title: "Pipeline Stages",
-        content: "Patients flow through 6 stages: Identified (screening found them), Contacted (outreach initiated), Interested (patient expressed interest), Consented (informed consent signed), Enrolled (randomized/enrolled), and Screen Failed (dropped out of pipeline).",
+        content: "Subjects flow through 6 stages: Identified (screening found them), Contacted (outreach initiated), Interested (subject expressed interest), Consented (informed consent signed), Enrolled (randomized/enrolled), and Screen Failed (dropped out of pipeline).",
       },
       {
         title: "Conversion Funnel",
@@ -178,35 +179,35 @@ const pageHelp: Record<NavigationPage, PageHelp> = {
       },
       {
         title: "Patient Cards",
-        content: "Click any card to expand it and see details: assigned CRC, next action items, notes, and eligibility score. Use the action buttons to log calls, add notes, or advance patients to the next stage.",
+        content: "Click any card to expand it and see details: assigned CRC, next action items, notes, and eligibility score. Use the action buttons to log calls, add notes, or advance subjects to the next stage.",
       },
     ],
     tips: [
-      { icon: <Target className="h-3.5 w-3.5" />, text: "Focus on patients with high scores who are stuck in early stages" },
+      { icon: <Target className="h-3.5 w-3.5" />, text: "Focus on subjects with high scores who are stuck in early stages" },
       { icon: <Users className="h-3.5 w-3.5" />, text: "Filter by study to manage pipeline for specific trials" },
     ],
   },
   analytics: {
     title: "Population Intelligence",
     icon: <BarChart3 className="h-5 w-5" />,
-    description: "Operational intelligence derived from your patient data — feasibility analysis, lab trajectories, and FDA diversity compliance.",
+    description: "Operational intelligence derived from your subject data — feasibility analysis, lab trajectories, and FDA diversity compliance.",
     sections: [
       {
         title: "Protocol Feasibility",
-        content: "Select a preset query (e.g., NSCLC patients with specific lab values) to see how many of your patients would qualify. The criterion-by-criterion breakdown shows exactly where patients fail, helping you estimate realistic enrollment.",
+        content: "Select a preset query (e.g., NSCLC subjects with specific lab values) to see how many of your subjects would qualify. The criterion-by-criterion breakdown shows exactly where subjects fail, helping you estimate realistic enrollment.",
       },
       {
         title: "Lab Trajectories",
-        content: "Identifies patients who are approaching eligibility thresholds. For example, a patient whose A1C is trending toward the inclusion range may become eligible soon — these are your 'watchlist' patients for proactive outreach.",
+        content: "Identifies subjects who are approaching eligibility thresholds. For example, a subject whose A1C is trending toward the inclusion range may become eligible soon — these are your 'watchlist' subjects for proactive outreach.",
       },
       {
         title: "Diversity Profile",
-        content: "Shows your patient population's demographic breakdown (race, ethnicity, gender, age, insurance) with a Simpson Diversity Score. The FDA Diversity Action Plan requires sponsors to demonstrate enrollment efforts across demographics — this dashboard helps you plan.",
+        content: "Shows your subject population's demographic breakdown (race, ethnicity, gender, age, insurance) with a Simpson Diversity Score. The FDA Diversity Action Plan requires sponsors to demonstrate enrollment efforts across demographics — this dashboard helps you plan.",
       },
     ],
     tips: [
       { icon: <Lightbulb className="h-3.5 w-3.5" />, text: "Use feasibility data in sponsor calls to demonstrate your site's capability" },
-      { icon: <TrendingUp className="h-3.5 w-3.5" />, text: "Watchlist patients are worth proactive outreach — they're almost eligible" },
+      { icon: <TrendingUp className="h-3.5 w-3.5" />, text: "Watchlist subjects are worth proactive outreach — they're almost eligible" },
       { icon: <Shield className="h-3.5 w-3.5" />, text: "A diversity score above 60 is strong for FDA diversity compliance" },
     ],
   },
@@ -217,7 +218,7 @@ const pageHelp: Record<NavigationPage, PageHelp> = {
     sections: [
       {
         title: "KPI Overview",
-        content: "See active study count, total patients screened, eligible count, average pass rate, and projected revenue at a glance. These metrics update in real-time as you import data and make review decisions.",
+        content: "See active study count, total subjects screened, eligible count, average pass rate, and projected revenue at a glance. These metrics update in real-time as you import data and make review decisions.",
       },
       {
         title: "Screen Failure Intelligence",
@@ -225,11 +226,11 @@ const pageHelp: Record<NavigationPage, PageHelp> = {
       },
       {
         title: "Multi-Study Matching",
-        content: "Shows patients who are eligible for multiple studies simultaneously. This helps you maximize enrollment and revenue by identifying patients who could be offered backup study options if their first-choice trial isn't suitable.",
+        content: "Shows subjects who are eligible for multiple studies simultaneously. This helps you maximize enrollment and revenue by identifying subjects who could be offered backup study options if their first-choice trial isn't suitable.",
       },
     ],
     tips: [
-      { icon: <Zap className="h-3.5 w-3.5" />, text: "Multi-study matches can increase per-patient revenue by 40%+" },
+      { icon: <Zap className="h-3.5 w-3.5" />, text: "Multi-study matches can increase per-subject revenue by 40%+" },
       { icon: <Target className="h-3.5 w-3.5" />, text: "Share screen failure data with sponsors to improve protocol design" },
     ],
   },
@@ -252,13 +253,47 @@ const pageHelp: Record<NavigationPage, PageHelp> = {
       },
       {
         title: "Database",
-        content: "Shows the current state of your encrypted SQLCipher database — patient count, study count, diagnosis records, lab results, and import history. All data is encrypted at rest with AES-256.",
+        content: "Shows the current state of your encrypted SQLCipher database — subject count, study count, diagnosis records, lab results, and import history. All data is encrypted at rest with AES-256.",
       },
     ],
     tips: [
       { icon: <Lock className="h-3.5 w-3.5" />, text: "Your database passphrase is never stored — only you can unlock it" },
       { icon: <Shield className="h-3.5 w-3.5" />, text: "Export audit trail CSV before any regulatory audit" },
       { icon: <Brain className="h-3.5 w-3.5" />, text: "LLM requires ~4GB RAM — close other apps if performance is slow" },
+    ],
+  },
+  cohort: {
+    title: "Cohort Builder",
+    icon: <Users className="h-5 w-5" />,
+    description: "Define and explore subject populations using natural language or guided filters. Build feasibility queries instantly.",
+    sections: [
+      {
+        title: "How to Use",
+        content: "Type a plain-English query like \"diabetic patients over 50 with A1c above 8\", or add filters manually using the filter builder. View the attrition waterfall to see which criteria are most restrictive, then export matched cohorts as CSV.",
+      },
+      {
+        title: "Supported Queries",
+        content: "Diagnosis (\"diabetes\", \"lung cancer\", \"heart failure\"), Age (\"over 50\", \"under 65\", \"age 40-70\"), Labs (\"A1c above 8\", \"eGFR below 60\"), Medications (\"on metformin\"), and Sex (\"male\", \"female\").",
+      },
+    ],
+    tips: [
+      { icon: <Search className="h-3.5 w-3.5" />, text: "Combine multiple criteria in one query for complex cohorts" },
+      { icon: <BarChart3 className="h-3.5 w-3.5" />, text: "The attrition waterfall shows your biggest enrollment bottleneck" },
+    ],
+  },
+  intelligence: {
+    title: "Research Intelligence",
+    icon: <Lightbulb className="h-5 w-5" />,
+    description: "AI-powered insights into your site's research potential, missed opportunities, enrollment projections, and study ROI.",
+    sections: [
+      {
+        title: "Dashboard Sections",
+        content: "Research Readiness Score gives an overall site capability assessment. Missed Opportunity Detector shows revenue you may be leaving on the table. Enrollment Yield Funnel provides realistic projections with adjustable assumptions. ROI Calculator helps justify study activation decisions.",
+      },
+    ],
+    tips: [
+      { icon: <TrendingUp className="h-3.5 w-3.5" />, text: "Adjust funnel drop-off rates to model best-case and worst-case scenarios" },
+      { icon: <DollarSign className="h-3.5 w-3.5" />, text: "Use the ROI calculator to justify study activation decisions to leadership" },
     ],
   },
 };
@@ -447,7 +482,7 @@ export function HelpDrawer({ currentPage }: { currentPage: NavigationPage }) {
                   </div>
                   <p className="text-[10px] leading-relaxed text-emerald-400/70">
                     All data is encrypted with AES-256 and stored locally on this device.
-                    No patient data, screening results, or audit trail entries are ever transmitted
+                    No subject data, screening results, or audit trail entries are ever transmitted
                     to any external server. This application is designed for 21 CFR Part 11 compliance.
                   </p>
                 </div>

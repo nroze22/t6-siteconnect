@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
   FileSpreadsheet,
@@ -6,7 +7,17 @@ import {
   FileCode,
   FileText,
   X,
+  Columns3,
+  Rows3,
+  HardDrive,
+  CheckCircle2,
 } from "lucide-react";
+
+export interface CsvPreview {
+  headers: string[];
+  rows: string[][];
+  totalRows: number;
+}
 
 export interface SelectedFile {
   name: string;
@@ -14,6 +25,8 @@ export interface SelectedFile {
   format: "csv" | "excel" | "fhir_json" | "ccda_xml" | "unknown";
   /** Full file path — only available in Tauri mode */
   path?: string;
+  /** Parsed CSV preview — only available when a real file is dropped/selected in the browser */
+  preview?: CsvPreview;
 }
 
 const FORMAT_META: Record<
@@ -42,6 +55,43 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+/**
+ * Parse CSV text into headers and preview rows.
+ * Basic comma-splitting — does not handle quoted fields.
+ */
+function parseCsvPreview(text: string, maxRows: number = 5): CsvPreview | null {
+  const lines = text.split(/\r?\n/).filter((line) => line.trim().length > 0);
+  const headerLine = lines[0];
+  if (!headerLine) return null;
+
+  const headers = headerLine.split(",").map((h) => h.trim());
+  const dataLines = lines.slice(1);
+  const rows = dataLines.slice(0, maxRows).map((line) =>
+    line.split(",").map((cell) => cell.trim())
+  );
+
+  return { headers, rows, totalRows: dataLines.length };
+}
+
+/**
+ * Read a browser File object and parse CSV contents for preview.
+ */
+function readAndParseCsv(file: File): Promise<CsvPreview | null> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = reader.result;
+      if (typeof text !== "string") {
+        resolve(null);
+        return;
+      }
+      resolve(parseCsvPreview(text));
+    };
+    reader.onerror = () => resolve(null);
+    reader.readAsText(file);
+  });
+}
+
 const FORMAT_ICON: Record<SelectedFile["format"], React.ReactNode> = {
   csv: <FileSpreadsheet className="h-5 w-5" />,
   excel: <FileSpreadsheet className="h-5 w-5" />,
@@ -58,91 +108,274 @@ interface FileDropZoneProps {
 
 export function FileDropZone({ onFileSelected, selectedFile, onClear }: FileDropZoneProps) {
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = useCallback(
-    (name: string, size: number) => {
-      const format = detectFormat(name);
-      onFileSelected({ name, size, format });
+  const handleBrowserFile = useCallback(
+    async (browserFile: File) => {
+      const format = detectFormat(browserFile.name);
+      if (format === "csv") {
+        setIsParsing(true);
+        const preview = await readAndParseCsv(browserFile);
+        setIsParsing(false);
+        onFileSelected({
+          name: browserFile.name,
+          size: browserFile.size,
+          format,
+          preview: preview ?? undefined,
+        });
+      } else {
+        onFileSelected({ name: browserFile.name, size: browserFile.size, format });
+      }
     },
     [onFileSelected]
   );
 
-  const handleDragOver = useCallback((e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); setIsDragOver(true); }, []);
-  const handleDragLeave = useCallback((e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); setIsDragOver(false); }, []);
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault(); e.stopPropagation(); setIsDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file.name, file.size);
-  }, [handleFile]);
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) handleFile(file.name, file.size);
-  }, [handleFile]);
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
 
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(false);
+      const file = e.dataTransfer.files[0];
+      if (file) void handleBrowserFile(file);
+    },
+    [handleBrowserFile]
+  );
+
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) void handleBrowserFile(file);
+      // Reset so the same file can be re-selected
+      if (inputRef.current) inputRef.current.value = "";
+    },
+    [handleBrowserFile]
+  );
+
+  // -- File selected: show info card + optional CSV preview --
   if (selectedFile) {
     const meta = FORMAT_META[selectedFile.format];
+    const preview = selectedFile.preview;
     return (
-      <div className="rounded-xl border border-white/[0.06] bg-card p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${meta.bgColor} ${meta.color}`}>
-              {FORMAT_ICON[selectedFile.format]}
-            </div>
-            <div>
-              <p className="text-[13px] font-semibold text-slate-200">{selectedFile.name}</p>
-              <div className="mt-1 flex items-center gap-2">
-                <span className="text-[11px] text-slate-500">{formatFileSize(selectedFile.size)}</span>
-                <span className="text-slate-700">|</span>
-                <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold ${meta.bgColor} ${meta.color}`}>
-                  {meta.label}
-                </span>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key="file-info"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+          className="space-y-4"
+        >
+          {/* File info card */}
+          <div className="rounded-xl border border-white/[0.06] bg-card p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${meta.bgColor} ${meta.color}`}>
+                  {FORMAT_ICON[selectedFile.format]}
+                </div>
+                <div>
+                  <p className="text-[13px] font-semibold text-slate-200">{selectedFile.name}</p>
+                  <div className="mt-1 flex items-center gap-3">
+                    <span className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                      <HardDrive className="h-3 w-3" />
+                      {formatFileSize(selectedFile.size)}
+                    </span>
+                    <span className="text-slate-700">|</span>
+                    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold ${meta.bgColor} ${meta.color}`}>
+                      {meta.label}
+                    </span>
+                    {preview && (
+                      <>
+                        <span className="text-slate-700">|</span>
+                        <span className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                          <Columns3 className="h-3 w-3" />
+                          {preview.headers.length} columns
+                        </span>
+                        <span className="text-slate-700">|</span>
+                        <span className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                          <Rows3 className="h-3 w-3" />
+                          {preview.totalRows.toLocaleString()} data rows
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
+              <button
+                onClick={onClear}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-white/[0.04] hover:text-slate-300"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
           </div>
-          <button onClick={onClear} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-white/[0.04] hover:text-slate-300">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
+
+          {/* CSV Preview table */}
+          {preview && preview.rows.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, delay: 0.1 }}
+              className="rounded-xl border border-white/[0.06] bg-card"
+            >
+              <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
+                <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                  Data Preview (first {preview.rows.length} rows of {preview.totalRows.toLocaleString()})
+                </h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-white/[0.06] bg-white/[0.02]">
+                      {preview.headers.map((header, idx) => (
+                        <th
+                          key={`${header}-${idx}`}
+                          className="whitespace-nowrap px-3 py-2 text-left font-semibold text-muted-foreground"
+                        >
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {preview.rows.map((row, rowIdx) => (
+                      <tr
+                        key={rowIdx}
+                        className="border-b border-border/50 last:border-0"
+                      >
+                        {preview.headers.map((_header, colIdx) => {
+                          const cell = row[colIdx];
+                          return (
+                            <td
+                              key={colIdx}
+                              className="max-w-[180px] truncate whitespace-nowrap px-3 py-2 font-mono text-foreground/80"
+                            >
+                              {cell ?? ""}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
+          )}
+        </motion.div>
+      </AnimatePresence>
     );
   }
 
+  // -- Empty state: drop zone --
   return (
-    <div>
-      <div
-        onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
-        onClick={() => inputRef.current?.click()}
-        className={`group cursor-pointer rounded-xl border-2 border-dashed p-12 text-center transition-all duration-200 ${
-          isDragOver ? "border-indigo-500/40 bg-indigo-500/5" : "border-white/[0.08] hover:border-indigo-500/20 hover:bg-white/[0.02]"
-        }`}
+    <AnimatePresence mode="wait">
+      <motion.div
+        key="drop-zone"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -12 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
       >
-        <input ref={inputRef} type="file" className="hidden" accept=".csv,.tsv,.xlsx,.xls,.json,.xml" onChange={handleInputChange} />
-        <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl transition-colors duration-200 ${
-          isDragOver ? "bg-indigo-500/15 text-indigo-400" : "bg-white/[0.04] text-slate-500 group-hover:bg-indigo-500/10 group-hover:text-indigo-400"
-        }`}>
-          <Upload className="h-7 w-7" />
+        <div
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => inputRef.current?.click()}
+          className={`group relative cursor-pointer rounded-xl border-2 border-dashed p-12 text-center transition-all duration-200 ${
+            isDragOver
+              ? "border-indigo-400/50 bg-indigo-500/[0.07] shadow-[0_0_40px_-8px_rgba(99,102,241,0.15)]"
+              : "border-white/[0.08] hover:border-indigo-500/20 hover:bg-white/[0.02]"
+          }`}
+        >
+          <input
+            ref={inputRef}
+            type="file"
+            className="hidden"
+            accept=".csv"
+            onChange={handleInputChange}
+          />
+
+          {/* Animated glow ring on drag */}
+          {isDragOver && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="pointer-events-none absolute inset-0 rounded-xl ring-2 ring-indigo-500/30"
+            />
+          )}
+
+          <div
+            className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl transition-all duration-200 ${
+              isDragOver
+                ? "bg-indigo-500/15 text-indigo-400 scale-110"
+                : "bg-white/[0.04] text-slate-500 group-hover:bg-indigo-500/10 group-hover:text-indigo-400"
+            }`}
+          >
+            <Upload className="h-7 w-7" />
+          </div>
+
+          <p className="mt-4 text-[14px] font-semibold text-slate-200">
+            {isParsing
+              ? "Parsing file..."
+              : isDragOver
+              ? "Drop your CSV file here"
+              : "Drop your CSV file here"}
+          </p>
+          <p className="mt-1.5 text-[11px] text-slate-500">
+            {isDragOver ? "Release to load and preview" : "or click to browse your files"}
+          </p>
+
+          <div className="mt-6 flex items-center justify-center gap-2">
+            {(
+              [
+                { label: "Epic Clarity", color: "text-blue-400 bg-blue-500/10 ring-1 ring-blue-500/20" },
+                { label: "FHIR Bundle", color: "text-violet-400 bg-violet-500/10 ring-1 ring-violet-500/20" },
+                { label: "HL7 v2", color: "text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20" },
+                { label: "CSV", color: "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20" },
+              ] as const
+            ).map((fmt) => (
+              <span
+                key={fmt.label}
+                className={`rounded-md px-2.5 py-1 text-[10px] font-semibold ${fmt.color}`}
+              >
+                {fmt.label}
+              </span>
+            ))}
+          </div>
         </div>
-        <p className="mt-4 text-[13px] font-semibold text-slate-200">
-          {isDragOver ? "Drop file to import" : "Drop files here or click to browse"}
-        </p>
-        <p className="mt-1.5 text-[11px] text-slate-500">Import patient records from your EMR exports</p>
-        <div className="mt-6 flex items-center justify-center gap-2">
-          {([
-            { label: "CSV", color: "text-blue-400 bg-blue-500/10 ring-1 ring-blue-500/20" },
-            { label: "Excel", color: "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20" },
-            { label: "FHIR JSON", color: "text-violet-400 bg-violet-500/10 ring-1 ring-violet-500/20" },
-            { label: "C-CDA XML", color: "text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20" },
-          ] as const).map((fmt) => (
-            <span key={fmt.label} className={`rounded-md px-2.5 py-1 text-[10px] font-semibold ${fmt.color}`}>{fmt.label}</span>
-          ))}
+
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              inputRef.current?.click();
+            }}
+            className="rounded-lg bg-indigo-600 px-6 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-indigo-500"
+          >
+            Browse Files
+          </button>
         </div>
-      </div>
-      <div className="mt-4 flex justify-center">
-        <button onClick={() => inputRef.current?.click()} className="rounded-lg bg-indigo-600 px-6 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-indigo-500">
-          Select File to Import
-        </button>
-      </div>
-    </div>
+      </motion.div>
+    </AnimatePresence>
   );
 }

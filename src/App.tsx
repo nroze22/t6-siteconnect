@@ -10,6 +10,8 @@ import { AnalyticsPage } from "@/components/analytics/AnalyticsPage";
 import { PipelinePage } from "@/components/pipeline/PipelinePage";
 import { PerformancePage } from "@/components/performance/PerformancePage";
 import { SettingsPage } from "@/components/settings/SettingsPage";
+import { CohortBuilderPage } from "@/components/cohort/CohortBuilderPage";
+import { IntelligencePage } from "@/components/intelligence/IntelligencePage";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import { SetupScreen } from "@/components/setup/SetupScreen";
 import { UnlockScreen } from "@/components/setup/UnlockScreen";
@@ -110,6 +112,10 @@ function PageRouter() {
         return <AnalyticsPage />;
       case "pipeline":
         return <PipelinePage />;
+      case "cohort":
+        return <CohortBuilderPage />;
+      case "intelligence":
+        return <IntelligencePage />;
       case "performance":
         return <PerformancePage />;
       case "settings":
@@ -134,8 +140,10 @@ const pageKeys: Record<string, NavigationPage> = {
   "4": "review",
   "5": "pipeline",
   "6": "analytics",
-  "7": "performance",
-  "8": "settings",
+  "7": "cohort",
+  "8": "intelligence",
+  "9": "performance",
+  "0": "settings",
 };
 
 function useGlobalShortcuts() {
@@ -246,7 +254,9 @@ export default function App() {
           {/* Logo with glow */}
           <div className="relative">
             <div className="absolute inset-0 rounded-2xl bg-indigo-500/20 blur-xl animate-pulse" />
-            <img src="/t6logo.png" alt="Talosix" className="relative h-16 w-16 rounded-2xl object-contain" />
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-700 shadow-lg shadow-indigo-500/20">
+              <img src="/t6logo.png" alt="Talosix" className="h-11 w-11 object-contain" />
+            </div>
           </div>
 
           {/* App name */}

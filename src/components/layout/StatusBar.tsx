@@ -43,7 +43,7 @@ export function StatusBar() {
         <div className="flex items-center gap-1.5">
           <Activity className="h-3 w-3 text-slate-600" />
           <span className="text-slate-500 tabular-nums">
-            {formatNumber(status.patientCount)} patients
+            {formatNumber(status.patientCount)} subjects
           </span>
           <span className="text-slate-700">|</span>
           <span className="text-slate-500 tabular-nums">

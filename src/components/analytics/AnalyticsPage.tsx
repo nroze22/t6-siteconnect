@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import {
   BarChart3,
   TrendingUp,
@@ -53,6 +53,14 @@ import {
   LAB_THRESHOLD_PRESETS,
   type EnrollmentForecast,
 } from "@/lib/population-analytics";
+import { useAnalyticsStore } from "@/stores/use-analytics-store";
+import { useFilteredPatients } from "@/stores/use-analytics-store";
+import { runMonteCarloForecast } from "@/lib/statistical-engine";
+import type { MonteCarloResult } from "@/lib/statistical-engine";
+import { exportCSV, exportReportDeck } from "@/lib/analytics-export";
+import { FeasibilityInsights, DiversityInsights } from "@/components/analytics/InsightsPanel";
+import { ActiveFiltersBar } from "@/components/analytics/ActiveFiltersBar";
+import { DrillDownPanel } from "@/components/analytics/DrillDownPanel";
 
 type AnalyticsTab = "feasibility" | "trajectory" | "diversity";
 
@@ -66,33 +74,32 @@ const tooltipStyle = {
 
 export function AnalyticsPage() {
   const [activeTab, setActiveTab] = useState<AnalyticsTab>("feasibility");
-  const [patients, setPatients] = useState<ParsedPatient[]>([]);
+  const [allPatients, setAllPatients] = useState<ParsedPatient[]>([]);
   const [loading, setLoading] = useState(true);
+  const filteredPatients = useFilteredPatients(allPatients);
+  const patients = filteredPatients;
   const animatedCount = useAnimatedNumber(patients.length);
 
   useEffect(() => {
     getPatients().then((p) => {
-      setPatients(p);
+      setAllPatients(p);
       setLoading(false);
     });
   }, []);
 
   const tabs: { id: AnalyticsTab; label: string; icon: React.ReactNode; desc: string }[] = [
     { id: "feasibility", label: "Protocol Feasibility", icon: <Calculator className="h-4 w-4" />, desc: "Can you run this study?" },
-    { id: "trajectory", label: "Lab Trajectories", icon: <TrendingUp className="h-4 w-4" />, desc: "Patients becoming eligible" },
+    { id: "trajectory", label: "Lab Trajectories", icon: <TrendingUp className="h-4 w-4" />, desc: "Subjects becoming eligible" },
     { id: "diversity", label: "Diversity Profile", icon: <Users className="h-4 w-4" />, desc: "FDA diversity compliance" },
   ];
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-background">
-      <div className="shrink-0 border-b border-border bg-card/50 px-6 py-4">
+      <div className="shrink-0 border-b border-border bg-card/50 px-6 py-3">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-[15px] font-bold text-white">Population Intelligence</h2>
-            <p className="text-[12px] text-slate-500">
-              Operational insights derived from your patient data — <span className="tabular-nums">{animatedCount}</span> patients loaded
-            </p>
-          </div>
+          <p className="text-[12px] text-slate-500">
+            <span className="tabular-nums font-medium text-slate-300">{animatedCount}</span> subjects loaded
+          </p>
           <div className="flex items-center gap-1 rounded-lg bg-emerald-500/8 px-3 py-1.5 ring-1 ring-emerald-500/15">
             <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-[11px] font-medium text-emerald-400">Live from your data</span>
@@ -123,6 +130,11 @@ export function AnalyticsPage() {
         </div>
       </div>
 
+      {/* Active filters bar */}
+      <div className="shrink-0 px-6 pt-2">
+        <ActiveFiltersBar />
+      </div>
+
       {/* Tab content */}
       <div className="flex-1 overflow-y-auto p-6">
         {loading ? (
@@ -139,6 +151,9 @@ export function AnalyticsPage() {
           </>
         )}
       </div>
+
+      {/* Drill-down slide-over */}
+      <DrillDownPanel />
     </div>
   );
 }
@@ -150,7 +165,9 @@ export function AnalyticsPage() {
 function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
   const [selectedQueryId, setSelectedQueryId] = useState(PRESET_QUERIES[0]!.id);
   const [forecast, setForecast] = useState<EnrollmentForecast | null>(null);
+  const [monteCarlo, setMonteCarlo] = useState<MonteCarloResult | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+  const openDrillDown = useAnalyticsStore((s) => s.openDrillDown);
 
   const selectedQuery = PRESET_QUERIES.find((q) => q.id === selectedQueryId) ?? PRESET_QUERIES[0]!;
 
@@ -159,10 +176,87 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
     [patients, selectedQuery],
   );
 
+  // Get matched patient MRNs for drill-down (from the result directly)
+  const matchedMRNs = result.matchedPatientIds;
+
   const handleForecast = () => {
     const fc = forecastEnrollment(patients, result.matchingPatients, selectedQuery.name, 20);
     setForecast(fc);
+    // Also run Monte Carlo
+    const mc = runMonteCarloForecast({
+      eligiblePool: result.matchingPatients,
+      screenFailureRate: 0.3,
+      consentRate: 0.45,
+      dropoutRate: 0.05,
+      monthlyCapacity: Math.max(5, Math.ceil(result.matchingPatients / 4)),
+      targetEnrollment: 20,
+      months: 18,
+      simulations: 1000,
+    });
+    setMonteCarlo(mc);
   };
+
+  const handleDrillDown = useCallback((criterion: string, count: number) => {
+    openDrillDown({
+      type: "criterion",
+      title: `Subjects passing: ${criterion}`,
+      description: `${count} subjects meet this criterion from ${selectedQuery.name}`,
+      patientIds: matchedMRNs,
+      sourceChart: "Feasibility",
+      sourceValue: criterion,
+      metadata: { query: selectedQuery.name },
+    });
+  }, [openDrillDown, matchedMRNs, selectedQuery.name]);
+
+  const handleExportCSV = useCallback(() => {
+    const headers = ["Criterion", "Passing", "Total", "Rate"];
+    const rows = result.criterionBreakdown.map((cb) => [
+      cb.criterion,
+      cb.matchCount,
+      result.totalPatients,
+      `${(cb.matchRate * 100).toFixed(1)}%`,
+    ]);
+    exportCSV({ filename: `feasibility-${selectedQuery.id}`, headers, rows });
+  }, [result, selectedQuery.id]);
+
+  const handleExportReport = useCallback(() => {
+    exportReportDeck({
+      title: `Protocol Feasibility: ${selectedQuery.name}`,
+      subtitle: "Population Intelligence Report",
+      confidential: true,
+      sections: [
+        {
+          type: "metrics",
+          columns: 4,
+          metrics: [
+            { label: "Total Population", value: String(result.totalPatients) },
+            { label: "Matching Subjects", value: String(result.matchingPatients), accent: true },
+            { label: "Match Rate", value: `${(result.matchRate * 100).toFixed(1)}%` },
+            { label: "Avg Age", value: result.demographics.avgAge > 0 ? `${result.demographics.avgAge}y` : "—" },
+          ],
+        },
+        {
+          type: "table",
+          headers: ["Criterion", "Passing", "Total", "Rate"],
+          rows: result.criterionBreakdown.map((cb) => [
+            cb.criterion,
+            cb.matchCount,
+            result.totalPatients,
+            `${(cb.matchRate * 100).toFixed(1)}%`,
+          ]),
+        },
+        ...(monteCarlo ? [{
+          type: "metrics" as const,
+          columns: 3,
+          metrics: [
+            { label: "P(Success)", value: `${monteCarlo.probabilityOfSuccess.toFixed(0)}%`, accent: monteCarlo.probabilityOfSuccess >= 70 },
+            { label: "Expected Enrolled", value: String(Math.round(monteCarlo.expectedEnrolled)) },
+            { label: "Median Time to Target", value: monteCarlo.medianTimeToTarget ? `${monteCarlo.medianTimeToTarget} mo` : "N/A" },
+          ],
+        }] : []),
+      ],
+    });
+  }, [result, selectedQuery.name, monteCarlo]);
 
   return (
     <div className="space-y-6">
@@ -205,7 +299,7 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
         />
         <ResultCard
           icon={<CheckCircle2 className="h-4 w-4 text-emerald-400" />}
-          label="Matching Patients"
+          label="Matching Subjects"
           value={String(result.matchingPatients)}
           subtext={`${(result.matchRate * 100).toFixed(1)}% match rate`}
           color="bg-emerald-500/10 ring-1 ring-emerald-500/20"
@@ -226,19 +320,57 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
         />
       </div>
 
-      {/* Criterion breakdown */}
+      {/* Export + drill-down action bar */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => handleDrillDown("All criteria", result.matchingPatients)}
+          className="flex items-center gap-1.5 rounded-lg bg-indigo-500/10 px-3 py-1.5 text-[11px] font-medium text-indigo-300 ring-1 ring-indigo-500/20 transition-colors hover:bg-indigo-500/20"
+        >
+          <Eye className="h-3.5 w-3.5" />
+          View {result.matchingPatients} Matched Subjects
+        </button>
+        <button
+          onClick={handleExportCSV}
+          className="flex items-center gap-1.5 rounded-lg bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium text-slate-400 ring-1 ring-white/[0.06] transition-colors hover:bg-white/[0.06]"
+        >
+          <Download className="h-3.5 w-3.5" />
+          Export CSV
+        </button>
+        <button
+          onClick={handleExportReport}
+          className="flex items-center gap-1.5 rounded-lg bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium text-slate-400 ring-1 ring-white/[0.06] transition-colors hover:bg-white/[0.06]"
+        >
+          <FileText className="h-3.5 w-3.5" />
+          Export Report
+        </button>
+      </div>
+
+      {/* AI Insights */}
+      <FeasibilityInsights
+        totalPatients={result.totalPatients}
+        matchingPatients={result.matchingPatients}
+        matchRate={result.matchRate}
+        criterionBreakdown={result.criterionBreakdown}
+        demographics={result.demographics}
+      />
+
+      {/* Criterion breakdown — clickable for drill-down */}
       <div className="rounded-xl border border-white/[0.06] bg-card p-4">
         <h4 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
           <BarChart3 className="h-4 w-4 text-indigo-400" />
           Criterion-by-Criterion Feasibility
         </h4>
         <p className="mt-1 text-[11px] text-slate-500">
-          See which criteria are the bottleneck — this is what you'd show to a sponsor.
+          Click any criterion to drill down into the matching subjects.
         </p>
         <div className="mt-4 space-y-2.5">
           {result.criterionBreakdown.map((cb, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <span className="w-48 shrink-0 text-[12px] text-slate-300">{cb.criterion}</span>
+            <button
+              key={i}
+              onClick={() => handleDrillDown(cb.criterion, cb.matchCount)}
+              className="flex w-full items-center gap-3 rounded-lg px-2 py-1 transition-colors hover:bg-white/[0.03]"
+            >
+              <span className="w-48 shrink-0 text-left text-[12px] text-slate-300">{cb.criterion}</span>
               <div className="flex-1">
                 <div className="h-5 w-full overflow-hidden rounded-full bg-white/[0.04]">
                   <div
@@ -253,7 +385,7 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
               <span className="w-12 shrink-0 text-right text-[10px] tabular-nums text-slate-500">
                 {(cb.matchRate * 100).toFixed(0)}%
               </span>
-            </div>
+            </button>
           ))}
         </div>
       </div>
@@ -267,7 +399,7 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
               Enrollment Forecast
             </h4>
             <p className="mt-0.5 text-[11px] text-slate-500">
-              Project how quickly you could enroll based on your patient volume.
+              Project how quickly you could enroll based on your subject volume.
             </p>
           </div>
           {!forecast && (
@@ -290,18 +422,68 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
               <MiniStat label="Consent Rate" value={`${(forecast.consentRate * 100).toFixed(0)}%`} />
               <MiniStat label="Screen Failure Rate" value={`${(forecast.screenFailureRate * 100).toFixed(0)}%`} />
             </div>
-            <div className="h-52">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={forecast.projectedTimeline}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                  <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#94a3b8" }} />
-                  <YAxis tick={{ fontSize: 10, fill: "#64748b" }} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Area type="monotone" dataKey="target" stroke="rgba(239,68,68,0.3)" fill="rgba(239,68,68,0.05)" strokeDasharray="4 4" name="Target" />
-                  <Area type="monotone" dataKey="cumulative" stroke="#10b981" fill="rgba(16,185,129,0.15)" name="Projected" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
+
+            {/* Monte Carlo stats */}
+            {monteCarlo && (
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-lg bg-indigo-500/8 px-3 py-2 ring-1 ring-indigo-500/15">
+                  <p className="text-[10px] font-medium text-indigo-400/60">P(Success)</p>
+                  <p className={`text-lg font-bold tabular-nums ${monteCarlo.probabilityOfSuccess >= 70 ? "text-emerald-400" : monteCarlo.probabilityOfSuccess >= 40 ? "text-amber-400" : "text-red-400"}`}>
+                    {monteCarlo.probabilityOfSuccess.toFixed(0)}%
+                  </p>
+                </div>
+                <div className="rounded-lg bg-white/[0.03] px-3 py-2 ring-1 ring-white/[0.06]">
+                  <p className="text-[10px] font-medium text-slate-500">80% Confidence Interval</p>
+                  <p className="text-lg font-bold tabular-nums text-slate-200">
+                    {Math.round(monteCarlo.confidenceInterval[0])} – {Math.round(monteCarlo.confidenceInterval[1])}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-white/[0.03] px-3 py-2 ring-1 ring-white/[0.06]">
+                  <p className="text-[10px] font-medium text-slate-500">Median Time to Target</p>
+                  <p className="text-lg font-bold tabular-nums text-slate-200">
+                    {monteCarlo.medianTimeToTarget ? `${monteCarlo.medianTimeToTarget} mo` : "Not reached"}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Chart with confidence bands */}
+            {/* Chart with confidence bands */}
+            {monteCarlo ? (
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={monteCarlo.timeline}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#94a3b8" }} />
+                    <YAxis tick={{ fontSize: 10, fill: "#64748b" }} />
+                    <Tooltip contentStyle={tooltipStyle} />
+                    <Area type="monotone" dataKey="p90" stroke="none" fill="rgba(99,102,241,0.08)" name="P90" />
+                    <Area type="monotone" dataKey="p10" stroke="none" fill="#0c0f17" name="P10" />
+                    <Area type="monotone" dataKey="p75" stroke="none" fill="rgba(99,102,241,0.15)" name="P75" />
+                    <Area type="monotone" dataKey="p25" stroke="none" fill="#0c0f17" name="P25" />
+                    <Area type="monotone" dataKey="p50" stroke="#6366f1" fill="rgba(99,102,241,0.2)" strokeWidth={2} name="Median (P50)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={forecast.projectedTimeline}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#94a3b8" }} />
+                    <YAxis tick={{ fontSize: 10, fill: "#64748b" }} />
+                    <Tooltip contentStyle={tooltipStyle} />
+                    <Area type="monotone" dataKey="target" stroke="rgba(239,68,68,0.3)" fill="rgba(239,68,68,0.05)" strokeDasharray="4 4" name="Target" />
+                    <Area type="monotone" dataKey="cumulative" stroke="#10b981" fill="rgba(16,185,129,0.15)" name="Projected" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+            {monteCarlo && (
+              <p className="text-[10px] text-slate-600 text-center">
+                Monte Carlo simulation (1,000 runs) • Confidence bands: P10–P90 (light) and P25–P75 (dark)
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -330,9 +512,9 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
       <div className="flex items-center gap-3">
         <TrendingUp className="h-5 w-5 text-amber-400" />
         <div>
-          <h3 className="text-[14px] font-bold text-white">Patients Approaching Eligibility</h3>
+          <h3 className="text-[14px] font-bold text-white">Subjects Approaching Eligibility</h3>
           <p className="text-[11px] text-slate-500">
-            These patients are near a lab threshold — they may become eligible soon with natural disease progression.
+            These subjects are near a lab threshold — they may become eligible soon with natural disease progression.
           </p>
         </div>
         <InfoButton onClick={() => setShowInfo(true)} />
@@ -369,7 +551,7 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
         />
         <ResultCard
           icon={<Clock className="h-4 w-4 text-blue-400" />}
-          label="Closest Patient"
+          label="Closest Subject"
           value={trajectoryGroup.patients[0]
             ? `${trajectoryGroup.patients[0].distanceToThreshold.toFixed(1)} ${preset.unit} away`
             : "—"}
@@ -385,7 +567,7 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
         />
       </div>
 
-      {/* Patient watchlist */}
+      {/* Subject watchlist */}
       {trajectoryGroup.patients.length > 0 ? (
         <div className="rounded-xl border border-white/[0.06] bg-card overflow-hidden">
           <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
@@ -394,13 +576,13 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
               Watchlist — Schedule Re-screening
             </h4>
             <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400 ring-1 ring-amber-500/20">
-              {trajectoryGroup.patients.length} patients
+              {trajectoryGroup.patients.length} subjects
             </span>
           </div>
           <table className="w-full text-[12px]">
             <thead>
               <tr className="bg-white/[0.02] text-[10px] uppercase tracking-wider text-slate-500">
-                <th className="px-4 py-2.5 text-left font-semibold">Patient</th>
+                <th className="px-4 py-2.5 text-left font-semibold">Subject</th>
                 <th className="px-4 py-2.5 text-left font-semibold">Lab</th>
                 <th className="px-4 py-2.5 text-right font-semibold">Current</th>
                 <th className="px-4 py-2.5 text-center font-semibold">Threshold</th>
@@ -450,9 +632,9 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
       ) : (
         <div className="rounded-xl border border-white/[0.06] bg-card p-8 text-center">
           <CheckCircle2 className="mx-auto h-8 w-8 text-emerald-400/50" />
-          <p className="mt-3 text-[13px] font-semibold text-slate-300">No patients approaching this threshold</p>
+          <p className="mt-3 text-[13px] font-semibold text-slate-300">No subjects approaching this threshold</p>
           <p className="mt-1 text-[11px] text-slate-500">
-            No patients have {preset.labName} values within 25% of the {preset.threshold} {preset.unit} threshold.
+            No subjects have {preset.labName} values within 25% of the {preset.threshold} {preset.unit} threshold.
           </p>
         </div>
       )}
@@ -464,9 +646,9 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
           <span className="text-[12px] font-bold text-indigo-300">Why this matters</span>
         </div>
         <p className="mt-2 text-[12px] leading-relaxed text-slate-400">
-          Patients near eligibility thresholds represent your future pipeline. By monitoring lab trajectories,
+          Subjects near eligibility thresholds represent your future pipeline. By monitoring lab trajectories,
           you can proactively schedule follow-up visits and labs at the right time — turning "almost eligible"
-          patients into enrolled subjects without missing the window. This is predictive enrollment that
+          subjects into enrolled participants without missing the window. This is predictive enrollment that
           no other site tool provides.
         </p>
       </div>
@@ -482,6 +664,33 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
   const profile = useMemo(() => computeDiversityProfile(patients), [patients]);
   const [showInfo, setShowInfo] = useState(false);
 
+  const handleExportDiversity = useCallback(() => {
+    const raceRows: (string | number)[][] = profile.raceBreakdown.map((r) => [
+      r.label, r.count, `${r.percent.toFixed(1)}%`,
+    ]);
+    const maleCount = profile.genderBreakdown.find((g) => g.label === "Male")?.count ?? 0;
+    const femaleCount = profile.genderBreakdown.find((g) => g.label === "Female")?.count ?? 0;
+    exportReportDeck({
+      title: "Site Diversity Profile",
+      subtitle: "FDA Diversity Action Plan Compliance",
+      confidential: true,
+      sections: [
+        {
+          type: "metrics",
+          columns: 4,
+          metrics: [
+            { label: "Diversity Score", value: `${profile.diversityScore}/100`, accent: profile.diversityScore >= 60 },
+            { label: "Total Subjects", value: String(patients.length) },
+            { label: "Gender Split", value: `${maleCount}M / ${femaleCount}F` },
+            { label: "Unique Races", value: String(profile.raceBreakdown.length) },
+          ],
+        },
+        { type: "table", headers: ["Race/Ethnicity", "Count", "Percentage"], rows: raceRows },
+        { type: "text", text: profile.fdaComplianceNotes.join(" • ") },
+      ],
+    });
+  }, [profile, patients.length]);
+
   return (
     <div className="space-y-6">
       <InfoModal open={showInfo} onClose={() => setShowInfo(false)} {...DIVERSITY_MODAL} />
@@ -493,16 +702,28 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
           <div>
             <h3 className="text-[14px] font-bold text-white">Site Diversity Profile</h3>
             <p className="text-[11px] text-slate-500">
-              FDA diversity action plan compliance — generate a report for sponsor site selection packages.
+              Click any demographic segment to cross-filter all analytics views.
             </p>
           </div>
           <InfoButton onClick={() => setShowInfo(true)} />
         </div>
-        <button className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-[12px] font-medium text-slate-300 hover:bg-white/[0.06]">
+        <button
+          onClick={handleExportDiversity}
+          className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-[12px] font-medium text-slate-300 hover:bg-white/[0.06]"
+        >
           <Download className="h-3.5 w-3.5" />
           Export PDF
         </button>
       </div>
+
+      {/* AI Insights */}
+      <DiversityInsights
+        diversityScore={profile.diversityScore}
+        genderSplit={Object.fromEntries(profile.genderBreakdown.map((g) => [g.label, g.count]))}
+        raceSplit={Object.fromEntries(profile.raceBreakdown.map((r) => [r.label, r.count]))}
+        ageBuckets={Object.fromEntries(profile.ageBreakdown.map((a) => [a.range, a.count]))}
+        totalPatients={patients.length}
+      />
 
       {/* Diversity Score + Summary */}
       <div className="grid grid-cols-4 gap-3">
@@ -555,7 +776,7 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
                 <YAxis dataKey="label" type="category" tick={{ fontSize: 10, fill: "#94a3b8" }} width={115} />
                 <Tooltip
                   contentStyle={tooltipStyle}
-                  formatter={(value) => [`${value} (${((Number(value) / profile.totalPatients) * 100).toFixed(1)}%)`, "Patients"]}
+                  formatter={(value) => [`${value} (${((Number(value) / profile.totalPatients) * 100).toFixed(1)}%)`, "Subjects"]}
                 />
                 <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                   {profile.raceBreakdown.map((entry) => (
@@ -608,7 +829,7 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
                 <YAxis tick={{ fontSize: 10, fill: "#64748b" }} />
                 <Tooltip
                   contentStyle={tooltipStyle}
-                  formatter={(value) => [`${value} patients (${((Number(value) / profile.totalPatients) * 100).toFixed(1)}%)`, ""]}
+                  formatter={(value) => [`${value} subjects (${((Number(value) / profile.totalPatients) * 100).toFixed(1)}%)`, ""]}
                 />
                 <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -679,7 +900,7 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
           This diversity profile demonstrates your site's ability to meet FDA diversity action plan requirements.
           Sites with strong demographic representation are increasingly preferred during site selection.
           Export this profile as a PDF to include in your site feasibility questionnaire responses — it gives
-          sponsors quantitative proof of your patient diversity before they even visit your site.
+          sponsors quantitative proof of your subject diversity before they even visit your site.
         </p>
       </div>
     </div>
@@ -827,34 +1048,34 @@ const FEASIBILITY_MODAL = {
   icon: <Calculator className="h-5 w-5 text-white" />,
   iconColor: "from-indigo-600/20 via-indigo-500/10 to-transparent",
   title: "Protocol Feasibility Calculator",
-  subtitle: "Answer the #1 question sponsors ask: \"How many patients do you have?\"",
+  subtitle: "Answer the #1 question sponsors ask: \"How many subjects do you have?\"",
   highlights: [
     {
       icon: <Target className="h-4 w-4 text-indigo-400" />,
       title: "Instant Population Queries",
-      desc: "Run any combination of diagnosis codes, age ranges, lab values, medications, and BMI against your entire patient population in milliseconds.",
+      desc: "Run any combination of diagnosis codes, age ranges, lab values, medications, and BMI against your entire subject population in milliseconds.",
     },
     {
       icon: <BarChart3 className="h-4 w-4 text-emerald-400" />,
       title: "Criterion-by-Criterion Breakdown",
-      desc: "See exactly which eligibility criteria are the bottleneck. Know before you commit that 90% of your patients pass inclusion but 60% fail on eGFR.",
+      desc: "See exactly which eligibility criteria are the bottleneck. Know before you commit that 90% of your subjects pass inclusion but 60% fail on eGFR.",
     },
     {
       icon: <CalendarClock className="h-4 w-4 text-amber-400" />,
       title: "Enrollment Timeline Forecasting",
-      desc: "Project monthly enrollment rates, time to target, and build realistic timelines based on your actual patient volume — not guesswork.",
+      desc: "Project monthly enrollment rates, time to target, and build realistic timelines based on your actual subject volume — not guesswork.",
     },
     {
       icon: <DollarSign className="h-4 w-4 text-green-400" />,
       title: "Revenue-Ready Projections",
-      desc: "Combine feasibility counts with per-patient payment data to project total study revenue before signing the contract.",
+      desc: "Combine feasibility counts with per-subject payment data to project total study revenue before signing the contract.",
     },
   ],
   useCases: [
     "A sponsor calls asking if you can run their Phase 3 trial — give them an answer in 60 seconds instead of 2 weeks",
-    "During site selection, attach a feasibility report showing exact patient counts by criterion to your questionnaire response",
-    "Before committing to a study, verify you actually have enough patients to hit enrollment targets",
-    "Negotiate better per-patient payments by demonstrating you have a large eligible population",
+    "During site selection, attach a feasibility report showing exact subject counts by criterion to your questionnaire response",
+    "Before committing to a study, verify you actually have enough subjects to hit enrollment targets",
+    "Negotiate better per-subject payments by demonstrating you have a large eligible population",
   ],
   bottomNote: "Sites that respond to feasibility questionnaires with real data (not estimates) are 3x more likely to be selected. This tool turns a 2-week manual chart review into a 60-second automated query.",
 };
@@ -863,17 +1084,17 @@ const TRAJECTORY_MODAL = {
   icon: <TrendingUp className="h-5 w-5 text-white" />,
   iconColor: "from-amber-600/20 via-amber-500/10 to-transparent",
   title: "Lab Trajectory Monitoring",
-  subtitle: "See the future: patients who are about to become eligible",
+  subtitle: "See the future: subjects who are about to become eligible",
   highlights: [
     {
       icon: <HeartPulse className="h-4 w-4 text-amber-400" />,
       title: "Predictive Eligibility Pipeline",
-      desc: "Identify patients whose lab values are trending toward eligibility thresholds. A patient with HbA1c at 6.8% today may cross 7.0% next month.",
+      desc: "Identify subjects whose lab values are trending toward eligibility thresholds. A subject with HbA1c at 6.8% today may cross 7.0% next month.",
     },
     {
       icon: <Eye className="h-4 w-4 text-blue-400" />,
       title: "Watchlist with Proximity Tracking",
-      desc: "See exactly how close each patient is to crossing the threshold, with visual proximity bars and estimated weeks to eligibility.",
+      desc: "See exactly how close each subject is to crossing the threshold, with visual proximity bars and estimated weeks to eligibility.",
     },
     {
       icon: <CalendarClock className="h-4 w-4 text-emerald-400" />,
@@ -887,12 +1108,12 @@ const TRAJECTORY_MODAL = {
     },
   ],
   useCases: [
-    "You're running a diabetes trial requiring HbA1c ≥ 7.5% — find the 12 patients at 7.1-7.4% who will likely qualify next quarter",
-    "A new heart failure study opens — instantly see how many patients are approaching the BNP ≥ 100 threshold",
-    "Reduce screen failures by only screening patients when their labs are likely to qualify, based on trajectory data",
-    "Build a \"pre-screening pipeline\" that coordinators review weekly to catch newly eligible patients",
+    "You're running a diabetes trial requiring HbA1c ≥ 7.5% — find the 12 subjects at 7.1-7.4% who will likely qualify next quarter",
+    "A new heart failure study opens — instantly see how many subjects are approaching the BNP ≥ 100 threshold",
+    "Reduce screen failures by only screening subjects when their labs are likely to qualify, based on trajectory data",
+    "Build a \"pre-screening pipeline\" that coordinators review weekly to catch newly eligible subjects",
   ],
-  bottomNote: "This is predictive enrollment intelligence that no other site tool provides. It turns your patient data into a forward-looking pipeline instead of a backward-looking snapshot.",
+  bottomNote: "This is predictive enrollment intelligence that no other site tool provides. It turns your subject data into a forward-looking pipeline instead of a backward-looking snapshot.",
 };
 
 const DIVERSITY_MODAL = {
@@ -904,7 +1125,7 @@ const DIVERSITY_MODAL = {
     {
       icon: <Shield className="h-4 w-4 text-emerald-400" />,
       title: "FDA Diversity Action Plan Compliance",
-      desc: "Since 2024, the FDA requires diversity action plans for all clinical trials. Sites that can prove diverse patient populations are increasingly preferred.",
+      desc: "Since 2024, the FDA requires diversity action plans for all clinical trials. Sites that can prove diverse subject populations are increasingly preferred.",
     },
     {
       icon: <Globe className="h-4 w-4 text-blue-400" />,
@@ -923,11 +1144,11 @@ const DIVERSITY_MODAL = {
     },
   ],
   useCases: [
-    "A sponsor asks \"What percentage of your patients are underrepresented minorities?\" — answer with exact data instead of estimates",
+    "A sponsor asks \"What percentage of your subjects are underrepresented minorities?\" — answer with exact data instead of estimates",
     "Include your diversity profile in every feasibility questionnaire response to stand out during site selection",
     "Track diversity metrics over time as you expand outreach to underrepresented communities",
-    "Support NIH grant applications with quantitative evidence of your site's diverse patient population",
+    "Support NIH grant applications with quantitative evidence of your site's diverse subject population",
   ],
-  bottomNote: "Sponsors now pay 15-25% higher per-patient rates at sites with strong diversity metrics. Your diversity profile is a revenue multiplier — this tool quantifies and packages it for you.",
+  bottomNote: "Sponsors now pay 15-25% higher per-subject rates at sites with strong diversity metrics. Your diversity profile is a revenue multiplier — this tool quantifies and packages it for you.",
 };
 

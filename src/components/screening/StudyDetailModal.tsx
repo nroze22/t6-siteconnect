@@ -105,7 +105,7 @@ export function StudyDetailModal() {
             <div className="mt-3 grid grid-cols-3 gap-4">
               <div>
                 <p className="text-[10px] font-medium text-emerald-400/60">
-                  Per Patient Value
+                  Per Subject Value
                 </p>
                 <p className="text-lg font-black text-emerald-400">
                   {formatCurrency(STUDY_INFO.estimatedPerPatientCents)}
@@ -174,7 +174,7 @@ export function StudyDetailModal() {
         <div className="flex items-center justify-between border-t border-white/[0.06] bg-white/[0.02] px-5 py-3">
           <div className="flex items-center gap-1.5 text-xs text-slate-500">
             <Users className="h-3.5 w-3.5" />
-            Currently screening {patientCount} patients against this study
+            Currently screening {patientCount} subjects against this study
           </div>
           <div className="flex gap-2">
             <button className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-200">

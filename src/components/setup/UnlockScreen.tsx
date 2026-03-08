@@ -20,7 +20,7 @@ export function UnlockScreen({ onUnlock }: UnlockScreenProps) {
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForgotInfo, setShowForgotInfo] = useState(false);
-  const [dbPath, setDbPath] = useState("~/Library/Application Support/com.talosix.siteconnect/siteconnect.db");
+  const [dbPath, setDbPath] = useState("Loading...");
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -87,7 +87,7 @@ export function UnlockScreen({ onUnlock }: UnlockScreenProps) {
         {/* Branding — compact */}
         <div className="mb-8 text-center">
           <div className="mb-4 flex items-center justify-center">
-            <div className="unlock-logo flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-800 to-slate-900 overflow-hidden">
+            <div className="unlock-logo flex h-16 w-16 items-center justify-center rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-indigo-600 to-blue-700 shadow-lg shadow-indigo-500/20 overflow-hidden">
               <img src="/t6logo.png" alt="Talosix" className="h-12 w-12 object-contain" />
             </div>
           </div>
@@ -205,7 +205,7 @@ export function UnlockScreen({ onUnlock }: UnlockScreenProps) {
                     className="flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-[11px] font-medium text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700"
                   >
                     <FolderOpen className="h-3 w-3" />
-                    Show in Finder
+                    Show in File Manager
                   </button>
                   <button
                     onClick={handleDeleteDatabase}

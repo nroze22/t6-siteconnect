@@ -1,4 +1,5 @@
 import { useMemo, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
   CheckCircle2,
   XCircle,
@@ -141,16 +142,16 @@ export function CriteriaDetailPanel() {
           <MousePointerClick className="h-7 w-7 text-indigo-400/50" />
         </div>
         <h3 className="text-[14px] font-semibold text-slate-200">
-          Select a patient to begin
+          Select a subject to begin
         </h3>
         <p className="mt-2 max-w-[260px] text-[12px] leading-relaxed text-slate-500">
-          Click any patient on the left to see their full eligibility breakdown against the active study criteria.
+          Click any subject on the left to see their full eligibility breakdown against the active study criteria.
         </p>
         <div className="mt-6 flex flex-col gap-2 text-left">
-          <CoachingStep number={1} text="Select a patient from the ranked list" />
+          <CoachingStep number={1} text="Select a subject from the ranked list" />
           <CoachingStep number={2} text="Review each inclusion & exclusion criterion" />
           <CoachingStep number={3} text="Click a criterion to see source evidence" />
-          <CoachingStep number={4} text="Accept, reject, or defer the patient" />
+          <CoachingStep number={4} text="Accept, reject, or defer the subject" />
         </div>
       </div>
     );
@@ -162,7 +163,7 @@ export function CriteriaDetailPanel() {
   if (!patient || !screening) {
     return (
       <div className="flex h-full items-center justify-center bg-background">
-        <p className="text-[12px] text-slate-500">No screening data available for this patient.</p>
+        <p className="text-[12px] text-slate-500">No screening data available for this subject.</p>
       </div>
     );
   }
@@ -173,7 +174,7 @@ export function CriteriaDetailPanel() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-background">
-      {/* Patient Header */}
+      {/* Subject Header */}
       <div className="border-b border-border bg-card/60 p-4">
         <div className="flex items-center justify-between">
           <div>
@@ -299,11 +300,11 @@ function ReviewActionBar({ patientId, reviewStatus }: { patientId: string; revie
     reviewPatient(patientId, status);
     const pid = currentPatient?.sitePatientId ?? patientId;
     if (status === "accepted") {
-      toast.success(`Patient ${pid} accepted`, `${reviewProgress.pending - 1} remaining`);
+      toast.success(`Subject ${pid} accepted`, `${reviewProgress.pending - 1} remaining`);
     } else if (status === "rejected") {
-      toast.error(`Patient ${pid} rejected`, `${reviewProgress.pending - 1} remaining`);
+      toast.error(`Subject ${pid} rejected`, `${reviewProgress.pending - 1} remaining`);
     } else if (status === "deferred") {
-      toast.warning(`Patient ${pid} deferred`, "Will revisit later");
+      toast.warning(`Subject ${pid} deferred`, "Will revisit later");
     }
   };
 
@@ -331,10 +332,20 @@ function ReviewActionBar({ patientId, reviewStatus }: { patientId: string; revie
 
   if (reviewStatus !== "pending") {
     return (
-      <div className="border-t border-border bg-card/60 px-4 py-3 space-y-2.5">
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+        className="border-t border-border bg-card/60 px-4 py-3 space-y-2.5"
+      >
         {/* Decision status */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[12px]">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.05, type: "spring", damping: 20, stiffness: 400 }}
+            className="flex items-center gap-2 text-[12px]"
+          >
             {reviewStatus === "accepted" && (
               <>
                 <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/15">
@@ -359,7 +370,7 @@ function ReviewActionBar({ patientId, reviewStatus }: { patientId: string; revie
                 <span className="font-semibold text-amber-400">Deferred</span>
               </>
             )}
-          </div>
+          </motion.div>
           <button
             onClick={() => reviewPatient(patientId, "pending")}
             className="rounded-md border border-white/[0.08] px-3 py-1 text-[10px] font-medium text-slate-500 transition-colors hover:bg-white/[0.04] hover:text-slate-300"
@@ -376,7 +387,7 @@ function ReviewActionBar({ patientId, reviewStatus }: { patientId: string; revie
               className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-indigo-600 py-2 text-[12px] font-semibold text-white transition-all hover:bg-indigo-500"
             >
               <ArrowRight className="h-3.5 w-3.5" />
-              Next Patient ({reviewProgress.pending} remaining)
+              Next Subject ({reviewProgress.pending} remaining)
             </button>
           ) : (
             <button
@@ -411,15 +422,15 @@ function ReviewActionBar({ patientId, reviewStatus }: { patientId: string; revie
             />
           </div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="border-t border-border bg-card/60 px-4 py-3">
+    <div className="border-t border-border bg-card/60 px-4 py-4">
       {/* Progress hint */}
       {reviewProgress.reviewed > 0 && (
-        <div className="mb-2 flex items-center justify-between rounded-md bg-white/[0.02] px-3 py-1.5 ring-1 ring-white/[0.04]">
+        <div className="mb-3 flex items-center justify-between rounded-md bg-white/[0.02] px-3 py-1.5 ring-1 ring-white/[0.04]">
           <span className="text-[10px] text-slate-500">
             {reviewProgress.reviewed} of {reviewProgress.total} reviewed
           </span>
@@ -432,28 +443,28 @@ function ReviewActionBar({ patientId, reviewStatus }: { patientId: string; revie
         </div>
       )}
       <div className="flex gap-2">
-        <Tooltip content="Accept this patient" shortcut="A" side="top">
+        <Tooltip content="Accept this subject" shortcut="A" side="top" className="flex-1">
           <button
             onClick={() => handleReview("accepted")}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 py-2.5 text-[12px] font-semibold text-white shadow-sm transition-all hover:bg-emerald-500 hover:shadow-emerald-500/20 active:scale-[0.97]"
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 py-2 text-[12px] font-semibold text-white shadow-md shadow-emerald-900/20 transition-all hover:bg-emerald-500 hover:shadow-emerald-500/20 active:scale-[0.97]"
           >
             <Check className="h-3.5 w-3.5" />
             Accept
           </button>
         </Tooltip>
-        <Tooltip content="Reject this patient" shortcut="R" side="top">
+        <Tooltip content="Reject this subject" shortcut="R" side="top" className="flex-1">
           <button
             onClick={() => handleReview("rejected")}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-red-600 py-2.5 text-[12px] font-semibold text-white shadow-sm transition-all hover:bg-red-500 hover:shadow-red-500/20 active:scale-[0.97]"
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-red-600 py-2 text-[12px] font-semibold text-white shadow-md shadow-red-900/20 transition-all hover:bg-red-500 hover:shadow-red-500/20 active:scale-[0.97]"
           >
             <XIcon className="h-3.5 w-3.5" />
             Reject
           </button>
         </Tooltip>
-        <Tooltip content="Defer for later review" shortcut="D" side="top">
+        <Tooltip content="Defer for later review" shortcut="D" side="top" className="flex-1">
           <button
             onClick={() => handleReview("deferred")}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-amber-600 py-2.5 text-[12px] font-semibold text-white shadow-sm transition-all hover:bg-amber-500 hover:shadow-amber-500/20 active:scale-[0.97]"
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-amber-600 py-2 text-[12px] font-semibold text-white shadow-md shadow-amber-900/20 transition-all hover:bg-amber-500 hover:shadow-amber-500/20 active:scale-[0.97]"
           >
             <Clock className="h-3.5 w-3.5" />
             Defer

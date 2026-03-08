@@ -8,6 +8,15 @@ import {
   EyeOff,
   CheckCircle2,
   AlertTriangle,
+  ShieldAlert,
+  Copy,
+  Check,
+  KeyRound,
+  ArrowRight,
+  Brain,
+  FileUp,
+  TrendingUp,
+  FlaskConical,
 } from "lucide-react";
 import { initializeDatabase } from "@/lib/tauri";
 
@@ -53,12 +62,19 @@ interface SetupScreenProps {
 }
 
 export function SetupScreen({ onComplete }: SetupScreenProps) {
+  const [setupPhase, setSetupPhase] = useState<"intro" | "create">("intro");
   const [passphrase, setPassphrase] = useState("");
   const [confirmPassphrase, setConfirmPassphrase] = useState("");
   const [showPassphrase, setShowPassphrase] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showKeySaveConfirm, setShowKeySaveConfirm] = useState(false);
+  const [keyConfirmStep, setKeyConfirmStep] = useState(0);
+  const [confirmText, setConfirmText] = useState("");
+  const [checklist, setChecklist] = useState([false, false, false]);
+  const [showKeyInModal, setShowKeyInModal] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const strength = useMemo(() => evaluateStrength(passphrase), [passphrase]);
 
@@ -79,7 +95,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
     setIsInitializing(true);
     try {
       await initializeDatabase(passphrase);
-      onComplete();
+      setShowKeySaveConfirm(true);
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Failed to initialize database";
@@ -87,8 +103,153 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
     } finally {
       setIsInitializing(false);
     }
-  }, [isValid, passphrase, onComplete]);
+  }, [isValid, passphrase]);
 
+  const handleCopyKey = useCallback(async () => {
+    await navigator.clipboard.writeText(passphrase);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [passphrase]);
+
+  const handleChecklistToggle = useCallback((index: number) => {
+    setChecklist((prev) => {
+      const next = [...prev];
+      const item = next[index];
+      if (item !== undefined) {
+        next[index] = !item;
+      }
+      return next;
+    });
+  }, []);
+
+  const allChecked = checklist.every(Boolean);
+
+  const handleFinalConfirm = useCallback(() => {
+    if (confirmText === "I SAVED MY KEY") {
+      onComplete();
+    }
+  }, [confirmText, onComplete]);
+
+  // ── Intro welcome slide ──
+  if (setupPhase === "intro") {
+    return (
+      <div className="setup-screen flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="setup-glow absolute left-1/2 top-1/3 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/5 blur-3xl" />
+          <div className="setup-glow-secondary absolute right-1/4 bottom-1/4 h-[400px] w-[400px] rounded-full bg-cyan-500/5 blur-3xl" />
+        </div>
+
+        <div className="intro-fade-in relative z-10 w-full max-w-xl">
+          {/* Logo + title */}
+          <div className="mb-10 text-center">
+            <div className="mb-6 flex items-center justify-center">
+              <div className="setup-logo-ring flex h-20 w-20 items-center justify-center rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-indigo-600 to-blue-700 shadow-xl shadow-indigo-500/20 overflow-hidden">
+                <img src="/t6logo.png" alt="Talosix" className="h-14 w-14 object-contain" />
+              </div>
+            </div>
+            <h1 className="mb-2 text-4xl font-bold tracking-tight text-white">
+              TalOS SiteConnect
+            </h1>
+            <p className="text-lg text-slate-400">
+              The intelligent screening platform for research sites
+            </p>
+          </div>
+
+          {/* Feature highlights */}
+          <div className="mb-8 grid grid-cols-2 gap-3">
+            {[
+              { icon: <Brain className="h-5 w-5 text-indigo-400" />, bg: "bg-indigo-500/10 ring-1 ring-indigo-500/20", title: "AI-Powered Screening", desc: "Screen every patient against every active study in seconds" },
+              { icon: <FlaskConical className="h-5 w-5 text-blue-400" />, bg: "bg-blue-500/10 ring-1 ring-blue-500/20", title: "Trial Discovery", desc: "Revenue intelligence and protocol feasibility analysis" },
+              { icon: <TrendingUp className="h-5 w-5 text-emerald-400" />, bg: "bg-emerald-500/10 ring-1 ring-emerald-500/20", title: "Site Intelligence", desc: "Performance metrics, diversity dashboards, and enrollment forecasting" },
+              { icon: <FileUp className="h-5 w-5 text-cyan-400" />, bg: "bg-cyan-500/10 ring-1 ring-cyan-500/20", title: "EMR Integration", desc: "Import from Epic, Cerner, or any EMR via CSV, FHIR, or HL7" },
+            ].map((f) => (
+              <div key={f.title} className="flex items-start gap-3 rounded-xl bg-white/[0.02] p-4 ring-1 ring-white/[0.06]">
+                <div className={`flex-shrink-0 rounded-lg p-2 ${f.bg}`}>{f.icon}</div>
+                <div>
+                  <span className="text-[13px] font-semibold text-slate-200 block">{f.title}</span>
+                  <span className="text-[11px] text-slate-500 leading-relaxed block mt-0.5">{f.desc}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Stats row */}
+          <div className="mb-8 grid grid-cols-3 gap-3">
+            {[
+              { value: "100%", label: "On-Premise", sub: "Zero cloud exposure", color: "text-emerald-400" },
+              { value: "10x", label: "Faster Screening", sub: "vs. manual chart review", color: "text-blue-400" },
+              { value: "AES-256", label: "Encrypted", sub: "HIPAA-ready", color: "text-indigo-400" },
+            ].map((stat) => (
+              <div key={stat.label} className="rounded-xl bg-white/[0.03] p-3.5 text-center ring-1 ring-white/[0.06]">
+                <span className={`text-[18px] font-bold ${stat.color}`}>{stat.value}</span>
+                <p className="text-[11px] font-semibold text-slate-300 mt-0.5">{stat.label}</p>
+                <p className="text-[9px] text-slate-500">{stat.sub}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Security banner */}
+          <div className="mb-8 flex items-center gap-3 rounded-xl bg-emerald-500/5 px-5 py-3.5 ring-1 ring-emerald-500/15">
+            <Shield className="h-5 w-5 text-emerald-400 flex-shrink-0" />
+            <p className="text-[12px] text-emerald-400/90 leading-relaxed">
+              <span className="font-semibold">HIPAA-ready architecture.</span> All patient data stays encrypted on this device. No PHI ever leaves your machine.
+            </p>
+          </div>
+
+          {/* CTA button */}
+          <button
+            onClick={() => setSetupPhase("create")}
+            className="setup-button relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 px-6 py-4 text-[15px] font-bold text-white shadow-lg shadow-indigo-500/25 transition-all hover:from-indigo-500 hover:to-indigo-400 hover:shadow-indigo-500/35"
+          >
+            <span className="flex items-center justify-center gap-2.5">
+              Get Started
+              <ArrowRight className="h-5 w-5" />
+            </span>
+          </button>
+
+          <p className="mt-5 text-center text-xs text-slate-600">
+            TalOS SiteConnect v0.1.0 &mdash; by Talosix
+          </p>
+        </div>
+
+        <style>{`
+          .setup-glow { animation: setup-pulse 8s ease-in-out infinite alternate; }
+          .setup-glow-secondary { animation: setup-pulse 10s ease-in-out infinite alternate-reverse; }
+          @keyframes setup-pulse {
+            0% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.15); }
+          }
+          .setup-logo-ring { animation: setup-ring-glow 4s ease-in-out infinite alternate; }
+          @keyframes setup-ring-glow {
+            0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+            100% { box-shadow: 0 0 30px 4px rgba(99, 102, 241, 0.15); }
+          }
+          .setup-button:not(:disabled)::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+            transform: translateX(-100%);
+            animation: setup-shimmer 3s ease-in-out infinite;
+          }
+          @keyframes setup-shimmer {
+            0% { transform: translateX(-100%); }
+            40% { transform: translateX(100%); }
+            100% { transform: translateX(100%); }
+          }
+          .intro-fade-in {
+            animation: intro-enter 0.6s ease-out both;
+          }
+          @keyframes intro-enter {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // ── Key creation phase ──
   return (
     <div className="setup-screen flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4">
       {/* Subtle radial glow */}
@@ -101,15 +262,15 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
         {/* Branding */}
         <div className="mb-10 text-center">
           <div className="mb-6 flex items-center justify-center gap-3">
-            <div className="setup-logo-ring flex h-16 w-16 items-center justify-center rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 overflow-hidden">
+            <div className="setup-logo-ring flex h-16 w-16 items-center justify-center rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-indigo-600 to-blue-700 shadow-lg shadow-indigo-500/20 overflow-hidden">
               <img src="/t6logo.png" alt="Talosix" className="h-12 w-12 object-contain" />
             </div>
           </div>
           <h1 className="mb-2 text-3xl font-bold tracking-tight text-white">
-            Welcome to TalOS SiteConnect
+            Create Your Encryption Key
           </h1>
           <p className="text-base text-slate-400">
-            On-premise clinical trial screening, powered by AI
+            This key protects all data on this device
           </p>
         </div>
 
@@ -300,6 +461,202 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
         </p>
       </div>
 
+      {/* Key Save Confirmation Modal */}
+      {showKeySaveConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="keysave-modal-enter relative w-full max-w-lg mx-4 overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl shadow-black/40">
+            {keyConfirmStep === 0 ? (
+              <>
+                {/* Amber gradient header */}
+                <div className="bg-gradient-to-r from-amber-600/20 to-orange-600/20 border-b border-amber-500/20 px-8 py-6 text-center">
+                  <div className="mb-3 flex justify-center">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/15 ring-2 ring-amber-500/30">
+                      <ShieldAlert className="h-7 w-7 text-amber-400" />
+                    </div>
+                  </div>
+                  <h2 className="text-xl font-bold text-white">
+                    Save Your Encryption Key
+                  </h2>
+                  <p className="mt-1.5 text-sm text-amber-200/70">
+                    This is the <span className="font-semibold text-amber-200">ONLY</span> way to access your data. There is no recovery.
+                  </p>
+                </div>
+
+                <div className="px-8 py-6 space-y-5">
+                  {/* Passphrase display */}
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400">
+                      Your Encryption Key
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-3">
+                          <KeyRound className="h-4 w-4 shrink-0 text-amber-400" />
+                          <code className="flex-1 text-sm font-mono text-white break-all">
+                            {showKeyInModal
+                              ? passphrase
+                              : "\u2022".repeat(Math.min(passphrase.length, 32))}
+                          </code>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowKeyInModal(!showKeyInModal)}
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition-colors hover:bg-slate-700 hover:text-white"
+                        title={showKeyInModal ? "Hide key" : "Reveal key"}
+                      >
+                        {showKeyInModal ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCopyKey}
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition-colors hover:bg-slate-700 hover:text-white"
+                        title="Copy to clipboard"
+                      >
+                        {copied ? (
+                          <Check className="h-4 w-4 text-emerald-400" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Warning box */}
+                  <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3">
+                    <div className="flex items-start gap-2.5">
+                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                      <p className="text-xs leading-relaxed text-amber-200/80">
+                        This passphrase works like a cryptocurrency wallet key.
+                        If you lose it, your data is permanently inaccessible.
+                        No one — not even Talosix — can recover it.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Checklist */}
+                  <div className="space-y-2.5">
+                    {[
+                      "I have written down or securely stored my encryption key",
+                      "I understand there is no password recovery option",
+                      "I understand losing this key means permanent data loss",
+                    ].map((text, i) => (
+                      <label
+                        key={i}
+                        className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-800 bg-slate-800/30 px-4 py-3 transition-colors hover:bg-slate-800/60"
+                      >
+                        <div className="relative mt-0.5 flex shrink-0">
+                          <input
+                            type="checkbox"
+                            checked={checklist[i] ?? false}
+                            onChange={() => handleChecklistToggle(i)}
+                            className="sr-only"
+                          />
+                          <div
+                            className={`flex h-5 w-5 items-center justify-center rounded border transition-colors ${
+                              checklist[i]
+                                ? "border-emerald-500 bg-emerald-500"
+                                : "border-slate-600 bg-slate-800"
+                            }`}
+                          >
+                            {checklist[i] && (
+                              <Check className="h-3.5 w-3.5 text-white" />
+                            )}
+                          </div>
+                        </div>
+                        <span className="text-sm text-slate-300">{text}</span>
+                      </label>
+                    ))}
+                  </div>
+
+                  {/* Proceed button */}
+                  <button
+                    onClick={() => setKeyConfirmStep(1)}
+                    disabled={!allChecked}
+                    className="w-full rounded-lg bg-gradient-to-r from-amber-600 to-amber-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-amber-500/20 transition-all hover:from-amber-500 hover:to-amber-400 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <ShieldAlert className="h-4 w-4" />
+                      I&apos;ve Saved My Key
+                    </span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Red/amber gradient header for final confirmation */}
+                <div className="bg-gradient-to-r from-red-600/20 to-amber-600/20 border-b border-red-500/20 px-8 py-6 text-center">
+                  <div className="mb-3 flex justify-center">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500/15 ring-2 ring-red-500/30">
+                      <KeyRound className="h-7 w-7 text-red-400" />
+                    </div>
+                  </div>
+                  <h2 className="text-xl font-bold text-white">
+                    Final Confirmation
+                  </h2>
+                  <p className="mt-1.5 text-sm text-red-200/70">
+                    Type the confirmation phrase to complete setup
+                  </p>
+                </div>
+
+                <div className="px-8 py-6 space-y-5">
+                  <div>
+                    <label
+                      htmlFor="confirm-key-text"
+                      className="mb-2 block text-sm text-slate-300"
+                    >
+                      Type{" "}
+                      <span className="font-mono font-semibold text-amber-400">
+                        I SAVED MY KEY
+                      </span>{" "}
+                      to confirm
+                    </label>
+                    <input
+                      id="confirm-key-text"
+                      type="text"
+                      value={confirmText}
+                      onChange={(e) => setConfirmText(e.target.value)}
+                      placeholder="I SAVED MY KEY"
+                      className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-white placeholder-slate-600 transition-colors focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/30 font-mono tracking-wide"
+                      autoFocus
+                      autoComplete="off"
+                      spellCheck={false}
+                    />
+                    {confirmText.length > 0 &&
+                      confirmText !== "I SAVED MY KEY" && (
+                        <p className="mt-1.5 text-xs text-red-400">
+                          Text does not match. Please type exactly: I SAVED MY
+                          KEY
+                        </p>
+                      )}
+                  </div>
+
+                  <button
+                    onClick={handleFinalConfirm}
+                    disabled={confirmText !== "I SAVED MY KEY"}
+                    className="w-full rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition-all hover:from-emerald-500 hover:to-emerald-400 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <CheckCircle2 className="h-4 w-4" />
+                      Complete Setup
+                    </span>
+                  </button>
+
+                  <p className="text-center text-xs text-slate-500">
+                    You can change your passphrase later from Settings if
+                    needed.
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       <style>{`
         .setup-glow {
           animation: setup-pulse 8s ease-in-out infinite alternate;
@@ -336,6 +693,13 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
           0% { transform: translateX(-100%); }
           40% { transform: translateX(100%); }
           100% { transform: translateX(100%); }
+        }
+        .keysave-modal-enter {
+          animation: keysave-enter 0.3s ease-out;
+        }
+        @keyframes keysave-enter {
+          0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+          100% { opacity: 1; transform: scale(1) translateY(0); }
         }
       `}</style>
     </div>

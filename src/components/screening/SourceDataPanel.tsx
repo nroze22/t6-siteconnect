@@ -52,7 +52,7 @@ export function SourceDataPanel() {
         </div>
         <p className="text-[13px] font-semibold text-slate-300">Source Data</p>
         <p className="mt-1.5 max-w-[200px] text-[11px] leading-relaxed text-slate-500">
-          When you select a patient, their clinical records appear here. Click any criterion to highlight matching evidence.
+          When you select a subject, their clinical records appear here. Click any criterion to highlight matching evidence.
         </p>
       </div>
     );
@@ -144,7 +144,7 @@ function DemographicsTab({ patientId, isHighlighted }: { patientId: string; isHi
   if (!patient) return null;
 
   const rows = [
-    ["Patient ID", patient.sitePatientId],
+    ["Subject ID", patient.sitePatientId],
     ["Age", `${patient.age} years`],
     ["Gender", patient.gender === "male" ? "Male" : "Female"],
     ["Primary Diagnosis", patient.primaryDiagnosis ?? "\u2014"],

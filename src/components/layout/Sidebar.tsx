@@ -9,6 +9,8 @@ import {
   ChevronRight,
   GitBranch,
   TrendingUp,
+  Users,
+  Lightbulb,
 } from "lucide-react";
 import { useAppStore } from "@/stores/use-app-store";
 import { Tooltip } from "@/components/ui/Tooltip";
@@ -18,7 +20,7 @@ const navItems: { id: NavigationPage; label: string; hint: string; icon: React.R
   {
     id: "screening",
     label: "Screening",
-    hint: "Review patient eligibility",
+    hint: "Review subject eligibility",
     icon: <Search className="h-4.5 w-4.5" />,
     shortcut: "1",
   },
@@ -46,7 +48,7 @@ const navItems: { id: NavigationPage; label: string; hint: string; icon: React.R
   {
     id: "pipeline",
     label: "Enrollment Pipeline",
-    hint: "Track patient outreach",
+    hint: "Track subject outreach",
     icon: <GitBranch className="h-4.5 w-4.5" />,
     shortcut: "5",
   },
@@ -58,18 +60,32 @@ const navItems: { id: NavigationPage; label: string; hint: string; icon: React.R
     shortcut: "6",
   },
   {
+    id: "cohort",
+    label: "Cohort Builder",
+    hint: "Explore populations",
+    icon: <Users className="h-4.5 w-4.5" />,
+    shortcut: "7",
+  },
+  {
+    id: "intelligence",
+    label: "Research Intel",
+    hint: "Readiness & ROI",
+    icon: <Lightbulb className="h-4.5 w-4.5" />,
+    shortcut: "8",
+  },
+  {
     id: "performance",
     label: "Site Performance",
     hint: "Metrics & revenue",
     icon: <TrendingUp className="h-4.5 w-4.5" />,
-    shortcut: "7",
+    shortcut: "9",
   },
   {
     id: "settings",
     label: "Settings",
     hint: "LLM, database, export",
     icon: <Settings className="h-4.5 w-4.5" />,
-    shortcut: "8",
+    shortcut: "0",
   },
 ];
 
@@ -81,13 +97,15 @@ export function Sidebar() {
     <aside className="no-select flex w-[240px] flex-col border-r border-border bg-[#0e1119]">
       {/* Logo */}
       <div className="flex h-14 items-center gap-2.5 border-b border-border px-5">
-        <img src="/t6logo.png" alt="Talosix" className="h-8 w-8 rounded-lg object-contain" />
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-blue-700 shadow-lg shadow-indigo-500/20">
+          <img src="/t6logo.png" alt="Talosix" className="h-6 w-6 object-contain" />
+        </div>
         <div>
           <h1 className="text-[13px] font-bold tracking-tight text-white">
             TalOS SiteConnect
           </h1>
           <p className="text-[10px] font-medium text-slate-500">
-            Patient Screening
+            On-Premise Screening
           </p>
         </div>
       </div>

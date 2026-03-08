@@ -14,6 +14,8 @@ import {
   Command,
   CornerDownLeft,
   HelpCircle,
+  Users,
+  Lightbulb,
 } from "lucide-react";
 import { useAppStore } from "@/stores/use-app-store";
 import type { NavigationPage } from "@/types";
@@ -47,12 +49,14 @@ export function CommandPalette() {
   const commands: CommandItem[] = useMemo(
     () => [
       // Navigation
-      { id: "nav-screening", label: "Patient Screening", hint: "Review eligibility", icon: <Search className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("screening"), keywords: ["patients", "screen", "eligibility", "criteria"] },
+      { id: "nav-screening", label: "Subject Screening", hint: "Review eligibility", icon: <Search className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("screening"), keywords: ["subjects", "screen", "eligibility", "criteria"] },
       { id: "nav-import", label: "Import Data", hint: "CSV, FHIR, HL7", icon: <FileUp className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("import"), keywords: ["upload", "csv", "fhir", "hl7", "file"] },
       { id: "nav-trials", label: "Trial Discovery", hint: "Browse & match trials", icon: <FlaskConical className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("trials"), keywords: ["study", "clinical", "nct", "sponsor"] },
       { id: "nav-review", label: "Review Queue", hint: "Decisions & export", icon: <ClipboardCheck className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("review"), keywords: ["accept", "reject", "defer", "decision"] },
       { id: "nav-pipeline", label: "Enrollment Pipeline", hint: "Track outreach", icon: <GitBranch className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("pipeline"), keywords: ["enrollment", "kanban", "outreach", "status"] },
       { id: "nav-analytics", label: "Population Intel", hint: "Feasibility & diversity", icon: <BarChart3 className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("analytics"), keywords: ["chart", "diversity", "feasibility", "demographics"] },
+      { id: "nav-cohort", label: "Cohort Builder", hint: "Explore populations", icon: <Users className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("cohort"), keywords: ["cohort", "population", "explorer", "query", "filter", "subjects"] },
+      { id: "nav-intelligence", label: "Research Intelligence", hint: "Readiness & ROI", icon: <Lightbulb className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("intelligence"), keywords: ["readiness", "roi", "opportunity", "funnel", "intelligence", "score"] },
       { id: "nav-performance", label: "Site Performance", hint: "Metrics & revenue", icon: <TrendingUp className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("performance"), keywords: ["revenue", "metrics", "kpi", "financial"] },
       { id: "nav-settings", label: "Settings", hint: "LLM, database, export", icon: <Settings className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("settings"), keywords: ["configure", "llm", "database", "preferences", "audit"] },
       // Actions
@@ -240,8 +244,11 @@ export function CommandPalette() {
                 </span>
               </div>
               <div className="flex items-center gap-1 text-[10px] text-slate-600">
-                <Command className="h-3 w-3" />
-                <span>K to toggle</span>
+                {/Mac|iPod|iPhone|iPad/.test(navigator.userAgent) ? (
+                  <><Command className="h-3 w-3" /><span>K to toggle</span></>
+                ) : (
+                  <span>Ctrl+K to toggle</span>
+                )}
               </div>
             </div>
           </motion.div>

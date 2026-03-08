@@ -10,7 +10,7 @@ import type { ColumnMapping } from "@/types";
 
 const TARGET_FIELDS = [
   { value: "", label: "-- Skip Column --" },
-  { value: "patient_id", label: "Patient ID" },
+  { value: "patient_id", label: "Subject ID" },
   { value: "date_of_birth", label: "Date of Birth" },
   { value: "gender", label: "Gender" },
   { value: "race", label: "Race" },

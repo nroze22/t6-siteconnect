@@ -53,11 +53,11 @@ const MOCK_RECENT_IMPORTS = [
 
 const PROGRESS_STAGES = [
   { label: "Parsing Epic CSV format...", duration: 600 },
-  { label: "Deduplicating patient records...", duration: 800 },
+  { label: "Deduplicating subject records...", duration: 800 },
   { label: "Normalizing ICD-10 codes...", duration: 500 },
   { label: "Mapping medications to RxNorm...", duration: 900 },
   { label: "Validating lab results & ranges...", duration: 700 },
-  { label: "Building patient profiles...", duration: 600 },
+  { label: "Building subject profiles...", duration: 600 },
   { label: "Running eligibility pre-screen...", duration: 1200 },
   { label: "Indexing for screening queue...", duration: 400 },
 ];
@@ -219,7 +219,7 @@ export function ImportPage() {
           const result = await executeRealImport(selectedFile.path, realMapping);
 
           setProgress(60);
-          setProgressStage("Screening patients against active studies...");
+          setProgressStage("Screening subjects against active studies...");
 
           // The Rust backend parsed and stored the patients.
           // Now re-parse the same file via the JS demo engine for screening display.
@@ -258,7 +258,7 @@ export function ImportPage() {
             errors: result.errors.map((e) => `Row ${e.row}: ${e.message}`),
           });
           setStep("complete");
-          toast.success(`Imported ${result.records_imported} patients`, result.records_updated > 0 ? `${result.records_updated} records updated` : undefined);
+          toast.success(`Imported ${result.records_imported} subjects`, result.records_updated > 0 ? `${result.records_updated} records updated` : undefined);
           return;
         } catch (err) {
           setImportError(err instanceof Error ? err.message : String(err));
@@ -318,12 +318,12 @@ export function ImportPage() {
         recordsUpdated: 0,
         recordsSkipped: totalRows - uniquePatients,
         errors: [
-          `${totalRows} encounter rows consolidated into ${uniquePatients} unique patients`,
-          `${eligibleCount} patients pre-screened as eligible for KEYNOTE-789`,
+          `${totalRows} encounter rows consolidated into ${uniquePatients} unique subjects`,
+          `${eligibleCount} subjects pre-screened as eligible for KEYNOTE-789`,
         ],
       });
       setStep("complete");
-      toast.success(`Imported ${uniquePatients} patients`, `${eligibleCount} pre-screened as eligible`);
+      toast.success(`Imported ${uniquePatients} subjects`, `${eligibleCount} pre-screened as eligible`);
     };
 
     runImport();
@@ -361,9 +361,9 @@ export function ImportPage() {
       <div className="shrink-0 border-b border-border bg-card/50 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-[15px] font-bold text-white">Import Patient Data</h2>
+            <h2 className="text-[15px] font-bold text-white">Import Subject Data</h2>
             <p className="mt-0.5 text-[11px] text-slate-500">
-              Import patient records from Epic, Cerner, or other EMR exports. All data stays encrypted on this device.
+              Import subject records from Epic, Cerner, or other EMR exports. All data stays encrypted on this device.
             </p>
           </div>
           <StepIndicator current={step} />
@@ -417,7 +417,7 @@ export function ImportPage() {
                     className="inline-flex items-center gap-2 rounded-lg border border-indigo-500/20 bg-indigo-500/5 px-4 py-2.5 text-[12px] font-medium text-indigo-300 transition-colors hover:bg-indigo-500/10 hover:text-indigo-200"
                   >
                     <Zap className="h-3.5 w-3.5" />
-                    Load Demo Epic Export (32 encounter rows, 20 patients)
+                    Load Demo Epic Export (32 encounter rows, 20 subjects)
                   </button>
                 </div>
               )}
@@ -498,8 +498,8 @@ export function ImportPage() {
                   },
                   {
                     icon: <Users className="h-4 w-4" />,
-                    label: "Unique Patients",
-                    value: `${new Set(EPIC_ROWS.map((r) => r[0])).size} patients`,
+                    label: "Unique Subjects",
+                    value: `${new Set(EPIC_ROWS.map((r) => r[0])).size} subjects`,
                   },
                   {
                     icon: <Columns3 className="h-4 w-4" />,
@@ -591,10 +591,10 @@ export function ImportPage() {
                   What happens on import
                 </h4>
                 <ul className="mt-2 space-y-1 text-[11px] text-slate-500">
-                  <li>1. Encounter rows are consolidated into unique patient profiles</li>
+                  <li>1. Encounter rows are consolidated into unique subject profiles</li>
                   <li>2. Diagnoses, medications, and labs are normalized and indexed</li>
-                  <li>3. Each patient is pre-screened against active studies (KEYNOTE-789)</li>
-                  <li>4. Patients appear in the Screening queue ranked by eligibility score</li>
+                  <li>3. Each subject is pre-screened against active studies (KEYNOTE-789)</li>
+                  <li>4. Subjects appear in the Screening queue ranked by eligibility score</li>
                 </ul>
               </div>
 
@@ -611,7 +611,7 @@ export function ImportPage() {
                   onClick={startImport}
                   className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-indigo-500"
                 >
-                  Import & Screen {new Set(EPIC_ROWS.map((r) => r[0])).size} Patients
+                  Import & Screen {new Set(EPIC_ROWS.map((r) => r[0])).size} Subjects
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
@@ -698,7 +698,7 @@ export function ImportPage() {
                 <div className="text-center">
                   <h3 className="text-lg font-bold text-foreground">Import Complete</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {importResult.recordsImported} patients loaded and pre-screened against KEYNOTE-789.
+                    {importResult.recordsImported} subjects loaded and pre-screened against KEYNOTE-789.
                   </p>
                 </div>
 
@@ -707,7 +707,7 @@ export function ImportPage() {
                   {[
                     {
                       icon: <CheckCircle2 className="h-4 w-4 text-emerald-400" />,
-                      label: "Patients",
+                      label: "Subjects",
                       value: importResult.recordsImported,
                       color: "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20",
                     },
@@ -773,7 +773,7 @@ export function ImportPage() {
                       className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-[12px] font-medium text-slate-300 transition-colors hover:bg-white/[0.06]"
                     >
                       <Users className="h-4 w-4" />
-                      View Patients
+                      View Subjects
                     </button>
                     <button
                       onClick={resetImport}

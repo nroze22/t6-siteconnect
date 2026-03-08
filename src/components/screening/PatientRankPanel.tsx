@@ -85,7 +85,7 @@ export function PatientRankPanel() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-indigo-400" />
-            <h3 className="text-[13px] font-semibold text-white">Patients</h3>
+            <h3 className="text-[13px] font-semibold text-white">Subjects</h3>
           </div>
           <span className="rounded-full bg-white/[0.06] px-2.5 py-0.5 text-[11px] font-semibold tabular-nums text-slate-400 ring-1 ring-white/[0.08]">
             {statusCounts.total}
@@ -97,7 +97,7 @@ export function PatientRankPanel() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
           <input
             type="text"
-            placeholder="Search patient ID..."
+            placeholder="Search subject ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full rounded-lg border border-white/[0.06] bg-white/[0.03] py-2 pl-9 pr-8 text-[12px] text-slate-200 placeholder-slate-600 transition-colors focus:border-indigo-500/40 focus:outline-none focus:ring-1 focus:ring-indigo-500/20"
@@ -139,7 +139,7 @@ export function PatientRankPanel() {
         </div>
       </div>
 
-      {/* Patient List */}
+      {/* Subject List */}
       <div className="flex-1 overflow-y-auto" ref={listRef}>
         {patients.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8 text-center">
@@ -147,12 +147,12 @@ export function PatientRankPanel() {
               <Sparkles className="h-6 w-6 text-indigo-400/60" />
             </div>
             <p className="text-[13px] font-semibold text-slate-300">
-              {statusFilter !== "all" ? "No matches for this filter" : "No patients yet"}
+              {statusFilter !== "all" ? "No matches for this filter" : "No subjects yet"}
             </p>
             <p className="mt-1.5 max-w-[200px] text-[11px] leading-relaxed text-slate-500">
               {statusFilter !== "all"
-                ? "Try \"All\" to see everyone, or import more patient data."
-                : "Go to Import Data to load patient records, then run screening against a trial."}
+                ? "Try \"All\" to see everyone, or import more subject data."
+                : "Go to Import Data to load subject records, then run screening against a trial."}
             </p>
           </div>
         ) : (
@@ -186,7 +186,7 @@ export function PatientRankPanel() {
                   <span className={`h-1.5 w-1.5 rounded-full ${statusDot}`} />
                 </div>
 
-                {/* Patient info */}
+                {/* Subject info */}
                 <div className="flex-1 min-w-0">
                   <p className={`truncate text-[12px] font-semibold font-mono ${isSelected ? "text-indigo-300" : "text-slate-200"}`}>
                     {patient.sitePatientId}

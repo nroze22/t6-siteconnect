@@ -217,4 +217,6 @@ export type NavigationPage =
   | "analytics"
   | "pipeline"
   | "performance"
+  | "cohort"
+  | "intelligence"
   | "settings";

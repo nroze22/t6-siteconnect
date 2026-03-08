@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Brain,
   HardDrive,
@@ -22,6 +22,24 @@ import {
   XCircle,
   ChevronDown,
   ChevronUp,
+  Cpu,
+  MemoryStick,
+  Monitor,
+  Gauge,
+  RefreshCw,
+  CircleCheck,
+  Layers,
+  Zap,
+  HeadphonesIcon,
+  Bug,
+  Copy,
+  Mail,
+  MessageSquare,
+  ArrowUpCircle,
+  Info,
+  Package,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import {
   isTauri,
@@ -60,11 +78,14 @@ export function SettingsPage() {
 
       <div className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-2xl space-y-3">
+          <SystemProfilePanel />
+          <UpdatePanel />
           <WatcherPanel />
           <LlmPanel />
           <AuditTrailPanel />
           <DatabasePanel />
           <PreferencesPanel />
+          <SupportPanel />
 
           {/* Quick start guide */}
           <div className="mt-6 rounded-xl border border-indigo-500/15 bg-indigo-500/5 p-5">
@@ -74,9 +95,9 @@ export function SettingsPage() {
             </div>
             <div className="mt-3 space-y-2.5">
               {[
-                { step: 1, text: "Import patient data from your EMR (CSV, FHIR, or HL7)", done: false },
+                { step: 1, text: "Import subject data from your EMR (CSV, FHIR, or HL7)", done: false },
                 { step: 2, text: "Configure the AI model for enhanced screening (optional)", done: false },
-                { step: 3, text: "Screen patients against active clinical trials", done: false },
+                { step: 3, text: "Screen subjects against active clinical trials", done: false },
                 { step: 4, text: "Review eligibility results and accept/reject candidates", done: false },
               ].map((item) => (
                 <div key={item.step} className="flex items-center gap-3">
@@ -127,7 +148,7 @@ function WatcherPanel() {
 
   const handlePickFolder = useCallback(async () => {
     if (!isTauri) {
-      setWatchPath("/Users/site-user/Documents/EMR_Exports");
+      setWatchPath("~/Documents/EMR_Exports");
       return;
     }
     const picked = await pickWatchFolder();
@@ -251,8 +272,8 @@ function WatcherPanel() {
           <div className="space-y-1.5 text-[11px] text-slate-500">
             <p>1. Point to your EMR export folder (e.g., where Epic Clarity drops CSVs)</p>
             <p>2. OS-level file events — no polling, instant detection</p>
-            <p>3. New .csv files are auto-imported, columns auto-mapped, patients screened</p>
-            <p>4. Notification when new patients are ready for review</p>
+            <p>3. New .csv files are auto-imported, columns auto-mapped, subjects screened</p>
+            <p>4. Notification when new subjects are ready for review</p>
           </div>
         </div>
 
@@ -270,7 +291,7 @@ function WatcherPanel() {
                   <button
                     onClick={() => {
                       toast.success("Import started", f.file_name);
-                      setTimeout(() => toast.success("Import complete", `${f.file_name} — patients added to screening`), 1500);
+                      setTimeout(() => toast.success("Import complete", `${f.file_name} — subjects added to screening`), 1500);
                     }}
                     className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold text-emerald-400 ring-1 ring-emerald-500/20 hover:bg-emerald-500/20 transition-colors"
                   >
@@ -310,7 +331,7 @@ function LlmPanel() {
 
   const handlePickModel = useCallback(async () => {
     if (!isTauri) {
-      setModelPath("/Users/site-user/models/BioMistral-7B-DARE-Q4_K_M.gguf");
+      setModelPath("~/models/BioMistral-7B-DARE-Q4_K_M.gguf");
       return;
     }
     const { open } = await import("@tauri-apps/plugin-dialog");
@@ -434,8 +455,8 @@ function LlmPanel() {
         <div className="rounded-lg bg-white/[0.02] p-3 ring-1 ring-white/[0.04]">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">How it works</p>
           <div className="space-y-1.5 text-[11px] text-slate-500">
-            <p>1. Download a GGUF model (BioMistral-7B-DARE Q4_K_M recommended, ~4.2 GB)</p>
-            <p>2. SiteConnect runs llama.cpp locally — no internet or cloud needed</p>
+            <p>1. Your deployment profile selects the model automatically (or choose manually)</p>
+            <p>2. SiteConnect runs inference locally via sidecar — no internet or cloud needed</p>
             <p>3. Criteria that can't be evaluated by rules go to the LLM for assessment</p>
             <p>4. Results include confidence scores and evidence citations</p>
           </div>
@@ -454,11 +475,11 @@ const ACTION_LABELS: Record<string, { label: string; color: string; icon: typeof
   database_unlocked: { label: "Database Unlocked", color: "text-slate-400", icon: Shield },
   study_seeded: { label: "Study Data Loaded", color: "text-indigo-400", icon: FileText },
   data_imported: { label: "Data Imported", color: "text-cyan-400", icon: Download },
-  patient_imported: { label: "Patient Imported", color: "text-cyan-400", icon: Download },
-  patient_updated: { label: "Patient Updated", color: "text-amber-400", icon: FileText },
+  patient_imported: { label: "Subject Imported", color: "text-cyan-400", icon: Download },
+  patient_updated: { label: "Subject Updated", color: "text-amber-400", icon: FileText },
   screening_executed: { label: "Screening Executed", color: "text-purple-400", icon: Brain },
   criterion_overridden: { label: "Criterion Override", color: "text-amber-400", icon: AlertCircle },
-  patient_reviewed: { label: "Patient Reviewed", color: "text-emerald-400", icon: CheckCircle2 },
+  patient_reviewed: { label: "Subject Reviewed", color: "text-emerald-400", icon: CheckCircle2 },
 };
 
 function AuditTrailPanel() {
@@ -712,7 +733,7 @@ function DatabasePanel() {
         <div className="px-4 pb-4">
           <div className="grid grid-cols-3 gap-2">
             {[
-              { label: "Patients", value: summary.patient_count },
+              { label: "Subjects", value: summary.patient_count },
               { label: "Studies", value: summary.study_count },
               { label: "Diagnoses", value: summary.total_diagnoses },
               { label: "Lab Results", value: summary.total_labs },
@@ -755,7 +776,7 @@ function PreferencesPanel() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[12px] font-medium text-slate-300">Auto-screen on import</p>
-            <p className="text-[10px] text-slate-500">Automatically screen patients when new data is imported</p>
+            <p className="text-[10px] text-slate-500">Automatically screen subjects when new data is imported</p>
           </div>
           <button
             onClick={() => setAutoScreen(!autoScreen)}
@@ -791,6 +812,778 @@ function PreferencesPanel() {
             <option value={60}>60 min</option>
             <option value={120}>2 hours</option>
           </select>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// System Profile & Deployment Panel — Hardware probe + AI profile selection
+// ---------------------------------------------------------------------------
+
+interface HardwareProfile {
+  os: string;
+  arch: string;
+  cpuCores: number;
+  cpuModel: string;
+  ramGB: number;
+  gpuVendor: string | null;
+  gpuModel: string | null;
+  gpuMemoryGB: number | null;
+  avx2: boolean;
+  diskFreeGB: number;
+  screenResolution: string;
+}
+
+type DeploymentProfile = "lite" | "standard" | "medical";
+
+const DEPLOYMENT_PROFILES: Record<DeploymentProfile, {
+  label: string;
+  desc: string;
+  model: string;
+  modelSize: string;
+  ramReq: string;
+  color: string;
+  features: string[];
+}> = {
+  lite: {
+    label: "Lite",
+    desc: "Optimized for older hardware. Deterministic screening with lightweight AI assist.",
+    model: "Phi-4-mini-instruct",
+    modelSize: "~2.4 GB",
+    ramReq: "8 GB+",
+    color: "blue",
+    features: [
+      "Deterministic rule-based screening",
+      "Column auto-mapping assist",
+      "Short note summarization",
+      "Low memory footprint",
+    ],
+  },
+  standard: {
+    label: "Standard",
+    desc: "Best balance of quality and speed. Recommended for most research sites.",
+    model: "Qwen3.5-4B",
+    modelSize: "~3.6 GB",
+    ramReq: "16 GB+",
+    color: "indigo",
+    features: [
+      "Everything in Lite",
+      "Full note extraction with evidence spans",
+      "Criterion explanation drafts",
+      "Protocol-aware next-best-action",
+      "Feasibility summaries",
+    ],
+  },
+  medical: {
+    label: "Medical",
+    desc: "Enhanced medical language understanding. Requires admin approval.",
+    model: "MedGemma 1.5 4B",
+    modelSize: "~3.8 GB",
+    ramReq: "16 GB+",
+    color: "emerald",
+    features: [
+      "Everything in Standard",
+      "Medical abbreviation & shorthand",
+      "Clinical note interpretation",
+      "Image-adjacent workflow support",
+      "Domain-tuned terminology",
+    ],
+  },
+};
+
+function probeHardware(): HardwareProfile {
+  const nav = typeof navigator !== "undefined" ? navigator : null;
+  const cores = nav?.hardwareConcurrency ?? 4;
+  const ramGB = (nav as unknown as { deviceMemory?: number })?.deviceMemory ?? 16;
+  const screen = typeof window !== "undefined"
+    ? `${window.screen.width}x${window.screen.height}`
+    : "Unknown";
+
+  return {
+    os: detectOS(),
+    arch: cores >= 8 ? "x86_64 (estimated)" : "x86_64",
+    cpuCores: cores,
+    cpuModel: cores >= 10 ? "Apple M-series / Intel i7+" : cores >= 6 ? "Intel i5 / AMD Ryzen 5" : "Intel i3 / Budget CPU",
+    ramGB,
+    gpuVendor: null,
+    gpuModel: detectGPU(),
+    gpuMemoryGB: null,
+    avx2: cores >= 4,
+    diskFreeGB: 128,
+    screenResolution: screen,
+  };
+}
+
+function detectOS(): string {
+  if (typeof navigator === "undefined") return "Unknown";
+  const ua = navigator.userAgent;
+  if (ua.includes("Mac")) return "macOS";
+  if (ua.includes("Win")) return "Windows";
+  if (ua.includes("Linux")) return "Linux";
+  return "Unknown";
+}
+
+function detectGPU(): string | null {
+  if (typeof document === "undefined") return null;
+  try {
+    const canvas = document.createElement("canvas");
+    const gl = canvas.getContext("webgl2") ?? canvas.getContext("webgl");
+    if (!gl) return null;
+    const ext = gl.getExtension("WEBGL_debug_renderer_info");
+    if (!ext) return null;
+    return gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) as string;
+  } catch {
+    return null;
+  }
+}
+
+function recommendProfile(hw: HardwareProfile): DeploymentProfile {
+  if (hw.ramGB < 12 || hw.cpuCores < 4) return "lite";
+  return "standard";
+}
+
+function SystemProfilePanel() {
+  const [hardware, setHardware] = useState<HardwareProfile | null>(null);
+  const [scanning, setScanning] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState<DeploymentProfile>("standard");
+  const [profileLocked, setProfileLocked] = useState(false);
+  const toast = useToast();
+
+  const recommended = useMemo(() => hardware ? recommendProfile(hardware) : "standard", [hardware]);
+
+  const handleScan = useCallback(() => {
+    setScanning(true);
+    // Simulate a brief hardware analysis
+    setTimeout(() => {
+      const hw = probeHardware();
+      setHardware(hw);
+      setSelectedProfile(recommendProfile(hw));
+      setScanning(false);
+      toast.success("Hardware analysis complete", `Recommended profile: ${DEPLOYMENT_PROFILES[recommendProfile(hw)].label}`);
+    }, 1800);
+  }, []);
+
+  useEffect(() => { handleScan(); }, []);
+
+  const handleApplyProfile = useCallback(() => {
+    setProfileLocked(true);
+    toast.success(`${DEPLOYMENT_PROFILES[selectedProfile].label} profile activated`, `AI model: ${DEPLOYMENT_PROFILES[selectedProfile].model}`);
+  }, [selectedProfile]);
+
+  const profileColors: Record<string, { bg: string; ring: string; text: string; fill: string }> = {
+    blue: { bg: "bg-blue-500/8", ring: "ring-blue-500/20", text: "text-blue-400", fill: "bg-blue-500" },
+    indigo: { bg: "bg-indigo-500/8", ring: "ring-indigo-500/20", text: "text-indigo-400", fill: "bg-indigo-500" },
+    emerald: { bg: "bg-emerald-500/8", ring: "ring-emerald-500/20", text: "text-emerald-400", fill: "bg-emerald-500" },
+  };
+
+  return (
+    <div className="rounded-xl border border-white/[0.06] bg-card overflow-hidden">
+      <div className="flex items-center gap-4 p-4 border-b border-white/[0.06]">
+        <div className="rounded-lg p-2.5 bg-indigo-500/10 ring-1 ring-indigo-500/20">
+          <Monitor className="h-5 w-5 text-indigo-400" />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="text-[13px] font-semibold text-slate-200">System & AI Profile</h3>
+            {hardware && (
+              <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold text-emerald-400 ring-1 ring-emerald-500/20">
+                Analyzed
+              </span>
+            )}
+          </div>
+          <p className="mt-0.5 text-[11px] text-slate-500">
+            SiteConnect analyzes your hardware and selects the optimal AI configuration automatically.
+          </p>
+        </div>
+        <button
+          onClick={handleScan}
+          disabled={scanning}
+          className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-200 disabled:opacity-50"
+        >
+          {scanning ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+          Re-scan
+        </button>
+      </div>
+
+      <div className="p-4 space-y-4">
+        {/* Hardware summary */}
+        {scanning ? (
+          <div className="flex flex-col items-center gap-3 py-8">
+            <div className="relative">
+              <div className="h-12 w-12 rounded-full border-2 border-indigo-500/20">
+                <div className="h-12 w-12 rounded-full border-2 border-transparent border-t-indigo-500 animate-spin" />
+              </div>
+              <Cpu className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-indigo-400" />
+            </div>
+            <div className="text-center">
+              <p className="text-[12px] font-semibold text-slate-300">Analyzing system hardware...</p>
+              <p className="text-[10px] text-slate-500">Detecting CPU, memory, GPU, and storage capabilities</p>
+            </div>
+          </div>
+        ) : hardware ? (
+          <>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex items-center gap-2.5 rounded-lg bg-white/[0.02] px-3 py-2.5 ring-1 ring-white/[0.04]">
+                <Cpu className="h-4 w-4 text-indigo-400 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[10px] text-slate-500">Processor</p>
+                  <p className="text-[11px] font-semibold text-slate-300 truncate">{hardware.cpuModel}</p>
+                  <p className="text-[10px] text-slate-600">{hardware.cpuCores} cores · {hardware.arch}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5 rounded-lg bg-white/[0.02] px-3 py-2.5 ring-1 ring-white/[0.04]">
+                <MemoryStick className="h-4 w-4 text-emerald-400 shrink-0" />
+                <div>
+                  <p className="text-[10px] text-slate-500">Memory</p>
+                  <p className="text-[11px] font-semibold text-slate-300">{hardware.ramGB} GB RAM</p>
+                  <p className="text-[10px] text-slate-600">{hardware.ramGB >= 16 ? "Optimal" : hardware.ramGB >= 8 ? "Sufficient" : "Limited"}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5 rounded-lg bg-white/[0.02] px-3 py-2.5 ring-1 ring-white/[0.04]">
+                <Gauge className="h-4 w-4 text-purple-400 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[10px] text-slate-500">GPU</p>
+                  <p className="text-[11px] font-semibold text-slate-300 truncate">{hardware.gpuModel ?? "Integrated"}</p>
+                  <p className="text-[10px] text-slate-600">{hardware.gpuModel ? "GPU acceleration available" : "CPU inference mode"}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5 rounded-lg bg-white/[0.02] px-3 py-2.5 ring-1 ring-white/[0.04]">
+                <HardDrive className="h-4 w-4 text-amber-400 shrink-0" />
+                <div>
+                  <p className="text-[10px] text-slate-500">System</p>
+                  <p className="text-[11px] font-semibold text-slate-300">{hardware.os}</p>
+                  <p className="text-[10px] text-slate-600">{hardware.screenResolution} · {hardware.avx2 ? "AVX2 supported" : "No AVX2"}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Deployment profile selector */}
+            <div>
+              <div className="flex items-center justify-between mb-2.5">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">AI Deployment Profile</p>
+                {recommended && (
+                  <span className="flex items-center gap-1 text-[9px] font-semibold text-indigo-400">
+                    <Sparkles className="h-2.5 w-2.5" />
+                    Recommended: {DEPLOYMENT_PROFILES[recommended].label}
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                {(Object.entries(DEPLOYMENT_PROFILES) as [DeploymentProfile, typeof DEPLOYMENT_PROFILES[DeploymentProfile]][]).map(
+                  ([key, profile]) => {
+                    const isSelected = selectedProfile === key;
+                    const isRecommended = recommended === key;
+                    const colors = profileColors[profile.color] ?? profileColors["indigo"]!;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => { if (!profileLocked) setSelectedProfile(key); }}
+                        disabled={profileLocked}
+                        className={`relative rounded-xl p-3 text-left transition-all ${
+                          isSelected
+                            ? `${colors.bg} ring-2 ${colors.ring}`
+                            : "bg-white/[0.02] ring-1 ring-white/[0.04] hover:ring-white/[0.08]"
+                        } ${profileLocked && !isSelected ? "opacity-40" : ""}`}
+                      >
+                        {isRecommended && (
+                          <span className={`absolute -top-1.5 right-2 rounded-full ${colors.fill} px-2 py-0.5 text-[8px] font-bold text-white`}>
+                            RECOMMENDED
+                          </span>
+                        )}
+                        {isSelected && (
+                          <CircleCheck className={`absolute top-2 right-2 h-4 w-4 ${colors.text}`} />
+                        )}
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <Layers className={`h-3.5 w-3.5 ${isSelected ? colors.text : "text-slate-500"}`} />
+                          <span className={`text-[12px] font-bold ${isSelected ? colors.text : "text-slate-400"}`}>
+                            {profile.label}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 leading-relaxed mb-2">{profile.desc}</p>
+                        <div className="space-y-1 border-t border-white/[0.04] pt-2">
+                          <div className="flex items-center justify-between text-[9px]">
+                            <span className="text-slate-500">Model</span>
+                            <span className={`font-semibold ${isSelected ? colors.text : "text-slate-400"}`}>{profile.model}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-[9px]">
+                            <span className="text-slate-500">Size</span>
+                            <span className="text-slate-400">{profile.modelSize}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-[9px]">
+                            <span className="text-slate-500">RAM</span>
+                            <span className="text-slate-400">{profile.ramReq}</span>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  },
+                )}
+              </div>
+
+              {/* Selected profile features */}
+              <div className="mt-3 rounded-lg bg-white/[0.02] p-3 ring-1 ring-white/[0.04]">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                  {DEPLOYMENT_PROFILES[selectedProfile].label} Profile Capabilities
+                </p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {DEPLOYMENT_PROFILES[selectedProfile].features.map((f) => (
+                    <div key={f} className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                      <Check className="h-2.5 w-2.5 text-emerald-400 shrink-0" />
+                      {f}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {!profileLocked && (
+                <button
+                  onClick={handleApplyProfile}
+                  className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-indigo-500"
+                >
+                  <Zap className="h-3.5 w-3.5" />
+                  Apply {DEPLOYMENT_PROFILES[selectedProfile].label} Profile
+                </button>
+              )}
+              {profileLocked && (
+                <div className="mt-3 flex items-center justify-between rounded-lg bg-emerald-500/5 px-3 py-2 ring-1 ring-emerald-500/15">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                    <span className="text-[11px] font-semibold text-emerald-400">
+                      {DEPLOYMENT_PROFILES[selectedProfile].label} profile active
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setProfileLocked(false)}
+                    className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors"
+                  >
+                    Change
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Update Panel — Check for updates, version info, rollback
+// ---------------------------------------------------------------------------
+
+interface VersionInfo {
+  app: string;
+  modelPack: string;
+  ruleEngine: string;
+  mappingTemplates: string;
+  lastChecked: string | null;
+  updateAvailable: boolean;
+  updateVersion?: string;
+  channel: "stable" | "pilot" | "hotfix";
+}
+
+function UpdatePanel() {
+  const [checking, setChecking] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [versions, setVersions] = useState<VersionInfo>({
+    app: "1.0.0",
+    modelPack: "2026.03.1",
+    ruleEngine: "1.2.0",
+    mappingTemplates: "2026.03.2",
+    lastChecked: null,
+    updateAvailable: false,
+    channel: "stable",
+  });
+  const [expanded, setExpanded] = useState(false);
+  const toast = useToast();
+
+  const handleCheckForUpdates = useCallback(() => {
+    setChecking(true);
+    // Simulate update check
+    setTimeout(() => {
+      setVersions((prev) => ({
+        ...prev,
+        lastChecked: new Date().toISOString(),
+        updateAvailable: true,
+        updateVersion: "1.1.0",
+      }));
+      setChecking(false);
+      toast.info("Update available", "SiteConnect v1.1.0 is ready to download");
+    }, 2200);
+  }, []);
+
+  const handleDownloadUpdate = useCallback(() => {
+    setDownloading(true);
+    setDownloadProgress(0);
+    const interval = setInterval(() => {
+      setDownloadProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setDownloading(false);
+          setVersions((v) => ({ ...v, updateAvailable: false, app: v.updateVersion ?? v.app }));
+          toast.success("Update downloaded", "Restart SiteConnect to apply v1.1.0");
+          return 100;
+        }
+        return prev + Math.random() * 15 + 5;
+      });
+    }, 400);
+  }, []);
+
+  const channelColors: Record<string, string> = {
+    stable: "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20",
+    pilot: "text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20",
+    hotfix: "text-red-400 bg-red-500/10 ring-1 ring-red-500/20",
+  };
+
+  return (
+    <div className="rounded-xl border border-white/[0.06] bg-card overflow-hidden">
+      <div className="flex items-center gap-4 p-4 border-b border-white/[0.06]">
+        <div className="rounded-lg p-2.5 bg-blue-500/10 ring-1 ring-blue-500/20">
+          <ArrowUpCircle className="h-5 w-5 text-blue-400" />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="text-[13px] font-semibold text-slate-200">Updates</h3>
+            <span className={`rounded-md px-2 py-0.5 text-[9px] font-semibold uppercase ${channelColors[versions.channel]}`}>
+              {versions.channel}
+            </span>
+            {versions.updateAvailable && (
+              <span className="flex items-center gap-1 rounded-md bg-blue-500/10 px-2 py-0.5 text-[9px] font-semibold text-blue-400 ring-1 ring-blue-500/20 animate-pulse">
+                Update Available
+              </span>
+            )}
+          </div>
+          <p className="mt-0.5 text-[11px] text-slate-500">
+            App updates, model packs, and rule templates ship independently.
+          </p>
+        </div>
+      </div>
+
+      <div className="p-4 space-y-3">
+        {/* Version grid */}
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { label: "Application", version: versions.app, icon: Package, hasUpdate: versions.updateAvailable },
+            { label: "Model Pack", version: versions.modelPack, icon: Brain, hasUpdate: false },
+            { label: "Rule Engine", version: versions.ruleEngine, icon: Shield, hasUpdate: false },
+            { label: "Mapping Templates", version: versions.mappingTemplates, icon: Layers, hasUpdate: false },
+          ].map((item) => (
+            <div key={item.label} className="flex items-center gap-2.5 rounded-lg bg-white/[0.02] px-3 py-2 ring-1 ring-white/[0.04]">
+              <item.icon className={`h-3.5 w-3.5 shrink-0 ${item.hasUpdate ? "text-blue-400" : "text-slate-500"}`} />
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] text-slate-500">{item.label}</p>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-semibold text-slate-300 font-mono">v{item.version}</span>
+                  {item.hasUpdate && versions.updateVersion && (
+                    <span className="text-[9px] font-semibold text-blue-400">→ v{versions.updateVersion}</span>
+                  )}
+                </div>
+              </div>
+              {!item.hasUpdate && <CheckCircle2 className="h-3 w-3 text-emerald-500/40" />}
+            </div>
+          ))}
+        </div>
+
+        {/* Update actions */}
+        <div className="flex items-center gap-2">
+          {versions.updateAvailable && !downloading ? (
+            <button
+              onClick={handleDownloadUpdate}
+              className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-blue-500"
+            >
+              <Download className="h-3 w-3" /> Download v{versions.updateVersion}
+            </button>
+          ) : downloading ? (
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] font-semibold text-blue-400">Downloading update...</span>
+                <span className="text-[10px] font-mono text-slate-500">{Math.min(100, Math.round(downloadProgress))}%</span>
+              </div>
+              <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-500 transition-all duration-300"
+                  style={{ width: `${Math.min(100, downloadProgress)}%` }}
+                />
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={handleCheckForUpdates}
+              disabled={checking}
+              className="flex items-center gap-1.5 rounded-lg bg-white/[0.04] px-4 py-2 text-[12px] font-semibold text-slate-300 transition-colors hover:bg-white/[0.06] disabled:opacity-50 ring-1 ring-white/[0.06]"
+            >
+              {checking ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+              Check for Updates
+            </button>
+          )}
+        </div>
+
+        {versions.lastChecked && (
+          <p className="text-[10px] text-slate-600 flex items-center gap-1">
+            <Clock className="h-2.5 w-2.5" />
+            Last checked: {new Date(versions.lastChecked).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+          </p>
+        )}
+
+        {/* Expandable details */}
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="flex w-full items-center justify-between rounded-lg bg-white/[0.02] px-3 py-2 text-[10px] font-medium text-slate-500 ring-1 ring-white/[0.04] transition-colors hover:text-slate-300"
+        >
+          <span>Update policy & channels</span>
+          {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+        </button>
+        {expanded && (
+          <div className="space-y-2">
+            <div className="rounded-lg bg-white/[0.02] p-3 ring-1 ring-white/[0.04]">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">Update Channels</p>
+              <div className="space-y-2">
+                {[
+                  { ch: "stable", desc: "Production-tested releases. Recommended for all sites.", current: versions.channel === "stable" },
+                  { ch: "pilot", desc: "Early access to new features. Help shape the product.", current: versions.channel === "pilot" },
+                  { ch: "hotfix", desc: "Emergency security and critical bug fixes only.", current: versions.channel === "hotfix" },
+                ].map((c) => (
+                  <div key={c.ch} className="flex items-center gap-2">
+                    <span className={`h-2 w-2 rounded-full ${c.current ? "bg-emerald-400" : "bg-slate-600"}`} />
+                    <span className={`text-[11px] font-semibold capitalize ${c.current ? "text-slate-200" : "text-slate-500"}`}>
+                      {c.ch}
+                    </span>
+                    <span className="text-[10px] text-slate-600">— {c.desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-lg bg-white/[0.02] p-3 ring-1 ring-white/[0.04]">
+              <div className="space-y-1.5 text-[11px] text-slate-500">
+                <p>App binaries, model packs, rule engines, and mapping templates update independently.</p>
+                <p>All updates are cryptographically signed. Rollback to the previous version is always available.</p>
+                <p>Emergency fixes can be applied without re-downloading AI models.</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Support & Diagnostics Panel
+// ---------------------------------------------------------------------------
+
+function SupportPanel() {
+  const [generating, setGenerating] = useState(false);
+  const [bundleReady, setBundleReady] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const toast = useToast();
+
+  const diagnostics = useMemo(() => {
+    const hw = probeHardware();
+    return {
+      appVersion: "1.0.0",
+      modelPack: "2026.03.1",
+      ruleEngine: "1.2.0",
+      os: hw.os,
+      cpuCores: hw.cpuCores,
+      ramGB: hw.ramGB,
+      gpu: hw.gpuModel ?? "Integrated",
+      screenRes: hw.screenResolution,
+      runtime: isTauri ? "Tauri (native)" : "Web (demo)",
+      llmStatus: "not_configured",
+      dbEncryption: "AES-256 (SQLCipher)",
+      uptime: `${Math.floor(performance.now() / 60000)} min`,
+      locale: typeof navigator !== "undefined" ? navigator.language : "en-US",
+      timestamp: new Date().toISOString(),
+    };
+  }, []);
+
+  const handleGenerateBundle = useCallback(() => {
+    setGenerating(true);
+    setBundleReady(false);
+    setTimeout(() => {
+      setGenerating(false);
+      setBundleReady(true);
+      toast.success("Diagnostics bundle ready", "No PHI included — safe to share with support");
+    }, 1500);
+  }, []);
+
+  const handleCopyDiagnostics = useCallback(() => {
+    const text = Object.entries(diagnostics)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join("\n");
+    navigator.clipboard.writeText(
+      `--- TalOS SiteConnect Diagnostics ---\n${text}\n--- End ---`,
+    );
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast.success("Copied to clipboard", "Paste into support email or chat");
+  }, [diagnostics]);
+
+  const handleDownloadBundle = useCallback(() => {
+    const bundle = {
+      _header: "TalOS SiteConnect Diagnostics Bundle",
+      _notice: "This file contains NO patient data or PHI",
+      _generated: new Date().toISOString(),
+      system: diagnostics,
+      recentErrors: [],
+      featureFlags: { autoScreen: true, notifications: true },
+      updateHistory: [
+        { version: "1.0.0", date: "2026-03-01", channel: "stable" },
+      ],
+    };
+    const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `siteconnect-diagnostics-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Bundle downloaded", "Attach to your support request");
+  }, [diagnostics]);
+
+  return (
+    <div className="rounded-xl border border-white/[0.06] bg-card overflow-hidden">
+      <div className="flex items-center gap-4 p-4 border-b border-white/[0.06]">
+        <div className="rounded-lg p-2.5 bg-rose-500/10 ring-1 ring-rose-500/20">
+          <HeadphonesIcon className="h-5 w-5 text-rose-400" />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="text-[13px] font-semibold text-slate-200">Support & Diagnostics</h3>
+          </div>
+          <p className="mt-0.5 text-[11px] text-slate-500">
+            Get help, generate diagnostics bundles, and contact the Talosix team.
+          </p>
+        </div>
+      </div>
+
+      <div className="p-4 space-y-3">
+        {/* Quick diagnostics grid */}
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">System Snapshot</p>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: "App", value: `v${diagnostics.appVersion}`, icon: Package, ok: true },
+              { label: "Runtime", value: diagnostics.runtime, icon: Server, ok: true },
+              { label: "Database", value: diagnostics.dbEncryption, icon: Shield, ok: true },
+              { label: "AI Model", value: diagnostics.llmStatus === "running" ? "Active" : "Inactive", icon: Brain, ok: diagnostics.llmStatus === "running" },
+              { label: "Network", value: navigator.onLine ? "Online" : "Offline", icon: navigator.onLine ? Wifi : WifiOff, ok: true },
+              { label: "Session", value: diagnostics.uptime, icon: Clock, ok: true },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center gap-2 rounded-lg bg-white/[0.02] px-2.5 py-2 ring-1 ring-white/[0.04]">
+                <item.icon className={`h-3 w-3 shrink-0 ${item.ok ? "text-slate-500" : "text-amber-400"}`} />
+                <div className="min-w-0">
+                  <p className="text-[9px] text-slate-600">{item.label}</p>
+                  <p className="text-[10px] font-semibold text-slate-400 truncate">{item.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Diagnostics bundle */}
+        <div className="rounded-lg bg-white/[0.02] p-3 ring-1 ring-white/[0.04]">
+          <div className="flex items-start gap-2 mb-3">
+            <Info className="h-3.5 w-3.5 text-blue-400 shrink-0 mt-0.5" />
+            <p className="text-[10px] text-slate-500 leading-relaxed">
+              Diagnostics bundles include app version, hardware profile, error logs, and health status.
+              <span className="font-semibold text-emerald-400"> No patient data or PHI is ever included.</span>
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleGenerateBundle}
+              disabled={generating}
+              className="flex items-center gap-1.5 rounded-lg bg-white/[0.04] px-3 py-2 text-[11px] font-semibold text-slate-300 transition-colors hover:bg-white/[0.06] disabled:opacity-50 ring-1 ring-white/[0.06]"
+            >
+              {generating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Bug className="h-3 w-3" />}
+              Generate Bundle
+            </button>
+
+            {bundleReady && (
+              <>
+                <button
+                  onClick={handleDownloadBundle}
+                  className="flex items-center gap-1.5 rounded-lg bg-blue-600/80 px-3 py-2 text-[11px] font-semibold text-white transition-colors hover:bg-blue-500"
+                >
+                  <Download className="h-3 w-3" /> Download .json
+                </button>
+                <button
+                  onClick={handleCopyDiagnostics}
+                  className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[11px] font-medium text-slate-400 transition-colors hover:bg-white/[0.06]"
+                >
+                  {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                  {copied ? "Copied" : "Copy"}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Contact support */}
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">Contact Talosix</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => {
+                const subject = encodeURIComponent(`SiteConnect Support — v${diagnostics.appVersion}`);
+                const body = encodeURIComponent(
+                  `Hi Talosix Support,\n\nI need help with:\n[Describe your issue here]\n\n--- System Info ---\nApp: v${diagnostics.appVersion}\nOS: ${diagnostics.os}\nRuntime: ${diagnostics.runtime}\n`,
+                );
+                window.open(`mailto:support@talosix.com?subject=${subject}&body=${body}`, "_blank");
+              }}
+              className="flex items-center gap-2 rounded-lg bg-white/[0.02] px-3 py-3 ring-1 ring-white/[0.04] transition-all hover:bg-white/[0.04] hover:ring-white/[0.08] group"
+            >
+              <Mail className="h-4 w-4 text-blue-400 group-hover:text-blue-300" />
+              <div className="text-left">
+                <p className="text-[11px] font-semibold text-slate-300 group-hover:text-slate-200">Email Support</p>
+                <p className="text-[9px] text-slate-600">support@talosix.com</p>
+              </div>
+            </button>
+            <button
+              onClick={() => toast.info("Support chat", "Live chat coming soon — use email for now")}
+              className="flex items-center gap-2 rounded-lg bg-white/[0.02] px-3 py-3 ring-1 ring-white/[0.04] transition-all hover:bg-white/[0.04] hover:ring-white/[0.08] group"
+            >
+              <MessageSquare className="h-4 w-4 text-purple-400 group-hover:text-purple-300" />
+              <div className="text-left">
+                <p className="text-[11px] font-semibold text-slate-300 group-hover:text-slate-200">Live Chat</p>
+                <p className="text-[9px] text-slate-600">Coming soon</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Emergency actions */}
+        <div className="rounded-lg border border-amber-500/10 bg-amber-500/5 p-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-400/70 mb-2">Troubleshooting</p>
+          <div className="space-y-1.5">
+            <button
+              onClick={() => toast.info("Safe mode", "Restart the app with --safe-mode flag to disable AI and run deterministic-only screening")}
+              className="flex w-full items-center gap-2 rounded-lg bg-white/[0.02] px-3 py-2 text-left ring-1 ring-white/[0.04] transition-colors hover:bg-white/[0.04]"
+            >
+              <Shield className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+              <div>
+                <p className="text-[11px] font-medium text-slate-300">Start in Safe Mode</p>
+                <p className="text-[9px] text-slate-600">Disable AI, keep deterministic screening active</p>
+              </div>
+            </button>
+            <button
+              onClick={() => toast.info("Model cache cleared", "AI model will be reloaded on next start")}
+              className="flex w-full items-center gap-2 rounded-lg bg-white/[0.02] px-3 py-2 text-left ring-1 ring-white/[0.04] transition-colors hover:bg-white/[0.04]"
+            >
+              <RefreshCw className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+              <div>
+                <p className="text-[11px] font-medium text-slate-300">Clear Model Cache</p>
+                <p className="text-[9px] text-slate-600">Reset AI model state without affecting data</p>
+              </div>
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -45,7 +45,7 @@ const STEPS: OnboardingStep[] = [
         </div>
 
         <p className="text-[13px] text-slate-300 leading-relaxed text-center">
-          Screen patients, track enrollment, and generate operational intelligence — all from your EMR data, all on your machine.
+          Screen subjects, track enrollment, and generate operational intelligence — all from your EMR data, all on your machine.
         </p>
 
         <div className="grid grid-cols-3 gap-3">
@@ -128,7 +128,7 @@ const STEPS: OnboardingStep[] = [
 
         <div className="space-y-2.5">
           {[
-            { icon: <Target className="h-3.5 w-3.5 text-indigo-400" />, text: "Visual kanban board tracks every patient through the recruitment funnel" },
+            { icon: <Target className="h-3.5 w-3.5 text-indigo-400" />, text: "Visual kanban board tracks every subject through the recruitment funnel" },
             { icon: <Users className="h-3.5 w-3.5 text-blue-400" />, text: "Assign CRCs, log contact attempts, and schedule follow-ups in one place" },
             { icon: <TrendingUp className="h-3.5 w-3.5 text-emerald-400" />, text: "Conversion analytics reveal bottlenecks so you can fix them fast" },
           ].map((item, i) => (
@@ -142,7 +142,7 @@ const STEPS: OnboardingStep[] = [
         <div className="flex items-center gap-3 rounded-lg bg-indigo-500/5 px-4 py-2.5 ring-1 ring-indigo-500/15">
           <GitBranch className="h-4 w-4 text-indigo-400 flex-shrink-0" />
           <p className="text-[11px] text-slate-400 leading-relaxed">
-            Sites lose <span className="font-semibold text-indigo-300">20-30% of eligible patients</span> between identification and enrollment. This pipeline closes that gap.
+            Sites lose <span className="font-semibold text-indigo-300">20-30% of eligible subjects</span> between identification and enrollment. This pipeline closes that gap.
           </p>
         </div>
       </div>
@@ -159,7 +159,7 @@ const STEPS: OnboardingStep[] = [
             icon: <FlaskConical className="h-4.5 w-4.5 text-blue-400" />,
             bg: "bg-blue-500/8 ring-1 ring-blue-500/20",
             title: "Protocol Feasibility",
-            desc: "Calculate how many patients match any protocol before you commit to a study.",
+            desc: "Calculate how many subjects match any protocol before you commit to a study.",
           },
           {
             icon: <TrendingUp className="h-4.5 w-4.5 text-emerald-400" />,
@@ -171,7 +171,7 @@ const STEPS: OnboardingStep[] = [
             icon: <GitBranch className="h-4.5 w-4.5 text-indigo-400" />,
             bg: "bg-indigo-500/8 ring-1 ring-indigo-500/20",
             title: "Multi-Study Matching",
-            desc: "Find patients eligible for multiple trials simultaneously. Maximize per-patient revenue.",
+            desc: "Find subjects eligible for multiple trials simultaneously. Maximize per-subject revenue.",
           },
           {
             icon: <Users className="h-4.5 w-4.5 text-cyan-400" />,
@@ -194,13 +194,13 @@ const STEPS: OnboardingStep[] = [
   {
     id: "getstarted",
     title: "You're Ready",
-    subtitle: "Start screening patients in under 60 seconds",
+    subtitle: "Start screening subjects in under 60 seconds",
     content: (
       <div className="space-y-4">
         <div className="rounded-xl bg-white/[0.02] p-4 ring-1 ring-white/[0.06] space-y-3">
           {[
             { step: 1, action: "Import Data", desc: "Drop your EMR export (CSV) into the Import page" },
-            { step: 2, action: "Screen Patients", desc: "AI screens all patients against active trial criteria" },
+            { step: 2, action: "Screen Subjects", desc: "AI screens all subjects against active trial criteria" },
             { step: 3, action: "Review Results", desc: "Accept or reject candidates with evidence-backed reasoning" },
             { step: 4, action: "Track Pipeline", desc: "Move candidates through your enrollment funnel" },
           ].map((item) => (
@@ -222,7 +222,7 @@ const STEPS: OnboardingStep[] = [
             <span className="text-[12px] font-bold text-slate-200">Demo Mode Active</span>
           </div>
           <p className="text-[11px] text-slate-400 leading-relaxed">
-            We've pre-loaded <span className="font-semibold text-white">20 realistic patients</span> screened against <span className="font-semibold text-white">6 active trials</span> so you can explore every feature immediately. Import your own data when ready.
+            We've pre-loaded <span className="font-semibold text-white">20 realistic subjects</span> screened against <span className="font-semibold text-white">6 active trials</span> so you can explore every feature immediately. Import your own data when ready.
           </p>
         </div>
       </div>

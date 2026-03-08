@@ -212,14 +212,11 @@ export function PipelinePage() {
       {/* Header */}
       <div className="border-b border-border bg-card/50 px-6 py-3">
         <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-[15px] font-bold text-white">Enrollment Pipeline</h2>
-              <button onClick={() => setShowInfoModal(true)} className="rounded-full p-1 text-slate-500 hover:bg-white/[0.05] hover:text-slate-300 transition-colors">
-                <Info className="h-3.5 w-3.5" />
-              </button>
-            </div>
-            <p className="text-[11px] text-slate-500">Track patients from screening to enrollment across all active studies</p>
+          <div className="flex items-center gap-2">
+            <p className="text-[11px] text-slate-500">Track subjects from screening to enrollment across all active studies</p>
+            <button onClick={() => setShowInfoModal(true)} className="rounded-full p-1 text-slate-500 hover:bg-white/[0.05] hover:text-slate-300 transition-colors">
+              <Info className="h-3.5 w-3.5" />
+            </button>
           </div>
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -228,7 +225,7 @@ export function PipelinePage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search patients..."
+                placeholder="Search subjects..."
                 className="h-8 w-48 rounded-lg border border-white/[0.06] bg-white/[0.03] pl-8 pr-8 text-[12px] text-slate-200 placeholder-slate-600 focus:border-indigo-500/40 focus:outline-none"
               />
               {searchQuery && (
@@ -270,7 +267,7 @@ export function PipelinePage() {
             </div>
           ))}
           <div className="ml-auto flex items-center gap-2 text-[10px] text-slate-500">
-            <span>{filteredData.length} patients in pipeline</span>
+            <span>{filteredData.length} subjects in pipeline</span>
           </div>
         </div>
       </div>
@@ -335,7 +332,7 @@ export function PipelinePage() {
                         <div className="mx-auto mb-1.5 flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.03]">
                           <Users className="h-3.5 w-3.5 text-slate-600" />
                         </div>
-                        <p className="text-[10px] text-slate-600">No patients in this stage</p>
+                        <p className="text-[10px] text-slate-600">No subjects in this stage</p>
                       </div>
                     </div>
                   )}
@@ -522,8 +519,8 @@ function PipelineInfoModal({ onClose }: { onClose: () => void }) {
 
         <div className="px-6 py-5 space-y-4">
           {[
-            { icon: <Users className="h-4 w-4 text-blue-400" />, title: "Visual Patient Tracking", desc: "Kanban-style board shows every candidate's status at a glance. No more spreadsheets or sticky notes." },
-            { icon: <Timer className="h-4 w-4 text-amber-400" />, title: "Time-in-Stage Alerts", desc: "Spot patients stalling in the pipeline. Patients sitting >5 days get flagged for immediate follow-up." },
+            { icon: <Users className="h-4 w-4 text-blue-400" />, title: "Visual Subject Tracking", desc: "Kanban-style board shows every candidate's status at a glance. No more spreadsheets or sticky notes." },
+            { icon: <Timer className="h-4 w-4 text-amber-400" />, title: "Time-in-Stage Alerts", desc: "Spot subjects stalling in the pipeline. Subjects sitting >5 days get flagged for immediate follow-up." },
             { icon: <TrendingUp className="h-4 w-4 text-emerald-400" />, title: "Conversion Funnel Analytics", desc: "Real-time conversion rates at every stage. Know your contact-to-consent ratio and optimize outreach." },
             { icon: <Zap className="h-4 w-4 text-purple-400" />, title: "Cross-Study Pipeline", desc: "See pipeline across ALL active studies in one view. Filter by study for focused recruitment drives." },
           ].map((item) => (
@@ -539,7 +536,7 @@ function PipelineInfoModal({ onClose }: { onClose: () => void }) {
           <div className="rounded-lg bg-white/[0.02] px-4 py-3 ring-1 ring-white/[0.06]">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Why This Matters</p>
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              Sites lose 20-30% of eligible patients between identification and enrollment. This pipeline ensures no candidate falls through the cracks, shortening enrollment timelines and maximizing per-study revenue.
+              Sites lose 20-30% of eligible subjects between identification and enrollment. This pipeline ensures no candidate falls through the cracks, shortening enrollment timelines and maximizing per-study revenue.
             </p>
           </div>
         </div>

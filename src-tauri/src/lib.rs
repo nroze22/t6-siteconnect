@@ -40,7 +40,7 @@ pub fn run() {
             let app_data_dir = app
                 .path()
                 .app_data_dir()
-                .expect("Failed to get app data directory");
+                .map_err(|e| format!("Failed to get app data directory: {e}"))?;
             std::fs::create_dir_all(&app_data_dir).ok();
 
             // Create models directory for GGUF files
