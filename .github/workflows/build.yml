@@ -48,6 +48,12 @@ jobs:
         with:
           workspaces: src-tauri -> target
 
+      - name: Install OpenSSL (Windows)
+        if: matrix.platform == 'windows-latest'
+        run: |
+          choco install openssl -y --no-progress
+          echo "OPENSSL_DIR=C:\Program Files\OpenSSL-Win64" >> $env:GITHUB_ENV
+
       - name: Install frontend dependencies
         run: npm ci
 

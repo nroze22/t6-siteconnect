@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalOS SiteConnect — Product Brief</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&display=swap');
+
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+  @page {
+    size: letter;
+    margin: 0.6in 0.7in;
+  }
+
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: #FAFBFD;
+    color: #1A2332;
+    max-width: 7.5in;
+    margin: 0 auto;
+    padding: 0.6in 0.7in;
+    font-size: 10pt;
+    line-height: 1.6;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 28pt;
+    font-weight: 700;
+    color: #07090E;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+  h1 span { color: #10B981; }
+
+  .subtitle {
+    font-size: 11pt;
+    color: #64748B;
+    margin-bottom: 24px;
+    font-weight: 400;
+  }
+
+  .meta-row {
+    display: flex;
+    gap: 24px;
+    font-size: 8pt;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #E2E8F0;
+  }
+  .meta-row strong { color: #475569; font-weight: 600; }
+
+  h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 14pt;
+    font-weight: 600;
+    color: #07090E;
+    margin: 28px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #E2E8F0;
+  }
+
+  h3 {
+    font-size: 10.5pt;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 16px 0 6px;
+  }
+
+  p {
+    margin-bottom: 10px;
+    color: #334155;
+  }
+
+  .highlight-box {
+    background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%);
+    border-left: 4px solid #10B981;
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 16px 0;
+  }
+  .highlight-box p { color: #166534; margin: 0; font-weight: 500; }
+
+  .blue-box {
+    background: linear-gradient(135deg, #EFF6FF 0%, #F0F7FF 100%);
+    border-left: 4px solid #3B82F6;
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 16px 0;
+  }
+  .blue-box p { color: #1E3A5F; margin: 0; }
+
+  ul {
+    margin: 6px 0 12px 0;
+    padding-left: 20px;
+  }
+  li {
+    margin-bottom: 4px;
+    color: #475569;
+  }
+  li strong { color: #1E293B; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 16px;
+    font-size: 9pt;
+  }
+  th {
+    text-align: left;
+    background: #F1F5F9;
+    color: #334155;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-bottom: 2px solid #CBD5E1;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  td {
+    padding: 7px 12px;
+    border-bottom: 1px solid #E2E8F0;
+    color: #475569;
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+
+  .two-col {
+    display: flex;
+    gap: 24px;
+  }
+  .two-col > div { flex: 1; }
+
+  .tag {
+    display: inline-block;
+    font-size: 7pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    background: #ECFDF5;
+    color: #059669;
+    margin-right: 4px;
+  }
+  .tag.blue { background: #EFF6FF; color: #2563EB; }
+  .tag.amber { background: #FFFBEB; color: #D97706; }
+  .tag.slate { background: #F1F5F9; color: #64748B; }
+
+  .footer {
+    margin-top: 32px;
+    padding-top: 12px;
+    border-top: 1px solid #E2E8F0;
+    font-size: 8pt;
+    color: #94A3B8;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<h1>Tal<span>OS</span> SiteConnect</h1>
+<div class="subtitle">Product Brief — AI-Powered Patient Screening & Site Intelligence Platform</div>
+
+<div class="meta-row">
+  <div><strong>Version:</strong> 0.1.0</div>
+  <div><strong>Date:</strong> March 2026</div>
+  <div><strong>Platform:</strong> macOS / Windows Desktop</div>
+  <div><strong>Classification:</strong> Confidential</div>
+</div>
+
+<h2>Executive Summary</h2>
+
+<p>TalOS SiteConnect is a desktop application that transforms how clinical research sites identify, screen, and enroll patients into clinical trials. By running entirely on-premise with zero cloud PHI exposure, SiteConnect eliminates the regulatory complexity of cloud-based screening tools while delivering AI-powered intelligence that was previously only available through enterprise SaaS platforms.</p>
+
+<div class="highlight-box">
+  <p>SiteConnect reduces manual chart review from hours to seconds, surfaces financial opportunities worth millions in aggregate, and provides Monte Carlo enrollment forecasting — all from a single desktop app that costs nothing to deploy.</p>
+</div>
+
+<h2>The Problem</h2>
+
+<p>Clinical research sites face three interconnected challenges that reduce enrollment rates and leave revenue on the table:</p>
+
+<ul>
+  <li><strong>Manual screening is slow and error-prone.</strong> Coordinators spend 4–8 hours per patient manually reviewing medical records against eligibility criteria. Across a typical site portfolio of 10–20 active studies, this creates a bottleneck that limits enrollment capacity.</li>
+  <li><strong>Financial opportunity is opaque.</strong> Sites evaluate new studies based on per-patient payments without modeling total cost-of-research, screen failure risk, or net contribution. High-gross studies with heavy operational burden can actually lose money.</li>
+  <li><strong>Population intelligence is nonexistent.</strong> Sites have no systematic way to understand what's in their patient population — which studies their patients match, what diversity gaps exist, or how enrollment rates would forecast for a given protocol.</li>
+</ul>
+
+<h2>The Solution</h2>
+
+<p>SiteConnect is a Tauri v2 desktop application (Rust backend + React 19 frontend) that provides:</p>
+
+<div class="two-col">
+  <div>
+    <h3>Automated Screening</h3>
+    <ul>
+      <li>Two-tier evaluation: rule-based (Rust, sub-second) + LLM-assisted (BioMistral-7B, local)</li>
+      <li>9 structured rule types covering all standard eligibility criteria</li>
+      <li>Evidence-linked results with confidence scoring</li>
+      <li>Clinician override with full audit trail</li>
+      <li>Automatic score-based patient ranking</li>
+    </ul>
+  </div>
+  <div>
+    <h3>Financial Modeling</h3>
+    <ul>
+      <li>3-scenario modeling (Conservative / Base / Optimistic)</li>
+      <li>20+ study archetypes with CMS fee schedule anchoring</li>
+      <li>Burden scoring across operational, startup, and screening dimensions</li>
+      <li>Break-even analysis and net contribution projections</li>
+      <li>One-click sponsor pitch PDF generation</li>
+    </ul>
+  </div>
+</div>
+
+<div class="two-col" style="margin-top: 8px;">
+  <div>
+    <h3>Population Analytics</h3>
+    <ul>
+      <li>Feasibility queries with 6 criterion types and preset templates</li>
+      <li>Monte Carlo enrollment forecasting (1,000 simulations)</li>
+      <li>Simpson's diversity index with FDA census benchmarks</li>
+      <li>Lab trajectory analysis (patients approaching thresholds)</li>
+      <li>Auto-generated narrative insights</li>
+    </ul>
+  </div>
+  <div>
+    <h3>Research Intelligence</h3>
+    <ul>
+      <li>Curated research packs with 30+ real clinical trials</li>
+      <li>Sponsor profiles, pipeline trends, competition density</li>
+      <li>Adaptive study ranking by site profile preferences</li>
+      <li>Cohort builder with integrated forecasting</li>
+      <li>Multi-study patient matching for portfolio optimization</li>
+    </ul>
+  </div>
+</div>
+
+<h2 class="page-break">Architecture & Security</h2>
+
+<div class="blue-box">
+  <p><strong>Core principle:</strong> No patient data ever leaves the device. SiteConnect runs 100% offline with an encrypted local database. There is no cloud component, no API calls with PHI, and no server-side processing of patient records.</p>
+</div>
+
+<table>
+  <tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr>
+  <tr><td>Runtime</td><td>Tauri v2 (Rust)</td><td>Native desktop shell, IPC bridge, system-level security</td></tr>
+  <tr><td>Frontend</td><td>React 19 + TypeScript (strict)</td><td>10-screen SPA with Zustand state management</td></tr>
+  <tr><td>Database</td><td>SQLCipher (AES-256 + PBKDF2)</td><td>13 tables, 16 indexes, encrypted at rest</td></tr>
+  <tr><td>Screening</td><td>Rust Screening Engine</td><td>9 rule types, composite logic, score computation</td></tr>
+  <tr><td>LLM</td><td>llama.cpp + BioMistral-7B</td><td>Local Tier 2 criterion evaluation with grammar constraints</td></tr>
+  <tr><td>Audit</td><td>HMAC-SHA256 chain</td><td>Tamper-detectable, verifiable, exportable audit trail</td></tr>
+  <tr><td>Analytics</td><td>Financial + Statistical engines</td><td>Integer-cent math, Monte Carlo, trend analysis</td></tr>
+  <tr><td>Import</td><td>Multi-EHR CSV parser</td><td>150+ column aliases (Epic, Cerner, Athena)</td></tr>
+</table>
+
+<h2>Target Market</h2>
+
+<h3>Primary: Independent Research Sites</h3>
+<p>Small-to-mid-sized clinical research sites (1–10 PIs, 2–20 coordinators) that lack enterprise technology budgets but need to compete for sponsor attention. These sites handle 5–30 active studies and screen 100–1,000+ patients per year.</p>
+
+<h3>Secondary: Academic Medical Center Research Programs</h3>
+<p>Department-level research programs within AMCs that need site-specific screening tools independent of their institution's central IT infrastructure, with strong emphasis on data governance.</p>
+
+<h3>Strategic: Site Network Building</h3>
+<p>SiteConnect serves as a "trojan horse" to build a site network for Talosix. As sites adopt the free screening tool, they become part of a data-informed network that can be leveraged for sponsor-facing services (feasibility, site selection, enrollment prediction).</p>
+
+<h2>Competitive Positioning</h2>
+
+<table>
+  <tr><th>Capability</th><th>SiteConnect</th><th>Typical Cloud SaaS</th><th>Manual Process</th></tr>
+  <tr><td>PHI Exposure</td><td><span class="tag">Zero — 100% local</span></td><td>Cloud-hosted (BAA required)</td><td>Paper/spreadsheet</td></tr>
+  <tr><td>Screening Speed</td><td><span class="tag">Sub-second (Rust)</span></td><td>Seconds (API)</td><td>Hours per patient</td></tr>
+  <tr><td>Financial Modeling</td><td><span class="tag">20+ archetypes, 3 scenarios</span></td><td>Basic per-patient</td><td>Spreadsheet</td></tr>
+  <tr><td>Enrollment Forecast</td><td><span class="tag">Monte Carlo (1K sims)</span></td><td>Linear projections</td><td>Gut feeling</td></tr>
+  <tr><td>Deployment Cost</td><td><span class="tag">$0 — desktop install</span></td><td>$20K–$100K/yr</td><td>Staff time</td></tr>
+  <tr><td>EHR Integration</td><td>CSV import (150+ aliases)</td><td>FHIR/HL7 (months)</td><td>Manual entry</td></tr>
+  <tr><td>AI Screening</td><td>Local LLM (BioMistral-7B)</td><td>Cloud LLM (GPT-4)</td><td>None</td></tr>
+  <tr><td>Audit Trail</td><td>HMAC-chained (tamper-proof)</td><td>Database logs</td><td>None</td></tr>
+</table>
+
+<h2>Key Metrics & Testing</h2>
+
+<table>
+  <tr><th>Metric</th><th>Value</th></tr>
+  <tr><td>Rust backend tests</td><td>23 passing (screening, audit, import, DB, seed)</td></tr>
+  <tr><td>TypeScript test suites</td><td>8 suites (financial, analytics, export, stores)</td></tr>
+  <tr><td>Rule types validated</td><td>9 (age, diagnosis, labs, meds, vitals, BMI, sex, AND, OR)</td></tr>
+  <tr><td>Financial archetypes</td><td>20+ (oncology, CV, neuro, autoimmune, rare disease, etc.)</td></tr>
+  <tr><td>EHR column aliases</td><td>150+ (Epic, Cerner, Athena, generic)</td></tr>
+  <tr><td>Demo patients</td><td>20 (6 therapeutic areas, 40+ diagnoses, 40+ medications)</td></tr>
+  <tr><td>Curated trials</td><td>30+ (real NCT IDs, CMS-anchored pricing)</td></tr>
+  <tr><td>Build targets</td><td>macOS (ARM64, x64) + Windows (x64)</td></tr>
+  <tr><td>TypeScript mode</td><td>Strict (no any, noUncheckedIndexedAccess)</td></tr>
+</table>
+
+<h2>Go-to-Market</h2>
+
+<ul>
+  <li><strong>Phase 1 — Free Distribution:</strong> SiteConnect is distributed as a free desktop installer. No account required. Sites download, install, import their data, and start screening immediately.</li>
+  <li><strong>Phase 2 — Research Pack Subscriptions:</strong> Curated research packs (updated quarterly) provide financial benchmarks, sponsor profiles, and study intelligence. Free tier includes a starter pack; premium packs unlock industry-wide data.</li>
+  <li><strong>Phase 3 — Network Services:</strong> Sites opt in to aggregate (de-identified) feasibility signals. Talosix leverages the site network for sponsor-facing services: feasibility assessments, site selection recommendations, enrollment predictions.</li>
+</ul>
+
+<div class="footer">
+  <div>Confidential — Talosix, Inc. — 2026</div>
+  <div>siteconnect.talosix.com</div>
+</div>
+
+</body>
+</html>

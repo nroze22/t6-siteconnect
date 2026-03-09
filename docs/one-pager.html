@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalOS SiteConnect — Product One-Pager</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&display=swap');
+
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+  @page {
+    size: letter;
+    margin: 0;
+  }
+
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: #07090E;
+    color: #C8D0E0;
+    width: 8.5in;
+    min-height: 11in;
+    margin: 0 auto;
+    padding: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    overflow: hidden;
+  }
+
+  .page {
+    width: 8.5in;
+    height: 11in;
+    padding: 0.45in 0.5in 0.4in;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── Top bar ── */
+  .top-bar {
+    height: 3px;
+    background: linear-gradient(90deg, #10B981, #06B6D4, #3B82F6);
+    border-radius: 2px;
+    margin-bottom: 0.3in;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.22in;
+  }
+  .logo-area h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 26pt;
+    font-weight: 700;
+    color: #F0F4FF;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+  .logo-area h1 span { color: #10B981; }
+  .logo-area .tagline {
+    font-size: 9.5pt;
+    color: #7B8AA0;
+    margin-top: 3px;
+    letter-spacing: 0.3px;
+  }
+  .badge-area {
+    text-align: right;
+    padding-top: 4px;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 7pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin-left: 6px;
+  }
+  .badge-green { background: rgba(16,185,129,0.15); color: #10B981; border: 1px solid rgba(16,185,129,0.3); }
+  .badge-blue { background: rgba(59,130,246,0.12); color: #60A5FA; border: 1px solid rgba(59,130,246,0.25); }
+
+  /* ── Hero strip ── */
+  .hero-strip {
+    background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(6,182,212,0.06) 50%, rgba(59,130,246,0.08) 100%);
+    border: 1px solid rgba(16,185,129,0.15);
+    border-radius: 10px;
+    padding: 14px 20px;
+    margin-bottom: 0.2in;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .hero-strip p {
+    font-size: 10pt;
+    line-height: 1.55;
+    color: #A8B8D0;
+  }
+  .hero-strip strong { color: #F0F4FF; font-weight: 600; }
+
+  /* ── Stats row ── */
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 0.18in;
+  }
+  .stat-card {
+    flex: 1;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-align: center;
+  }
+  .stat-card .value {
+    font-family: 'Fraunces', serif;
+    font-size: 20pt;
+    font-weight: 700;
+    color: #10B981;
+    line-height: 1.1;
+  }
+  .stat-card .value.cyan { color: #06B6D4; }
+  .stat-card .value.blue { color: #60A5FA; }
+  .stat-card .value.amber { color: #F59E0B; }
+  .stat-card .label {
+    font-size: 7pt;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #7B8AA0;
+    margin-top: 3px;
+  }
+
+  /* ── Two-column layout ── */
+  .cols {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 0.15in;
+  }
+  .col { flex: 1; }
+
+  /* ── Section blocks ── */
+  .section {
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: 8pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #10B981;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .section-title::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 12px;
+    background: #10B981;
+    border-radius: 2px;
+  }
+  .section-title.cyan { color: #06B6D4; }
+  .section-title.cyan::before { background: #06B6D4; }
+  .section-title.blue { color: #60A5FA; }
+  .section-title.blue::before { background: #60A5FA; }
+  .section-title.amber { color: #F59E0B; }
+  .section-title.amber::before { background: #F59E0B; }
+
+  .feature-list {
+    list-style: none;
+    padding: 0;
+  }
+  .feature-list li {
+    font-size: 8.5pt;
+    line-height: 1.5;
+    color: #A0ADBF;
+    padding: 2px 0 2px 14px;
+    position: relative;
+  }
+  .feature-list li::before {
+    content: '›';
+    position: absolute;
+    left: 2px;
+    color: #10B981;
+    font-weight: 700;
+    font-size: 10pt;
+  }
+  .feature-list li strong { color: #D0D8E8; font-weight: 600; }
+
+  /* ── Architecture strip ── */
+  .arch-strip {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-bottom: 0.12in;
+    display: flex;
+    gap: 0;
+  }
+  .arch-block {
+    flex: 1;
+    text-align: center;
+    padding: 4px 8px;
+    border-right: 1px solid rgba(255,255,255,0.06);
+  }
+  .arch-block:last-child { border-right: none; }
+  .arch-block .arch-label {
+    font-size: 6.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #6B7A94;
+    margin-bottom: 2px;
+  }
+  .arch-block .arch-tech {
+    font-size: 8pt;
+    font-weight: 600;
+    color: #C8D0E0;
+  }
+
+  /* ── Bottom bar ── */
+  .bottom-bar {
+    position: absolute;
+    bottom: 0.35in;
+    left: 0.5in;
+    right: 0.5in;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .bottom-bar .left {
+    font-size: 7pt;
+    color: #4A5568;
+  }
+  .bottom-bar .right {
+    font-size: 7pt;
+    color: #4A5568;
+  }
+
+  /* ── Differentiator boxes ── */
+  .diff-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 0.12in;
+  }
+  .diff-box {
+    flex: 1;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+    padding: 9px 12px;
+  }
+  .diff-box .diff-title {
+    font-size: 8pt;
+    font-weight: 700;
+    color: #E0E8F0;
+    margin-bottom: 3px;
+  }
+  .diff-box .diff-desc {
+    font-size: 7.5pt;
+    line-height: 1.45;
+    color: #8895A8;
+  }
+
+  @media print {
+    body { background: #07090E !important; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="top-bar"></div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-area">
+      <h1>Tal<span>OS</span> SiteConnect</h1>
+      <div class="tagline">AI-Powered Patient Screening for Clinical Research Sites</div>
+    </div>
+    <div class="badge-area">
+      <span class="badge badge-green">Tauri v2 Desktop</span>
+      <span class="badge badge-blue">100% Offline</span>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero-strip">
+    <p>
+      <strong>SiteConnect</strong> transforms clinical trial screening from hours of manual chart review into
+      <strong>seconds of intelligent, automated matching</strong>. Import patient data from any EHR, screen against
+      any protocol, and surface the highest-value opportunities — all without patient data ever leaving your device.
+    </p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="value">10</div>
+      <div class="label">Integrated Screens</div>
+    </div>
+    <div class="stat-card">
+      <div class="value cyan">9</div>
+      <div class="label">Screening Rule Types</div>
+    </div>
+    <div class="stat-card">
+      <div class="value blue">30+</div>
+      <div class="label">Curated Trials</div>
+    </div>
+    <div class="stat-card">
+      <div class="value amber">20+</div>
+      <div class="label">Financial Archetypes</div>
+    </div>
+  </div>
+
+  <!-- Two-column features -->
+  <div class="cols">
+    <div class="col">
+      <div class="section">
+        <div class="section-title">Patient Screening Engine</div>
+        <ul class="feature-list">
+          <li><strong>Two-tier evaluation:</strong> Rule-based (Rust, instant) + LLM-assisted (BioMistral-7B, local)</li>
+          <li><strong>9 rule types:</strong> Age, diagnosis, labs, meds, vitals, BMI, sex, AND/OR composites</li>
+          <li><strong>Evidence-backed:</strong> Every criterion linked to source data with confidence scores</li>
+          <li><strong>Human override:</strong> Clinicians can override any criterion with audit-trailed justification</li>
+          <li><strong>Score ranking:</strong> 0–100 eligibility score with automatic status classification</li>
+        </ul>
+      </div>
+      <div class="section">
+        <div class="section-title cyan">Financial Intelligence</div>
+        <ul class="feature-list">
+          <li><strong>3-scenario modeling:</strong> Conservative / Base / Optimistic per-patient revenue</li>
+          <li><strong>20+ study archetypes:</strong> From oncology infusion to rare disease gene therapy</li>
+          <li><strong>Burden scoring:</strong> Operational, startup, and screening burden (0–100)</li>
+          <li><strong>Site fit scoring:</strong> Multi-factor ranking using site profile preferences</li>
+          <li><strong>Pitch PDF generation:</strong> Professional sponsor proposals with one click</li>
+        </ul>
+      </div>
+      <div class="section">
+        <div class="section-title blue">Data Import & Security</div>
+        <ul class="feature-list">
+          <li><strong>Universal EHR import:</strong> Epic, Cerner, Athena — 150+ column aliases auto-mapped</li>
+          <li><strong>SQLCipher encryption:</strong> AES-256 + PBKDF2 with user passphrase</li>
+          <li><strong>HMAC audit trail:</strong> SHA-256 chained log, tamper-detectable, exportable</li>
+          <li><strong>Folder watcher:</strong> Auto-ingest new CSV files from watched directories</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="section">
+        <div class="section-title">Population Analytics</div>
+        <ul class="feature-list">
+          <li><strong>Feasibility queries:</strong> 6 criterion types, 5 presets, custom builder</li>
+          <li><strong>Monte Carlo forecasting:</strong> 1,000-run enrollment simulations with percentiles</li>
+          <li><strong>Diversity dashboard:</strong> Simpson's index, FDA census benchmarks, compliance notes</li>
+          <li><strong>Lab trajectory:</strong> Identify patients approaching thresholds before they qualify</li>
+          <li><strong>Narrative insights:</strong> Auto-generated English summaries with recommendations</li>
+        </ul>
+      </div>
+      <div class="section">
+        <div class="section-title cyan">Research Intelligence</div>
+        <ul class="feature-list">
+          <li><strong>Curated trial packs:</strong> 30+ real studies with NCT IDs, CMS-anchored pricing</li>
+          <li><strong>Sponsor profiles:</strong> Payment reputation, therapeutic focus, pipeline trends</li>
+          <li><strong>Competition density:</strong> Active sites, saturation levels per trial</li>
+          <li><strong>Adaptive ranking:</strong> Studies ranked by site preferences and patient match</li>
+          <li><strong>Cohort builder:</strong> Custom cohort creation with integrated forecasting</li>
+        </ul>
+      </div>
+      <div class="section">
+        <div class="section-title amber">Operational Workflow</div>
+        <ul class="feature-list">
+          <li><strong>Review queue:</strong> Bulk accept/reject/defer with filtering and CSV export</li>
+          <li><strong>6-stage pipeline:</strong> Kanban enrollment funnel with conversion metrics</li>
+          <li><strong>Performance dashboard:</strong> Screen failure analysis, multi-study matching</li>
+          <li><strong>Keyboard-first UX:</strong> Number keys, arrow nav, Cmd+K command palette</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Differentiators -->
+  <div class="diff-row">
+    <div class="diff-box">
+      <div class="diff-title">Zero Cloud PHI Exposure</div>
+      <div class="diff-desc">All patient data stays on-device. No server uploads, no cloud processing. SQLCipher encryption at rest, passphrase-gated access.</div>
+    </div>
+    <div class="diff-box">
+      <div class="diff-title">Integer-Cent Precision</div>
+      <div class="diff-desc">All financial calculations use integer cents — no floating-point currency errors. CMS fee schedule–anchored with Tufts CSDD benchmarks.</div>
+    </div>
+    <div class="diff-box">
+      <div class="diff-title">Deterministic Analytics</div>
+      <div class="diff-desc">Seeded PRNG (Mulberry32) for reproducible Monte Carlo simulations. Same inputs always produce the same forecasts.</div>
+    </div>
+  </div>
+
+  <!-- Architecture strip -->
+  <div class="arch-strip">
+    <div class="arch-block">
+      <div class="arch-label">Runtime</div>
+      <div class="arch-tech">Tauri v2 + Rust</div>
+    </div>
+    <div class="arch-block">
+      <div class="arch-label">Frontend</div>
+      <div class="arch-tech">React 19 + TypeScript</div>
+    </div>
+    <div class="arch-block">
+      <div class="arch-label">Database</div>
+      <div class="arch-tech">SQLCipher (AES-256)</div>
+    </div>
+    <div class="arch-block">
+      <div class="arch-label">LLM</div>
+      <div class="arch-tech">BioMistral-7B (local)</div>
+    </div>
+    <div class="arch-block">
+      <div class="arch-label">Tests</div>
+      <div class="arch-tech">23 Rust + 8 TS suites</div>
+    </div>
+    <div class="arch-block">
+      <div class="arch-label">Platforms</div>
+      <div class="arch-tech">macOS + Windows</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="bottom-bar">
+    <div class="left">Confidential — Talosix, Inc. — 2026</div>
+    <div class="right">siteconnect.talosix.com</div>
+  </div>
+
+</div>
+</body>
+</html>

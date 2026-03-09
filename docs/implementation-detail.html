@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalOS SiteConnect — Detailed Implementation Document</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+  @page { size: letter; margin: 0.5in 0.65in; }
+
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: #FAFBFD;
+    color: #1A2332;
+    max-width: 7.5in;
+    margin: 0 auto;
+    padding: 0.5in 0.65in;
+    font-size: 9.5pt;
+    line-height: 1.55;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ── Typography ── */
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 24pt;
+    font-weight: 700;
+    color: #07090E;
+    letter-spacing: -0.5px;
+    margin-bottom: 2px;
+  }
+  h1 span { color: #10B981; }
+
+  .doc-subtitle {
+    font-size: 11pt;
+    color: #64748B;
+    margin-bottom: 6px;
+  }
+  .doc-meta {
+    font-size: 7.5pt;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #E2E8F0;
+  }
+
+  h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 15pt;
+    font-weight: 600;
+    color: #07090E;
+    margin: 26px 0 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #E2E8F0;
+    page-break-after: avoid;
+  }
+
+  h3 {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 18px 0 6px;
+    page-break-after: avoid;
+  }
+  h4 {
+    font-size: 10pt;
+    font-weight: 600;
+    color: #334155;
+    margin: 12px 0 4px;
+  }
+
+  p { margin-bottom: 8px; color: #334155; }
+
+  ul, ol { margin: 4px 0 10px; padding-left: 18px; }
+  li { margin-bottom: 3px; color: #475569; }
+  li strong { color: #1E293B; }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5pt;
+    background: #F1F5F9;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #0F172A;
+  }
+
+  pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8pt;
+    background: #0F172A;
+    color: #E2E8F0;
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin: 8px 0 12px;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 14px;
+    font-size: 8.5pt;
+  }
+  th {
+    text-align: left;
+    background: #F1F5F9;
+    color: #334155;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-bottom: 2px solid #CBD5E1;
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  td {
+    padding: 5px 10px;
+    border-bottom: 1px solid #E2E8F0;
+    color: #475569;
+    vertical-align: top;
+  }
+
+  /* ── Status badges ── */
+  .status {
+    display: inline-block;
+    font-size: 7pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 2px 8px;
+    border-radius: 3px;
+  }
+  .status-done { background: #DCFCE7; color: #166534; }
+  .status-partial { background: #FEF3C7; color: #92400E; }
+  .status-planned { background: #F1F5F9; color: #64748B; }
+
+  .callout {
+    border-left: 4px solid #10B981;
+    background: #F0FDF4;
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    margin: 10px 0;
+  }
+  .callout p { color: #166534; margin: 0; }
+
+  .callout-blue {
+    border-left: 4px solid #3B82F6;
+    background: #EFF6FF;
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    margin: 10px 0;
+  }
+  .callout-blue p { color: #1E3A5F; margin: 0; }
+
+  .callout-amber {
+    border-left: 4px solid #F59E0B;
+    background: #FFFBEB;
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    margin: 10px 0;
+  }
+  .callout-amber p { color: #92400E; margin: 0; }
+
+  .toc { margin: 16px 0 24px; }
+  .toc a {
+    display: block;
+    text-decoration: none;
+    color: #334155;
+    padding: 3px 0;
+    font-size: 9pt;
+  }
+  .toc a:hover { color: #10B981; }
+  .toc .indent { padding-left: 16px; font-size: 8.5pt; color: #64748B; }
+
+  .page-break { page-break-before: always; }
+
+  .two-col {
+    display: flex;
+    gap: 20px;
+  }
+  .two-col > div { flex: 1; }
+
+  .footer {
+    margin-top: 30px;
+    padding-top: 10px;
+    border-top: 1px solid #E2E8F0;
+    font-size: 7.5pt;
+    color: #94A3B8;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<h1>Tal<span>OS</span> SiteConnect</h1>
+<div class="doc-subtitle">Detailed Implementation Document</div>
+<div class="doc-meta">Version 0.1.0 &nbsp;|&nbsp; March 2026 &nbsp;|&nbsp; Confidential</div>
+
+<!-- ═══════════════════════════════ TOC ═══════════════════════════════ -->
+<h2>Table of Contents</h2>
+<div class="toc">
+  <a href="#status">1. Implementation Status Summary</a>
+  <a href="#screens">2. Screen-by-Screen Detail</a>
+  <a class="indent" href="#s-screening">2.1 Screening</a>
+  <a class="indent" href="#s-import">2.2 Import</a>
+  <a class="indent" href="#s-trials">2.3 Trials Intelligence</a>
+  <a class="indent" href="#s-review">2.4 Review Queue</a>
+  <a class="indent" href="#s-analytics">2.5 Analytics</a>
+  <a class="indent" href="#s-pipeline">2.6 Enrollment Pipeline</a>
+  <a class="indent" href="#s-cohort">2.7 Cohort Builder</a>
+  <a class="indent" href="#s-intelligence">2.8 Site Intelligence</a>
+  <a class="indent" href="#s-performance">2.9 Performance</a>
+  <a class="indent" href="#s-settings">2.10 Settings</a>
+  <a href="#engines">3. Core Engines & Algorithms</a>
+  <a href="#research">4. Research Packs</a>
+  <a href="#security">5. Security & Audit</a>
+  <a href="#data">6. Data Model</a>
+  <a href="#testing">7. Test Coverage</a>
+  <a href="#smart">8. Smart Features Catalog</a>
+</div>
+
+<!-- ═══════════════════════════════ STATUS ═══════════════════════════════ -->
+<h2 id="status">1. Implementation Status Summary</h2>
+
+<table>
+  <tr><th>Module</th><th>Status</th><th>Detail</th></tr>
+  <tr><td>Three-panel screening UI</td><td><span class="status status-done">Complete</span></td><td>Patient rank, criteria detail, source data panels with resizable layout</td></tr>
+  <tr><td>Screening engine (Rust)</td><td><span class="status status-done">Complete</span></td><td>9 rule types, composite AND/OR, score computation, 9 unit tests</td></tr>
+  <tr><td>CSV import pipeline</td><td><span class="status status-done">Complete</span></td><td>Detection, preview, auto-mapping (150+ aliases), DB persistence, 4 tests</td></tr>
+  <tr><td>Financial modeling engine</td><td><span class="status status-done">Complete</span></td><td>20+ archetypes, 3 scenarios, burden scoring, integer cents, 9 test cases</td></tr>
+  <tr><td>Population analytics</td><td><span class="status status-done">Complete</span></td><td>6 criterion types, feasibility queries, diversity, forecasting</td></tr>
+  <tr><td>Statistical engine</td><td><span class="status status-done">Complete</span></td><td>Monte Carlo, descriptive stats, correlation, trend, anomaly detection</td></tr>
+  <tr><td>Research pack system</td><td><span class="status status-done">Complete</span></td><td>30+ trials, benchmarks, sponsor profiles, TA landscapes</td></tr>
+  <tr><td>Audit trail (HMAC)</td><td><span class="status status-done">Complete</span></td><td>SHA-256 chained, tamper-detectable, exportable, 4 tests</td></tr>
+  <tr><td>SQLite schema + encryption</td><td><span class="status status-done">Complete</span></td><td>13 tables, 16 indexes, SQLCipher AES-256</td></tr>
+  <tr><td>Enrollment pipeline (Kanban)</td><td><span class="status status-done">Complete</span></td><td>6-stage board, conversion metrics, contact tracking</td></tr>
+  <tr><td>Cohort builder</td><td><span class="status status-done">Complete</span></td><td>Custom criteria, Monte Carlo forecasting, PDF export</td></tr>
+  <tr><td>Review queue</td><td><span class="status status-done">Complete</span></td><td>Bulk actions, filtering, CSV export (summary + detailed)</td></tr>
+  <tr><td>Performance dashboard</td><td><span class="status status-done">Complete</span></td><td>Screen failure analysis, multi-study matching, export</td></tr>
+  <tr><td>Intelligence page</td><td><span class="status status-done">Complete</span></td><td>Feasibility, enrollment forecasting, diversity, narratives</td></tr>
+  <tr><td>Settings (watcher + LLM)</td><td><span class="status status-done">Complete</span></td><td>Folder watcher, LLM start/stop/health, audit export</td></tr>
+  <tr><td>Keyboard navigation</td><td><span class="status status-done">Complete</span></td><td>Number keys (1-0), arrows, Cmd+K, Cmd+L</td></tr>
+  <tr><td>Setup/unlock passphrase flow</td><td><span class="status status-done">Complete</span></td><td>First-run setup, returning unlock, DB lock</td></tr>
+  <tr><td>Onboarding modal</td><td><span class="status status-done">Complete</span></td><td>5-step site profile wizard</td></tr>
+  <tr><td>Pitch PDF generation</td><td><span class="status status-done">Complete</span></td><td>Professional sponsor proposal documents</td></tr>
+  <tr><td>LLM Tier 2 screening</td><td><span class="status status-partial">Partial</span></td><td>Server management done; criterion evaluation endpoint wired; grammar constraints defined; not yet connected to screening UI flow</td></tr>
+  <tr><td>FHIR/CDA/HL7v2 parsers</td><td><span class="status status-planned">Planned</span></td><td>Not started — would enable direct EHR integration</td></tr>
+  <tr><td>Research pack auto-update</td><td><span class="status status-planned">Planned</span></td><td>Currently bundled; planned: quarterly download from API</td></tr>
+  <tr><td>Multi-user / site accounts</td><td><span class="status status-planned">Planned</span></td><td>Single-user local app; no account system yet</td></tr>
+</table>
+
+<!-- ═══════════════════════════════ SCREENS ═══════════════════════════════ -->
+<h2 id="screens" class="page-break">2. Screen-by-Screen Detail</h2>
+
+<p>SiteConnect has 10 screens accessible via numbered keyboard shortcuts (1–0). Navigation uses a Zustand store with instant page switching.</p>
+
+<!-- ── Screening ── -->
+<h3 id="s-screening">2.1 Screening (Key: 1)</h3>
+<p><strong>Purpose:</strong> Three-panel patient screening interface — the primary workflow screen.</p>
+
+<h4>Left Panel — Patient Rank List</h4>
+<ul>
+  <li>Patients sorted by eligibility score (0–100), highest first</li>
+  <li>Status filters: All, Eligible, Potentially Eligible, Needs Review, Ineligible</li>
+  <li>Review status filters: Pending, Accepted, Rejected, Deferred</li>
+  <li>Search by MRN / patient ID</li>
+  <li>Keyboard navigation: Arrow keys move selection, Enter selects</li>
+  <li>Score bar with color coding: green (&ge;80), amber (50–79), red (&lt;50)</li>
+  <li>Shows inclusion met/total, exclusion triggered/total, missing data count</li>
+</ul>
+
+<h4>Center Panel — Criteria Detail</h4>
+<ul>
+  <li>Lists every inclusion and exclusion criterion for the active study</li>
+  <li>Each criterion shows: result (met / not_met / unknown / needs_review), evidence text, evidence source category, confidence percentage</li>
+  <li>Rule-based vs. AI-determined indicator per criterion</li>
+  <li>Collapsible reasoning section for AI-evaluated criteria</li>
+  <li><strong>Override button:</strong> Opens modal for clinician to override any result with justification text, creating an audit entry</li>
+</ul>
+
+<h4>Right Panel — Source Data</h4>
+<ul>
+  <li>Displays raw patient data: demographics, diagnoses (ICD-10), medications, lab results, vitals</li>
+  <li><strong>Auto-highlighting:</strong> When a criterion is selected, the source data that supports or contradicts it is visually highlighted</li>
+  <li>Lab values show dates, units, and reference ranges</li>
+  <li>Medications show dose, frequency, and active/inactive status</li>
+</ul>
+
+<h4>Study Context Bar</h4>
+<ul>
+  <li>Study selector dropdown (switch between active studies)</li>
+  <li>Shows NCT number, sponsor, phase, therapeutic area</li>
+  <li><strong>Study detail modal:</strong> Full study metadata including competition metrics and key criteria</li>
+</ul>
+
+<div class="callout">
+  <p><strong>What's smart:</strong> The screening engine evaluates all criteria simultaneously, infers evidence sources automatically (mapping ICD-10 codes to diagnosis criteria, lab test names to lab range criteria), and handles both wide and long data formats from any EHR.</p>
+</div>
+
+<!-- ── Import ── -->
+<h3 id="s-import">2.2 Import (Key: 2)</h3>
+<p><strong>Purpose:</strong> Four-step wizard for importing patient data from CSV files.</p>
+
+<h4>Step 1 — File Selection</h4>
+<ul>
+  <li>Drag-and-drop zone or file browser (native Tauri file dialog)</li>
+  <li>Demo file button for web-mode testing</li>
+  <li><strong>Epic format auto-detection:</strong> Recognizes PAT_MRN_ID, CURRENT_ICD10_LIST, etc. and shows a blue banner confirming Epic Clarity format</li>
+</ul>
+
+<h4>Step 2 — Column Mapping</h4>
+<ul>
+  <li>Displays all CSV columns with AI-suggested target field mappings</li>
+  <li><strong>Confidence scoring:</strong> Each mapping has a 0–100% confidence score based on fuzzy matching against 150+ EMR column aliases</li>
+  <li>Sample data preview: first 4 unique values from each column</li>
+  <li>Manual override: dropdown to reassign any column</li>
+  <li>Supports Epic, Cerner, Athena, and generic CSV formats</li>
+</ul>
+
+<h4>Step 3 — Import Progress</h4>
+<ul>
+  <li>Real-time progress bar with stage indicators</li>
+  <li>Stages: Parsing → Deduplicating → Inserting → Screening</li>
+  <li>Patient count: imported, updated, skipped, errors</li>
+</ul>
+
+<h4>Step 4 — Results</h4>
+<ul>
+  <li>Summary card: total imported, duplicates merged, errors</li>
+  <li>Auto-navigates to screening page when complete</li>
+  <li>Audit entry created for every import</li>
+</ul>
+
+<div class="callout">
+  <p><strong>What's smart:</strong> The column mapper uses 150+ aliases covering Epic Clarity, Cerner Millennium, Athena, and generic formats. Similarity scoring uses normalized token overlap with substring containment fallback. Wide vs. long format auto-detection checks for duplicate patient IDs in sample rows.</p>
+</div>
+
+<!-- ── Trials ── -->
+<h3 id="s-trials">2.3 Trials Intelligence (Key: 3)</h3>
+<p><strong>Purpose:</strong> Research study discovery, financial modeling, and opportunity ranking.</p>
+
+<h4>Study Cards</h4>
+<ul>
+  <li>30+ curated clinical trials from research pack, each showing:</li>
+  <li>Phase badge, therapeutic area tag, NCT ID, study acronym</li>
+  <li>Sponsor name with type indicator (pharma / biotech / academic)</li>
+  <li>Per-patient opportunity range (conservative–optimistic)</li>
+  <li>Eligible subjects count (matched from patient population)</li>
+  <li>Net contribution estimate, burden level, screen failure risk</li>
+  <li>Duration and time intensity</li>
+</ul>
+
+<h4>Expandable Financial Detail</h4>
+<ul>
+  <li><strong>Three-scenario boxes:</strong> Conservative, Base, Optimistic — each showing per-patient gross/net, break-even enrollment, total net contribution</li>
+  <li><strong>Visit model:</strong> Screening, treatment, and follow-up visit counts with cadence and duration</li>
+  <li><strong>Burden breakdown:</strong> Operational (0–100), Startup (0–100), Screening (0–100) with color-coded bars</li>
+  <li><strong>Revenue drivers:</strong> Top 5 line items with quantity, unit cost, total (e.g., "Treatment Visits: 12 × $850 = $10,200")</li>
+  <li><strong>Action buttons:</strong> Open Budget Wizard, Screen Subjects, Generate Pitch PDF, Open in ClinicalTrials.gov</li>
+</ul>
+
+<h4>Page-Level Features</h4>
+<ul>
+  <li>Full-text search across title, sponsor, indication, NCT ID</li>
+  <li>Therapeutic area filter dropdown</li>
+  <li>Sort by: Total Fit (default), Value, Burden, Confidence</li>
+  <li>Summary metrics bar: Total Net Opportunity, Eligible Subjects, Active Studies</li>
+  <li>Credibility badge: "ClinicalTrials.gov verified • CMS 2025 fee schedule • Tufts CSDD benchmarks"</li>
+</ul>
+
+<div class="callout">
+  <p><strong>What's smart:</strong> The financial engine models each study using its detected archetype (20+ types), mapping to visit structures, labor models, and procedure costs. Site fit scoring considers the site's patient population match, operational capability, and financial preferences. The adaptive ranking uses weighted factors from the site profile (value vs. complexity vs. therapeutic area).</p>
+</div>
+
+<!-- ── Review ── -->
+<h3 id="s-review">2.4 Review Queue (Key: 4)</h3>
+<p><strong>Purpose:</strong> Bulk review and disposition of screened patients.</p>
+<ul>
+  <li>Filterable data table with columns: Patient ID, Age, Gender, Diagnosis, Score, Status, Review</li>
+  <li>Multi-select with checkbox column for bulk operations</li>
+  <li><strong>Bulk actions:</strong> Accept Selected, Reject Selected, Defer Selected</li>
+  <li>Individual row actions with confirmation dialogs</li>
+  <li><strong>CSV export:</strong> Summary CSV (patient-level) and Detailed CSV (criterion-level breakdown)</li>
+  <li>Filter by screening status, review status, score range</li>
+</ul>
+
+<!-- ── Analytics ── -->
+<h3 id="s-analytics">2.5 Analytics (Key: 5)</h3>
+<p><strong>Purpose:</strong> Population-level analytics, feasibility analysis, and diversity profiling.</p>
+
+<h4>Dashboard Metrics</h4>
+<ul>
+  <li>Total patients, active studies, average pass rate, diversity score</li>
+  <li>Cross-filtering: age range, sex, race, ethnicity, diagnosis, medication, lab, study, eligibility status, time range</li>
+  <li>Active filter chips with clear buttons</li>
+</ul>
+
+<h4>Feasibility Panel</h4>
+<ul>
+  <li>5 preset queries (NSCLC, T2D, HF, Obesity, Alzheimer's, Crohn's)</li>
+  <li>Custom query builder with 6 criterion types</li>
+  <li>Results: total/matching/rate, criterion breakdown, demographic summary, matched patient IDs</li>
+</ul>
+
+<h4>Diversity Panel</h4>
+<ul>
+  <li>Simpson's diversity index (0–100)</li>
+  <li>Gender, race, ethnicity, age, insurance breakdowns with visual bars</li>
+  <li>FDA census benchmark comparisons</li>
+  <li>Compliance notes (e.g., "Black/AA representation below 13.6% census benchmark")</li>
+</ul>
+
+<h4>Insights Panel</h4>
+<ul>
+  <li>Auto-generated narrative insights (positive, warning, opportunity, neutral)</li>
+  <li>Priority-ranked recommendations</li>
+  <li>Drill-down to underlying patient lists</li>
+</ul>
+
+<!-- ── Pipeline ── -->
+<h3 id="s-pipeline">2.6 Enrollment Pipeline (Key: 6)</h3>
+<p><strong>Purpose:</strong> Kanban-style enrollment tracking with conversion funnel metrics.</p>
+
+<ul>
+  <li><strong>6 stages:</strong> Identified → Contacted → Interested → Consented → Enrolled → Screen Failed</li>
+  <li>Drag-and-drop patient cards between stages</li>
+  <li>Conversion metrics: Contact %, Interest %, Consent %, Enroll %</li>
+  <li>Per-patient detail: days in stage, contact attempts, assigned staff, custom notes</li>
+  <li>Contact logging with timestamps</li>
+  <li>Bulk stage advancement</li>
+</ul>
+
+<!-- ── Cohort ── -->
+<h3 id="s-cohort">2.7 Cohort Builder (Key: 7)</h3>
+<p><strong>Purpose:</strong> Custom cohort definition with integrated enrollment forecasting.</p>
+
+<ul>
+  <li>Cohort naming, save, load, delete</li>
+  <li>Criterion cards: diagnosis, lab range, medication, age, sex</li>
+  <li>AND/OR logic composition</li>
+  <li>Real-time eligible count calculation</li>
+  <li><strong>Monte Carlo integration:</strong> 1,000-run enrollment simulation for the cohort</li>
+  <li>Timeline projection with p10/p50/p90 confidence bands</li>
+  <li>Risk assessment (screen failure, consent, dropout rates)</li>
+  <li>PDF/CSV export of cohort definition + forecast</li>
+</ul>
+
+<!-- ── Intelligence ── -->
+<h3 id="s-intelligence">2.8 Site Intelligence (Key: 8)</h3>
+<p><strong>Purpose:</strong> Comprehensive site readiness analysis and opportunity scoring.</p>
+
+<ul>
+  <li><strong>Feasibility analysis:</strong> Preset + custom queries with match rates and criterion breakdowns</li>
+  <li><strong>Enrollment forecasting:</strong> Monte Carlo with 1,000 runs, timeline chart, probability of success</li>
+  <li><strong>Lab trajectory analysis:</strong> Patients approaching clinical thresholds (HbA1c, eGFR, BNP, CRP, LDL, etc.) with distance-to-threshold and estimated weeks</li>
+  <li><strong>Diversity dashboard:</strong> Full FDA compliance profile</li>
+  <li><strong>Narrative engine:</strong> Auto-generated insights across feasibility, enrollment, and diversity dimensions</li>
+  <li><strong>Opportunity alerts:</strong> Studies with high feasibility, low burden, and high revenue flagged</li>
+  <li><strong>Site readiness score:</strong> Onboarding completeness assessment</li>
+</ul>
+
+<div class="callout">
+  <p><strong>What's smart:</strong> The lab trajectory analysis doesn't just check current values — it identifies patients whose labs are trending toward a clinical threshold, estimating when they'll become eligible. This enables proactive recruitment before patients formally qualify.</p>
+</div>
+
+<!-- ── Performance ── -->
+<h3 id="s-performance">2.9 Performance (Key: 9)</h3>
+<p><strong>Purpose:</strong> Aggregate screening metrics, failure analysis, and multi-study intelligence.</p>
+
+<ul>
+  <li><strong>Study comparison charts:</strong> Side-by-side pass rates, enrollment rates, revenue projections</li>
+  <li><strong>Screen failure analysis:</strong> Top blocking criteria ranked by frequency</li>
+  <li><strong>Multi-study patient matching:</strong> Patients eligible for 2+ studies — optimization opportunities</li>
+  <li><strong>Revenue projections:</strong> Scenario modeling across entire study portfolio</li>
+  <li><strong>CSV/PDF export:</strong> Performance reports with timestamps</li>
+</ul>
+
+<!-- ── Settings ── -->
+<h3 id="s-settings">2.10 Settings (Key: 0)</h3>
+<p><strong>Purpose:</strong> System configuration, LLM management, and audit trail administration.</p>
+
+<h4>EMR Auto-Ingest</h4>
+<ul>
+  <li>Folder watcher: set a directory path, OS-level file events trigger auto-import</li>
+  <li>New CSV files auto-mapped and auto-screened</li>
+  <li>Toast notifications on new file detection</li>
+</ul>
+
+<h4>LLM Sidecar Control</h4>
+<ul>
+  <li>Model path selection (browse for .gguf files)</li>
+  <li>Start / Stop server controls</li>
+  <li>Health check with status indicator (NotConfigured → ModelReady → Starting → Running)</li>
+  <li>Port configuration (default 8384)</li>
+  <li>GPU acceleration settings (Metal on macOS, CUDA on Windows)</li>
+</ul>
+
+<h4>Audit Trail</h4>
+<ul>
+  <li>View all audit entries with timestamps, actions, and details</li>
+  <li>Export full audit trail as JSON</li>
+  <li><strong>Chain verification:</strong> One-click integrity check, reports any tampering</li>
+</ul>
+
+<h4>Display</h4>
+<ul>
+  <li>Dark / Light theme toggle</li>
+</ul>
+
+<!-- ═══════════════════════════════ ENGINES ═══════════════════════════════ -->
+<h2 id="engines" class="page-break">3. Core Engines & Algorithms</h2>
+
+<h3>3.1 Rust Screening Engine</h3>
+
+<p>The screening engine evaluates patients against study criteria using structured rules. It runs in the Rust backend for maximum performance and security.</p>
+
+<h4>Rule Types (9 total)</h4>
+<table>
+  <tr><th>Rule Type</th><th>Logic</th><th>Evidence Output</th></tr>
+  <tr><td><code>AgeRange</code></td><td>Computed age from DOB within min/max bounds</td><td>"Patient age: 62 (range: [18, 80])"</td></tr>
+  <tr><td><code>GenderIs</code></td><td>Case-insensitive exact match</td><td>"Patient gender: Male"</td></tr>
+  <tr><td><code>HasDiagnosis</code></td><td>ICD-10 prefix match + active status filter</td><td>"Found C34.1 (NSCLC, active)"</td></tr>
+  <tr><td><code>NoDiagnosis</code></td><td>Absence of ICD-10 prefix in active diagnoses</td><td>"No active M06.x diagnosis found"</td></tr>
+  <tr><td><code>HasMedication</code></td><td>Drug name substring match (case-insensitive) + active</td><td>"Found: pembrolizumab 200mg"</td></tr>
+  <tr><td><code>NoMedication</code></td><td>Drug NOT on active medication list</td><td>"No active warfarin found"</td></tr>
+  <tr><td><code>LabValueRange</code></td><td>Most recent value within range, 90-day lookback</td><td>"ANC: 4200 /uL (range: [1500, ∞])"</td></tr>
+  <tr><td><code>VitalRange</code></td><td>Most recent vital within min/max range</td><td>"BP systolic: 128 (range: [90, 160])"</td></tr>
+  <tr><td><code>And</code> / <code>Or</code></td><td>Composite: all pass / at least one passes</td><td>Combined evidence from sub-rules</td></tr>
+</table>
+
+<h4>Score Computation</h4>
+<pre>inclusion_ratio = inclusion_met / inclusion_total
+missing_penalty = missing_data / (inclusion_total + missing_data)
+score = (inclusion_ratio × 100 × (1 - missing_penalty × 0.3)).clamp(0, 100)</pre>
+
+<h4>Status Classification</h4>
+<ul>
+  <li><strong>ELIGIBLE (score = 100):</strong> All inclusion met, no exclusions triggered, no missing data</li>
+  <li><strong>POTENTIALLY_ELIGIBLE (score 70–99):</strong> Inclusion ratio &ge; 0.7, missing &le; 2</li>
+  <li><strong>NEEDS_REVIEW:</strong> Missing data &gt; 3, requires human evaluation</li>
+  <li><strong>INELIGIBLE (score &le; 30):</strong> Any exclusion triggered OR inclusion ratio too low</li>
+</ul>
+
+<h3>3.2 Financial Modeling Engine</h3>
+
+<p>The financial engine provides three-tier financial intelligence for every study.</p>
+
+<h4>Tier Architecture</h4>
+<ol>
+  <li><strong>Tier 1 (Card Level):</strong> Fast directional range + burden badges — shown on study cards</li>
+  <li><strong>Tier 2 (Detail Level):</strong> Full modeled estimate using archetype-based protocol structure</li>
+  <li><strong>Tier 3 (Budget Wizard):</strong> Interactive scenario builder with site-specific assumption overrides</li>
+</ol>
+
+<h4>Study Archetypes (20+)</h4>
+<div class="two-col">
+  <div>
+    <ul>
+      <li>Oncology: infusion, immunotherapy, oral-targeted, advanced</li>
+      <li>Cardiovascular: simple, moderate, complex outcomes</li>
+      <li>Neurology: short/medium/long-duration, cognitive</li>
+      <li>Autoimmune: biologic, single-dose</li>
+    </ul>
+  </div>
+  <div>
+    <ul>
+      <li>Primary care: metabolic, hypertension</li>
+      <li>Pain management</li>
+      <li>Gene/cell therapy</li>
+      <li>Rare disease</li>
+      <li>Observational/registry</li>
+    </ul>
+  </div>
+</div>
+
+<p>Each archetype defines: revenue-per-patient range, default visit structure, labor mix (coordinator/PI/nurse %), visit cadence, duration, and burden profile.</p>
+
+<h4>Integer-Cent Precision</h4>
+<p>All monetary values are stored and computed as integer cents (e.g., <code>4_200_000</code> = $42,000.00). This eliminates floating-point currency errors that plague spreadsheet-based financial models.</p>
+
+<h3>3.3 Statistical Engine</h3>
+
+<table>
+  <tr><th>Module</th><th>Implementation</th></tr>
+  <tr><td>Monte Carlo Forecasting</td><td>Seeded Mulberry32 PRNG, 1,000+ simulations, Float64Array for performance. Outputs percentile timelines (p10/p25/p50/p75/p90), probability of success, median time to target.</td></tr>
+  <tr><td>Descriptive Statistics</td><td>Mean, median, stdDev, Q1/Q3/IQR, skewness, outlier thresholds</td></tr>
+  <tr><td>Correlation Analysis</td><td>Pearson r, r², p-value with t-distribution, significance testing</td></tr>
+  <tr><td>Anomaly Detection</td><td>Z-score (±3σ) and IQR-based outlier identification</td></tr>
+  <tr><td>Trend Analysis</td><td>Linear regression (slope, intercept, r²), direction classification</td></tr>
+  <tr><td>Cohort Comparison</td><td>Welch's t-test, Mann-Whitney U, Cohen's d effect size</td></tr>
+</table>
+
+<h3>3.4 Narrative Engine</h3>
+
+<p>Auto-generates English-language insights from raw analytics data. Categories:</p>
+<ul>
+  <li><strong>Feasibility narratives:</strong> Match rate summaries, bottleneck identification, low-feasibility warnings</li>
+  <li><strong>Enrollment narratives:</strong> Probability of success, median timeline, capacity constraints</li>
+  <li><strong>Diversity narratives:</strong> Simpson's score interpretation, FDA guideline gaps, census comparisons</li>
+</ul>
+<p>Each insight has a type (positive / warning / opportunity / neutral) and numeric priority for ranking.</p>
+
+<!-- ═══════════════════════════════ RESEARCH PACKS ═══════════════════════════════ -->
+<h2 id="research" class="page-break">4. Research Packs</h2>
+
+<p>Research packs are versioned intelligence bundles that provide site-level study intelligence. The current implementation bundles a starter pack with the application.</p>
+
+<h3>Pack Contents</h3>
+
+<table>
+  <tr><th>Module</th><th>Contents</th></tr>
+  <tr>
+    <td><strong>Study Index</strong></td>
+    <td>30+ real clinical trials with NCT IDs, sponsors, phases, therapeutic areas, indications, enrollment targets, site counts, competition density, structured eligibility criteria, archetype mapping, financial estimates (CMS-anchored per-patient low/base/high cents + startup estimates), enrollment velocity, saturation level</td>
+  </tr>
+  <tr>
+    <td><strong>Procedure Benchmarks</strong></td>
+    <td>CPT-mapped procedures with CMS PFS rates, sponsor median/P25/P75, phase and TA adjustments, multiplier analysis (sponsor vs. CMS)</td>
+  </tr>
+  <tr>
+    <td><strong>Reimbursement Models</strong></td>
+    <td>Archetype + phase + TA → per-patient median/P25/P75, startup estimates, screen failure rates and payment %, coordinator/PI hours, average visits and duration</td>
+  </tr>
+  <tr>
+    <td><strong>Economics Templates</strong></td>
+    <td>Revenue/cost breakdown by archetype, KPIs (gross margin %, break-even patients, revenue per coordinator hour)</td>
+  </tr>
+  <tr>
+    <td><strong>Sponsor Profiles</strong></td>
+    <td>Type (large pharma/biotech/academic/NIH), active study counts, top TAs and phases, payment reputation score, avg days to payment</td>
+  </tr>
+  <tr>
+    <td><strong>TA Landscapes</strong></td>
+    <td>Study counts, recruitment stats, enrollment targets/actuals, dominant sponsors, avg per-patient reimbursement, pipeline trend (growing/stable/declining), saturation level</td>
+  </tr>
+  <tr>
+    <td><strong>Regulatory Context</strong></td>
+    <td>IRB approval times (median/P25/P75) by phase, contract negotiation times, site activation timelines, amendment frequency, common delay reasons</td>
+  </tr>
+  <tr>
+    <td><strong>Industry Benchmarks</strong></td>
+    <td>Per-patient costs by phase (low/median/high), screen failure rates by TA, coordinator economics (hourly rate, billable rate, hours by visit complexity), overhead rates by site type, sponsor markup multipliers</td>
+  </tr>
+</table>
+
+<h3>Pack Manifest</h3>
+<p>Each pack includes: unique ID, version number, generation timestamp, study/benchmark counts, data source versions (ClinicalTrials.gov, CMS fee schedule, industry benchmarks), and SHA-256 checksum for integrity verification.</p>
+
+<div class="callout-blue">
+  <p><strong>Data sources:</strong> ClinicalTrials.gov for study data, CMS 2025 Physician Fee Schedule for procedure pricing, Tufts CSDD benchmarks for industry-wide metrics. All financial estimates are anchored to verifiable public data.</p>
+</div>
+
+<!-- ═══════════════════════════════ SECURITY ═══════════════════════════════ -->
+<h2 id="security">5. Security & Audit Architecture</h2>
+
+<h3>5.1 Encryption</h3>
+<ul>
+  <li><strong>Database:</strong> SQLCipher with AES-256-CBC encryption, PBKDF2 key derivation (256,000 iterations), 4096-byte cipher page size</li>
+  <li><strong>Passphrase flow:</strong> First run creates encrypted DB with user passphrase; returning users unlock with same passphrase</li>
+  <li><strong>WAL mode:</strong> Enabled for concurrent read performance</li>
+  <li><strong>Connection pool:</strong> r2d2 with max 4 connections, PRAGMA key applied on each connection checkout</li>
+</ul>
+
+<h3>5.2 HMAC-Chained Audit Trail</h3>
+<pre>checksum[n] = SHA-256(checksum[n-1] || timestamp || action || details)
+genesis seed = "0000...0000" (64 hex zeros)</pre>
+
+<ul>
+  <li>Every data mutation creates an audit entry: UUID, RFC3339 timestamp, action enum, details string, SHA-256 checksum</li>
+  <li>Chain verification: iterates all entries, recomputes checksums, detects any tampering</li>
+  <li>Actions tracked: DatabaseInitialized, DataImported, ScreeningExecuted, CriterionOverridden, DatabaseUnlocked</li>
+  <li>Export: full JSON dump with chain verification status</li>
+</ul>
+
+<h3>5.3 Data Isolation</h3>
+<ul>
+  <li><strong>Zero network PHI:</strong> No patient data transmitted to any server, API, or cloud service</li>
+  <li><strong>Local LLM:</strong> BioMistral-7B runs entirely on-device via llama.cpp sidecar</li>
+  <li><strong>No telemetry:</strong> No usage tracking, analytics, or phone-home capabilities</li>
+</ul>
+
+<!-- ═══════════════════════════════ DATA MODEL ═══════════════════════════════ -->
+<h2 id="data">6. Data Model</h2>
+
+<h3>SQLite Schema (13 Tables)</h3>
+
+<table>
+  <tr><th>Table</th><th>Records</th><th>Key Fields</th></tr>
+  <tr><td><code>patients</code></td><td>Patient demographics</td><td>id, site_patient_id, DOB, gender, race, ethnicity, insurance</td></tr>
+  <tr><td><code>diagnoses</code></td><td>ICD-10 diagnoses</td><td>patient_id, icd10_code, description, onset_date, status, confidence</td></tr>
+  <tr><td><code>medications</code></td><td>Active medications</td><td>patient_id, rxnorm_code, drug_name, dose, frequency, status</td></tr>
+  <tr><td><code>lab_results</code></td><td>Lab values (time-series)</td><td>patient_id, loinc_code, test_name, value, unit, reference_range</td></tr>
+  <tr><td><code>vitals</code></td><td>Vital signs</td><td>patient_id, measurement_type, value, unit, measurement_date</td></tr>
+  <tr><td><code>clinical_notes</code></td><td>Free-text notes</td><td>patient_id, note_type, note_text, entities_extracted</td></tr>
+  <tr><td><code>studies</code></td><td>Clinical trials</td><td>id, nct_number, title, sponsor, phase, financial_details (JSON)</td></tr>
+  <tr><td><code>study_criteria</code></td><td>Eligibility criteria</td><td>study_id, type, criterion_text, structured_rule (JSON), rule_type</td></tr>
+  <tr><td><code>screening_results</code></td><td>Patient-study matches</td><td>patient_id, study_id, status, score, inclusion/exclusion counts</td></tr>
+  <tr><td><code>screening_criteria_results</code></td><td>Per-criterion results</td><td>screening_result_id, criterion_id, result, evidence, confidence</td></tr>
+  <tr><td><code>import_log</code></td><td>Import history</td><td>file_name, format, records imported/updated/skipped, column_mapping</td></tr>
+  <tr><td><code>audit_log</code></td><td>HMAC-chained audit trail</td><td>timestamp, action, details, checksum</td></tr>
+</table>
+
+<p><strong>16 indexes</strong> covering all foreign keys plus lookup indexes for ICD-10, RxNorm, LOINC, and NCT numbers.</p>
+
+<h3>Seed Data (KEYNOTE-789)</h3>
+<p>On database initialization, the system seeds one study (KEYNOTE-789, NCT03515837) with 16 eligibility criteria (10 inclusion + 6 exclusion), each with a structured JSON rule definition.</p>
+
+<!-- ═══════════════════════════════ TESTING ═══════════════════════════════ -->
+<h2 id="testing" class="page-break">7. Test Coverage</h2>
+
+<h3>Rust Backend Tests (23 tests)</h3>
+
+<table>
+  <tr><th>Suite</th><th>Tests</th><th>What's Validated</th></tr>
+  <tr><td>Screening Rules</td><td>9</td><td>AgeRange pass/fail, HasDiagnosis (ICD-10 prefix), NoDiagnosis, LabValueRange, missing data handling, And/Or composites, JSON serialization round-trip</td></tr>
+  <tr><td>Screening Engine</td><td>2</td><td>Full patient screening against study criteria, score computation, result sorting</td></tr>
+  <tr><td>Audit Trail</td><td>4</td><td>Entry creation, chain integrity verification, tamper detection, empty chain handling</td></tr>
+  <tr><td>Column Mapping</td><td>4</td><td>Normalization, exact/fuzzy matching, Epic header mapping, no duplicate targets</td></tr>
+  <tr><td>Database Schema</td><td>1</td><td>Migration execution, table count verification</td></tr>
+  <tr><td>Seed Data</td><td>2</td><td>KEYNOTE-789 seeding (1 study + 16 criteria), idempotency</td></tr>
+</table>
+
+<h3>TypeScript Frontend Tests (8 suites)</h3>
+
+<table>
+  <tr><th>Suite</th><th>Test Cases</th><th>What's Validated</th></tr>
+  <tr><td>Financial Engine</td><td>TC-FIN-001 to TC-FIN-009</td><td>Archetype detection, catalog completeness, procedure lookup, financial model generation, integer-cent precision, scenario ordering (conservative &lt; base &lt; optimistic), custom assumptions, currency formatting, color helpers, default assumptions</td></tr>
+  <tr><td>Population Analytics</td><td>TC-ANL-010+</td><td>Feasibility queries (pass, zero-match, patient ID return), diversity profiling, enrollment forecasting</td></tr>
+  <tr><td>CSV Export</td><td>TC-EXP-001 to TC-EXP-003</td><td>Header generation, patient inclusion, CSV field escaping, status filtering, detailed criterion export, empty data handling</td></tr>
+  <tr><td>Analytics Store</td><td>TC-ANL-001 to TC-ANL-004</td><td>Single/range filter setting, filter clearing, active filter counting, drill-down open/close, snapshot save/clear, compare mode</td></tr>
+  <tr><td>Screening Store</td><td>Various</td><td>Patient list management, result mapping, study selection</td></tr>
+  <tr><td>Site Profile Store</td><td>Various</td><td>Profile section updates (research, operations, financials), onboarding, persistence</td></tr>
+  <tr><td>App Store</td><td>Various</td><td>Page navigation, theme toggle, lock/unlock, status updates</td></tr>
+  <tr><td>PDF Export</td><td>Various</td><td>Report generation, print dialog handling</td></tr>
+</table>
+
+<!-- ═══════════════════════════════ SMART FEATURES ═══════════════════════════════ -->
+<h2 id="smart">8. Smart Features Catalog</h2>
+
+<p>A comprehensive list of "smart" capabilities that go beyond basic CRUD operations:</p>
+
+<table>
+  <tr><th>#</th><th>Feature</th><th>Implementation</th></tr>
+  <tr><td>1</td><td><strong>ICD-10 prefix matching</strong></td><td>Criterion "C34" matches C34.0, C34.1, C34.9 — handles hierarchical diagnosis coding</td></tr>
+  <tr><td>2</td><td><strong>Lab lookback window</strong></td><td>Lab rules only consider values from the last 90 days, ensuring clinical relevance</td></tr>
+  <tr><td>3</td><td><strong>Evidence source inference</strong></td><td>Automatically categorizes evidence as labs/medications/diagnoses/vitals/demographics based on criterion type</td></tr>
+  <tr><td>4</td><td><strong>Epic format auto-detection</strong></td><td>Recognizes PAT_MRN_ID, CURRENT_ICD10_LIST columns and shows confirmation banner</td></tr>
+  <tr><td>5</td><td><strong>Wide/long format detection</strong></td><td>Checks for duplicate patient IDs to determine if CSV is one-row-per-patient or one-row-per-encounter</td></tr>
+  <tr><td>6</td><td><strong>150+ column aliases</strong></td><td>Fuzzy matching against Epic, Cerner, Athena, and generic naming conventions</td></tr>
+  <tr><td>7</td><td><strong>Duplicate patient merging</strong></td><td>Import pipeline merges data for existing patients, deduplicates diagnoses/meds, appends labs</td></tr>
+  <tr><td>8</td><td><strong>Archetype detection</strong></td><td>Financial engine auto-detects study archetype from therapeutic area, phase, indication keywords</td></tr>
+  <tr><td>9</td><td><strong>CMS fee schedule anchoring</strong></td><td>Procedure costs anchored to CMS 2025 Physician Fee Schedule with sponsor markup multipliers</td></tr>
+  <tr><td>10</td><td><strong>Break-even analysis</strong></td><td>Calculates minimum enrollment needed for study to be net-positive after startup costs</td></tr>
+  <tr><td>11</td><td><strong>Site fit scoring</strong></td><td>Multi-factor score combining patient match, operational capability, and financial preferences</td></tr>
+  <tr><td>12</td><td><strong>Adaptive study ranking</strong></td><td>Uses site profile preference weights (value vs. burden vs. therapeutic area) for personalized ranking</td></tr>
+  <tr><td>13</td><td><strong>Monte Carlo enrollment</strong></td><td>1,000-run simulation with configurable dropout, screen failure, consent rates and capacity constraints</td></tr>
+  <tr><td>14</td><td><strong>Deterministic randomness</strong></td><td>Seeded Mulberry32 PRNG ensures identical simulations for identical inputs (reproducibility)</td></tr>
+  <tr><td>15</td><td><strong>Simpson's diversity index</strong></td><td>Quantifies population diversity on 0–100 scale using probability-of-same-category formula</td></tr>
+  <tr><td>16</td><td><strong>FDA census benchmarking</strong></td><td>Compares site demographics against census data (13.6% Black/AA, etc.) with compliance notes</td></tr>
+  <tr><td>17</td><td><strong>Lab trajectory prediction</strong></td><td>Identifies patients approaching eligibility thresholds, estimates weeks until qualification</td></tr>
+  <tr><td>18</td><td><strong>Narrative intelligence</strong></td><td>Auto-generates English-language insights with priority ranking and type classification</td></tr>
+  <tr><td>19</td><td><strong>HMAC tamper detection</strong></td><td>SHA-256 chained audit trail where modifying any entry breaks the chain, detectable by verification</td></tr>
+  <tr><td>20</td><td><strong>LLM grammar constraints</strong></td><td>GBNF grammar ensures LLM outputs valid JSON with exact required fields — prevents hallucinated formats</td></tr>
+  <tr><td>21</td><td><strong>Multi-study matching</strong></td><td>Identifies patients eligible for 2+ studies, enabling portfolio-level enrollment optimization</td></tr>
+  <tr><td>22</td><td><strong>Screen failure analysis</strong></td><td>Ranks criteria by failure frequency to identify systematic blockers across patient population</td></tr>
+  <tr><td>23</td><td><strong>Pitch PDF generation</strong></td><td>One-click professional sponsor proposals with study metrics, site capabilities, and revenue projections</td></tr>
+  <tr><td>24</td><td><strong>Folder watcher auto-ingest</strong></td><td>OS-level file events (no polling) trigger automatic CSV import and screening</td></tr>
+  <tr><td>25</td><td><strong>Connection pool with PRAGMA</strong></td><td>r2d2 pool reapplies SQLCipher encryption key on every connection checkout</td></tr>
+</table>
+
+<div class="footer">
+  <div>Confidential — Talosix, Inc. — 2026</div>
+  <div>TalOS SiteConnect v0.1.0 — Detailed Implementation Document</div>
+</div>
+
+</body>
+</html>
