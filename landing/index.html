@@ -1922,6 +1922,29 @@
 </head>
 <body>
 
+<!-- ══════════════════════════════════════════════
+     PASSWORD GATE
+     ══════════════════════════════════════════════ -->
+<div id="authGate" style="position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:#07090e">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 40%, rgba(99,102,241,0.06) 0%, transparent 70%)"></div>
+  <div style="position:relative;z-index:1;text-align:center;max-width:400px;padding:24px">
+    <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#4f46e5,#2563eb);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:0 0 40px rgba(79,70,229,0.3)">
+      <img src="t6logo.png" alt="" style="width:30px;height:30px;object-fit:contain">
+    </div>
+    <h2 style="font-size:24px;font-weight:700;letter-spacing:-0.5px;margin-bottom:6px;color:#e8ecf4">TalOS SiteConnect</h2>
+    <p style="font-size:13px;color:#4a5568;margin-bottom:28px">Enter access code to continue</p>
+    <form id="authForm" style="display:flex;flex-direction:column;gap:12px">
+      <input id="authInput" type="password" placeholder="Access code" autocomplete="off" autofocus
+        style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:#e8ecf4;font-size:15px;font-family:inherit;outline:none;transition:border-color 0.2s,box-shadow 0.2s;text-align:center;letter-spacing:4px">
+      <button type="submit"
+        style="padding:12px 24px;border-radius:10px;border:none;background:linear-gradient(135deg,#4f46e5,#6366f1);color:white;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 24px rgba(99,102,241,0.3),inset 0 1px 0 rgba(255,255,255,0.1)">
+        Enter
+      </button>
+      <p id="authError" style="font-size:12px;color:#ef4444;opacity:0;transition:opacity 0.2s;margin-top:4px">Invalid access code</p>
+    </form>
+  </div>
+</div>
+
 <div class="cursor-glow" id="cursorGlow"></div>
 <div class="scroll-progress" id="scrollProgress"></div>
 
@@ -1939,8 +1962,9 @@
   <div class="nav-links">
     <a href="#features">Features</a>
     <a href="#analytics">Analytics</a>
+    <a href="#financial">Financial</a>
     <a href="#security">Security</a>
-    <a href="#workflow">Workflow</a>
+    <a href="#specs">Technology</a>
   </div>
 
   <div class="nav-cta">
@@ -2688,6 +2712,274 @@
 
 
 <!-- ══════════════════════════════════════════════
+     FINANCIAL INTELLIGENCE
+     ══════════════════════════════════════════════ -->
+<section class="section" id="financial">
+  <div class="analytics-split" style="flex-direction:row-reverse">
+    <div class="analytics-text reveal">
+      <div class="section-label">Financial Intelligence</div>
+      <div class="section-title">Know what every trial is worth before you commit</div>
+      <div class="section-desc">Per-patient revenue modeling with 18 therapeutic archetypes, FMV-validated procedure libraries, and three-scenario financial projections — all computed locally with integer-cent precision.</div>
+      <ul class="feature-bullets">
+        <li>18 therapeutic archetypes with industry-benchmarked revenue ranges</li>
+        <li>Conservative / Base / Optimistic scenario modeling</li>
+        <li>Per-visit cost breakdown with overhead and coordinator time</li>
+        <li>Site fit scoring based on your capabilities and patient mix</li>
+        <li>Sponsor-ready financial summaries for budget negotiations</li>
+      </ul>
+    </div>
+    <div class="analytics-visual reveal reveal-delay-2">
+      <div class="mock-analytics-window">
+        <div class="mock-analytics-header">
+          <span class="mock-analytics-title">Financial Modeling</span>
+          <div class="mock-analytics-tabs">
+            <span class="mock-analytics-tab active">Revenue</span>
+            <span class="mock-analytics-tab">Costs</span>
+            <span class="mock-analytics-tab">Scenarios</span>
+          </div>
+        </div>
+        <div class="mock-analytics-body">
+          <div class="mock-kpi-row">
+            <div class="mock-kpi">
+              <div class="mock-kpi-label">Per-Patient Revenue</div>
+              <div class="mock-kpi-value" style="color:#34d399">$18,400</div>
+              <div class="mock-kpi-delta delta-up">Phase 3 Oncology</div>
+            </div>
+            <div class="mock-kpi">
+              <div class="mock-kpi-label">Projected Total</div>
+              <div class="mock-kpi-value" style="color:#818cf8">$847K</div>
+              <div class="mock-kpi-delta delta-up">46 patients · base</div>
+            </div>
+            <div class="mock-kpi">
+              <div class="mock-kpi-label">Site Fit</div>
+              <div class="mock-kpi-value" style="color:#fbbf24">92</div>
+              <div class="mock-kpi-delta" style="color:var(--text-muted)">/100 · Excellent</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:14px">
+            <div style="flex:1;padding:10px 12px;border-radius:8px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.08)">
+              <div style="font-size:9px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Conservative</div>
+              <div style="font-size:18px;font-weight:800;color:#f87171;margin-top:4px">$612K</div>
+            </div>
+            <div style="flex:1;padding:10px 12px;border-radius:8px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.1)">
+              <div style="font-size:9px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Base Case</div>
+              <div style="font-size:18px;font-weight:800;color:#34d399;margin-top:4px">$847K</div>
+            </div>
+            <div style="flex:1;padding:10px 12px;border-radius:8px;background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.1)">
+              <div style="font-size:9px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Optimistic</div>
+              <div style="font-size:18px;font-weight:800;color:#a5b4fc;margin-top:4px">$1.12M</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     RESEARCH INTELLIGENCE
+     ══════════════════════════════════════════════ -->
+<section class="section" id="research">
+  <div class="reveal">
+    <div class="section-label">Research Intelligence</div>
+    <div class="section-title">Your entire site portfolio at a glance</div>
+    <div class="section-desc">Real-time dashboards, site performance benchmarks, cohort analysis, and competitive intelligence — all without exposing patient data.</div>
+  </div>
+
+  <div class="bento-grid reveal reveal-delay-2" style="margin-top:48px">
+    <div class="bento-card">
+      <div class="card-spotlight"></div>
+      <div class="bento-card-icon" style="background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.15);color:#c084fc">🧠</div>
+      <h3>Cohort Builder</h3>
+      <p>Build complex patient cohorts with multi-criteria queries. Combine diagnosis codes, lab thresholds, demographics, and medication filters to find exact patient populations.</p>
+    </div>
+
+    <div class="bento-card">
+      <div class="card-spotlight"></div>
+      <div class="bento-card-icon" style="background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.15);color:#22d3ee">📈</div>
+      <h3>Site Performance</h3>
+      <p>Track enrollment velocity, screen-to-enroll ratios, and revenue per study. Benchmark against historical performance to identify bottlenecks.</p>
+    </div>
+
+    <div class="bento-card span-2">
+      <div class="card-spotlight"></div>
+      <div class="bento-card-icon" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.15);color:#34d399">🌍</div>
+      <h3>Diversity & FDA Compliance Analytics</h3>
+      <p>Automated diversity profiling with FDA Draft Guidance compliance checks. Age, sex, race, and ethnicity breakdowns with diversity scores. Generate inclusion/exclusion impact reports showing which criteria disproportionately exclude underrepresented populations.</p>
+      <div class="bento-visual" style="padding:14px">
+        <div style="display:flex;gap:12px">
+          <div style="flex:1">
+            <div style="font-size:9px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Diversity Score</div>
+            <div style="position:relative;width:80px;height:80px;margin:0 auto">
+              <svg width="80" height="80" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="6"/>
+                <circle cx="40" cy="40" r="34" fill="none" stroke="url(#diversityGrad)" stroke-width="6" stroke-dasharray="163 214" stroke-linecap="round" transform="rotate(-90 40 40)"/>
+                <defs><linearGradient id="diversityGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient></defs>
+              </svg>
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#34d399">76</div>
+            </div>
+          </div>
+          <div style="flex:2">
+            <div style="font-size:9px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Demographics</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-secondary)"><div style="width:60%;height:6px;border-radius:3px;background:linear-gradient(to right,#818cf8,#6366f1)"></div>White 58%</div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-secondary)"><div style="width:22%;height:6px;border-radius:3px;background:linear-gradient(to right,#34d399,#10b981)"></div>Black 22%</div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-secondary)"><div style="width:12%;height:6px;border-radius:3px;background:linear-gradient(to right,#fbbf24,#f59e0b)"></div>Asian 12%</div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-secondary)"><div style="width:8%;height:6px;border-radius:3px;background:linear-gradient(to right,#f87171,#ef4444)"></div>Other 8%</div>
+            </div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:9px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">FDA Notes</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="padding:4px 8px;border-radius:5px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.1);font-size:9px;color:#34d399">✓ Age diversity met</div>
+              <div style="padding:4px 8px;border-radius:5px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.1);font-size:9px;color:#fbbf24">⚠ Hispanic &lt;15%</div>
+              <div style="padding:4px 8px;border-radius:5px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.1);font-size:9px;color:#34d399">✓ Sex balance OK</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bento-card">
+      <div class="card-spotlight"></div>
+      <div class="bento-card-icon" style="background:rgba(244,114,182,0.1);border:1px solid rgba(244,114,182,0.15);color:#f472b6">📂</div>
+      <h3>Smart Data Import</h3>
+      <p>4-step import wizard with auto column mapping. Supports CSV from Epic, Cerner, Allscripts, and any custom EHR. Validates data quality before import.</p>
+    </div>
+
+    <div class="bento-card">
+      <div class="card-spotlight"></div>
+      <div class="bento-card-icon" style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.15);color:#fbbf24">⌨️</div>
+      <h3>Keyboard-First Design</h3>
+      <p>Navigate everything without a mouse. ⌘K command palette, A/R/D review shortcuts, arrow key navigation, and Tab panel switching. Built for power users.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     PLATFORM COMPARISON
+     ══════════════════════════════════════════════ -->
+<section class="section" id="comparison">
+  <div class="reveal">
+    <div class="section-label">Why SiteConnect</div>
+    <div class="section-title">Traditional screening vs. SiteConnect</div>
+  </div>
+
+  <div class="reveal reveal-delay-2" style="max-width:900px;margin:48px auto 0">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <div style="padding:32px;border-radius:16px;background:rgba(239,68,68,0.03);border:1px solid rgba(239,68,68,0.08)">
+        <div style="font-size:13px;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:1px;margin-bottom:20px">Without SiteConnect</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text-secondary)">
+            <span style="color:#ef4444;font-size:14px;flex-shrink:0">✗</span>
+            <span>Manual chart review — <strong style="color:var(--text-primary)">2-4 hours per patient</strong></span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text-secondary)">
+            <span style="color:#ef4444;font-size:14px;flex-shrink:0">✗</span>
+            <span>Spreadsheet-based tracking with no audit trail</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text-secondary)">
+            <span style="color:#ef4444;font-size:14px;flex-shrink:0">✗</span>
+            <span>Missed eligible patients in your existing population</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text-secondary)">
+            <span style="color:#ef4444;font-size:14px;flex-shrink:0">✗</span>
+            <span>No financial visibility until contracts are signed</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text-secondary)">
+            <span style="color:#ef4444;font-size:14px;flex-shrink:0">✗</span>
+            <span>PHI shared with cloud-based tools</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:32px;border-radius:16px;background:rgba(16,185,129,0.03);border:1px solid rgba(16,185,129,0.1)">
+        <div style="font-size:13px;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:1px;margin-bottom:20px">With SiteConnect</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text-secondary)">
+            <span style="color:#10b981;font-size:14px;flex-shrink:0">✓</span>
+            <span>AI screens <strong style="color:var(--text-primary)">entire population in seconds</strong></span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text-secondary)">
+            <span style="color:#10b981;font-size:14px;flex-shrink:0">✓</span>
+            <span>HMAC-chained audit trail with tamper detection</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text-secondary)">
+            <span style="color:#10b981;font-size:14px;flex-shrink:0">✓</span>
+            <span>Finds patients you never knew were eligible</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text-secondary)">
+            <span style="color:#10b981;font-size:14px;flex-shrink:0">✓</span>
+            <span>Revenue projections before you commit to any trial</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text-secondary)">
+            <span style="color:#10b981;font-size:14px;flex-shrink:0">✓</span>
+            <span>100% on-premise — zero PHI ever leaves your device</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     TECHNICAL SPECS
+     ══════════════════════════════════════════════ -->
+<section class="section" id="specs">
+  <div class="reveal">
+    <div class="section-label">Under the Hood</div>
+    <div class="section-title">Enterprise-grade technology, desktop simplicity</div>
+  </div>
+
+  <div class="reveal reveal-delay-2" style="max-width:1000px;margin:48px auto 0;display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+    <div style="padding:20px;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);text-align:center">
+      <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Runtime</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:4px">Tauri v2</div>
+      <div style="font-size:11px;color:var(--text-secondary)">Rust + WebView2</div>
+    </div>
+    <div style="padding:20px;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);text-align:center">
+      <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">AI Engine</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:4px">BioMistral-7B</div>
+      <div style="font-size:11px;color:var(--text-secondary)">via llama.cpp sidecar</div>
+    </div>
+    <div style="padding:20px;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);text-align:center">
+      <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Database</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:4px">SQLCipher</div>
+      <div style="font-size:11px;color:var(--text-secondary)">AES-256-CBC encryption</div>
+    </div>
+    <div style="padding:20px;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);text-align:center">
+      <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Frontend</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:4px">React 19</div>
+      <div style="font-size:11px;color:var(--text-secondary)">TypeScript strict + Vite</div>
+    </div>
+    <div style="padding:20px;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);text-align:center">
+      <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Audit</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:4px">HMAC Chain</div>
+      <div style="font-size:11px;color:var(--text-secondary)">Tamper-evident records</div>
+    </div>
+    <div style="padding:20px;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);text-align:center">
+      <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Compliance</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:4px">21 CFR Part 11</div>
+      <div style="font-size:11px;color:var(--text-secondary)">FDA-aligned controls</div>
+    </div>
+    <div style="padding:20px;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);text-align:center">
+      <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Testing</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:4px">IQ/OQ/PQ</div>
+      <div style="font-size:11px;color:var(--text-secondary)">103 unit + 17 E2E tests</div>
+    </div>
+    <div style="padding:20px;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);text-align:center">
+      <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Platforms</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:4px">macOS + Win</div>
+      <div style="font-size:11px;color:var(--text-secondary)">Native desktop app</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
      CTA
      ══════════════════════════════════════════════ -->
 <section class="cta-section">
@@ -2920,6 +3212,42 @@
       if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });
+
+  // ═══════════════════════════════════════
+  // AUTH GATE
+  // ═══════════════════════════════════════
+  (function() {
+    const gate = document.getElementById('authGate');
+    const form = document.getElementById('authForm');
+    const input = document.getElementById('authInput');
+    const error = document.getElementById('authError');
+
+    if (sessionStorage.getItem('t6_auth') === '1') {
+      gate.style.display = 'none';
+      document.body.style.overflow = '';
+      return;
+    }
+
+    document.body.style.overflow = 'hidden';
+    input.addEventListener('focus', () => { input.style.borderColor = 'rgba(99,102,241,0.5)'; input.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.15)'; });
+    input.addEventListener('blur', () => { input.style.borderColor = 'rgba(255,255,255,0.08)'; input.style.boxShadow = 'none'; });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (input.value === 'T62026') {
+        sessionStorage.setItem('t6_auth', '1');
+        gate.style.transition = 'opacity 0.4s ease';
+        gate.style.opacity = '0';
+        setTimeout(() => { gate.style.display = 'none'; document.body.style.overflow = ''; }, 400);
+      } else {
+        error.style.opacity = '1';
+        input.style.borderColor = 'rgba(239,68,68,0.5)';
+        input.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.15)';
+        input.value = '';
+        setTimeout(() => { error.style.opacity = '0'; input.style.borderColor = 'rgba(255,255,255,0.08)'; input.style.boxShadow = 'none'; }, 2000);
+      }
+    });
+  })();
 </script>
 
 </body>
