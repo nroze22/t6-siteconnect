@@ -12,6 +12,8 @@ export interface RustImportPreview {
   total_rows: number;
   suggested_mapping: RustColumnMapping;
   format_detected: "wide" | "long";
+  sheets?: SheetInfo[];
+  header_row_index?: number;
 }
 
 export interface RustColumnMapping {
@@ -104,6 +106,121 @@ export function rustPatientsToScreeningFormat(patients: RustPatientRecord[]): im
       provider: "",
     };
   });
+}
+
+// ---------------------------------------------------------------------------
+// Import profile types
+// ---------------------------------------------------------------------------
+
+export interface ImportProfile {
+  id: string;
+  name: string;
+  description?: string;
+  emr_system?: string;
+  file_format: string;
+  column_mapping: RustColumnMapping;
+  header_row_index: number;
+  created_at: string;
+  last_used_at?: string;
+  use_count: number;
+}
+
+export interface DuplicateCheckResult {
+  is_duplicate: boolean;
+  previous_import_date?: string;
+  previous_record_count?: number;
+  file_hash: string;
+}
+
+export interface TargetFieldInfo {
+  field: string;
+  label: string;
+  required: boolean;
+  category: string;
+}
+
+export interface SheetInfo {
+  name: string;
+  headers: string[];
+  row_count: number;
+  detected_type: string;
+  patient_id_column?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Import profile commands
+// ---------------------------------------------------------------------------
+
+export async function saveImportProfile(
+  name: string,
+  description: string | null,
+  emrSystem: string | null,
+  fileFormat: string,
+  mapping: RustColumnMapping,
+  headerRowIndex: number,
+): Promise<ImportProfile> {
+  if (!isTauri) throw new Error("Import profiles only available in Tauri mode");
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke<ImportProfile>("save_import_profile", {
+    name,
+    description,
+    emrSystem,
+    fileFormat,
+    mapping,
+    headerRowIndex,
+  });
+}
+
+export async function listImportProfiles(): Promise<ImportProfile[]> {
+  if (!isTauri) throw new Error("Import profiles only available in Tauri mode");
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke<ImportProfile[]>("list_import_profiles");
+}
+
+export async function deleteImportProfile(profileId: string): Promise<void> {
+  if (!isTauri) throw new Error("Import profiles only available in Tauri mode");
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke<void>("delete_import_profile", { profileId });
+}
+
+export async function useImportProfile(profileId: string): Promise<ImportProfile> {
+  if (!isTauri) throw new Error("Import profiles only available in Tauri mode");
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke<ImportProfile>("use_import_profile", { profileId });
+}
+
+// ---------------------------------------------------------------------------
+// Duplicate detection
+// ---------------------------------------------------------------------------
+
+export async function checkDuplicateImport(path: string): Promise<DuplicateCheckResult> {
+  if (!isTauri) throw new Error("Duplicate detection only available in Tauri mode");
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke<DuplicateCheckResult>("check_duplicate_import", { path });
+}
+
+// ---------------------------------------------------------------------------
+// Column mapping adjustment
+// ---------------------------------------------------------------------------
+
+export async function adjustColumnMapping(
+  currentMapping: RustColumnMapping,
+  sourceColumn: string,
+  newTargetField: string,
+): Promise<RustColumnMapping> {
+  if (!isTauri) throw new Error("Column mapping adjustment only available in Tauri mode");
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke<RustColumnMapping>("adjust_column_mapping", {
+    currentMapping,
+    sourceColumn,
+    newTargetField,
+  });
+}
+
+export async function getAvailableTargetFields(): Promise<TargetFieldInfo[]> {
+  if (!isTauri) throw new Error("Target fields only available in Tauri mode");
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke<TargetFieldInfo[]>("get_available_target_fields");
 }
 
 // ---------------------------------------------------------------------------

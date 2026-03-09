@@ -38,15 +38,31 @@ import {
   executeRealImport,
   pickImportFile,
   validateImport,
+  checkDuplicateImport,
+  saveImportProfile,
+  listImportProfiles,
+  deleteImportProfile,
+  useImportProfile,
+  adjustColumnMapping,
+  getAvailableTargetFields,
   type RustImportPreview,
   type RustColumnMapping,
   type ValidationReport,
+  type ImportProfile,
+  type DuplicateCheckResult,
+  type TargetFieldInfo,
 } from "@/lib/real-import";
 import {
   AlertTriangle,
   AlertCircle,
   Info,
   ShieldCheck,
+  Bookmark,
+  Trash2,
+  Save,
+  Layers,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -157,6 +173,18 @@ export function ImportPage() {
   const [importHistory, setImportHistory] = useState<ImportHistoryEntry[]>([
     { name: "epic_clarity_q4_2025.csv", date: "2025-12-15", records: 1208 },
   ]);
+  // Import profiles (Tauri only)
+  const [importProfiles, setImportProfiles] = useState<ImportProfile[]>([]);
+  const [showProfiles, setShowProfiles] = useState(false);
+  const [profileSaveName, setProfileSaveName] = useState("");
+  const [profileSaveDesc, setProfileSaveDesc] = useState("");
+  const [showProfileSave, setShowProfileSave] = useState(false);
+  const [profileDeleteConfirm, setProfileDeleteConfirm] = useState<string | null>(null);
+  // Duplicate detection (Tauri only)
+  const [duplicateCheck, setDuplicateCheck] = useState<DuplicateCheckResult | null>(null);
+  const [duplicateDismissed, setDuplicateDismissed] = useState(false);
+  // Column mapping target fields (Tauri only) — loaded on demand by ColumnMapper
+  const [tauriTargetFields, setTauriTargetFields] = useState<TargetFieldInfo[]>([]);
 
   // Store access for loading imported patients into screening
   const setPatients = useScreeningStore((s) => s.setPatients);
@@ -167,7 +195,7 @@ export function ImportPage() {
   const setCurrentPage = useAppStore((s) => s.setCurrentPage);
   const toast = useToast();
 
-  // Fetch real import history in Tauri mode
+  // Fetch real import history, profiles, and target fields in Tauri mode
   useEffect(() => {
     if (!isTauri) return;
     (async () => {
@@ -181,15 +209,43 @@ export function ImportPage() {
         // Command may not exist yet — keep mock data
       }
     })();
+    // Load import profiles
+    (async () => {
+      try {
+        const profiles = await listImportProfiles();
+        setImportProfiles(profiles);
+      } catch {
+        // Command may not exist yet
+      }
+    })();
+    // Load available target fields for column mapping dropdowns
+    (async () => {
+      try {
+        const fields = await getAvailableTargetFields();
+        setTauriTargetFields(fields);
+      } catch {
+        // Command may not exist yet
+      }
+    })();
   }, []);
 
   // Handle file selection — auto-detect Epic format
   const handleFileSelected = useCallback(async (file: SelectedFile) => {
     setSelectedFile(file);
     setImportError(null);
+    setDuplicateCheck(null);
+    setDuplicateDismissed(false);
 
     // In Tauri mode with a real file path, call Rust backend for preview
     if (isTauri && file.path) {
+      // Check for duplicate import
+      try {
+        const dupResult = await checkDuplicateImport(file.path);
+        setDuplicateCheck(dupResult);
+      } catch {
+        // Duplicate check command may not exist — ignore
+      }
+
       try {
         const preview = await previewRealFile(file.path);
         setRealPreview(preview);
@@ -230,7 +286,7 @@ export function ImportPage() {
     setSelectedFile(null);
   }, []);
 
-  // Handle mapping changes
+  // Handle mapping changes — also call Rust backend in Tauri mode
   const handleMappingChange = useCallback((index: number, targetField: string) => {
     setMappings((prev) => {
       const next = [...prev];
@@ -239,7 +295,21 @@ export function ImportPage() {
       next[index] = { ...current, targetField, confidence: 0 };
       return next;
     });
-  }, []);
+
+    // In Tauri mode, also update the Rust-side mapping
+    if (isTauri && realMapping) {
+      const sourceColumn = mappings[index]?.sourceColumn;
+      if (sourceColumn) {
+        adjustColumnMapping(realMapping, sourceColumn, targetField)
+          .then((updated) => {
+            setRealMapping(updated);
+          })
+          .catch(() => {
+            // Adjustment command may not exist — the UI mapping is still updated
+          });
+      }
+    }
+  }, [realMapping, mappings]);
 
   // Advance to preview
   const goToPreview = useCallback(() => {
@@ -421,6 +491,14 @@ export function ImportPage() {
     setImportResult(null);
     setValidationReport(null);
     setIsValidating(false);
+    setDuplicateCheck(null);
+    setDuplicateDismissed(false);
+    setShowProfileSave(false);
+    setProfileSaveName("");
+    setProfileSaveDesc("");
+    setRealPreview(null);
+    setRealMapping(null);
+    setImportError(null);
   }, []);
 
   // Cleanup on unmount
@@ -456,11 +534,162 @@ export function ImportPage() {
           {/* ============================================= */}
           {step === "select" && (
             <div className="space-y-6">
+              {/* Import Profiles (Tauri only) */}
+              {isTauri && importProfiles.length > 0 && (
+                <div className="rounded-xl border border-border bg-card">
+                  <button
+                    onClick={() => setShowProfiles((p) => !p)}
+                    className="flex w-full items-center justify-between border-b border-border px-4 py-3"
+                  >
+                    <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      <Bookmark className="h-3.5 w-3.5" />
+                      Saved Import Profiles ({importProfiles.length})
+                    </h3>
+                    {showProfiles ? (
+                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </button>
+                  {showProfiles && (
+                    <div className="divide-y divide-border">
+                      {importProfiles.map((profile) => (
+                        <div
+                          key={profile.id}
+                          className="flex items-center justify-between px-4 py-3"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium text-foreground">{profile.name}</p>
+                              {profile.emr_system && (
+                                <span className="rounded-md bg-indigo-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-400 ring-1 ring-indigo-500/20">
+                                  {profile.emr_system}
+                                </span>
+                              )}
+                            </div>
+                            {profile.description && (
+                              <p className="mt-0.5 text-[12px] text-muted-foreground">{profile.description}</p>
+                            )}
+                            <div className="mt-1 flex items-center gap-3 text-[11px] text-dim">
+                              <span>{profile.file_format}</span>
+                              <span>Used {profile.use_count} time{profile.use_count !== 1 ? "s" : ""}</span>
+                              {profile.last_used_at && (
+                                <span>Last used {new Date(profile.last_used_at).toLocaleDateString()}</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 ml-4">
+                            <button
+                              onClick={async () => {
+                                try {
+                                  const loaded = await useImportProfile(profile.id);
+                                  setRealMapping(loaded.column_mapping);
+                                  // Convert to UI mappings
+                                  const uiMappings: ColumnMapping[] = loaded.column_mapping.field_mappings.map((m) => ({
+                                    sourceColumn: m.source_column,
+                                    targetField: m.target_field,
+                                    confidence: m.confidence,
+                                  }));
+                                  setMappings(uiMappings);
+                                  toast.success("Profile loaded", `Applied mapping from "${loaded.name}"`);
+                                } catch (err) {
+                                  toast.error("Failed to load profile", err instanceof Error ? err.message : String(err));
+                                }
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-500/20 bg-indigo-500/5 px-3 py-1.5 text-[11px] font-semibold text-indigo-300 transition-colors hover:bg-indigo-500/10"
+                            >
+                              <Zap className="h-3 w-3" />
+                              Use
+                            </button>
+                            {profileDeleteConfirm === profile.id ? (
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      await deleteImportProfile(profile.id);
+                                      setImportProfiles((prev) => prev.filter((p) => p.id !== profile.id));
+                                      toast.success("Profile deleted");
+                                    } catch (err) {
+                                      toast.error("Failed to delete", err instanceof Error ? err.message : String(err));
+                                    }
+                                    setProfileDeleteConfirm(null);
+                                  }}
+                                  className="rounded px-2 py-1 text-[11px] font-semibold text-red-400 hover:bg-red-500/10"
+                                >
+                                  Confirm
+                                </button>
+                                <button
+                                  onClick={() => setProfileDeleteConfirm(null)}
+                                  className="rounded px-2 py-1 text-[11px] text-dim hover:bg-surface-2"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => setProfileDeleteConfirm(profile.id)}
+                                className="rounded-lg p-1.5 text-dim transition-colors hover:bg-red-500/10 hover:text-red-400"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <FileDropZone
                 onFileSelected={handleFileSelected}
                 selectedFile={selectedFile}
                 onClear={handleFileClear}
               />
+
+              {/* Duplicate detection warning (Tauri only) */}
+              {duplicateCheck?.is_duplicate && !duplicateDismissed && (
+                <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                      <div>
+                        <p className="text-[12px] font-semibold text-amber-400">Duplicate File Detected</p>
+                        <p className="text-[12px] text-amber-300/70 mt-0.5">
+                          This file was previously imported
+                          {duplicateCheck.previous_import_date
+                            ? ` on ${new Date(duplicateCheck.previous_import_date).toLocaleDateString()}`
+                            : ""}
+                          {duplicateCheck.previous_record_count != null
+                            ? ` (${duplicateCheck.previous_record_count.toLocaleString()} records)`
+                            : ""}
+                          . Import again?
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 ml-4">
+                      <button
+                        onClick={() => {
+                          setDuplicateDismissed(true);
+                          setSelectedFile(null);
+                          setRealPreview(null);
+                          setRealMapping(null);
+                          setDuplicateCheck(null);
+                        }}
+                        className="rounded-lg border border-amber-500/20 px-3 py-1.5 text-[11px] font-semibold text-amber-300 transition-colors hover:bg-amber-500/10"
+                      >
+                        Skip
+                      </button>
+                      <button
+                        onClick={() => setDuplicateDismissed(true)}
+                        className="rounded-lg bg-amber-500/10 px-3 py-1.5 text-[11px] font-semibold text-amber-300 transition-colors hover:bg-amber-500/20"
+                      >
+                        Import Anyway
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Import error */}
               {importError && (
@@ -578,6 +807,53 @@ export function ImportPage() {
                 </div>
               </div>
 
+              {/* Header row detection notice */}
+              {realPreview?.header_row_index != null && realPreview.header_row_index > 0 && (
+                <div className="flex items-center gap-3 rounded-lg border border-blue-500/15 bg-blue-500/5 px-4 py-2.5">
+                  <Info className="h-4 w-4 shrink-0 text-blue-400" />
+                  <p className="text-[12px] text-blue-300">
+                    Detected {realPreview.header_row_index} metadata row{realPreview.header_row_index > 1 ? "s" : ""} before column headers (auto-skipped)
+                  </p>
+                </div>
+              )}
+
+              {/* Multi-sheet info (XLSX) */}
+              {realPreview?.sheets && realPreview.sheets.length > 1 && (
+                <div className="rounded-xl border border-border bg-card">
+                  <div className="border-b border-border px-4 py-3">
+                    <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      <Layers className="h-3.5 w-3.5" />
+                      Sheets Detected ({realPreview.sheets.length})
+                    </h3>
+                  </div>
+                  <div className="divide-y divide-border">
+                    {realPreview.sheets.map((sheet) => (
+                      <div key={sheet.name} className="flex items-center justify-between px-4 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <FileSpreadsheet className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-[12px] font-medium text-body">{sheet.name}</span>
+                          <span className="rounded-md bg-surface-2 px-1.5 py-0.5 text-[10px] font-semibold text-dim ring-1 ring-edge-2">
+                            {sheet.detected_type}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-[11px] text-dim">
+                          <span>{sheet.row_count.toLocaleString()} rows</span>
+                          <span>{sheet.headers.length} columns</span>
+                          {sheet.patient_id_column && (
+                            <span className="text-emerald-400">ID: {sheet.patient_id_column}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="border-t border-border bg-surface-1 px-4 py-2">
+                    <p className="text-[11px] text-dim">
+                      All sheets will be merged during import based on patient ID matching.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* File stats */}
               <div className="grid grid-cols-4 gap-3">
                 {[
@@ -673,11 +949,24 @@ export function ImportPage() {
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Column Mapping — AI Auto-Matched
                   </h3>
+                  {tauriTargetFields.length > 0 && (
+                    <p className="mt-0.5 text-[11px] text-dim">
+                      {tauriTargetFields.filter((f) => f.required).length} required fields,{" "}
+                      {tauriTargetFields.length} total available
+                    </p>
+                  )}
                 </div>
                 <div className="p-4">
                   <ColumnMapper
                     mappings={mappings}
-                    sampleData={EPIC_SAMPLE_DATA}
+                    sampleData={realPreview
+                      ? Object.fromEntries(
+                          realPreview.headers.map((h, idx) => [
+                            h,
+                            realPreview.sample_rows.map((row) => row[idx] ?? "").filter(Boolean).slice(0, 3),
+                          ])
+                        )
+                      : EPIC_SAMPLE_DATA}
                     onMappingChange={handleMappingChange}
                   />
                 </div>
@@ -1062,6 +1351,89 @@ export function ImportPage() {
                     </>
                   );
                 })()}
+
+                {/* Save as Profile (Tauri only) */}
+                {isTauri && realMapping && (
+                  <div className="rounded-xl border border-border bg-card">
+                    {!showProfileSave ? (
+                      <button
+                        onClick={() => setShowProfileSave(true)}
+                        className="flex w-full items-center justify-center gap-2 px-4 py-3 text-[12px] font-medium text-muted-foreground transition-colors hover:bg-surface-1 hover:text-body"
+                      >
+                        <Save className="h-3.5 w-3.5" />
+                        Save column mapping as a profile for future imports
+                      </button>
+                    ) : (
+                      <div className="p-4 space-y-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Bookmark className="h-4 w-4 text-indigo-400" />
+                          <span className="text-xs font-semibold text-foreground">Save Import Profile</span>
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-medium text-dim mb-1">Profile Name</label>
+                          <input
+                            type="text"
+                            value={profileSaveName}
+                            onChange={(e) => setProfileSaveName(e.target.value)}
+                            placeholder="e.g., Epic Clarity Monthly Export"
+                            className="w-full rounded-lg border border-edge-2 bg-surface-1 px-3 py-2 text-[12px] text-body placeholder:text-dim focus:border-indigo-500/40 focus:outline-none focus:ring-1 focus:ring-indigo-500/20"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-medium text-dim mb-1">Description (optional)</label>
+                          <input
+                            type="text"
+                            value={profileSaveDesc}
+                            onChange={(e) => setProfileSaveDesc(e.target.value)}
+                            placeholder="e.g., Standard monthly patient data pull"
+                            className="w-full rounded-lg border border-edge-2 bg-surface-1 px-3 py-2 text-[12px] text-body placeholder:text-dim focus:border-indigo-500/40 focus:outline-none focus:ring-1 focus:ring-indigo-500/20"
+                          />
+                        </div>
+                        <div className="flex items-center justify-end gap-2 pt-1">
+                          <button
+                            onClick={() => {
+                              setShowProfileSave(false);
+                              setProfileSaveName("");
+                              setProfileSaveDesc("");
+                            }}
+                            className="rounded-lg border border-edge-3 bg-surface-2 px-3 py-1.5 text-[11px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            disabled={!profileSaveName.trim()}
+                            onClick={async () => {
+                              if (!profileSaveName.trim()) return;
+                              try {
+                                const ext = selectedFile?.format ?? "csv";
+                                const headerIdx = realPreview?.header_row_index ?? 0;
+                                const profile = await saveImportProfile(
+                                  profileSaveName.trim(),
+                                  profileSaveDesc.trim() || null,
+                                  null,
+                                  ext,
+                                  realMapping,
+                                  headerIdx,
+                                );
+                                setImportProfiles((prev) => [...prev, profile]);
+                                setShowProfileSave(false);
+                                setProfileSaveName("");
+                                setProfileSaveDesc("");
+                                toast.success("Profile saved", `"${profile.name}" can be used for future imports`);
+                              } catch (err) {
+                                toast.error("Failed to save profile", err instanceof Error ? err.message : String(err));
+                              }
+                            }}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <Save className="h-3 w-3" />
+                            Save Profile
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Quick actions */}
                 <div className="flex flex-col gap-2 pt-2">
