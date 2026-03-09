@@ -213,8 +213,8 @@ export function PerformancePage() {
       <div className="border-b border-border bg-card/50 px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <p className="text-[11px] text-slate-500">Screen failure intelligence, multi-study matching, and revenue projections</p>
-            <button onClick={() => setShowInfoModal(true)} className="rounded-full p-1 text-slate-500 hover:bg-white/[0.05] hover:text-slate-300 transition-colors">
+            <p className="text-[12px] text-dim">Screen failure intelligence, multi-study matching, and revenue projections</p>
+            <button onClick={() => setShowInfoModal(true)} className="rounded-full p-1 text-dim hover:bg-surface-3 hover:text-body transition-colors">
               <Info className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -237,7 +237,7 @@ export function PerformancePage() {
                 exportCSV({ filename: "site-performance-metrics", headers, rows, includeTimestamp: true });
               }}
               disabled={metrics.length === 0}
-              className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-slate-400 hover:bg-white/[0.06] hover:text-slate-200 transition-colors disabled:opacity-40 disabled:pointer-events-none"
+              className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12px] font-medium text-dim hover:bg-surface-3 hover:text-body transition-colors disabled:opacity-40 disabled:pointer-events-none"
             >
               <Download className="h-3.5 w-3.5" />
               CSV
@@ -277,7 +277,7 @@ export function PerformancePage() {
                 });
               }}
               disabled={metrics.length === 0}
-              className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-slate-400 hover:bg-white/[0.06] hover:text-slate-200 transition-colors disabled:opacity-40 disabled:pointer-events-none"
+              className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12px] font-medium text-dim hover:bg-surface-3 hover:text-body transition-colors disabled:opacity-40 disabled:pointer-events-none"
             >
               <FileText className="h-3.5 w-3.5" />
               PDF
@@ -294,10 +294,10 @@ export function PerformancePage() {
             { label: "Avg Pass Rate", value: `${avgPassRate}%`, icon: <Target className="h-3.5 w-3.5 text-amber-400" />, color: "text-amber-400" },
             { label: "Projected Revenue", value: `$${animatedRevenue}K`, icon: <DollarSign className="h-3.5 w-3.5 text-emerald-400" />, color: "text-emerald-400" },
           ].map((kpi) => (
-            <div key={kpi.label} className="flex items-center gap-2 rounded-lg bg-white/[0.03] px-3 py-1.5 ring-1 ring-white/[0.06]">
+            <div key={kpi.label} className="flex items-center gap-2 rounded-lg bg-surface-2 px-3 py-1.5 ring-1 ring-edge-2">
               {kpi.icon}
               <div>
-                <span className="text-[9px] text-slate-500 block leading-tight">{kpi.label}</span>
+                <span className="text-[9px] text-dim block leading-tight">{kpi.label}</span>
                 <span className={`text-[14px] font-bold ${kpi.color} leading-tight`}>{kpi.value}</span>
               </div>
             </div>
@@ -315,7 +315,7 @@ export function PerformancePage() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors ${
-                tab === t.id ? "bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-500/25" : "text-slate-500 hover:bg-white/[0.04] hover:text-slate-300"
+                tab === t.id ? "bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-500/25" : "text-dim hover:bg-surface-2 hover:text-body"
               }`}
             >
               {t.icon} {t.label}
@@ -415,8 +415,8 @@ function OverviewTab({ metrics, patients }: { metrics: StudyMetrics[]; patients:
       />
 
       {/* Screening Results by Study */}
-      <div className="rounded-xl border border-white/[0.06] bg-card p-5">
-        <h3 className="text-[13px] font-bold text-white mb-4">Screening Results by Study</h3>
+      <div className="rounded-xl border border-edge-2 bg-card p-5">
+        <h3 className="text-[13px] font-bold text-heading mb-4">Screening Results by Study</h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} barGap={2}>
@@ -441,25 +441,25 @@ function OverviewTab({ metrics, patients }: { metrics: StudyMetrics[]; patients:
         {metrics.map((m) => (
           <div
             key={m.studyId}
-            className="rounded-xl border border-white/[0.06] bg-card p-4 cursor-pointer hover:border-indigo-500/30 hover:bg-white/[0.02] transition-colors"
+            className="rounded-xl border border-edge-2 bg-card p-4 cursor-pointer hover:border-indigo-500/30 hover:bg-surface-1 transition-colors"
             onClick={() => handleStudyClick(m)}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleStudyClick(m); } }}
           >
             <div className="flex items-center justify-between mb-3">
-              <h4 className="text-[13px] font-bold text-slate-200">{m.studyName}</h4>
-              <span className="text-[11px] font-bold text-emerald-400">${Math.round(m.projectedRevenue / 1000)}K proj.</span>
+              <h4 className="text-[13px] font-bold text-body">{m.studyName}</h4>
+              <span className="text-[12px] font-bold text-emerald-400">${Math.round(m.projectedRevenue / 1000)}K proj.</span>
             </div>
             <div className="grid grid-cols-4 gap-2 mb-3">
               {[
-                { label: "Screened", value: m.totalScreened, color: "text-slate-300" },
+                { label: "Screened", value: m.totalScreened, color: "text-body" },
                 { label: "Eligible", value: m.eligible, color: "text-emerald-400" },
                 { label: "Pass Rate", value: `${m.screenPassRate}%`, color: m.screenPassRate >= 30 ? "text-emerald-400" : "text-amber-400" },
                 { label: "Avg Score", value: m.avgScore, color: "text-indigo-400" },
               ].map((stat) => (
                 <div key={stat.label}>
-                  <span className="text-[9px] text-slate-600 block">{stat.label}</span>
+                  <span className="text-[9px] text-dim block">{stat.label}</span>
                   <span className={`text-[14px] font-bold ${stat.color}`}>{stat.value}</span>
                 </div>
               ))}
@@ -468,15 +468,15 @@ function OverviewTab({ metrics, patients }: { metrics: StudyMetrics[]; patients:
             {/* Top Blockers Preview */}
             {m.topBlockers.length > 0 && (
               <div>
-                <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-600">Top Blockers</span>
+                <span className="text-[9px] font-semibold uppercase tracking-wider text-dim">Top Blockers</span>
                 <div className="mt-1 space-y-1">
                   {m.topBlockers.slice(0, 2).map((b, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <div className="h-1 flex-1 rounded-full bg-white/[0.06]">
+                      <div className="h-1 flex-1 rounded-full bg-surface-3">
                         <div className="h-full rounded-full bg-red-500/60" style={{ width: `${b.pct}%` }} />
                       </div>
-                      <span className="text-[10px] text-red-400 w-8 text-right">{b.pct}%</span>
-                      <span className="text-[10px] text-slate-500 truncate flex-1">{b.criterion.slice(0, 40)}...</span>
+                      <span className="text-[12px] text-red-400 w-8 text-right">{b.pct}%</span>
+                      <span className="text-[12px] text-dim truncate flex-1">{b.criterion.slice(0, 40)}...</span>
                     </div>
                   ))}
                 </div>
@@ -487,8 +487,8 @@ function OverviewTab({ metrics, patients }: { metrics: StudyMetrics[]; patients:
       </div>
 
       {/* Revenue Projections */}
-      <div className="rounded-xl border border-white/[0.06] bg-card p-5">
-        <h3 className="text-[13px] font-bold text-white mb-4">Revenue Projections by Study</h3>
+      <div className="rounded-xl border border-edge-2 bg-card p-5">
+        <h3 className="text-[13px] font-bold text-heading mb-4">Revenue Projections by Study</h3>
         <div className="h-56">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={revenueData}>
@@ -544,10 +544,10 @@ function FailureIntelligenceTab({ metrics }: { metrics: StudyMetrics[] }) {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       {/* Failure Waterfall */}
-      <div className="rounded-xl border border-white/[0.06] bg-card p-5">
+      <div className="rounded-xl border border-edge-2 bg-card p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-[13px] font-bold text-white">Screen Failure Waterfall</h3>
-          <span className="text-[11px] text-slate-500">{totalFails} total failures across {metrics.length} studies</span>
+          <h3 className="text-[13px] font-bold text-heading">Screen Failure Waterfall</h3>
+          <span className="text-[12px] text-dim">{totalFails} total failures across {metrics.length} studies</span>
         </div>
         <div className="space-y-2.5">
           {failures.map((f, i) => {
@@ -556,21 +556,21 @@ function FailureIntelligenceTab({ metrics }: { metrics: StudyMetrics[] }) {
             return (
               <div key={i} className="group">
                 <div className="flex items-center gap-3">
-                  <span className="text-[11px] text-slate-400 w-6 text-right">{f.count}</span>
+                  <span className="text-[12px] text-dim w-6 text-right">{f.count}</span>
                   <div className="flex-1">
-                    <div className="h-7 rounded-md bg-white/[0.03] overflow-hidden relative">
+                    <div className="h-7 rounded-md bg-surface-2 overflow-hidden relative">
                       <div
                         className="h-full rounded-md bg-gradient-to-r from-red-500/40 to-red-500/20 transition-all"
                         style={{ width: `${pct}%` }}
                       />
-                      <span className="absolute inset-0 flex items-center px-3 text-[11px] text-slate-300 truncate">
+                      <span className="absolute inset-0 flex items-center px-3 text-[12px] text-body truncate">
                         {f.criterion}
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
                     {f.studies.map((s) => (
-                      <span key={s} className="rounded bg-white/[0.04] px-1.5 py-0.5 text-[9px] text-slate-500 ring-1 ring-white/[0.06]">{s}</span>
+                      <span key={s} className="rounded bg-surface-2 px-1.5 py-0.5 text-[9px] text-dim ring-1 ring-edge-2">{s}</span>
                     ))}
                   </div>
                 </div>
@@ -589,13 +589,13 @@ function FailureIntelligenceTab({ metrics }: { metrics: StudyMetrics[] }) {
         </div>
         <div className="space-y-3">
           {recommendations.map((rec, i) => (
-            <div key={i} className="flex gap-3 rounded-lg bg-white/[0.02] p-3 ring-1 ring-white/[0.04]">
+            <div key={i} className="flex gap-3 rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
               <div className={`mt-0.5 h-2 w-2 rounded-full flex-shrink-0 ${
                 rec.severity === "high" ? "bg-red-400" : rec.severity === "medium" ? "bg-amber-400" : "bg-blue-400"
               }`} />
               <div className="flex-1">
-                <p className="text-[12px] text-slate-300 leading-relaxed">{rec.text}</p>
-                <p className="text-[10px] text-emerald-400 mt-1 font-medium">Impact: {rec.impact}</p>
+                <p className="text-[12px] text-body leading-relaxed">{rec.text}</p>
+                <p className="text-[12px] text-emerald-400 mt-1 font-medium">Impact: {rec.impact}</p>
               </div>
             </div>
           ))}
@@ -605,8 +605,8 @@ function FailureIntelligenceTab({ metrics }: { metrics: StudyMetrics[] }) {
       {/* Per-study failure breakdown */}
       <div className="grid grid-cols-2 gap-4">
         {metrics.map((m) => (
-          <div key={m.studyId} className="rounded-xl border border-white/[0.06] bg-card p-4">
-            <h4 className="text-[12px] font-bold text-slate-200 mb-3">{m.studyName} — Failure Analysis</h4>
+          <div key={m.studyId} className="rounded-xl border border-edge-2 bg-card p-4">
+            <h4 className="text-[12px] font-bold text-body mb-3">{m.studyName} — Failure Analysis</h4>
             <div className="flex items-center gap-4 mb-3">
               <div className="relative h-16 w-16">
                 <svg viewBox="0 0 36 36" className="h-16 w-16 -rotate-90">
@@ -624,15 +624,15 @@ function FailureIntelligenceTab({ metrics }: { metrics: StudyMetrics[] }) {
                 </span>
               </div>
               <div className="flex-1 space-y-1.5">
-                <div className="flex items-center justify-between text-[11px]">
+                <div className="flex items-center justify-between text-[12px]">
                   <span className="text-emerald-400">Eligible</span>
                   <span className="font-bold text-emerald-400">{m.eligible}</span>
                 </div>
-                <div className="flex items-center justify-between text-[11px]">
+                <div className="flex items-center justify-between text-[12px]">
                   <span className="text-purple-400">Potentially</span>
                   <span className="font-bold text-purple-400">{m.potentiallyEligible}</span>
                 </div>
-                <div className="flex items-center justify-between text-[11px]">
+                <div className="flex items-center justify-between text-[12px]">
                   <span className="text-red-400">Ineligible</span>
                   <span className="font-bold text-red-400">{m.ineligible}</span>
                 </div>
@@ -641,9 +641,9 @@ function FailureIntelligenceTab({ metrics }: { metrics: StudyMetrics[] }) {
             {m.topBlockers.length > 0 && (
               <div className="space-y-1">
                 {m.topBlockers.slice(0, 3).map((b, i) => (
-                  <div key={i} className="flex items-center gap-2 text-[10px]">
+                  <div key={i} className="flex items-center gap-2 text-[12px]">
                     <XIcon className="h-3 w-3 text-red-400 flex-shrink-0" />
-                    <span className="text-slate-500 truncate flex-1">{b.criterion.slice(0, 50)}...</span>
+                    <span className="text-dim truncate flex-1">{b.criterion.slice(0, 50)}...</span>
                     <span className="text-red-400 font-medium">{b.count}x</span>
                   </div>
                 ))}
@@ -667,7 +667,7 @@ function MultiStudyMatchingTab({ patients }: { patients: ParsedPatient[] }) {
           <GitBranch className="h-4.5 w-4.5 text-purple-400" />
           <h3 className="text-[13px] font-bold text-purple-300">Multi-Study Eligible Subjects</h3>
         </div>
-        <p className="text-[12px] text-slate-400">
+        <p className="text-[12px] text-dim">
           <span className="font-bold text-purple-400">{matches.length} subjects</span> are eligible for multiple studies simultaneously.
           Cross-enrolling maximizes per-subject revenue and reduces recruitment costs.
         </p>
@@ -676,35 +676,35 @@ function MultiStudyMatchingTab({ patients }: { patients: ParsedPatient[] }) {
       {/* Match Cards */}
       <div className="space-y-3">
         {matches.map((match) => (
-          <div key={match.mrn} className="rounded-xl border border-white/[0.06] bg-card p-4">
+          <div key={match.mrn} className="rounded-xl border border-edge-2 bg-card p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-500/10 ring-1 ring-purple-500/20">
                   <Users className="h-4 w-4 text-purple-400" />
                 </div>
                 <div>
-                  <span className="text-[13px] font-semibold text-white">{match.name}</span>
-                  <span className="ml-2 text-[11px] font-mono text-slate-500">{match.mrn}</span>
+                  <span className="text-[13px] font-semibold text-heading">{match.name}</span>
+                  <span className="ml-2 text-[12px] font-mono text-dim">{match.mrn}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="rounded-full bg-purple-500/10 px-2.5 py-0.5 text-[11px] font-bold text-purple-400 ring-1 ring-purple-500/20">
+                <span className="rounded-full bg-purple-500/10 px-2.5 py-0.5 text-[12px] font-bold text-purple-400 ring-1 ring-purple-500/20">
                   {match.studies.length} studies
                 </span>
-                <span className="text-[11px] font-bold text-emerald-400">
+                <span className="text-[12px] font-bold text-emerald-400">
                   ${Math.round(match.studies.reduce((sum, s) => sum + (STUDY_REVENUE[s.id] ?? 25000), 0) / 1000)}K value
                 </span>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-2">
               {match.studies.map((study) => (
-                <div key={study.id} className="rounded-lg bg-white/[0.03] px-3 py-2 ring-1 ring-white/[0.06]">
-                  <span className="text-[11px] font-semibold text-slate-200 block">{study.name}</span>
+                <div key={study.id} className="rounded-lg bg-surface-2 px-3 py-2 ring-1 ring-edge-2">
+                  <span className="text-[12px] font-semibold text-body block">{study.name}</span>
                   <div className="mt-1 flex items-center gap-2">
-                    <div className="h-1 flex-1 rounded-full bg-white/[0.06]">
+                    <div className="h-1 flex-1 rounded-full bg-surface-3">
                       <div className={`h-full rounded-full ${study.status === "eligible" ? "bg-emerald-500" : "bg-purple-500"}`} style={{ width: `${study.score}%` }} />
                     </div>
-                    <span className={`text-[10px] font-bold ${study.status === "eligible" ? "text-emerald-400" : "text-purple-400"}`}>
+                    <span className={`text-[12px] font-bold ${study.status === "eligible" ? "text-emerald-400" : "text-purple-400"}`}>
                       {study.score}
                     </span>
                   </div>
@@ -718,11 +718,11 @@ function MultiStudyMatchingTab({ patients }: { patients: ParsedPatient[] }) {
         ))}
 
         {matches.length === 0 && (
-          <div className="flex h-48 items-center justify-center rounded-xl border border-white/[0.06] bg-card">
+          <div className="flex h-48 items-center justify-center rounded-xl border border-edge-2 bg-card">
             <div className="text-center">
-              <GitBranch className="mx-auto h-8 w-8 text-slate-600 mb-2" />
-              <p className="text-[13px] text-slate-500">No cross-study matches found</p>
-              <p className="text-[11px] text-slate-600">Import more subject data to find multi-study candidates</p>
+              <GitBranch className="mx-auto h-8 w-8 text-dim mb-2" />
+              <p className="text-[13px] text-dim">No cross-study matches found</p>
+              <p className="text-[12px] text-dim">Import more subject data to find multi-study candidates</p>
             </div>
           </div>
         )}
@@ -734,9 +734,9 @@ function MultiStudyMatchingTab({ patients }: { patients: ParsedPatient[] }) {
 function PerformanceInfoModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-2xl border border-white/[0.08] bg-[#12141c] shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-emerald-600/20 via-cyan-600/10 to-transparent px-6 py-5 border-b border-white/[0.06]">
-          <button onClick={onClose} className="absolute right-4 top-4 rounded-lg p-1 text-slate-400 hover:bg-white/[0.1] hover:text-white">
+      <div className="w-full max-w-lg rounded-2xl border border-edge-3 bg-card shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-emerald-600/20 via-cyan-600/10 to-transparent px-6 py-5 border-b border-edge-2">
+          <button onClick={onClose} className="absolute right-4 top-4 rounded-lg p-1 text-dim hover:bg-surface-5 hover:text-heading">
             <XIcon className="h-4 w-4" />
           </button>
           <div className="flex items-center gap-3">
@@ -744,7 +744,7 @@ function PerformanceInfoModal({ onClose }: { onClose: () => void }) {
               <TrendingUp className="h-6 w-6 text-emerald-400" />
             </div>
             <div>
-              <h3 className="text-[16px] font-bold text-white">Site Performance Intelligence</h3>
+              <h3 className="text-[16px] font-bold text-heading">Site Performance Intelligence</h3>
               <p className="text-[12px] text-emerald-300/70">Data-driven insights to win more studies and maximize revenue</p>
             </div>
           </div>
@@ -758,17 +758,17 @@ function PerformanceInfoModal({ onClose }: { onClose: () => void }) {
             { icon: <Award className="h-4 w-4 text-amber-400" />, title: "Competitive Benchmarking", desc: "Track your screen pass rates, enrollment velocity, and conversion metrics. Use these numbers to demonstrate site capability to sponsors." },
           ].map((item) => (
             <div key={item.title} className="flex gap-3">
-              <div className="mt-0.5 rounded-lg bg-white/[0.04] p-2 ring-1 ring-white/[0.06]">{item.icon}</div>
+              <div className="mt-0.5 rounded-lg bg-surface-2 p-2 ring-1 ring-edge-2">{item.icon}</div>
               <div>
-                <h4 className="text-[13px] font-semibold text-slate-200">{item.title}</h4>
-                <p className="text-[11px] text-slate-500 leading-relaxed">{item.desc}</p>
+                <h4 className="text-[13px] font-semibold text-body">{item.title}</h4>
+                <p className="text-[12px] text-dim leading-relaxed">{item.desc}</p>
               </div>
             </div>
           ))}
 
-          <div className="rounded-lg bg-white/[0.02] px-4 py-3 ring-1 ring-white/[0.06]">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">The Bottom Line</p>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
+          <div className="rounded-lg bg-surface-1 px-4 py-3 ring-1 ring-edge-2">
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-1.5">The Bottom Line</p>
+            <p className="text-[12px] text-dim leading-relaxed">
               Sponsors select sites based on metrics. Sites that can demonstrate strong screen pass rates, fast enrollment velocity, and diverse subject populations win more studies. This dashboard gives you the data to prove it.
             </p>
           </div>

@@ -1,5 +1,5 @@
 import { formatCurrency, formatCurrencyCompact } from "./formatters";
-import { exportPrintableHTML } from "./pdf-export";
+import { exportPrintableHTML, type ExportResult } from "./pdf-export";
 
 interface PitchStudy {
   nctNumber: string | null;
@@ -20,7 +20,7 @@ interface PitchStudy {
 /**
  * Generate a professional sponsor pitch document and open it for print/PDF export.
  */
-export function generatePitchPDF(study: PitchStudy): void {
+export async function generatePitchPDF(study: PitchStudy): Promise<ExportResult> {
   const projectedRevenue = Math.round(
     study.eligibleCount * (study.estimatedPerPatientValueCents ?? 0) * 0.3,
   );
@@ -469,5 +469,5 @@ export function generatePitchPDF(study: PitchStudy): void {
 </html>`;
 
   const slug = (study.shortTitle ?? study.nctNumber ?? "study").replace(/\s+/g, "-").toLowerCase();
-  void exportPrintableHTML(html, `pitch-${slug}`);
+  return exportPrintableHTML(html, `pitch-${slug}`);
 }

@@ -99,22 +99,22 @@ export function KeyboardShortcutsOverlay() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ type: "spring", damping: 30, stiffness: 400 }}
-            className="fixed left-1/2 top-1/2 z-[9993] w-[640px] max-h-[80vh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl bg-[#131825]/98 ring-1 ring-white/10 shadow-2xl shadow-black/40 backdrop-blur-2xl"
+            className="fixed left-1/2 top-1/2 z-[9993] w-[640px] max-h-[80vh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl bg-card/98 ring-1 ring-white/10 shadow-2xl shadow-black/40 backdrop-blur-2xl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-3.5">
+            <div className="flex items-center justify-between border-b border-edge-2 px-5 py-3.5">
               <div className="flex items-center gap-2.5">
                 <div className="flex items-center justify-center rounded-lg bg-indigo-500/15 p-2">
                   <Command className="h-4 w-4 text-indigo-400" />
                 </div>
                 <div>
-                  <h2 className="text-[14px] font-semibold text-white">Keyboard Shortcuts</h2>
-                  <p className="text-[10px] text-slate-500">Navigate faster with keyboard commands</p>
+                  <h2 className="text-[14px] font-semibold text-heading">Keyboard Shortcuts</h2>
+                  <p className="text-[12px] text-dim">Navigate faster with keyboard commands</p>
                 </div>
               </div>
               <button
                 onClick={() => setOpen(false)}
-                className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-white/5 hover:text-slate-300"
+                className="rounded-lg p-1.5 text-dim transition-colors hover:bg-white/5 hover:text-body"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -125,21 +125,21 @@ export function KeyboardShortcutsOverlay() {
               <div className="grid grid-cols-2 gap-6">
                 {shortcutGroups.map((group) => (
                   <div key={group.title}>
-                    <h3 className="mb-2.5 text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                    <h3 className="mb-2.5 text-[12px] font-semibold uppercase tracking-widest text-dim">
                       {group.title}
                     </h3>
                     <div className="space-y-1">
                       {group.shortcuts.map((shortcut, i) => (
                         <div
                           key={i}
-                          className="flex items-center justify-between rounded-lg px-2.5 py-1.5 transition-colors hover:bg-white/[0.03]"
+                          className="flex items-center justify-between rounded-lg px-2.5 py-1.5 transition-colors hover:bg-surface-2"
                         >
-                          <span className="text-[12px] text-slate-400">{shortcut.description}</span>
+                          <span className="text-[12px] text-dim">{shortcut.description}</span>
                           <div className="flex items-center gap-1">
                             {shortcut.keys.map((key, j) => (
                               <span key={j}>
-                                {j > 0 && <span className="mx-0.5 text-[9px] text-slate-600">+</span>}
-                                <kbd className="inline-flex min-w-[22px] items-center justify-center rounded-md bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-medium text-slate-400 ring-1 ring-white/[0.08]">
+                                {j > 0 && <span className="mx-0.5 text-[9px] text-dim">+</span>}
+                                <kbd className="inline-flex min-w-[22px] items-center justify-center rounded-md bg-surface-3 px-1.5 py-0.5 text-[12px] font-medium text-dim ring-1 ring-edge-3">
                                   {key}
                                 </kbd>
                               </span>
@@ -154,9 +154,9 @@ export function KeyboardShortcutsOverlay() {
             </div>
 
             {/* Footer */}
-            <div className="border-t border-white/[0.06] px-5 py-2.5 text-center">
-              <p className="text-[10px] text-slate-600">
-                Press <kbd className="rounded bg-white/[0.06] px-1 py-0.5 text-[9px] text-slate-400 ring-1 ring-white/[0.08]">?</kbd> to toggle this overlay
+            <div className="border-t border-edge-2 px-5 py-2.5 text-center">
+              <p className="text-[12px] text-dim">
+                Press <kbd className="rounded bg-surface-3 px-1 py-0.5 text-[9px] text-dim ring-1 ring-edge-3">?</kbd> to toggle this overlay
               </p>
             </div>
           </motion.div>

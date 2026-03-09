@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  /* Dark clinical theme */
+  /* ═══ Dark clinical theme (default) ═══ */
   --color-background: #0c0f17;
   --color-foreground: #e2e8f0;
   --color-card: #141824;
@@ -11,17 +11,37 @@
   --color-primary: #6366f1;
   --color-primary-foreground: #ffffff;
   --color-secondary: #1e2433;
-  --color-secondary-foreground: #cbd5e1;
+  --color-secondary-foreground: #e2e8f0;
   --color-muted: #1a1f2e;
-  --color-muted-foreground: #64748b;
+  --color-muted-foreground: #94a3b8;
   --color-accent: #1e2a3a;
-  --color-accent-foreground: #94a3b8;
+  --color-accent-foreground: #cbd5e1;
   --color-destructive: #ef4444;
   --color-destructive-foreground: #fef2f2;
   --color-border: #1e293b;
   --color-input: #1e293b;
   --color-ring: #6366f1;
   --radius: 0.5rem;
+
+  /* ═══ Semantic surface tokens ═══ */
+  /* Surface overlays — replace bg-white/[opacity] */
+  --color-surface-1: rgba(255, 255, 255, 0.02);
+  --color-surface-2: rgba(255, 255, 255, 0.04);
+  --color-surface-3: rgba(255, 255, 255, 0.06);
+  --color-surface-4: rgba(255, 255, 255, 0.08);
+  --color-surface-5: rgba(255, 255, 255, 0.10);
+
+  /* Edge borders/rings — replace ring-white/[opacity] */
+  --color-edge-1: rgba(255, 255, 255, 0.04);
+  --color-edge-2: rgba(255, 255, 255, 0.06);
+  --color-edge-3: rgba(255, 255, 255, 0.08);
+  --color-edge-4: rgba(255, 255, 255, 0.10);
+
+  /* Text hierarchy tokens */
+  --color-heading: #ffffff;
+  --color-body: #e2e8f0;
+  --color-dim: #94a3b8;
+  --color-faint: #64748b;
 
   /* Clinical status colors */
   --color-status-met: #10b981;
@@ -37,6 +57,48 @@
 
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "SF Mono", "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* ═══ Light mode overrides ═══ */
+.light {
+  --color-background: #f8fafc;
+  --color-foreground: #0f172a;
+  --color-card: #ffffff;
+  --color-card-foreground: #0f172a;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0f172a;
+  --color-primary: #4f46e5;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #f1f5f9;
+  --color-secondary-foreground: #334155;
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
+  --color-accent: #e2e8f0;
+  --color-accent-foreground: #1e293b;
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #fef2f2;
+  --color-border: #e2e8f0;
+  --color-input: #e2e8f0;
+  --color-ring: #4f46e5;
+
+  /* Surface overlays — subtle dark tint on white */
+  --color-surface-1: rgba(0, 0, 0, 0.02);
+  --color-surface-2: rgba(0, 0, 0, 0.03);
+  --color-surface-3: rgba(0, 0, 0, 0.05);
+  --color-surface-4: rgba(0, 0, 0, 0.07);
+  --color-surface-5: rgba(0, 0, 0, 0.09);
+
+  /* Edge borders/rings */
+  --color-edge-1: rgba(0, 0, 0, 0.06);
+  --color-edge-2: rgba(0, 0, 0, 0.08);
+  --color-edge-3: rgba(0, 0, 0, 0.10);
+  --color-edge-4: rgba(0, 0, 0, 0.12);
+
+  /* Text hierarchy */
+  --color-heading: #0f172a;
+  --color-body: #334155;
+  --color-dim: #64748b;
+  --color-faint: #94a3b8;
 }
 
 @layer base {
@@ -55,12 +117,12 @@
   /* Select dropdown options */
   option {
     font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
-    background: #1a1f2e;
-    color: #e2e8f0;
+    background: var(--color-popover);
+    color: var(--color-foreground);
     padding: 8px;
   }
 
-  /* Custom scrollbar for dark theme */
+  /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -74,6 +136,12 @@
   }
   ::-webkit-scrollbar-thumb:hover {
     background: #475569;
+  }
+  .light ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+  }
+  .light ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
   }
 
   /* Glow effects */
@@ -204,5 +272,46 @@
   }
   .animate-bar-fill {
     animation: bar-fill 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+
+  /* Shared input field style for forms */
+  .input-field {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    color: var(--color-foreground);
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-edge-3);
+    border-radius: 0.5rem;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .input-field::placeholder {
+    color: var(--color-faint);
+  }
+  .input-field:focus {
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+
+  /* Always-dark context (splash, setup, unlock, error boundary) */
+  .dark-always {
+    --color-background: #0c0f17;
+    --color-foreground: #e2e8f0;
+    --color-card: #141824;
+    --color-popover: #1a1f2e;
+    --color-border: #1e293b;
+    --color-surface-1: rgba(255, 255, 255, 0.02);
+    --color-surface-2: rgba(255, 255, 255, 0.04);
+    --color-surface-3: rgba(255, 255, 255, 0.06);
+    --color-surface-4: rgba(255, 255, 255, 0.08);
+    --color-edge-1: rgba(255, 255, 255, 0.04);
+    --color-edge-2: rgba(255, 255, 255, 0.06);
+    --color-edge-3: rgba(255, 255, 255, 0.08);
+    --color-heading: #ffffff;
+    --color-body: #e2e8f0;
+    --color-dim: #94a3b8;
+    --color-faint: #64748b;
   }
 }

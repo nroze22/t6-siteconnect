@@ -78,13 +78,13 @@ export function OverrideModal() {
         <div className="p-5">
           {/* Criterion text */}
           <div className="rounded-lg bg-muted/50 p-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">
               {criterion.criterionType === "inclusion" ? "Inclusion" : "Exclusion"} Criterion
             </p>
             <p className="mt-1 text-xs leading-relaxed text-foreground">
               {criterion.criterionText}
             </p>
-            <p className="mt-2 text-[10px] text-muted-foreground">
+            <p className="mt-2 text-[12px] text-muted-foreground">
               Current result:{" "}
               <span className="font-semibold">
                 {criterion.result === "met" ? "Met" : criterion.result === "not_met" ? "Not Met" : criterion.result === "unknown" ? "Unknown" : "Needs Review"}
@@ -132,7 +132,7 @@ export function OverrideModal() {
           {/* Audit warning */}
           <div className="mt-3 flex items-start gap-2 rounded-lg bg-amber-50 p-3">
             <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
-            <p className="text-[10px] leading-relaxed text-amber-800">
+            <p className="text-[12px] leading-relaxed text-amber-800">
               This override will be logged in the audit trail with your identity, timestamp, and justification.
               All overrides are permanent records and cannot be deleted.
             </p>

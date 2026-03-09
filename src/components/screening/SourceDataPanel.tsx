@@ -47,11 +47,11 @@ export function SourceDataPanel() {
   if (!selectedPatientId || !clinicalData) {
     return (
       <div className="flex h-full flex-col items-center justify-center bg-card p-8 text-center">
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/[0.03] ring-1 ring-white/[0.06]">
-          <Table2 className="h-6 w-6 text-slate-600" />
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-2 ring-1 ring-edge-2">
+          <Table2 className="h-6 w-6 text-dim" />
         </div>
-        <p className="text-[13px] font-semibold text-slate-300">Source Data</p>
-        <p className="mt-1.5 max-w-[200px] text-[11px] leading-relaxed text-slate-500">
+        <p className="text-[13px] font-semibold text-body">Source Data</p>
+        <p className="mt-1.5 max-w-[200px] text-[12px] leading-relaxed text-dim">
           When you select a subject, their clinical records appear here. Click any criterion to highlight matching evidence.
         </p>
       </div>
@@ -63,7 +63,7 @@ export function SourceDataPanel() {
   return (
     <div className="flex h-full flex-col bg-card">
       {/* Tab bar */}
-      <div className="flex border-b border-border bg-[#0e1119]">
+      <div className="flex border-b border-border bg-background">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const hasHighlight = highlightTab === tab.id && !isActive;
@@ -71,10 +71,10 @@ export function SourceDataPanel() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative flex-1 px-1 py-2.5 text-[10px] font-medium transition-colors ${
+              className={`relative flex-1 px-1 py-2.5 text-[12px] font-medium transition-colors ${
                 isActive
                   ? "text-indigo-400 border-b-2 border-indigo-500"
-                  : "text-slate-500 hover:text-slate-300"
+                  : "text-dim hover:text-body"
               }`}
             >
               {tab.label}
@@ -90,7 +90,7 @@ export function SourceDataPanel() {
       {selectedCriterion && selectedCriterion.evidence && highlightTab && (
         <div className="flex items-center gap-2 border-b border-border bg-indigo-500/5 px-3 py-2">
           <ArrowRight className="h-3 w-3 text-indigo-400" />
-          <p className="truncate text-[10px] text-indigo-300/80">
+          <p className="truncate text-[12px] text-indigo-300/80">
             Evidence for: <span className="font-medium text-indigo-300">{selectedCriterion.criterionText.slice(0, 60)}{selectedCriterion.criterionText.length > 60 ? "..." : ""}</span>
           </p>
         </div>
@@ -98,7 +98,7 @@ export function SourceDataPanel() {
       {selectedCriterion && (!selectedCriterion.evidence || !highlightTab) && (
         <div className="flex items-center gap-2 border-b border-border bg-amber-500/5 px-3 py-2">
           <span className="h-1.5 w-1.5 rounded-full bg-amber-400/60" />
-          <p className="truncate text-[10px] text-amber-300/70">
+          <p className="truncate text-[12px] text-amber-300/70">
             No structured evidence found for: <span className="font-medium text-amber-300/80">{selectedCriterion.criterionText.slice(0, 50)}{selectedCriterion.criterionText.length > 50 ? "..." : ""}</span>
           </p>
         </div>
@@ -127,7 +127,7 @@ export function SourceDataPanel() {
       <div className="border-t border-border p-3">
         <button
           onClick={() => setStudyDetailOpen(true)}
-          className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] py-2.5 text-[11px] font-medium text-slate-400 transition-all hover:bg-white/[0.06] hover:text-slate-200"
+          className="w-full rounded-lg border border-edge-3 bg-surface-2 py-2.5 text-[12px] font-medium text-dim transition-all hover:bg-surface-3 hover:text-body"
         >
           View Study Details
         </button>
@@ -155,9 +155,9 @@ function DemographicsTab({ patientId, isHighlighted }: { patientId: string; isHi
       <table className="w-full text-[12px]">
         <tbody>
           {rows.map(([label, value]) => (
-            <tr key={label} className={`border-b border-white/[0.04] ${isHighlighted ? "bg-amber-500/5" : ""}`}>
-              <td className="py-2.5 pr-3 font-medium text-slate-500">{label}</td>
-              <td className="py-2.5 font-mono text-slate-200">{value}</td>
+            <tr key={label} className={`border-b border-edge-1 ${isHighlighted ? "bg-amber-500/5" : ""}`}>
+              <td className="py-2.5 pr-3 font-medium text-dim">{label}</td>
+              <td className="py-2.5 font-mono text-body">{value}</td>
             </tr>
           ))}
         </tbody>
@@ -169,13 +169,13 @@ function DemographicsTab({ patientId, isHighlighted }: { patientId: string; isHi
 function DiagnosesTab({ diagnoses, isHighlighted, evidence }: { diagnoses: Diagnosis[]; isHighlighted: boolean; evidence: string | null | undefined }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-[11px]">
+      <table className="w-full text-[12px]">
         <thead>
-          <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-            <th className="px-3 py-2 text-left font-semibold text-slate-500">ICD-10</th>
-            <th className="px-3 py-2 text-left font-semibold text-slate-500">Description</th>
-            <th className="px-3 py-2 text-left font-semibold text-slate-500">Date</th>
-            <th className="px-3 py-2 text-left font-semibold text-slate-500">Status</th>
+          <tr className="border-b border-edge-2 bg-surface-1">
+            <th className="px-3 py-2 text-left font-semibold text-dim">ICD-10</th>
+            <th className="px-3 py-2 text-left font-semibold text-dim">Description</th>
+            <th className="px-3 py-2 text-left font-semibold text-dim">Date</th>
+            <th className="px-3 py-2 text-left font-semibold text-dim">Status</th>
           </tr>
         </thead>
         <tbody>
@@ -187,14 +187,14 @@ function DiagnosesTab({ diagnoses, isHighlighted, evidence }: { diagnoses: Diagn
             return (
               <tr
                 key={dx.id}
-                className={`border-b border-white/[0.04] transition-colors ${isMatch ? "bg-amber-500/10 ring-1 ring-inset ring-amber-500/20" : ""}`}
+                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-amber-500/10 ring-1 ring-inset ring-amber-500/20" : ""}`}
               >
-                <td className="px-3 py-2 font-mono font-semibold text-slate-200">{dx.icd10Code}</td>
-                <td className="px-3 py-2 text-slate-300">{dx.description}</td>
-                <td className="px-3 py-2 text-slate-500">{dx.onsetDate}</td>
+                <td className="px-3 py-2 font-mono font-semibold text-body">{dx.icd10Code}</td>
+                <td className="px-3 py-2 text-body">{dx.description}</td>
+                <td className="px-3 py-2 text-dim">{dx.onsetDate}</td>
                 <td className="px-3 py-2">
                   <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-semibold ${
-                    dx.status === "active" ? "bg-emerald-500/10 text-emerald-400" : "bg-white/[0.04] text-slate-500"
+                    dx.status === "active" ? "bg-emerald-500/10 text-emerald-400" : "bg-surface-2 text-dim"
                   }`}>
                     {dx.status}
                   </span>
@@ -211,13 +211,13 @@ function DiagnosesTab({ diagnoses, isHighlighted, evidence }: { diagnoses: Diagn
 function MedicationsTab({ medications, isHighlighted, evidence }: { medications: Medication[]; isHighlighted: boolean; evidence: string | null | undefined }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-[11px]">
+      <table className="w-full text-[12px]">
         <thead>
-          <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-            <th className="px-3 py-2 text-left font-semibold text-slate-500">Drug</th>
-            <th className="px-3 py-2 text-left font-semibold text-slate-500">Dose</th>
-            <th className="px-3 py-2 text-left font-semibold text-slate-500">Freq</th>
-            <th className="px-3 py-2 text-left font-semibold text-slate-500">Status</th>
+          <tr className="border-b border-edge-2 bg-surface-1">
+            <th className="px-3 py-2 text-left font-semibold text-dim">Drug</th>
+            <th className="px-3 py-2 text-left font-semibold text-dim">Dose</th>
+            <th className="px-3 py-2 text-left font-semibold text-dim">Freq</th>
+            <th className="px-3 py-2 text-left font-semibold text-dim">Status</th>
           </tr>
         </thead>
         <tbody>
@@ -227,14 +227,14 @@ function MedicationsTab({ medications, isHighlighted, evidence }: { medications:
             return (
               <tr
                 key={med.id}
-                className={`border-b border-white/[0.04] transition-colors ${isMatch ? "bg-amber-500/10 ring-1 ring-inset ring-amber-500/20" : ""}`}
+                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-amber-500/10 ring-1 ring-inset ring-amber-500/20" : ""}`}
               >
-                <td className="px-3 py-2 font-semibold text-slate-200">{med.drugName}</td>
-                <td className="px-3 py-2 font-mono text-slate-300">{med.dose}</td>
-                <td className="px-3 py-2 text-slate-500">{med.frequency}</td>
+                <td className="px-3 py-2 font-semibold text-body">{med.drugName}</td>
+                <td className="px-3 py-2 font-mono text-body">{med.dose}</td>
+                <td className="px-3 py-2 text-dim">{med.frequency}</td>
                 <td className="px-3 py-2">
                   <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-semibold ${
-                    med.status === "active" ? "bg-emerald-500/10 text-emerald-400" : "bg-white/[0.04] text-slate-500"
+                    med.status === "active" ? "bg-emerald-500/10 text-emerald-400" : "bg-surface-2 text-dim"
                   }`}>
                     {med.status}
                   </span>
@@ -251,14 +251,14 @@ function MedicationsTab({ medications, isHighlighted, evidence }: { medications:
 function LabsTab({ labs, isHighlighted, evidence }: { labs: LabResult[]; isHighlighted: boolean; evidence: string | null | undefined }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-[11px]">
+      <table className="w-full text-[12px]">
         <thead>
-          <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-            <th className="px-3 py-2 text-left font-semibold text-slate-500">Test</th>
-            <th className="px-3 py-2 text-right font-semibold text-slate-500">Value</th>
-            <th className="px-3 py-2 text-left font-semibold text-slate-500">Unit</th>
-            <th className="px-3 py-2 text-left font-semibold text-slate-500">Ref</th>
-            <th className="px-3 py-2 text-left font-semibold text-slate-500">Date</th>
+          <tr className="border-b border-edge-2 bg-surface-1">
+            <th className="px-3 py-2 text-left font-semibold text-dim">Test</th>
+            <th className="px-3 py-2 text-right font-semibold text-dim">Value</th>
+            <th className="px-3 py-2 text-left font-semibold text-dim">Unit</th>
+            <th className="px-3 py-2 text-left font-semibold text-dim">Ref</th>
+            <th className="px-3 py-2 text-left font-semibold text-dim">Date</th>
           </tr>
         </thead>
         <tbody>
@@ -268,15 +268,15 @@ function LabsTab({ labs, isHighlighted, evidence }: { labs: LabResult[]; isHighl
             return (
               <tr
                 key={lab.id}
-                className={`border-b border-white/[0.04] transition-colors ${isMatch ? "bg-amber-500/10 ring-1 ring-inset ring-amber-500/20" : ""}`}
+                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-amber-500/10 ring-1 ring-inset ring-amber-500/20" : ""}`}
               >
-                <td className="px-3 py-2 font-semibold text-slate-200">{lab.testName}</td>
-                <td className="px-3 py-2 text-right font-mono font-bold text-slate-200">
+                <td className="px-3 py-2 font-semibold text-body">{lab.testName}</td>
+                <td className="px-3 py-2 text-right font-mono font-bold text-body">
                   {lab.value != null ? lab.value.toLocaleString() : "\u2014"}
                 </td>
-                <td className="px-3 py-2 text-slate-500">{lab.unit}</td>
-                <td className="px-3 py-2 text-[10px] text-slate-600">{lab.referenceRange}</td>
-                <td className="px-3 py-2 text-slate-500">{lab.resultDate}</td>
+                <td className="px-3 py-2 text-dim">{lab.unit}</td>
+                <td className="px-3 py-2 text-[12px] text-dim">{lab.referenceRange}</td>
+                <td className="px-3 py-2 text-dim">{lab.resultDate}</td>
               </tr>
             );
           })}
@@ -299,27 +299,27 @@ function VitalsTab({ vitals, isHighlighted }: { vitals: VitalSign[]; isHighlight
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-[11px]">
+      <table className="w-full text-[12px]">
         <thead>
-          <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-            <th className="px-3 py-2 text-left font-semibold text-slate-500">Measurement</th>
-            <th className="px-3 py-2 text-right font-semibold text-slate-500">Value</th>
-            <th className="px-3 py-2 text-left font-semibold text-slate-500">Unit</th>
-            <th className="px-3 py-2 text-left font-semibold text-slate-500">Date</th>
+          <tr className="border-b border-edge-2 bg-surface-1">
+            <th className="px-3 py-2 text-left font-semibold text-dim">Measurement</th>
+            <th className="px-3 py-2 text-right font-semibold text-dim">Value</th>
+            <th className="px-3 py-2 text-left font-semibold text-dim">Unit</th>
+            <th className="px-3 py-2 text-left font-semibold text-dim">Date</th>
           </tr>
         </thead>
         <tbody>
           {vitals.map((v) => (
             <tr
               key={v.id}
-              className={`border-b border-white/[0.04] ${isHighlighted ? "bg-amber-500/5" : ""}`}
+              className={`border-b border-edge-1 ${isHighlighted ? "bg-amber-500/5" : ""}`}
             >
-              <td className="px-3 py-2 font-semibold text-slate-200">
+              <td className="px-3 py-2 font-semibold text-body">
                 {typeLabels[v.measurementType] ?? v.measurementType}
               </td>
-              <td className="px-3 py-2 text-right font-mono font-bold text-slate-200">{v.value}</td>
-              <td className="px-3 py-2 text-slate-500">{v.unit}</td>
-              <td className="px-3 py-2 text-slate-500">{v.measurementDate}</td>
+              <td className="px-3 py-2 text-right font-mono font-bold text-body">{v.value}</td>
+              <td className="px-3 py-2 text-dim">{v.unit}</td>
+              <td className="px-3 py-2 text-dim">{v.measurementDate}</td>
             </tr>
           ))}
         </tbody>

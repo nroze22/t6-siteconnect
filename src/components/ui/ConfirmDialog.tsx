@@ -73,19 +73,19 @@ export function ConfirmDialog({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: "spring", damping: 25, stiffness: 350 }}
-            className="fixed left-1/2 top-1/2 z-[9995] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-[#131825]/98 p-6 ring-1 ring-white/10 shadow-2xl shadow-black/40 backdrop-blur-2xl"
+            className="fixed left-1/2 top-1/2 z-[9995] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-card/98 p-6 ring-1 ring-white/10 shadow-2xl shadow-black/40 backdrop-blur-2xl"
           >
             <div className="flex items-start gap-4">
               <div className={`shrink-0 flex items-center justify-center rounded-xl p-2.5 ring-1 ${v.iconBg}`}>
                 {v.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-[14px] font-semibold text-white">{title}</h3>
-                <p className="mt-1.5 text-[12px] leading-relaxed text-slate-400">{description}</p>
+                <h3 className="text-[14px] font-semibold text-heading">{title}</h3>
+                <p className="mt-1.5 text-[12px] leading-relaxed text-dim">{description}</p>
               </div>
               <button
                 onClick={onCancel}
-                className="shrink-0 rounded-lg p-1 text-slate-500 transition-colors hover:bg-white/5 hover:text-slate-300"
+                className="shrink-0 rounded-lg p-1 text-dim transition-colors hover:bg-white/5 hover:text-body"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -94,7 +94,7 @@ export function ConfirmDialog({
             <div className="mt-6 flex items-center justify-end gap-2.5">
               <button
                 onClick={onCancel}
-                className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-[12px] font-medium text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-200"
+                className="rounded-lg border border-edge-3 bg-surface-2 px-4 py-2 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body"
               >
                 {cancelLabel}
               </button>

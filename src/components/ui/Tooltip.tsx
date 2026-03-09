@@ -36,10 +36,10 @@ export function Tooltip({ content, shortcut, side = "top", delay = 400, classNam
         <div
           className={`absolute z-[9999] whitespace-nowrap animate-[tooltip-in_0.12s_ease-out] ${positionClasses[side] ?? positionClasses["top"]}`}
         >
-          <div className="flex items-center gap-2 rounded-lg bg-[#1a2036]/98 px-2.5 py-1.5 text-[11px] font-medium text-slate-300 shadow-xl shadow-black/30 ring-1 ring-white/10 backdrop-blur-xl">
+          <div className="flex items-center gap-2 rounded-lg bg-popover/98 px-2.5 py-1.5 text-[12px] font-medium text-body shadow-xl shadow-black/30 ring-1 ring-white/10 backdrop-blur-xl">
             <span>{content}</span>
             {shortcut && (
-              <kbd className="rounded bg-white/[0.08] px-1 py-0.5 text-[9px] text-slate-500 ring-1 ring-white/[0.06]">
+              <kbd className="rounded bg-surface-4 px-1 py-0.5 text-[9px] text-dim ring-1 ring-edge-2">
                 {shortcut}
               </kbd>
             )}

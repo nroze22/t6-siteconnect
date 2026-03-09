@@ -56,23 +56,23 @@ export function StudyDetailModal() {
       />
 
       {/* Modal */}
-      <div className="relative z-10 mx-4 flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141824] shadow-2xl shadow-black/40">
+      <div className="relative z-10 mx-4 flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-edge-3 bg-card shadow-2xl shadow-black/40">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-white/[0.06] bg-gradient-to-r from-indigo-500/5 to-transparent p-5">
+        <div className="flex items-start justify-between border-b border-edge-2 bg-gradient-to-r from-indigo-500/5 to-transparent p-5">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <FlaskConical className="h-5 w-5 text-indigo-400" />
-              <span className="rounded-md bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 ring-1 ring-emerald-500/20">
+              <span className="rounded-md bg-emerald-500/15 px-2.5 py-0.5 text-[12px] font-bold text-emerald-400 ring-1 ring-emerald-500/20">
                 {STUDY_INFO.phase}
               </span>
-              <span className="font-mono text-xs text-slate-500">
+              <span className="font-mono text-xs text-dim">
                 {STUDY_INFO.nctNumber}
               </span>
             </div>
-            <h2 className="mt-2 text-base font-bold text-white">
+            <h2 className="mt-2 text-base font-bold text-heading">
               {STUDY_INFO.shortTitle}
             </h2>
-            <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-dim">
               <Building2 className="h-3 w-3" />
               {STUDY_INFO.sponsor} &middot; {STUDY_INFO.therapeuticArea} &middot;{" "}
               {STUDY_INFO.indication}
@@ -80,7 +80,7 @@ export function StudyDetailModal() {
           </div>
           <button
             onClick={() => setOpen(false)}
-            className="ml-4 rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-white/[0.04] hover:text-slate-300"
+            className="ml-4 rounded-lg p-1.5 text-dim transition-colors hover:bg-surface-2 hover:text-body"
           >
             <X className="h-5 w-5" />
           </button>
@@ -89,10 +89,10 @@ export function StudyDetailModal() {
         {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto p-5">
           {/* Summary */}
-          <p className="text-sm leading-relaxed text-slate-400">
+          <p className="text-sm leading-relaxed text-dim">
             {STUDY_INFO.summary}
           </p>
-          <p className="mt-2 text-xs leading-relaxed text-slate-300">
+          <p className="mt-2 text-xs leading-relaxed text-body">
             {STUDY_INFO.fullTitle}
           </p>
 
@@ -104,7 +104,7 @@ export function StudyDetailModal() {
             </h3>
             <div className="mt-3 grid grid-cols-3 gap-4">
               <div>
-                <p className="text-[10px] font-medium text-emerald-400/60">
+                <p className="text-[12px] font-medium text-emerald-400/60">
                   Per Subject Value
                 </p>
                 <p className="text-lg font-black text-emerald-400">
@@ -112,7 +112,7 @@ export function StudyDetailModal() {
                 </p>
               </div>
               <div>
-                <p className="text-[10px] font-medium text-emerald-400/60">
+                <p className="text-[12px] font-medium text-emerald-400/60">
                   Site Startup
                 </p>
                 <p className="text-lg font-black text-emerald-400">
@@ -120,7 +120,7 @@ export function StudyDetailModal() {
                 </p>
               </div>
               <div>
-                <p className="text-[10px] font-medium text-emerald-400/60">
+                <p className="text-[12px] font-medium text-emerald-400/60">
                   Payment Model
                 </p>
                 <p className="text-lg font-black text-emerald-400">
@@ -134,7 +134,7 @@ export function StudyDetailModal() {
           <div className="mt-5 grid grid-cols-2 gap-4">
             {/* Inclusion */}
             <div>
-              <h3 className="flex items-center gap-1.5 text-xs font-bold text-slate-200">
+              <h3 className="flex items-center gap-1.5 text-xs font-bold text-body">
                 <ClipboardList className="h-3.5 w-3.5 text-emerald-500" />
                 Inclusion Criteria ({STUDY_INFO.inclusionCriteria.length})
               </h3>
@@ -142,7 +142,7 @@ export function StudyDetailModal() {
                 {STUDY_INFO.inclusionCriteria.map((c, i) => (
                   <li
                     key={i}
-                    className="rounded-md bg-emerald-500/5 px-3 py-2 text-[11px] leading-relaxed text-slate-300 ring-1 ring-emerald-500/10"
+                    className="rounded-md bg-emerald-500/5 px-3 py-2 text-[12px] leading-relaxed text-body ring-1 ring-emerald-500/10"
                   >
                     {c}
                   </li>
@@ -152,7 +152,7 @@ export function StudyDetailModal() {
 
             {/* Exclusion */}
             <div>
-              <h3 className="flex items-center gap-1.5 text-xs font-bold text-slate-200">
+              <h3 className="flex items-center gap-1.5 text-xs font-bold text-body">
                 <ClipboardList className="h-3.5 w-3.5 text-red-500" />
                 Exclusion Criteria ({STUDY_INFO.exclusionCriteria.length})
               </h3>
@@ -160,7 +160,7 @@ export function StudyDetailModal() {
                 {STUDY_INFO.exclusionCriteria.map((c, i) => (
                   <li
                     key={i}
-                    className="rounded-md bg-red-500/5 px-3 py-2 text-[11px] leading-relaxed text-slate-300 ring-1 ring-red-500/10"
+                    className="rounded-md bg-red-500/5 px-3 py-2 text-[12px] leading-relaxed text-body ring-1 ring-red-500/10"
                   >
                     {c}
                   </li>
@@ -171,13 +171,13 @@ export function StudyDetailModal() {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-white/[0.06] bg-white/[0.02] px-5 py-3">
-          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+        <div className="flex items-center justify-between border-t border-edge-2 bg-surface-1 px-5 py-3">
+          <div className="flex items-center gap-1.5 text-xs text-dim">
             <Users className="h-3.5 w-3.5" />
             Currently screening {patientCount} subjects against this study
           </div>
           <div className="flex gap-2">
-            <button className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-200">
+            <button className="flex items-center gap-1.5 rounded-lg border border-edge-3 bg-surface-2 px-3 py-1.5 text-xs font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body">
               <ExternalLink className="h-3 w-3" />
               ClinicalTrials.gov
             </button>

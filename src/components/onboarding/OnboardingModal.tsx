@@ -38,13 +38,13 @@ const STEPS: OnboardingStep[] = [
           <div className="flex items-center gap-3">
             <img src="/t6logo.png" alt="Talosix" className="h-12 w-12 rounded-xl object-contain" />
             <div>
-              <h3 className="text-[15px] font-bold tracking-tight text-white">TalOS SiteConnect</h3>
-              <p className="text-[11px] text-slate-500">by Talosix</p>
+              <h3 className="text-[15px] font-bold tracking-tight text-heading">TalOS SiteConnect</h3>
+              <p className="text-[12px] text-dim">by Talosix</p>
             </div>
           </div>
         </div>
 
-        <p className="text-[13px] text-slate-300 leading-relaxed text-center">
+        <p className="text-[13px] text-body leading-relaxed text-center">
           Screen subjects, track enrollment, and generate operational intelligence — all from your EMR data, all on your machine.
         </p>
 
@@ -54,17 +54,17 @@ const STEPS: OnboardingStep[] = [
             { value: "10x", label: "Faster Screening", sub: "vs. manual chart review", color: "text-blue-400" },
             { value: "30%", label: "More Enrollment", sub: "avg. site improvement", color: "text-cyan-400" },
           ].map((stat) => (
-            <div key={stat.label} className="rounded-lg bg-white/[0.03] p-3 text-center ring-1 ring-white/[0.06]">
+            <div key={stat.label} className="rounded-lg bg-surface-2 p-3 text-center ring-1 ring-edge-2">
               <span className={`text-[20px] font-bold ${stat.color}`}>{stat.value}</span>
-              <p className="text-[11px] font-semibold text-slate-300 mt-0.5">{stat.label}</p>
-              <p className="text-[9px] text-slate-500">{stat.sub}</p>
+              <p className="text-[12px] font-semibold text-body mt-0.5">{stat.label}</p>
+              <p className="text-[9px] text-dim">{stat.sub}</p>
             </div>
           ))}
         </div>
 
         <div className="flex items-center gap-2.5 rounded-lg bg-emerald-500/5 px-4 py-2.5 ring-1 ring-emerald-500/15">
           <Lock className="h-4 w-4 text-emerald-400 flex-shrink-0" />
-          <p className="text-[11px] text-emerald-400/90 leading-relaxed">
+          <p className="text-[12px] text-emerald-400/90 leading-relaxed">
             <span className="font-semibold">HIPAA-ready:</span> AES-256 encrypted, tamper-proof audit trail. No PHI ever leaves this device.
           </p>
         </div>
@@ -83,13 +83,13 @@ const STEPS: OnboardingStep[] = [
             { num: "2", icon: <Brain className="h-4 w-4 text-indigo-400" />, bg: "bg-indigo-500/10 ring-1 ring-indigo-500/20", title: "AI Screens Every Patient", desc: "Rule-based engine + local LLM evaluate every criterion across all active studies." },
             { num: "3", icon: <CheckCircle2 className="h-4 w-4 text-emerald-400" />, bg: "bg-emerald-500/10 ring-1 ring-emerald-500/20", title: "Review & Decide", desc: "Evidence-backed recommendations. Accept, reject, or defer — with full audit trail." },
           ].map((item) => (
-            <div key={item.num} className="flex items-start gap-3 rounded-lg bg-white/[0.02] p-3 ring-1 ring-white/[0.04]">
+            <div key={item.num} className="flex items-start gap-3 rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
               <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${item.bg}`}>
                 {item.icon}
               </div>
               <div className="min-w-0">
-                <span className="text-[12px] font-semibold text-slate-200 block">{item.title}</span>
-                <span className="text-[10px] text-slate-500 leading-relaxed block mt-0.5">{item.desc}</span>
+                <span className="text-[12px] font-semibold text-body block">{item.title}</span>
+                <span className="text-[12px] text-dim leading-relaxed block mt-0.5">{item.desc}</span>
               </div>
             </div>
           ))}
@@ -97,7 +97,7 @@ const STEPS: OnboardingStep[] = [
 
         <div className="flex items-center gap-3 rounded-lg bg-blue-500/5 px-4 py-2.5 ring-1 ring-blue-500/15">
           <Zap className="h-4 w-4 text-blue-400 flex-shrink-0" />
-          <p className="text-[11px] text-slate-400 leading-relaxed">
+          <p className="text-[12px] text-dim leading-relaxed">
             Screens across <span className="font-semibold text-blue-300">all active studies simultaneously</span> — no more one-study-at-a-time chart review.
           </p>
         </div>
@@ -133,15 +133,15 @@ const STEPS: OnboardingStep[] = [
             { icon: <TrendingUp className="h-3.5 w-3.5 text-emerald-400" />, text: "Conversion analytics reveal bottlenecks so you can fix them fast" },
           ].map((item, i) => (
             <div key={i} className="flex items-start gap-2.5">
-              <div className="mt-0.5 flex-shrink-0 rounded-md bg-white/[0.04] p-1.5 ring-1 ring-white/[0.06]">{item.icon}</div>
-              <p className="text-[11px] text-slate-400 leading-relaxed">{item.text}</p>
+              <div className="mt-0.5 flex-shrink-0 rounded-md bg-surface-2 p-1.5 ring-1 ring-edge-2">{item.icon}</div>
+              <p className="text-[12px] text-dim leading-relaxed">{item.text}</p>
             </div>
           ))}
         </div>
 
         <div className="flex items-center gap-3 rounded-lg bg-indigo-500/5 px-4 py-2.5 ring-1 ring-indigo-500/15">
           <GitBranch className="h-4 w-4 text-indigo-400 flex-shrink-0" />
-          <p className="text-[11px] text-slate-400 leading-relaxed">
+          <p className="text-[12px] text-dim leading-relaxed">
             Sites lose <span className="font-semibold text-indigo-300">20-30% of eligible subjects</span> between identification and enrollment. This pipeline closes that gap.
           </p>
         </div>
@@ -180,11 +180,11 @@ const STEPS: OnboardingStep[] = [
             desc: "FDA diversity metrics, demographic breakdowns, and compliance scoring per protocol.",
           },
         ].map((item) => (
-          <div key={item.title} className="flex items-center gap-3 rounded-lg bg-white/[0.02] p-3 ring-1 ring-white/[0.04]">
+          <div key={item.title} className="flex items-center gap-3 rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
             <div className={`flex-shrink-0 rounded-lg p-2 ${item.bg}`}>{item.icon}</div>
             <div className="flex-1 min-w-0">
-              <span className="text-[12px] font-semibold text-slate-200 block">{item.title}</span>
-              <span className="text-[10px] text-slate-500 leading-relaxed block">{item.desc}</span>
+              <span className="text-[12px] font-semibold text-body block">{item.title}</span>
+              <span className="text-[12px] text-dim leading-relaxed block">{item.desc}</span>
             </div>
           </div>
         ))}
@@ -197,7 +197,7 @@ const STEPS: OnboardingStep[] = [
     subtitle: "Start screening subjects in under 60 seconds",
     content: (
       <div className="space-y-4">
-        <div className="rounded-xl bg-white/[0.02] p-4 ring-1 ring-white/[0.06] space-y-3">
+        <div className="rounded-xl bg-surface-1 p-4 ring-1 ring-edge-2 space-y-3">
           {[
             { step: 1, action: "Import Data", desc: "Drop your EMR export (CSV) into the Import page" },
             { step: 2, action: "Screen Subjects", desc: "AI screens all subjects against active trial criteria" },
@@ -205,24 +205,24 @@ const STEPS: OnboardingStep[] = [
             { step: 4, action: "Track Pipeline", desc: "Move candidates through your enrollment funnel" },
           ].map((item) => (
             <div key={item.step} className="flex items-center gap-3">
-              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-[11px] font-bold text-slate-300 ring-1 ring-white/[0.08]">
+              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-surface-3 text-[12px] font-bold text-body ring-1 ring-edge-3">
                 {item.step}
               </div>
               <div className="flex-1">
-                <span className="text-[12px] font-semibold text-slate-200">{item.action}</span>
-                <span className="text-[10px] text-slate-500 ml-1.5">{item.desc}</span>
+                <span className="text-[12px] font-semibold text-body">{item.action}</span>
+                <span className="text-[12px] text-dim ml-1.5">{item.desc}</span>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="rounded-lg bg-white/[0.02] p-4 ring-1 ring-white/[0.06]">
+        <div className="rounded-lg bg-surface-1 p-4 ring-1 ring-edge-2">
           <div className="flex items-center gap-2 mb-2">
             <Brain className="h-4 w-4 text-indigo-400" />
-            <span className="text-[12px] font-bold text-slate-200">Demo Mode Active</span>
+            <span className="text-[12px] font-bold text-body">Demo Mode Active</span>
           </div>
-          <p className="text-[11px] text-slate-400 leading-relaxed">
-            We've pre-loaded <span className="font-semibold text-white">20 realistic subjects</span> screened against <span className="font-semibold text-white">6 active trials</span> so you can explore every feature immediately. Import your own data when ready.
+          <p className="text-[12px] text-dim leading-relaxed">
+            We've pre-loaded <span className="font-semibold text-heading">20 realistic subjects</span> screened against <span className="font-semibold text-heading">6 active trials</span> so you can explore every feature immediately. Import your own data when ready.
           </p>
         </div>
       </div>
@@ -264,14 +264,14 @@ export function OnboardingModal({ onComplete }: { onComplete: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="relative w-full max-w-lg rounded-2xl border border-white/[0.06] bg-[#111318] shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-lg rounded-2xl border border-edge-2 bg-card shadow-2xl overflow-hidden">
         {/* Header — fixed height */}
         <div className="px-6 pt-6 pb-4">
           <div className="mb-4">
             <StepDots current={step} total={STEPS.length} />
           </div>
-          <h2 className="text-[17px] font-bold text-white text-center leading-tight">{current.title}</h2>
-          <p className="text-[12px] text-slate-500 text-center mt-1">{current.subtitle}</p>
+          <h2 className="text-[17px] font-bold text-heading text-center leading-tight">{current.title}</h2>
+          <p className="text-[12px] text-dim text-center mt-1">{current.subtitle}</p>
         </div>
 
         {/* Content — fixed height container prevents bouncing */}
@@ -280,12 +280,12 @@ export function OnboardingModal({ onComplete }: { onComplete: () => void }) {
         </div>
 
         {/* Footer — fixed at bottom */}
-        <div className="flex items-center justify-between border-t border-white/[0.06] px-6 py-4">
+        <div className="flex items-center justify-between border-t border-edge-2 px-6 py-4">
           <div>
             {!isFirst ? (
               <button
                 onClick={() => setStep((s) => s - 1)}
-                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-medium text-slate-500 transition-colors hover:bg-white/[0.05] hover:text-slate-300"
+                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 Back
@@ -299,7 +299,7 @@ export function OnboardingModal({ onComplete }: { onComplete: () => void }) {
             {!isLast && (
               <button
                 onClick={() => handleComplete("screening")}
-                className="rounded-lg px-3 py-2 text-[12px] text-slate-600 transition-colors hover:text-slate-400"
+                className="rounded-lg px-3 py-2 text-[12px] text-dim transition-colors hover:text-dim"
               >
                 Skip
               </button>
@@ -308,7 +308,7 @@ export function OnboardingModal({ onComplete }: { onComplete: () => void }) {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handleComplete("import")}
-                  className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-[12px] font-medium text-slate-300 transition-colors hover:bg-white/[0.06]"
+                  className="flex items-center gap-1.5 rounded-lg border border-edge-3 bg-surface-2 px-4 py-2 text-[12px] font-medium text-body transition-colors hover:bg-surface-3"
                 >
                   <FileUp className="h-3.5 w-3.5" />
                   Import Data

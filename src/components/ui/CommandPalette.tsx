@@ -168,19 +168,19 @@ export function CommandPalette() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -10 }}
             transition={{ type: "spring", damping: 30, stiffness: 400 }}
-            className="fixed left-1/2 top-[18%] z-[9991] w-[560px] -translate-x-1/2 overflow-hidden rounded-2xl bg-[#131825]/98 ring-1 ring-white/10 shadow-2xl shadow-black/40 backdrop-blur-2xl"
+            className="fixed left-1/2 top-[18%] z-[9991] w-[560px] -translate-x-1/2 overflow-hidden rounded-2xl bg-card/98 ring-1 ring-white/10 shadow-2xl shadow-black/40 backdrop-blur-2xl"
           >
             {/* Search input */}
-            <div className="flex items-center gap-3 border-b border-white/[0.06] px-4 py-3">
-              <Search className="h-4.5 w-4.5 shrink-0 text-slate-500" />
+            <div className="flex items-center gap-3 border-b border-edge-2 px-4 py-3">
+              <Search className="h-4.5 w-4.5 shrink-0 text-dim" />
               <input
                 ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search commands, pages, actions..."
-                className="flex-1 bg-transparent text-[14px] text-slate-200 placeholder-slate-500 outline-none"
+                className="flex-1 bg-transparent text-[14px] text-body placeholder-dim outline-none"
               />
-              <kbd className="hidden sm:flex items-center gap-0.5 rounded-md bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-medium text-slate-500 ring-1 ring-white/[0.08]">
+              <kbd className="hidden sm:flex items-center gap-0.5 rounded-md bg-surface-3 px-1.5 py-0.5 text-[12px] font-medium text-dim ring-1 ring-edge-3">
                 ESC
               </kbd>
             </div>
@@ -188,7 +188,7 @@ export function CommandPalette() {
             {/* Results */}
             <div ref={listRef} className="max-h-[360px] overflow-y-auto p-2">
               {flatItems.length === 0 && (
-                <div className="flex flex-col items-center gap-2 py-8 text-slate-500">
+                <div className="flex flex-col items-center gap-2 py-8 text-dim">
                   <Search className="h-5 w-5" />
                   <p className="text-[13px]">No results for &ldquo;{query}&rdquo;</p>
                 </div>
@@ -196,7 +196,7 @@ export function CommandPalette() {
 
               {Array.from(sections.entries()).map(([section, items]) => (
                 <div key={section}>
-                  <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-slate-600">
+                  <p className="px-3 pt-2 pb-1 text-[12px] font-semibold uppercase tracking-widest text-dim">
                     {section}
                   </p>
                   {items.map((item) => {
@@ -211,15 +211,15 @@ export function CommandPalette() {
                         className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all duration-100 ${
                           isSelected
                             ? "bg-indigo-500/12 text-indigo-300"
-                            : "text-slate-400 hover:bg-white/[0.04]"
+                            : "text-dim hover:bg-surface-2"
                         }`}
                       >
-                        <span className={`shrink-0 ${isSelected ? "text-indigo-400" : "text-slate-500"}`}>
+                        <span className={`shrink-0 ${isSelected ? "text-indigo-400" : "text-dim"}`}>
                           {item.icon}
                         </span>
                         <div className="flex-1 min-w-0">
                           <span className="block text-[13px] font-medium">{item.label}</span>
-                          <span className={`block text-[10px] ${isSelected ? "text-indigo-400/50" : "text-slate-600"}`}>
+                          <span className={`block text-[12px] ${isSelected ? "text-indigo-400/50" : "text-dim"}`}>
                             {item.hint}
                           </span>
                         </div>
@@ -234,8 +234,8 @@ export function CommandPalette() {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between border-t border-white/[0.06] px-4 py-2">
-              <div className="flex items-center gap-3 text-[10px] text-slate-600">
+            <div className="flex items-center justify-between border-t border-edge-2 px-4 py-2">
+              <div className="flex items-center gap-3 text-[12px] text-dim">
                 <span className="flex items-center gap-1">
                   <CornerDownLeft className="h-3 w-3" /> Select
                 </span>
@@ -243,7 +243,7 @@ export function CommandPalette() {
                   <span className="text-[9px]">↑↓</span> Navigate
                 </span>
               </div>
-              <div className="flex items-center gap-1 text-[10px] text-slate-600">
+              <div className="flex items-center gap-1 text-[12px] text-dim">
                 {/Mac|iPod|iPhone|iPad/.test(navigator.userAgent) ? (
                   <><Command className="h-3 w-3" /><span>K to toggle</span></>
                 ) : (

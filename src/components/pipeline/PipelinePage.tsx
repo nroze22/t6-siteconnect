@@ -213,25 +213,25 @@ export function PipelinePage() {
       <div className="border-b border-border bg-card/50 px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <p className="text-[11px] text-slate-500">Track subjects from screening to enrollment across all active studies</p>
-            <button onClick={() => setShowInfoModal(true)} className="rounded-full p-1 text-slate-500 hover:bg-white/[0.05] hover:text-slate-300 transition-colors">
+            <p className="text-[12px] text-dim">Track subjects from screening to enrollment across all active studies</p>
+            <button onClick={() => setShowInfoModal(true)} className="rounded-full p-1 text-dim hover:bg-surface-3 hover:text-body transition-colors">
               <Info className="h-3.5 w-3.5" />
             </button>
           </div>
           <div className="flex items-center gap-3">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
+              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-dim" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search subjects..."
-                className="h-8 w-48 rounded-lg border border-white/[0.06] bg-white/[0.03] pl-8 pr-8 text-[12px] text-slate-200 placeholder-slate-600 focus:border-indigo-500/40 focus:outline-none"
+                className="h-8 w-48 rounded-lg border border-edge-2 bg-surface-2 pl-8 pr-8 text-[12px] text-body placeholder-dim focus:border-indigo-500/40 focus:outline-none"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-500 hover:text-slate-300"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-dim hover:text-body"
                 >
                   <XCircle className="h-3 w-3" />
                 </button>
@@ -240,7 +240,7 @@ export function PipelinePage() {
             <select
               value={selectedStudy}
               onChange={(e) => setSelectedStudy(e.target.value)}
-              className="h-8 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 text-[12px] text-slate-300 focus:outline-none"
+              className="h-8 rounded-lg border border-edge-2 bg-surface-2 px-3 text-[12px] text-body focus:outline-none"
             >
               <option value="all">All Studies</option>
               {studyIds.map((id) => (
@@ -259,14 +259,14 @@ export function PipelinePage() {
             { label: "Enroll Rate", value: conversionRates.enrollRate, color: "text-emerald-400" },
           ].map((metric, i) => (
             <div key={metric.label} className="flex items-center">
-              {i > 0 && <ArrowRight className="mx-1 h-3 w-3 text-slate-700" />}
-              <div className="rounded-md bg-white/[0.03] px-2.5 py-1 ring-1 ring-white/[0.06]">
-                <span className="text-[9px] text-slate-500">{metric.label}</span>
+              {i > 0 && <ArrowRight className="mx-1 h-3 w-3 text-faint" />}
+              <div className="rounded-md bg-surface-2 px-2.5 py-1 ring-1 ring-edge-2">
+                <span className="text-[9px] text-dim">{metric.label}</span>
                 <span className={`ml-1.5 text-[13px] font-bold ${metric.color}`}>{metric.value}%</span>
               </div>
             </div>
           ))}
-          <div className="ml-auto flex items-center gap-2 text-[10px] text-slate-500">
+          <div className="ml-auto flex items-center gap-2 text-[12px] text-dim">
             <span>{filteredData.length} subjects in pipeline</span>
           </div>
         </div>
@@ -277,7 +277,7 @@ export function PipelinePage() {
         {loading ? (
           <div className="flex h-full gap-3">
             {Array.from({ length: 6 }, (_, i) => (
-              <div key={i} className="flex w-[260px] shrink-0 flex-col rounded-xl bg-white/[0.02] p-3 ring-1 ring-white/[0.04]">
+              <div key={i} className="flex w-[260px] shrink-0 flex-col rounded-xl bg-surface-1 p-3 ring-1 ring-edge-1">
                 <SkeletonCard />
                 <div className="mt-2"><SkeletonCard /></div>
               </div>
@@ -289,14 +289,14 @@ export function PipelinePage() {
             const config = STAGE_CONFIG[stage];
             const stagePatients = filteredData.filter((p) => p.stage === stage);
             return (
-              <div key={stage} className="flex w-[272px] flex-shrink-0 flex-col rounded-xl border border-white/[0.06] bg-card/50">
+              <div key={stage} className="flex w-[272px] flex-shrink-0 flex-col rounded-xl border border-edge-2 bg-card/50">
                 {/* Column header */}
                 <div className={`flex items-center justify-between rounded-t-xl border-b ${config.borderColor} ${config.bgColor} px-3 py-2.5`}>
                   <div className="flex items-center gap-2">
                     <span className={config.color}>{config.icon}</span>
                     <span className={`text-[12px] font-semibold ${config.color}`}>{config.label}</span>
                   </div>
-                  <span className={`rounded-full ${config.bgColor} px-2 py-0.5 text-[11px] font-bold ${config.color} ring-1 ${config.borderColor}`}>
+                  <span className={`rounded-full ${config.bgColor} px-2 py-0.5 text-[12px] font-bold ${config.color} ring-1 ${config.borderColor}`}>
                     {stageCounts[stage]}
                   </span>
                 </div>
@@ -327,12 +327,12 @@ export function PipelinePage() {
                     />
                   ))}
                   {stagePatients.length === 0 && (
-                    <div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-white/[0.06] text-center">
+                    <div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-edge-2 text-center">
                       <div>
-                        <div className="mx-auto mb-1.5 flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.03]">
-                          <Users className="h-3.5 w-3.5 text-slate-600" />
+                        <div className="mx-auto mb-1.5 flex h-8 w-8 items-center justify-center rounded-lg bg-surface-2">
+                          <Users className="h-3.5 w-3.5 text-dim" />
                         </div>
-                        <p className="text-[10px] text-slate-600">No subjects in this stage</p>
+                        <p className="text-[12px] text-dim">No subjects in this stage</p>
                       </div>
                     </div>
                   )}
@@ -374,62 +374,62 @@ function PipelineCard({ patient, expanded, onToggle, onAdvance, onLogCall, onAdd
 
   return (
     <div
-      className={`rounded-lg border border-white/[0.06] bg-white/[0.02] transition-all duration-200 hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/10 hover:-translate-y-0.5 ${expanded ? "ring-1 ring-indigo-500/20" : ""}`}
+      className={`rounded-lg border border-edge-2 bg-surface-1 transition-all duration-200 hover:border-edge-4 hover:shadow-lg hover:shadow-black/10 hover:-translate-y-0.5 ${expanded ? "ring-1 ring-indigo-500/20" : ""}`}
     >
       <button onClick={onToggle} className="w-full px-3 py-2.5 text-left">
         <div className="flex items-center justify-between">
-          <span className="text-[12px] font-semibold text-slate-200 truncate">{patient.name}</span>
-          <span className="text-[10px] font-mono text-slate-500">{patient.mrn}</span>
+          <span className="text-[12px] font-semibold text-body truncate">{patient.name}</span>
+          <span className="text-[12px] font-mono text-dim">{patient.mrn}</span>
         </div>
         <div className="mt-1 flex items-center gap-2">
           <span className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-indigo-400 ring-1 ring-indigo-500/20">{patient.studyName}</span>
-          <span className="text-[10px] text-slate-500">{patient.age}y {patient.gender[0]}</span>
+          <span className="text-[12px] text-dim">{patient.age}y {patient.gender[0]}</span>
         </div>
         <div className="mt-1.5 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <Clock className="h-3 w-3 text-slate-600" />
-            <span className={`text-[10px] ${patient.daysInStage > 5 ? "text-amber-400" : "text-slate-500"}`}>
+            <Clock className="h-3 w-3 text-dim" />
+            <span className={`text-[12px] ${patient.daysInStage > 5 ? "text-amber-400" : "text-dim"}`}>
               {patient.daysInStage}d in stage
             </span>
           </div>
           <div className="flex items-center gap-1">
             {patient.contactAttempts > 0 && (
-              <span className="text-[10px] text-slate-500">{patient.contactAttempts} calls</span>
+              <span className="text-[12px] text-dim">{patient.contactAttempts} calls</span>
             )}
-            <ChevronDown className={`h-3 w-3 text-slate-500 transition-transform ${expanded ? "rotate-180" : ""}`} />
+            <ChevronDown className={`h-3 w-3 text-dim transition-transform ${expanded ? "rotate-180" : ""}`} />
           </div>
         </div>
       </button>
 
       {expanded && (
-        <div className="border-t border-white/[0.06] px-3 py-2.5 space-y-2">
+        <div className="border-t border-edge-2 px-3 py-2.5 space-y-2">
           <div>
-            <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-600">Diagnosis</span>
-            <p className="text-[11px] text-slate-400 truncate">{patient.diagnosis}</p>
+            <span className="text-[9px] font-semibold uppercase tracking-wider text-dim">Diagnosis</span>
+            <p className="text-[12px] text-dim truncate">{patient.diagnosis}</p>
           </div>
           <div>
-            <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-600">Eligibility Score</span>
+            <span className="text-[9px] font-semibold uppercase tracking-wider text-dim">Eligibility Score</span>
             <div className="mt-0.5 flex items-center gap-2">
-              <div className="h-1.5 flex-1 rounded-full bg-white/[0.06]">
+              <div className="h-1.5 flex-1 rounded-full bg-surface-3">
                 <div className="h-full rounded-full bg-indigo-500 animate-bar-fill" style={{ width: `${patient.score}%` }} />
               </div>
-              <span className="text-[11px] font-bold text-indigo-400">{patient.score}</span>
+              <span className="text-[12px] font-bold text-indigo-400">{patient.score}</span>
             </div>
           </div>
           {patient.notes && (
             <div>
-              <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-600">Notes</span>
-              <p className="text-[11px] text-slate-400 whitespace-pre-line">{patient.notes}</p>
+              <span className="text-[9px] font-semibold uppercase tracking-wider text-dim">Notes</span>
+              <p className="text-[12px] text-dim whitespace-pre-line">{patient.notes}</p>
             </div>
           )}
           <div>
-            <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-600">Assigned To</span>
-            <p className="text-[11px] text-slate-300">{patient.assignedTo}</p>
+            <span className="text-[9px] font-semibold uppercase tracking-wider text-dim">Assigned To</span>
+            <p className="text-[12px] text-body">{patient.assignedTo}</p>
           </div>
           {patient.nextAction && (
             <div className="rounded-md bg-indigo-500/5 px-2.5 py-1.5 ring-1 ring-indigo-500/15">
               <span className="text-[9px] font-semibold uppercase tracking-wider text-indigo-400">Next Action</span>
-              <p className="text-[11px] text-indigo-300">{patient.nextAction}</p>
+              <p className="text-[12px] text-indigo-300">{patient.nextAction}</p>
             </div>
           )}
 
@@ -442,18 +442,18 @@ function PipelineCard({ patient, expanded, onToggle, onAdvance, onLogCall, onAdd
                 onChange={(e) => setNoteText(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") handleSubmitNote(); if (e.key === "Escape") { setShowNoteInput(false); setNoteText(""); } }}
                 placeholder="Add a note..."
-                className="flex-1 rounded-md border border-white/[0.08] bg-white/[0.03] px-2 py-1 text-[11px] text-slate-200 placeholder-slate-600 focus:border-indigo-500/40 focus:outline-none"
+                className="flex-1 rounded-md border border-edge-3 bg-surface-2 px-2 py-1 text-[12px] text-body placeholder-dim focus:border-indigo-500/40 focus:outline-none"
               />
               <button
                 onClick={handleSubmitNote}
                 disabled={!noteText.trim()}
-                className="rounded-md bg-indigo-600 p-1.5 text-white transition-colors hover:bg-indigo-500 disabled:opacity-30 disabled:hover:bg-indigo-600"
+                className="rounded-md bg-indigo-600 p-1.5 text-heading transition-colors hover:bg-indigo-500 disabled:opacity-30 disabled:hover:bg-indigo-600"
               >
                 <Send className="h-3 w-3" />
               </button>
               <button
                 onClick={() => { setShowNoteInput(false); setNoteText(""); }}
-                className="rounded-md p-1.5 text-slate-500 hover:bg-white/[0.05] hover:text-slate-300"
+                className="rounded-md p-1.5 text-dim hover:bg-surface-3 hover:text-body"
               >
                 <XIcon className="h-3 w-3" />
               </button>
@@ -464,16 +464,16 @@ function PipelineCard({ patient, expanded, onToggle, onAdvance, onLogCall, onAdd
           <div className="flex items-center gap-1.5 pt-1">
             <button
               onClick={onLogCall}
-              className="flex items-center gap-1 rounded-md bg-white/[0.04] px-2 py-1 text-[10px] text-slate-400 hover:bg-white/[0.08] hover:text-slate-200 transition-colors active:scale-[0.97]"
+              className="flex items-center gap-1 rounded-md bg-surface-2 px-2 py-1 text-[12px] text-dim hover:bg-surface-4 hover:text-body transition-colors active:scale-[0.97]"
             >
               <PhoneCall className="h-3 w-3" /> Log Call
             </button>
             <button
               onClick={() => setShowNoteInput(!showNoteInput)}
-              className={`flex items-center gap-1 rounded-md px-2 py-1 text-[10px] transition-colors active:scale-[0.97] ${
+              className={`flex items-center gap-1 rounded-md px-2 py-1 text-[12px] transition-colors active:scale-[0.97] ${
                 showNoteInput
                   ? "bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-500/20"
-                  : "bg-white/[0.04] text-slate-400 hover:bg-white/[0.08] hover:text-slate-200"
+                  : "bg-surface-2 text-dim hover:bg-surface-4 hover:text-body"
               }`}
             >
               <MessageSquare className="h-3 w-3" /> Note
@@ -481,13 +481,13 @@ function PipelineCard({ patient, expanded, onToggle, onAdvance, onLogCall, onAdd
             {!isLastStage && (
               <button
                 onClick={onAdvance}
-                className="flex items-center gap-1 rounded-md bg-emerald-600/80 px-2 py-1 text-[10px] font-medium text-white hover:bg-emerald-500 transition-colors active:scale-[0.97]"
+                className="flex items-center gap-1 rounded-md bg-emerald-600/80 px-2 py-1 text-[12px] font-medium text-heading hover:bg-emerald-500 transition-colors active:scale-[0.97]"
               >
                 <ArrowRight className="h-3 w-3" /> Advance
               </button>
             )}
             {isLastStage && (
-              <span className="flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-1 text-[10px] font-medium text-emerald-400 ring-1 ring-emerald-500/20">
+              <span className="flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-1 text-[12px] font-medium text-emerald-400 ring-1 ring-emerald-500/20">
                 <Check className="h-3 w-3" /> Enrolled
               </span>
             )}
@@ -501,9 +501,9 @@ function PipelineCard({ patient, expanded, onToggle, onAdvance, onLogCall, onAdd
 function PipelineInfoModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-2xl border border-white/[0.08] bg-[#12141c] shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-indigo-600/20 via-purple-600/10 to-transparent px-6 py-5 border-b border-white/[0.06]">
-          <button onClick={onClose} className="absolute right-4 top-4 rounded-lg p-1 text-slate-400 hover:bg-white/[0.1] hover:text-white">
+      <div className="w-full max-w-lg rounded-2xl border border-edge-3 bg-card shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-indigo-600/20 via-purple-600/10 to-transparent px-6 py-5 border-b border-edge-2">
+          <button onClick={onClose} className="absolute right-4 top-4 rounded-lg p-1 text-dim hover:bg-surface-5 hover:text-heading">
             <XIcon className="h-4 w-4" />
           </button>
           <div className="flex items-center gap-3">
@@ -511,7 +511,7 @@ function PipelineInfoModal({ onClose }: { onClose: () => void }) {
               <Target className="h-6 w-6 text-indigo-400" />
             </div>
             <div>
-              <h3 className="text-[16px] font-bold text-white">Enrollment Pipeline</h3>
+              <h3 className="text-[16px] font-bold text-heading">Enrollment Pipeline</h3>
               <p className="text-[12px] text-indigo-300/70">From screening to enrollment — never lose a candidate</p>
             </div>
           </div>
@@ -525,17 +525,17 @@ function PipelineInfoModal({ onClose }: { onClose: () => void }) {
             { icon: <Zap className="h-4 w-4 text-purple-400" />, title: "Cross-Study Pipeline", desc: "See pipeline across ALL active studies in one view. Filter by study for focused recruitment drives." },
           ].map((item) => (
             <div key={item.title} className="flex gap-3">
-              <div className="mt-0.5 rounded-lg bg-white/[0.04] p-2 ring-1 ring-white/[0.06]">{item.icon}</div>
+              <div className="mt-0.5 rounded-lg bg-surface-2 p-2 ring-1 ring-edge-2">{item.icon}</div>
               <div>
-                <h4 className="text-[13px] font-semibold text-slate-200">{item.title}</h4>
-                <p className="text-[11px] text-slate-500 leading-relaxed">{item.desc}</p>
+                <h4 className="text-[13px] font-semibold text-body">{item.title}</h4>
+                <p className="text-[12px] text-dim leading-relaxed">{item.desc}</p>
               </div>
             </div>
           ))}
 
-          <div className="rounded-lg bg-white/[0.02] px-4 py-3 ring-1 ring-white/[0.06]">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Why This Matters</p>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
+          <div className="rounded-lg bg-surface-1 px-4 py-3 ring-1 ring-edge-2">
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-1.5">Why This Matters</p>
+            <p className="text-[12px] text-dim leading-relaxed">
               Sites lose 20-30% of eligible subjects between identification and enrollment. This pipeline ensures no candidate falls through the cracks, shortening enrollment timelines and maximizing per-study revenue.
             </p>
           </div>

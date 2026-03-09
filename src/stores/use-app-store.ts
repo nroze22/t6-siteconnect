@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import type { AppStatus, LlmStatus, NavigationPage } from "@/types";
 
+type Theme = "dark" | "light";
+
 interface AppStore {
   // Navigation
   currentPage: NavigationPage;
@@ -15,9 +17,22 @@ interface AppStore {
   isLocked: boolean;
   lock: () => void;
   unlock: () => void;
+
+  // Theme
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+  toggleTheme: () => void;
 }
 
-export const useAppStore = create<AppStore>((set) => ({
+function applyThemeClass(theme: Theme) {
+  if (theme === "light") {
+    document.documentElement.classList.add("light");
+  } else {
+    document.documentElement.classList.remove("light");
+  }
+}
+
+export const useAppStore = create<AppStore>((set, get) => ({
   currentPage: "screening",
   setCurrentPage: (page) => set({ currentPage: page }),
 
@@ -39,4 +54,17 @@ export const useAppStore = create<AppStore>((set) => ({
   isLocked: false,
   lock: () => set({ isLocked: true }),
   unlock: () => set({ isLocked: false }),
+
+  theme: (localStorage.getItem("siteconnect-theme") as Theme) ?? "dark",
+  setTheme: (theme) => {
+    localStorage.setItem("siteconnect-theme", theme);
+    applyThemeClass(theme);
+    set({ theme });
+  },
+  toggleTheme: () => {
+    const next = get().theme === "dark" ? "light" : "dark";
+    localStorage.setItem("siteconnect-theme", next);
+    applyThemeClass(next);
+    set({ theme: next });
+  },
 }));

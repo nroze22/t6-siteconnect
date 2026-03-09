@@ -147,10 +147,10 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                 <img src="/t6logo.png" alt="Talosix" className="h-14 w-14 object-contain" />
               </div>
             </div>
-            <h1 className="mb-2 text-4xl font-bold tracking-tight text-white">
+            <h1 className="mb-2 text-4xl font-bold tracking-tight text-heading">
               TalOS SiteConnect
             </h1>
-            <p className="text-lg text-slate-400">
+            <p className="text-lg text-dim">
               The intelligent screening platform for research sites
             </p>
           </div>
@@ -163,11 +163,11 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
               { icon: <TrendingUp className="h-5 w-5 text-emerald-400" />, bg: "bg-emerald-500/10 ring-1 ring-emerald-500/20", title: "Site Intelligence", desc: "Performance metrics, diversity dashboards, and enrollment forecasting" },
               { icon: <FileUp className="h-5 w-5 text-cyan-400" />, bg: "bg-cyan-500/10 ring-1 ring-cyan-500/20", title: "EMR Integration", desc: "Import from Epic, Cerner, or any EMR via CSV, FHIR, or HL7" },
             ].map((f) => (
-              <div key={f.title} className="flex items-start gap-3 rounded-xl bg-white/[0.02] p-4 ring-1 ring-white/[0.06]">
+              <div key={f.title} className="flex items-start gap-3 rounded-xl bg-surface-1 p-4 ring-1 ring-edge-2">
                 <div className={`flex-shrink-0 rounded-lg p-2 ${f.bg}`}>{f.icon}</div>
                 <div>
-                  <span className="text-[13px] font-semibold text-slate-200 block">{f.title}</span>
-                  <span className="text-[11px] text-slate-500 leading-relaxed block mt-0.5">{f.desc}</span>
+                  <span className="text-[13px] font-semibold text-body block">{f.title}</span>
+                  <span className="text-[12px] text-dim leading-relaxed block mt-0.5">{f.desc}</span>
                 </div>
               </div>
             ))}
@@ -180,10 +180,10 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
               { value: "10x", label: "Faster Screening", sub: "vs. manual chart review", color: "text-blue-400" },
               { value: "AES-256", label: "Encrypted", sub: "HIPAA-ready", color: "text-indigo-400" },
             ].map((stat) => (
-              <div key={stat.label} className="rounded-xl bg-white/[0.03] p-3.5 text-center ring-1 ring-white/[0.06]">
+              <div key={stat.label} className="rounded-xl bg-surface-2 p-3.5 text-center ring-1 ring-edge-2">
                 <span className={`text-[18px] font-bold ${stat.color}`}>{stat.value}</span>
-                <p className="text-[11px] font-semibold text-slate-300 mt-0.5">{stat.label}</p>
-                <p className="text-[9px] text-slate-500">{stat.sub}</p>
+                <p className="text-[12px] font-semibold text-body mt-0.5">{stat.label}</p>
+                <p className="text-[9px] text-dim">{stat.sub}</p>
               </div>
             ))}
           </div>
@@ -199,7 +199,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
           {/* CTA button */}
           <button
             onClick={() => setSetupPhase("create")}
-            className="setup-button relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 px-6 py-4 text-[15px] font-bold text-white shadow-lg shadow-indigo-500/25 transition-all hover:from-indigo-500 hover:to-indigo-400 hover:shadow-indigo-500/35"
+            className="setup-button relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 px-6 py-4 text-[15px] font-bold text-heading shadow-lg shadow-indigo-500/25 transition-all hover:from-indigo-500 hover:to-indigo-400 hover:shadow-indigo-500/35"
           >
             <span className="flex items-center justify-center gap-2.5">
               Get Started
@@ -207,7 +207,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
             </span>
           </button>
 
-          <p className="mt-5 text-center text-xs text-slate-600">
+          <p className="mt-5 text-center text-xs text-dim">
             TalOS SiteConnect v0.1.0 &mdash; by Talosix
           </p>
         </div>
@@ -266,10 +266,10 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
               <img src="/t6logo.png" alt="Talosix" className="h-12 w-12 object-contain" />
             </div>
           </div>
-          <h1 className="mb-2 text-3xl font-bold tracking-tight text-white">
+          <h1 className="mb-2 text-3xl font-bold tracking-tight text-heading">
             Create Your Encryption Key
           </h1>
-          <p className="text-base text-slate-400">
+          <p className="text-base text-dim">
             This key protects all data on this device
           </p>
         </div>
@@ -294,12 +294,12 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
         <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-8 shadow-2xl shadow-black/20 backdrop-blur-sm">
           <div className="mb-6">
             <div className="mb-1 flex items-center gap-2">
-              <Database className="h-4 w-4 text-slate-400" />
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-300">
+              <Database className="h-4 w-4 text-dim" />
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-body">
                 Create Encryption Key
               </h2>
             </div>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-dim">
               Choose a strong passphrase to encrypt your local database.
             </p>
           </div>
@@ -308,7 +308,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
           <div className="mb-4">
             <label
               htmlFor="passphrase"
-              className="mb-1.5 block text-sm font-medium text-slate-300"
+              className="mb-1.5 block text-sm font-medium text-body"
             >
               Passphrase
             </label>
@@ -319,14 +319,14 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}
                 placeholder="Minimum 12 characters"
-                className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 pr-11 text-sm text-white placeholder-slate-500 transition-colors focus:border-emerald-500/50 focus:outline-none focus:ring-1 focus:ring-emerald-500/30"
+                className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 pr-11 text-sm text-heading placeholder-dim transition-colors focus:border-emerald-500/50 focus:outline-none focus:ring-1 focus:ring-emerald-500/30"
                 autoFocus
                 autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassphrase(!showPassphrase)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition-colors hover:text-slate-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-dim transition-colors hover:text-body"
                 tabIndex={-1}
               >
                 {showPassphrase ? (
@@ -356,7 +356,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                 >
                   {strength.label}
                   {passphrase.length < 12 && (
-                    <span className="text-slate-500">
+                    <span className="text-dim">
                       {" "}
                       &mdash; {12 - passphrase.length} more characters needed
                     </span>
@@ -370,7 +370,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
           <div className="mb-6">
             <label
               htmlFor="confirm-passphrase"
-              className="mb-1.5 block text-sm font-medium text-slate-300"
+              className="mb-1.5 block text-sm font-medium text-body"
             >
               Confirm Passphrase
             </label>
@@ -381,7 +381,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                 value={confirmPassphrase}
                 onChange={(e) => setConfirmPassphrase(e.target.value)}
                 placeholder="Re-enter your passphrase"
-                className={`w-full rounded-lg border bg-slate-800/50 px-4 py-3 pr-11 text-sm text-white placeholder-slate-500 transition-colors focus:outline-none focus:ring-1 ${
+                className={`w-full rounded-lg border bg-slate-800/50 px-4 py-3 pr-11 text-sm text-heading placeholder-dim transition-colors focus:outline-none focus:ring-1 ${
                   mismatch
                     ? "border-red-500/50 focus:border-red-500/50 focus:ring-red-500/30"
                     : confirmPassphrase && passphrase === confirmPassphrase
@@ -393,7 +393,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
               <button
                 type="button"
                 onClick={() => setShowConfirm(!showConfirm)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition-colors hover:text-slate-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-dim transition-colors hover:text-body"
                 tabIndex={-1}
               >
                 {showConfirm ? (
@@ -429,7 +429,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
           <button
             onClick={handleInitialize}
             disabled={!isValid || isInitializing}
-            className="setup-button relative w-full overflow-hidden rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition-all hover:from-emerald-500 hover:to-emerald-400 hover:shadow-emerald-500/30 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:hover:from-emerald-600 disabled:hover:to-emerald-500"
+            className="setup-button relative w-full overflow-hidden rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-3 text-sm font-semibold text-heading shadow-lg shadow-emerald-500/20 transition-all hover:from-emerald-500 hover:to-emerald-400 hover:shadow-emerald-500/30 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none disabled:hover:from-emerald-600 disabled:hover:to-emerald-500"
           >
             {isInitializing ? (
               <span className="flex items-center justify-center gap-2">
@@ -447,7 +447,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
           {/* Security Note */}
           <div className="mt-5 flex items-start gap-2 rounded-lg bg-slate-800/50 px-4 py-3">
             <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500/70" />
-            <p className="text-xs leading-relaxed text-slate-500">
+            <p className="text-xs leading-relaxed text-dim">
               All data is encrypted with AES-256 and never leaves this device.
               Your passphrase is the only way to access your data — there is no
               recovery mechanism by design.
@@ -456,7 +456,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
         </div>
 
         {/* Footer */}
-        <p className="mt-6 text-center text-xs text-slate-600">
+        <p className="mt-6 text-center text-xs text-dim">
           TalOS SiteConnect v0.1.0
         </p>
       </div>
@@ -474,7 +474,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                       <ShieldAlert className="h-7 w-7 text-amber-400" />
                     </div>
                   </div>
-                  <h2 className="text-xl font-bold text-white">
+                  <h2 className="text-xl font-bold text-heading">
                     Save Your Encryption Key
                   </h2>
                   <p className="mt-1.5 text-sm text-amber-200/70">
@@ -485,14 +485,14 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                 <div className="px-8 py-6 space-y-5">
                   {/* Passphrase display */}
                   <div>
-                    <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400">
+                    <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-dim">
                       Your Encryption Key
                     </label>
                     <div className="flex items-center gap-2">
                       <div className="relative flex-1">
                         <div className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-3">
                           <KeyRound className="h-4 w-4 shrink-0 text-amber-400" />
-                          <code className="flex-1 text-sm font-mono text-white break-all">
+                          <code className="flex-1 text-sm font-mono text-heading break-all">
                             {showKeyInModal
                               ? passphrase
                               : "\u2022".repeat(Math.min(passphrase.length, 32))}
@@ -502,7 +502,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                       <button
                         type="button"
                         onClick={() => setShowKeyInModal(!showKeyInModal)}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition-colors hover:bg-slate-700 hover:text-white"
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-dim transition-colors hover:bg-slate-700 hover:text-heading"
                         title={showKeyInModal ? "Hide key" : "Reveal key"}
                       >
                         {showKeyInModal ? (
@@ -514,7 +514,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                       <button
                         type="button"
                         onClick={handleCopyKey}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-slate-400 transition-colors hover:bg-slate-700 hover:text-white"
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-dim transition-colors hover:bg-slate-700 hover:text-heading"
                         title="Copy to clipboard"
                       >
                         {copied ? (
@@ -564,11 +564,11 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                             }`}
                           >
                             {checklist[i] && (
-                              <Check className="h-3.5 w-3.5 text-white" />
+                              <Check className="h-3.5 w-3.5 text-heading" />
                             )}
                           </div>
                         </div>
-                        <span className="text-sm text-slate-300">{text}</span>
+                        <span className="text-sm text-body">{text}</span>
                       </label>
                     ))}
                   </div>
@@ -577,7 +577,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                   <button
                     onClick={() => setKeyConfirmStep(1)}
                     disabled={!allChecked}
-                    className="w-full rounded-lg bg-gradient-to-r from-amber-600 to-amber-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-amber-500/20 transition-all hover:from-amber-500 hover:to-amber-400 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+                    className="w-full rounded-lg bg-gradient-to-r from-amber-600 to-amber-500 px-6 py-3 text-sm font-semibold text-heading shadow-lg shadow-amber-500/20 transition-all hover:from-amber-500 hover:to-amber-400 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
                   >
                     <span className="flex items-center justify-center gap-2">
                       <ShieldAlert className="h-4 w-4" />
@@ -595,7 +595,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                       <KeyRound className="h-7 w-7 text-red-400" />
                     </div>
                   </div>
-                  <h2 className="text-xl font-bold text-white">
+                  <h2 className="text-xl font-bold text-heading">
                     Final Confirmation
                   </h2>
                   <p className="mt-1.5 text-sm text-red-200/70">
@@ -607,7 +607,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                   <div>
                     <label
                       htmlFor="confirm-key-text"
-                      className="mb-2 block text-sm text-slate-300"
+                      className="mb-2 block text-sm text-body"
                     >
                       Type{" "}
                       <span className="font-mono font-semibold text-amber-400">
@@ -621,7 +621,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                       value={confirmText}
                       onChange={(e) => setConfirmText(e.target.value)}
                       placeholder="I SAVED MY KEY"
-                      className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-white placeholder-slate-600 transition-colors focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/30 font-mono tracking-wide"
+                      className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-heading placeholder-dim transition-colors focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/30 font-mono tracking-wide"
                       autoFocus
                       autoComplete="off"
                       spellCheck={false}
@@ -638,7 +638,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                   <button
                     onClick={handleFinalConfirm}
                     disabled={confirmText !== "I SAVED MY KEY"}
-                    className="w-full rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition-all hover:from-emerald-500 hover:to-emerald-400 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+                    className="w-full rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-3 text-sm font-semibold text-heading shadow-lg shadow-emerald-500/20 transition-all hover:from-emerald-500 hover:to-emerald-400 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
                   >
                     <span className="flex items-center justify-center gap-2">
                       <CheckCircle2 className="h-4 w-4" />
@@ -646,7 +646,7 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                     </span>
                   </button>
 
-                  <p className="text-center text-xs text-slate-500">
+                  <p className="text-center text-xs text-dim">
                     You can change your passphrase later from Settings if
                     needed.
                   </p>
@@ -718,7 +718,7 @@ function ValueProp({
       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
         {icon}
       </div>
-      <span className="text-xs font-medium text-slate-400">{label}</span>
+      <span className="text-xs font-medium text-dim">{label}</span>
     </div>
   );
 }

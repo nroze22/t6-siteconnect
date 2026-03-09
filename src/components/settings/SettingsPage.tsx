@@ -40,6 +40,8 @@ import {
   Package,
   Wifi,
   WifiOff,
+  Sun,
+  Moon,
 } from "lucide-react";
 import {
   isTauri,
@@ -65,13 +67,14 @@ import {
   type AuditEntry,
 } from "@/lib/data-provider";
 import { useToast } from "@/components/ui/Toast";
+import { useAppStore } from "@/stores/use-app-store";
 
 export function SettingsPage() {
   return (
     <div className="flex h-full flex-col bg-background">
       <div className="border-b border-border bg-card/50 px-6 py-4">
-        <h2 className="text-[15px] font-bold text-white">Settings</h2>
-        <p className="text-[12px] text-slate-500">
+        <h2 className="text-[15px] font-bold text-heading">Settings</h2>
+        <p className="text-[12px] text-dim">
           Configure your SiteConnect installation. All settings are stored locally.
         </p>
       </div>
@@ -101,14 +104,14 @@ export function SettingsPage() {
                 { step: 4, text: "Review eligibility results and accept/reject candidates", done: false },
               ].map((item) => (
                 <div key={item.step} className="flex items-center gap-3">
-                  <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${
+                  <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-bold ${
                     item.done
                       ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/20"
-                      : "bg-white/[0.04] text-slate-500 ring-1 ring-white/[0.08]"
+                      : "bg-surface-2 text-dim ring-1 ring-edge-3"
                   }`}>
                     {item.step}
                   </span>
-                  <span className="text-[12px] text-slate-400">{item.text}</span>
+                  <span className="text-[12px] text-dim">{item.text}</span>
                 </div>
               ))}
             </div>
@@ -203,26 +206,26 @@ function WatcherPanel() {
   }, []);
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-card overflow-hidden">
-      <div className="flex items-center gap-4 p-4 border-b border-white/[0.06]">
+    <div className="rounded-xl border border-edge-2 bg-card overflow-hidden">
+      <div className="flex items-center gap-4 p-4 border-b border-edge-2">
         <div className="rounded-lg p-2.5 bg-cyan-500/10 ring-1 ring-cyan-500/20">
           <FolderSync className="h-5 w-5 text-cyan-400" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-[13px] font-semibold text-slate-200">EMR Auto-Ingest</h3>
+            <h3 className="text-[13px] font-semibold text-body">EMR Auto-Ingest</h3>
             {status.active ? (
               <span className="flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold text-emerald-400 ring-1 ring-emerald-500/20">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 Watching
               </span>
             ) : (
-              <span className="rounded-md bg-white/[0.04] px-2 py-0.5 text-[9px] font-semibold text-slate-500 ring-1 ring-white/[0.06]">
+              <span className="rounded-md bg-surface-2 px-2 py-0.5 text-[9px] font-semibold text-dim ring-1 ring-edge-2">
                 Inactive
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[11px] text-slate-500">
+          <p className="mt-0.5 text-[12px] text-dim">
             Watch a local folder for new CSV exports. Files are auto-imported and screened.
           </p>
         </div>
@@ -230,16 +233,16 @@ function WatcherPanel() {
 
       <div className="p-4 space-y-3">
         <div>
-          <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Watch Folder</label>
+          <label className="text-[12px] font-semibold uppercase tracking-wider text-dim">Watch Folder</label>
           <div className="mt-1.5 flex gap-2">
             <input
               type="text"
               value={watchPath}
               onChange={(e) => setWatchPath(e.target.value)}
               placeholder="/path/to/emr/exports"
-              className="flex-1 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2 font-mono text-[12px] text-slate-200 placeholder-slate-600 focus:border-indigo-500/40 focus:outline-none focus:ring-1 focus:ring-indigo-500/20"
+              className="flex-1 rounded-lg border border-edge-2 bg-surface-2 px-3 py-2 font-mono text-[12px] text-body placeholder-dim focus:border-indigo-500/40 focus:outline-none focus:ring-1 focus:ring-indigo-500/20"
             />
-            <button onClick={handlePickFolder} className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[11px] font-medium text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-200">
+            <button onClick={handlePickFolder} className="flex items-center gap-1.5 rounded-lg border border-edge-3 bg-surface-2 px-3 py-2 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body">
               <FolderOpen className="h-3.5 w-3.5" /> Browse
             </button>
           </div>
@@ -248,7 +251,7 @@ function WatcherPanel() {
         {error && (
           <div className="flex items-center gap-2 rounded-lg bg-red-500/5 px-3 py-2 ring-1 ring-red-500/15">
             <AlertCircle className="h-3.5 w-3.5 text-red-400" />
-            <span className="text-[11px] text-red-400">{error}</span>
+            <span className="text-[12px] text-red-400">{error}</span>
           </div>
         )}
 
@@ -262,14 +265,14 @@ function WatcherPanel() {
               {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />} Start Watching
             </button>
           )}
-          <p className="text-[10px] text-slate-600">
+          <p className="text-[12px] text-dim">
             {status.active ? "Monitoring for new .csv files using OS file events." : "Select a folder and click Start to begin."}
           </p>
         </div>
 
-        <div className="rounded-lg bg-white/[0.02] p-3 ring-1 ring-white/[0.04]">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">How it works</p>
-          <div className="space-y-1.5 text-[11px] text-slate-500">
+        <div className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
+          <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">How it works</p>
+          <div className="space-y-1.5 text-[12px] text-dim">
             <p>1. Point to your EMR export folder (e.g., where Epic Clarity drops CSVs)</p>
             <p>2. OS-level file events — no polling, instant detection</p>
             <p>3. New .csv files are auto-imported, columns auto-mapped, subjects screened</p>
@@ -279,14 +282,14 @@ function WatcherPanel() {
 
         {recentFiles.length > 0 && (
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">Recent Detections</p>
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">Recent Detections</p>
             <div className="space-y-1">
               {recentFiles.map((f, i) => (
-                <div key={`${f.path}-${i}`} className="flex items-center gap-2.5 rounded-lg bg-white/[0.02] px-3 py-2 ring-1 ring-white/[0.04]">
+                <div key={`${f.path}-${i}`} className="flex items-center gap-2.5 rounded-lg bg-surface-1 px-3 py-2 ring-1 ring-edge-1">
                   <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-medium text-slate-300 truncate">{f.file_name}</p>
-                    <p className="text-[10px] text-slate-600">{formatBytes(f.size_bytes)}</p>
+                    <p className="text-[12px] font-medium text-body truncate">{f.file_name}</p>
+                    <p className="text-[12px] text-dim">{formatBytes(f.size_bytes)}</p>
                   </div>
                   <button
                     onClick={() => {
@@ -376,19 +379,19 @@ function LlmPanel() {
       case "model_ready": return { label: "Model Ready", cls: "text-blue-400 bg-blue-500/10 ring-1 ring-blue-500/20", dot: false };
       case "starting": return { label: "Starting...", cls: "text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20", dot: false };
       case "error": return { label: "Error", cls: "text-red-400 bg-red-500/10 ring-1 ring-red-500/20", dot: false };
-      default: return { label: "Not Configured", cls: "text-slate-500 bg-white/[0.04] ring-1 ring-white/[0.06]", dot: false };
+      default: return { label: "Not Configured", cls: "text-dim bg-surface-2 ring-1 ring-edge-2", dot: false };
     }
   })();
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-card overflow-hidden">
-      <div className="flex items-center gap-4 p-4 border-b border-white/[0.06]">
+    <div className="rounded-xl border border-edge-2 bg-card overflow-hidden">
+      <div className="flex items-center gap-4 p-4 border-b border-edge-2">
         <div className="rounded-lg p-2.5 bg-purple-500/10 ring-1 ring-purple-500/20">
           <Brain className="h-5 w-5 text-purple-400" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-[13px] font-semibold text-slate-200">Local AI Model</h3>
+            <h3 className="text-[13px] font-semibold text-body">Local AI Model</h3>
             <span className={`flex items-center gap-1 rounded-md px-2 py-0.5 text-[9px] font-semibold ${badge.cls}`}>
               {badge.dot && <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />}
               {badge.label}
@@ -399,27 +402,27 @@ function LlmPanel() {
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[11px] text-slate-500">Local LLM for AI-powered criterion evaluation. 100% on-device.</p>
+          <p className="mt-0.5 text-[12px] text-dim">Local LLM for AI-powered criterion evaluation. 100% on-device.</p>
         </div>
       </div>
 
       <div className="p-4 space-y-3">
         <div>
-          <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Model File (GGUF)</label>
+          <label className="text-[12px] font-semibold uppercase tracking-wider text-dim">Model File (GGUF)</label>
           <div className="mt-1.5 flex gap-2">
-            <input type="text" value={modelPath || status.model_path || ""} onChange={(e) => setModelPath(e.target.value)} placeholder="path/to/BioMistral-7B-DARE-Q4_K_M.gguf" className="flex-1 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2 font-mono text-[12px] text-slate-200 placeholder-slate-600 focus:border-purple-500/40 focus:outline-none focus:ring-1 focus:ring-purple-500/20" />
-            <button onClick={handlePickModel} className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[11px] font-medium text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-200">
+            <input type="text" value={modelPath || status.model_path || ""} onChange={(e) => setModelPath(e.target.value)} placeholder="path/to/BioMistral-7B-DARE-Q4_K_M.gguf" className="flex-1 rounded-lg border border-edge-2 bg-surface-2 px-3 py-2 font-mono text-[12px] text-body placeholder-dim focus:border-purple-500/40 focus:outline-none focus:ring-1 focus:ring-purple-500/20" />
+            <button onClick={handlePickModel} className="flex items-center gap-1.5 rounded-lg border border-edge-3 bg-surface-2 px-3 py-2 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body">
               <FolderOpen className="h-3.5 w-3.5" /> Browse
             </button>
           </div>
         </div>
 
         {status.model_name && (
-          <div className="flex items-center gap-3 rounded-lg bg-white/[0.02] px-3 py-2 ring-1 ring-white/[0.04]">
+          <div className="flex items-center gap-3 rounded-lg bg-surface-1 px-3 py-2 ring-1 ring-edge-1">
             <Server className="h-4 w-4 text-purple-400" />
             <div className="flex-1">
-              <p className="text-[12px] font-medium text-slate-300">{status.model_name}</p>
-              <p className="text-[10px] text-slate-500">
+              <p className="text-[12px] font-medium text-body">{status.model_name}</p>
+              <p className="text-[12px] text-dim">
                 {status.model_size_bytes ? formatBytes(status.model_size_bytes) : "Size unknown"} · Port {status.port}
               </p>
             </div>
@@ -429,7 +432,7 @@ function LlmPanel() {
         {error && (
           <div className="flex items-center gap-2 rounded-lg bg-red-500/5 px-3 py-2 ring-1 ring-red-500/15">
             <AlertCircle className="h-3.5 w-3.5 text-red-400" />
-            <span className="text-[11px] text-red-400">{error}</span>
+            <span className="text-[12px] text-red-400">{error}</span>
           </div>
         )}
 
@@ -447,14 +450,14 @@ function LlmPanel() {
               <button onClick={handleStart} disabled={loading} className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-emerald-500 disabled:opacity-50">
                 {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />} Start Server
               </button>
-              <button onClick={handleSetModel} disabled={loading} className="flex items-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[11px] font-medium text-slate-400 transition-colors hover:bg-white/[0.06]">Change Model</button>
+              <button onClick={handleSetModel} disabled={loading} className="flex items-center gap-1 rounded-lg border border-edge-3 bg-surface-2 px-3 py-2 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3">Change Model</button>
             </>
           )}
         </div>
 
-        <div className="rounded-lg bg-white/[0.02] p-3 ring-1 ring-white/[0.04]">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">How it works</p>
-          <div className="space-y-1.5 text-[11px] text-slate-500">
+        <div className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
+          <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">How it works</p>
+          <div className="space-y-1.5 text-[12px] text-dim">
             <p>1. Your deployment profile selects the model automatically (or choose manually)</p>
             <p>2. SiteConnect runs inference locally via sidecar — no internet or cloud needed</p>
             <p>3. Criteria that can't be evaluated by rules go to the LLM for assessment</p>
@@ -472,7 +475,7 @@ function LlmPanel() {
 
 const ACTION_LABELS: Record<string, { label: string; color: string; icon: typeof ShieldCheck }> = {
   database_initialized: { label: "Database Created", color: "text-blue-400", icon: HardDrive },
-  database_unlocked: { label: "Database Unlocked", color: "text-slate-400", icon: Shield },
+  database_unlocked: { label: "Database Unlocked", color: "text-dim", icon: Shield },
   study_seeded: { label: "Study Data Loaded", color: "text-indigo-400", icon: FileText },
   data_imported: { label: "Data Imported", color: "text-cyan-400", icon: Download },
   patient_imported: { label: "Subject Imported", color: "text-cyan-400", icon: Download },
@@ -567,22 +570,22 @@ function AuditTrailPanel() {
   const displayEntries = expanded ? entries : entries.slice(-5);
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-card overflow-hidden">
-      <div className="flex items-center gap-4 p-4 border-b border-white/[0.06]">
+    <div className="rounded-xl border border-edge-2 bg-card overflow-hidden">
+      <div className="flex items-center gap-4 p-4 border-b border-edge-2">
         <div className="rounded-lg p-2.5 bg-emerald-500/10 ring-1 ring-emerald-500/20">
           <ShieldCheck className="h-5 w-5 text-emerald-400" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-[13px] font-semibold text-slate-200">Audit Trail</h3>
+            <h3 className="text-[13px] font-semibold text-body">Audit Trail</h3>
             <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold text-emerald-400 ring-1 ring-emerald-500/20">
               21 CFR Part 11
             </span>
-            <span className="rounded-md bg-white/[0.04] px-2 py-0.5 text-[9px] font-semibold text-slate-500 ring-1 ring-white/[0.06]">
+            <span className="rounded-md bg-surface-2 px-2 py-0.5 text-[9px] font-semibold text-dim ring-1 ring-edge-2">
               {entries.length} entries
             </span>
           </div>
-          <p className="mt-0.5 text-[11px] text-slate-500">
+          <p className="mt-0.5 text-[12px] text-dim">
             Immutable, HMAC-chained log of every data action. Tamper-evident and export-ready.
           </p>
         </div>
@@ -605,7 +608,7 @@ function AuditTrailPanel() {
               <p className={`text-[12px] font-semibold ${chainStatus.valid ? "text-emerald-400" : "text-red-400"}`}>
                 {chainStatus.valid ? "Chain Integrity Verified" : "Chain Integrity Failed"}
               </p>
-              <p className="text-[10px] text-slate-500">
+              <p className="text-[12px] text-dim">
                 {chainStatus.valid
                   ? `${chainStatus.count} entries verified — no tampering detected`
                   : chainStatus.error ?? "Unknown verification error"}
@@ -627,12 +630,12 @@ function AuditTrailPanel() {
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-[12px] font-semibold text-slate-300 transition-colors hover:bg-white/[0.06] disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-lg border border-edge-3 bg-surface-2 px-4 py-2 text-[12px] font-semibold text-body transition-colors hover:bg-surface-3 disabled:opacity-50"
           >
             {exporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
             Export CSV
           </button>
-          <p className="text-[10px] text-slate-600">
+          <p className="text-[12px] text-dim">
             Export includes SHA-256 checksums and chain verification status.
           </p>
         </div>
@@ -640,13 +643,13 @@ function AuditTrailPanel() {
         {/* Recent entries */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-dim">
               {expanded ? "All Entries" : "Recent Entries"}
             </p>
             {entries.length > 5 && (
               <button
                 onClick={() => setExpanded(!expanded)}
-                className="flex items-center gap-1 text-[10px] text-slate-500 hover:text-slate-300 transition-colors"
+                className="flex items-center gap-1 text-[12px] text-dim hover:text-body transition-colors"
               >
                 {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                 {expanded ? "Show less" : `Show all ${entries.length}`}
@@ -658,22 +661,22 @@ function AuditTrailPanel() {
               const meta = ACTION_LABELS[entry.action];
               const Icon = meta?.icon ?? FileText;
               return (
-                <div key={entry.id} className="flex items-start gap-2.5 rounded-lg bg-white/[0.02] px-3 py-2 ring-1 ring-white/[0.04]">
-                  <Icon className={`h-3.5 w-3.5 mt-0.5 ${meta?.color ?? "text-slate-400"}`} />
+                <div key={entry.id} className="flex items-start gap-2.5 rounded-lg bg-surface-1 px-3 py-2 ring-1 ring-edge-1">
+                  <Icon className={`h-3.5 w-3.5 mt-0.5 ${meta?.color ?? "text-dim"}`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className={`text-[11px] font-semibold ${meta?.color ?? "text-slate-300"}`}>
+                      <span className={`text-[12px] font-semibold ${meta?.color ?? "text-body"}`}>
                         {meta?.label ?? entry.action}
                       </span>
-                      <span className="text-[9px] text-slate-600 flex items-center gap-1">
+                      <span className="text-[9px] text-dim flex items-center gap-1">
                         <Clock className="h-2.5 w-2.5" />
                         {formatTimestamp(entry.timestamp)}
                       </span>
                     </div>
                     {entry.details && (
-                      <p className="text-[10px] text-slate-500 mt-0.5 truncate">{entry.details}</p>
+                      <p className="text-[12px] text-dim mt-0.5 truncate">{entry.details}</p>
                     )}
-                    <p className="text-[8px] font-mono text-slate-700 mt-0.5 truncate" title={entry.checksum}>
+                    <p className="text-[8px] font-mono text-faint mt-0.5 truncate" title={entry.checksum}>
                       SHA-256: {entry.checksum}
                     </p>
                   </div>
@@ -681,15 +684,15 @@ function AuditTrailPanel() {
               );
             })}
             {entries.length === 0 && (
-              <p className="text-[11px] text-slate-600 text-center py-4">No audit entries yet. Actions will be logged here automatically.</p>
+              <p className="text-[12px] text-dim text-center py-4">No audit entries yet. Actions will be logged here automatically.</p>
             )}
           </div>
         </div>
 
         {/* Compliance note */}
-        <div className="rounded-lg bg-white/[0.02] p-3 ring-1 ring-white/[0.04]">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">Compliance</p>
-          <div className="space-y-1.5 text-[11px] text-slate-500">
+        <div className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
+          <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">Compliance</p>
+          <div className="space-y-1.5 text-[12px] text-dim">
             <p>Every data mutation creates an immutable, timestamped audit entry per 21 CFR Part 11 §11.10(e).</p>
             <p>Entries are SHA-256 chained — modifying any historical entry breaks the chain and is immediately detectable.</p>
             <p>Export includes full checksums for independent verification by QA, auditors, or sponsors.</p>
@@ -712,19 +715,19 @@ function DatabasePanel() {
   }, []);
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-card overflow-hidden">
+    <div className="rounded-xl border border-edge-2 bg-card overflow-hidden">
       <div className="flex items-center gap-4 p-4">
         <div className="rounded-lg p-2.5 bg-emerald-500/10 ring-1 ring-emerald-500/20">
           <HardDrive className="h-5 w-5 text-emerald-400" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-[13px] font-semibold text-slate-200">Database & Encryption</h3>
+            <h3 className="text-[13px] font-semibold text-body">Database & Encryption</h3>
             <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold text-emerald-400 ring-1 ring-emerald-500/20">
               AES-256 Active
             </span>
           </div>
-          <p className="mt-0.5 text-[11px] text-slate-500">
+          <p className="mt-0.5 text-[12px] text-dim">
             SQLCipher-encrypted local database. All PHI encrypted at rest.
           </p>
         </div>
@@ -740,9 +743,9 @@ function DatabasePanel() {
               { label: "Medications", value: summary.total_medications },
               { label: "Imports", value: summary.imports_count },
             ].map((stat) => (
-              <div key={stat.label} className="rounded-lg bg-white/[0.02] px-3 py-2 ring-1 ring-white/[0.04] text-center">
-                <p className="text-[14px] font-bold text-slate-200">{stat.value}</p>
-                <p className="text-[9px] text-slate-500">{stat.label}</p>
+              <div key={stat.label} className="rounded-lg bg-surface-1 px-3 py-2 ring-1 ring-edge-1 text-center">
+                <p className="text-[14px] font-bold text-body">{stat.value}</p>
+                <p className="text-[9px] text-dim">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -757,55 +760,73 @@ function DatabasePanel() {
 // ---------------------------------------------------------------------------
 
 function PreferencesPanel() {
+  const theme = useAppStore((s) => s.theme);
+  const toggleTheme = useAppStore((s) => s.toggleTheme);
   const [autoScreen, setAutoScreen] = useState(true);
   const [notifications, setNotifications] = useState(true);
   const [sessionTimeout, setSessionTimeout] = useState(30);
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-card overflow-hidden">
-      <div className="flex items-center gap-4 p-4 border-b border-white/[0.06]">
+    <div className="rounded-xl border border-edge-2 bg-card overflow-hidden">
+      <div className="flex items-center gap-4 p-4 border-b border-edge-2">
         <div className="rounded-lg p-2.5 bg-amber-500/10 ring-1 ring-amber-500/20">
           <Bell className="h-5 w-5 text-amber-400" />
         </div>
         <div className="flex-1">
-          <h3 className="text-[13px] font-semibold text-slate-200">Preferences</h3>
-          <p className="mt-0.5 text-[11px] text-slate-500">Application behavior and notification settings.</p>
+          <h3 className="text-[13px] font-semibold text-body">Preferences</h3>
+          <p className="mt-0.5 text-[12px] text-dim">Application behavior and notification settings.</p>
         </div>
       </div>
       <div className="p-4 space-y-3">
         <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {theme === "dark" ? <Moon className="h-4 w-4 text-indigo-400" /> : <Sun className="h-4 w-4 text-amber-400" />}
+            <div>
+              <p className="text-[12px] font-medium text-body">Appearance</p>
+              <p className="text-[12px] text-dim">{theme === "dark" ? "Dark mode" : "Light mode"}</p>
+            </div>
+          </div>
+          <button
+            onClick={toggleTheme}
+            className={`relative h-5 w-9 rounded-full transition-colors ${theme === "light" ? "bg-amber-500" : "bg-indigo-600"}`}
+          >
+            <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${theme === "light" ? "left-[18px]" : "left-0.5"}`} />
+          </button>
+        </div>
+        <div className="flex items-center justify-between">
           <div>
-            <p className="text-[12px] font-medium text-slate-300">Auto-screen on import</p>
-            <p className="text-[10px] text-slate-500">Automatically screen subjects when new data is imported</p>
+            <p className="text-[12px] font-medium text-body">Auto-screen on import</p>
+            <p className="text-[12px] text-dim">Automatically screen subjects when new data is imported</p>
           </div>
           <button
             onClick={() => setAutoScreen(!autoScreen)}
-            className={`relative h-5 w-9 rounded-full transition-colors ${autoScreen ? "bg-emerald-600" : "bg-white/[0.1]"}`}
+            className={`relative h-5 w-9 rounded-full transition-colors ${autoScreen ? "bg-emerald-600" : "bg-surface-5"}`}
           >
             <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${autoScreen ? "left-[18px]" : "left-0.5"}`} />
           </button>
         </div>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[12px] font-medium text-slate-300">Desktop notifications</p>
-            <p className="text-[10px] text-slate-500">Show alerts when new files are detected or screening completes</p>
+            <p className="text-[12px] font-medium text-body">Desktop notifications</p>
+            <p className="text-[12px] text-dim">Show alerts when new files are detected or screening completes</p>
           </div>
           <button
             onClick={() => setNotifications(!notifications)}
-            className={`relative h-5 w-9 rounded-full transition-colors ${notifications ? "bg-emerald-600" : "bg-white/[0.1]"}`}
+            className={`relative h-5 w-9 rounded-full transition-colors ${notifications ? "bg-emerald-600" : "bg-surface-5"}`}
           >
             <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${notifications ? "left-[18px]" : "left-0.5"}`} />
           </button>
         </div>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[12px] font-medium text-slate-300">Session timeout</p>
-            <p className="text-[10px] text-slate-500">Lock screen after inactivity (minutes)</p>
+            <p className="text-[12px] font-medium text-body">Session timeout</p>
+            <p className="text-[12px] text-dim">Lock screen after inactivity (minutes)</p>
           </div>
           <select
             value={sessionTimeout}
             onChange={(e) => setSessionTimeout(Number(e.target.value))}
-            className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-2 py-1 text-[11px] text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500/20"
+            className="rounded-lg border border-white/10 bg-popover px-3 py-1.5 text-[12px] text-body focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 appearance-none cursor-pointer"
+            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 10px center", paddingRight: "28px" }}
           >
             <option value={15}>15 min</option>
             <option value={30}>30 min</option>
@@ -979,28 +1000,28 @@ function SystemProfilePanel() {
   };
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-card overflow-hidden">
-      <div className="flex items-center gap-4 p-4 border-b border-white/[0.06]">
+    <div className="rounded-xl border border-edge-2 bg-card overflow-hidden">
+      <div className="flex items-center gap-4 p-4 border-b border-edge-2">
         <div className="rounded-lg p-2.5 bg-indigo-500/10 ring-1 ring-indigo-500/20">
           <Monitor className="h-5 w-5 text-indigo-400" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-[13px] font-semibold text-slate-200">System & AI Profile</h3>
+            <h3 className="text-[13px] font-semibold text-body">System & AI Profile</h3>
             {hardware && (
               <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold text-emerald-400 ring-1 ring-emerald-500/20">
                 Analyzed
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[11px] text-slate-500">
+          <p className="mt-0.5 text-[12px] text-dim">
             SiteConnect analyzes your hardware and selects the optimal AI configuration automatically.
           </p>
         </div>
         <button
           onClick={handleScan}
           disabled={scanning}
-          className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-200 disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-lg border border-edge-3 bg-surface-2 px-3 py-1.5 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body disabled:opacity-50"
         >
           {scanning ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
           Re-scan
@@ -1018,43 +1039,43 @@ function SystemProfilePanel() {
               <Cpu className="absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-indigo-400" />
             </div>
             <div className="text-center">
-              <p className="text-[12px] font-semibold text-slate-300">Analyzing system hardware...</p>
-              <p className="text-[10px] text-slate-500">Detecting CPU, memory, GPU, and storage capabilities</p>
+              <p className="text-[12px] font-semibold text-body">Analyzing system hardware...</p>
+              <p className="text-[12px] text-dim">Detecting CPU, memory, GPU, and storage capabilities</p>
             </div>
           </div>
         ) : hardware ? (
           <>
             <div className="grid grid-cols-2 gap-2">
-              <div className="flex items-center gap-2.5 rounded-lg bg-white/[0.02] px-3 py-2.5 ring-1 ring-white/[0.04]">
+              <div className="flex items-center gap-2.5 rounded-lg bg-surface-1 px-3 py-2.5 ring-1 ring-edge-1">
                 <Cpu className="h-4 w-4 text-indigo-400 shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-[10px] text-slate-500">Processor</p>
-                  <p className="text-[11px] font-semibold text-slate-300 truncate">{hardware.cpuModel}</p>
-                  <p className="text-[10px] text-slate-600">{hardware.cpuCores} cores · {hardware.arch}</p>
+                  <p className="text-[12px] text-dim">Processor</p>
+                  <p className="text-[12px] font-semibold text-body truncate">{hardware.cpuModel}</p>
+                  <p className="text-[12px] text-dim">{hardware.cpuCores} cores · {hardware.arch}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2.5 rounded-lg bg-white/[0.02] px-3 py-2.5 ring-1 ring-white/[0.04]">
+              <div className="flex items-center gap-2.5 rounded-lg bg-surface-1 px-3 py-2.5 ring-1 ring-edge-1">
                 <MemoryStick className="h-4 w-4 text-emerald-400 shrink-0" />
                 <div>
-                  <p className="text-[10px] text-slate-500">Memory</p>
-                  <p className="text-[11px] font-semibold text-slate-300">{hardware.ramGB} GB RAM</p>
-                  <p className="text-[10px] text-slate-600">{hardware.ramGB >= 16 ? "Optimal" : hardware.ramGB >= 8 ? "Sufficient" : "Limited"}</p>
+                  <p className="text-[12px] text-dim">Memory</p>
+                  <p className="text-[12px] font-semibold text-body">{hardware.ramGB} GB RAM</p>
+                  <p className="text-[12px] text-dim">{hardware.ramGB >= 16 ? "Optimal" : hardware.ramGB >= 8 ? "Sufficient" : "Limited"}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2.5 rounded-lg bg-white/[0.02] px-3 py-2.5 ring-1 ring-white/[0.04]">
+              <div className="flex items-center gap-2.5 rounded-lg bg-surface-1 px-3 py-2.5 ring-1 ring-edge-1">
                 <Gauge className="h-4 w-4 text-purple-400 shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-[10px] text-slate-500">GPU</p>
-                  <p className="text-[11px] font-semibold text-slate-300 truncate">{hardware.gpuModel ?? "Integrated"}</p>
-                  <p className="text-[10px] text-slate-600">{hardware.gpuModel ? "GPU acceleration available" : "CPU inference mode"}</p>
+                  <p className="text-[12px] text-dim">GPU</p>
+                  <p className="text-[12px] font-semibold text-body truncate">{hardware.gpuModel ?? "Integrated"}</p>
+                  <p className="text-[12px] text-dim">{hardware.gpuModel ? "GPU acceleration available" : "CPU inference mode"}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2.5 rounded-lg bg-white/[0.02] px-3 py-2.5 ring-1 ring-white/[0.04]">
+              <div className="flex items-center gap-2.5 rounded-lg bg-surface-1 px-3 py-2.5 ring-1 ring-edge-1">
                 <HardDrive className="h-4 w-4 text-amber-400 shrink-0" />
                 <div>
-                  <p className="text-[10px] text-slate-500">System</p>
-                  <p className="text-[11px] font-semibold text-slate-300">{hardware.os}</p>
-                  <p className="text-[10px] text-slate-600">{hardware.screenResolution} · {hardware.avx2 ? "AVX2 supported" : "No AVX2"}</p>
+                  <p className="text-[12px] text-dim">System</p>
+                  <p className="text-[12px] font-semibold text-body">{hardware.os}</p>
+                  <p className="text-[12px] text-dim">{hardware.screenResolution} · {hardware.avx2 ? "AVX2 supported" : "No AVX2"}</p>
                 </div>
               </div>
             </div>
@@ -1062,7 +1083,7 @@ function SystemProfilePanel() {
             {/* Deployment profile selector */}
             <div>
               <div className="flex items-center justify-between mb-2.5">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">AI Deployment Profile</p>
+                <p className="text-[12px] font-semibold uppercase tracking-wider text-dim">AI Deployment Profile</p>
                 {recommended && (
                   <span className="flex items-center gap-1 text-[9px] font-semibold text-indigo-400">
                     <Sparkles className="h-2.5 w-2.5" />
@@ -1085,11 +1106,11 @@ function SystemProfilePanel() {
                         className={`relative rounded-xl p-3 text-left transition-all ${
                           isSelected
                             ? `${colors.bg} ring-2 ${colors.ring}`
-                            : "bg-white/[0.02] ring-1 ring-white/[0.04] hover:ring-white/[0.08]"
+                            : "bg-surface-1 ring-1 ring-edge-1 hover:ring-edge-3"
                         } ${profileLocked && !isSelected ? "opacity-40" : ""}`}
                       >
                         {isRecommended && (
-                          <span className={`absolute -top-1.5 right-2 rounded-full ${colors.fill} px-2 py-0.5 text-[8px] font-bold text-white`}>
+                          <span className={`absolute -top-1.5 right-2 rounded-full ${colors.fill} px-2 py-0.5 text-[8px] font-bold text-heading`}>
                             RECOMMENDED
                           </span>
                         )}
@@ -1097,24 +1118,24 @@ function SystemProfilePanel() {
                           <CircleCheck className={`absolute top-2 right-2 h-4 w-4 ${colors.text}`} />
                         )}
                         <div className="flex items-center gap-1.5 mb-1.5">
-                          <Layers className={`h-3.5 w-3.5 ${isSelected ? colors.text : "text-slate-500"}`} />
-                          <span className={`text-[12px] font-bold ${isSelected ? colors.text : "text-slate-400"}`}>
+                          <Layers className={`h-3.5 w-3.5 ${isSelected ? colors.text : "text-dim"}`} />
+                          <span className={`text-[12px] font-bold ${isSelected ? colors.text : "text-dim"}`}>
                             {profile.label}
                           </span>
                         </div>
-                        <p className="text-[10px] text-slate-500 leading-relaxed mb-2">{profile.desc}</p>
-                        <div className="space-y-1 border-t border-white/[0.04] pt-2">
+                        <p className="text-[12px] text-dim leading-relaxed mb-2">{profile.desc}</p>
+                        <div className="space-y-1 border-t border-edge-1 pt-2">
                           <div className="flex items-center justify-between text-[9px]">
-                            <span className="text-slate-500">Model</span>
-                            <span className={`font-semibold ${isSelected ? colors.text : "text-slate-400"}`}>{profile.model}</span>
+                            <span className="text-dim">Model</span>
+                            <span className={`font-semibold ${isSelected ? colors.text : "text-dim"}`}>{profile.model}</span>
                           </div>
                           <div className="flex items-center justify-between text-[9px]">
-                            <span className="text-slate-500">Size</span>
-                            <span className="text-slate-400">{profile.modelSize}</span>
+                            <span className="text-dim">Size</span>
+                            <span className="text-dim">{profile.modelSize}</span>
                           </div>
                           <div className="flex items-center justify-between text-[9px]">
-                            <span className="text-slate-500">RAM</span>
-                            <span className="text-slate-400">{profile.ramReq}</span>
+                            <span className="text-dim">RAM</span>
+                            <span className="text-dim">{profile.ramReq}</span>
                           </div>
                         </div>
                       </button>
@@ -1124,13 +1145,13 @@ function SystemProfilePanel() {
               </div>
 
               {/* Selected profile features */}
-              <div className="mt-3 rounded-lg bg-white/[0.02] p-3 ring-1 ring-white/[0.04]">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+              <div className="mt-3 rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
+                <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">
                   {DEPLOYMENT_PROFILES[selectedProfile].label} Profile Capabilities
                 </p>
                 <div className="grid grid-cols-2 gap-1.5">
                   {DEPLOYMENT_PROFILES[selectedProfile].features.map((f) => (
-                    <div key={f} className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                    <div key={f} className="flex items-center gap-1.5 text-[12px] text-dim">
                       <Check className="h-2.5 w-2.5 text-emerald-400 shrink-0" />
                       {f}
                     </div>
@@ -1151,13 +1172,13 @@ function SystemProfilePanel() {
                 <div className="mt-3 flex items-center justify-between rounded-lg bg-emerald-500/5 px-3 py-2 ring-1 ring-emerald-500/15">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                    <span className="text-[11px] font-semibold text-emerald-400">
+                    <span className="text-[12px] font-semibold text-emerald-400">
                       {DEPLOYMENT_PROFILES[selectedProfile].label} profile active
                     </span>
                   </div>
                   <button
                     onClick={() => setProfileLocked(false)}
-                    className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors"
+                    className="text-[12px] text-dim hover:text-body transition-colors"
                   >
                     Change
                   </button>
@@ -1241,14 +1262,14 @@ function UpdatePanel() {
   };
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-card overflow-hidden">
-      <div className="flex items-center gap-4 p-4 border-b border-white/[0.06]">
+    <div className="rounded-xl border border-edge-2 bg-card overflow-hidden">
+      <div className="flex items-center gap-4 p-4 border-b border-edge-2">
         <div className="rounded-lg p-2.5 bg-blue-500/10 ring-1 ring-blue-500/20">
           <ArrowUpCircle className="h-5 w-5 text-blue-400" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-[13px] font-semibold text-slate-200">Updates</h3>
+            <h3 className="text-[13px] font-semibold text-body">Updates</h3>
             <span className={`rounded-md px-2 py-0.5 text-[9px] font-semibold uppercase ${channelColors[versions.channel]}`}>
               {versions.channel}
             </span>
@@ -1258,7 +1279,7 @@ function UpdatePanel() {
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[11px] text-slate-500">
+          <p className="mt-0.5 text-[12px] text-dim">
             App updates, model packs, and rule templates ship independently.
           </p>
         </div>
@@ -1273,12 +1294,12 @@ function UpdatePanel() {
             { label: "Rule Engine", version: versions.ruleEngine, icon: Shield, hasUpdate: false },
             { label: "Mapping Templates", version: versions.mappingTemplates, icon: Layers, hasUpdate: false },
           ].map((item) => (
-            <div key={item.label} className="flex items-center gap-2.5 rounded-lg bg-white/[0.02] px-3 py-2 ring-1 ring-white/[0.04]">
-              <item.icon className={`h-3.5 w-3.5 shrink-0 ${item.hasUpdate ? "text-blue-400" : "text-slate-500"}`} />
+            <div key={item.label} className="flex items-center gap-2.5 rounded-lg bg-surface-1 px-3 py-2 ring-1 ring-edge-1">
+              <item.icon className={`h-3.5 w-3.5 shrink-0 ${item.hasUpdate ? "text-blue-400" : "text-dim"}`} />
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-slate-500">{item.label}</p>
+                <p className="text-[12px] text-dim">{item.label}</p>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] font-semibold text-slate-300 font-mono">v{item.version}</span>
+                  <span className="text-[12px] font-semibold text-body font-mono">v{item.version}</span>
                   {item.hasUpdate && versions.updateVersion && (
                     <span className="text-[9px] font-semibold text-blue-400">→ v{versions.updateVersion}</span>
                   )}
@@ -1301,10 +1322,10 @@ function UpdatePanel() {
           ) : downloading ? (
             <div className="flex-1">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-semibold text-blue-400">Downloading update...</span>
-                <span className="text-[10px] font-mono text-slate-500">{Math.min(100, Math.round(downloadProgress))}%</span>
+                <span className="text-[12px] font-semibold text-blue-400">Downloading update...</span>
+                <span className="text-[12px] font-mono text-dim">{Math.min(100, Math.round(downloadProgress))}%</span>
               </div>
-              <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
+              <div className="h-2 rounded-full bg-surface-2 overflow-hidden">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-500 transition-all duration-300"
                   style={{ width: `${Math.min(100, downloadProgress)}%` }}
@@ -1315,7 +1336,7 @@ function UpdatePanel() {
             <button
               onClick={handleCheckForUpdates}
               disabled={checking}
-              className="flex items-center gap-1.5 rounded-lg bg-white/[0.04] px-4 py-2 text-[12px] font-semibold text-slate-300 transition-colors hover:bg-white/[0.06] disabled:opacity-50 ring-1 ring-white/[0.06]"
+              className="flex items-center gap-1.5 rounded-lg bg-surface-2 px-4 py-2 text-[12px] font-semibold text-body transition-colors hover:bg-surface-3 disabled:opacity-50 ring-1 ring-edge-2"
             >
               {checking ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
               Check for Updates
@@ -1324,7 +1345,7 @@ function UpdatePanel() {
         </div>
 
         {versions.lastChecked && (
-          <p className="text-[10px] text-slate-600 flex items-center gap-1">
+          <p className="text-[12px] text-dim flex items-center gap-1">
             <Clock className="h-2.5 w-2.5" />
             Last checked: {new Date(versions.lastChecked).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
           </p>
@@ -1333,15 +1354,15 @@ function UpdatePanel() {
         {/* Expandable details */}
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex w-full items-center justify-between rounded-lg bg-white/[0.02] px-3 py-2 text-[10px] font-medium text-slate-500 ring-1 ring-white/[0.04] transition-colors hover:text-slate-300"
+          className="flex w-full items-center justify-between rounded-lg bg-surface-1 px-3 py-2 text-[12px] font-medium text-dim ring-1 ring-edge-1 transition-colors hover:text-body"
         >
           <span>Update policy & channels</span>
           {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
         </button>
         {expanded && (
           <div className="space-y-2">
-            <div className="rounded-lg bg-white/[0.02] p-3 ring-1 ring-white/[0.04]">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">Update Channels</p>
+            <div className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
+              <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">Update Channels</p>
               <div className="space-y-2">
                 {[
                   { ch: "stable", desc: "Production-tested releases. Recommended for all sites.", current: versions.channel === "stable" },
@@ -1350,16 +1371,16 @@ function UpdatePanel() {
                 ].map((c) => (
                   <div key={c.ch} className="flex items-center gap-2">
                     <span className={`h-2 w-2 rounded-full ${c.current ? "bg-emerald-400" : "bg-slate-600"}`} />
-                    <span className={`text-[11px] font-semibold capitalize ${c.current ? "text-slate-200" : "text-slate-500"}`}>
+                    <span className={`text-[12px] font-semibold capitalize ${c.current ? "text-body" : "text-dim"}`}>
                       {c.ch}
                     </span>
-                    <span className="text-[10px] text-slate-600">— {c.desc}</span>
+                    <span className="text-[12px] text-dim">— {c.desc}</span>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="rounded-lg bg-white/[0.02] p-3 ring-1 ring-white/[0.04]">
-              <div className="space-y-1.5 text-[11px] text-slate-500">
+            <div className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
+              <div className="space-y-1.5 text-[12px] text-dim">
                 <p>App binaries, model packs, rule engines, and mapping templates update independently.</p>
                 <p>All updates are cryptographically signed. Rollback to the previous version is always available.</p>
                 <p>Emergency fixes can be applied without re-downloading AI models.</p>
@@ -1447,16 +1468,16 @@ function SupportPanel() {
   }, [diagnostics]);
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-card overflow-hidden">
-      <div className="flex items-center gap-4 p-4 border-b border-white/[0.06]">
+    <div className="rounded-xl border border-edge-2 bg-card overflow-hidden">
+      <div className="flex items-center gap-4 p-4 border-b border-edge-2">
         <div className="rounded-lg p-2.5 bg-rose-500/10 ring-1 ring-rose-500/20">
           <HeadphonesIcon className="h-5 w-5 text-rose-400" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-[13px] font-semibold text-slate-200">Support & Diagnostics</h3>
+            <h3 className="text-[13px] font-semibold text-body">Support & Diagnostics</h3>
           </div>
-          <p className="mt-0.5 text-[11px] text-slate-500">
+          <p className="mt-0.5 text-[12px] text-dim">
             Get help, generate diagnostics bundles, and contact the Talosix team.
           </p>
         </div>
@@ -1465,7 +1486,7 @@ function SupportPanel() {
       <div className="p-4 space-y-3">
         {/* Quick diagnostics grid */}
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">System Snapshot</p>
+          <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">System Snapshot</p>
           <div className="grid grid-cols-3 gap-2">
             {[
               { label: "App", value: `v${diagnostics.appVersion}`, icon: Package, ok: true },
@@ -1475,11 +1496,11 @@ function SupportPanel() {
               { label: "Network", value: navigator.onLine ? "Online" : "Offline", icon: navigator.onLine ? Wifi : WifiOff, ok: true },
               { label: "Session", value: diagnostics.uptime, icon: Clock, ok: true },
             ].map((item) => (
-              <div key={item.label} className="flex items-center gap-2 rounded-lg bg-white/[0.02] px-2.5 py-2 ring-1 ring-white/[0.04]">
-                <item.icon className={`h-3 w-3 shrink-0 ${item.ok ? "text-slate-500" : "text-amber-400"}`} />
+              <div key={item.label} className="flex items-center gap-2 rounded-lg bg-surface-1 px-2.5 py-2 ring-1 ring-edge-1">
+                <item.icon className={`h-3 w-3 shrink-0 ${item.ok ? "text-dim" : "text-amber-400"}`} />
                 <div className="min-w-0">
-                  <p className="text-[9px] text-slate-600">{item.label}</p>
-                  <p className="text-[10px] font-semibold text-slate-400 truncate">{item.value}</p>
+                  <p className="text-[9px] text-dim">{item.label}</p>
+                  <p className="text-[12px] font-semibold text-dim truncate">{item.value}</p>
                 </div>
               </div>
             ))}
@@ -1487,10 +1508,10 @@ function SupportPanel() {
         </div>
 
         {/* Diagnostics bundle */}
-        <div className="rounded-lg bg-white/[0.02] p-3 ring-1 ring-white/[0.04]">
+        <div className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
           <div className="flex items-start gap-2 mb-3">
             <Info className="h-3.5 w-3.5 text-blue-400 shrink-0 mt-0.5" />
-            <p className="text-[10px] text-slate-500 leading-relaxed">
+            <p className="text-[12px] text-dim leading-relaxed">
               Diagnostics bundles include app version, hardware profile, error logs, and health status.
               <span className="font-semibold text-emerald-400"> No patient data or PHI is ever included.</span>
             </p>
@@ -1500,7 +1521,7 @@ function SupportPanel() {
             <button
               onClick={handleGenerateBundle}
               disabled={generating}
-              className="flex items-center gap-1.5 rounded-lg bg-white/[0.04] px-3 py-2 text-[11px] font-semibold text-slate-300 transition-colors hover:bg-white/[0.06] disabled:opacity-50 ring-1 ring-white/[0.06]"
+              className="flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-2 text-[12px] font-semibold text-body transition-colors hover:bg-surface-3 disabled:opacity-50 ring-1 ring-edge-2"
             >
               {generating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Bug className="h-3 w-3" />}
               Generate Bundle
@@ -1510,13 +1531,13 @@ function SupportPanel() {
               <>
                 <button
                   onClick={handleDownloadBundle}
-                  className="flex items-center gap-1.5 rounded-lg bg-blue-600/80 px-3 py-2 text-[11px] font-semibold text-white transition-colors hover:bg-blue-500"
+                  className="flex items-center gap-1.5 rounded-lg bg-blue-600/80 px-3 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-blue-500"
                 >
                   <Download className="h-3 w-3" /> Download .json
                 </button>
                 <button
                   onClick={handleCopyDiagnostics}
-                  className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-[11px] font-medium text-slate-400 transition-colors hover:bg-white/[0.06]"
+                  className="flex items-center gap-1.5 rounded-lg border border-edge-3 bg-surface-2 px-3 py-2 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3"
                 >
                   {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
                   {copied ? "Copied" : "Copy"}
@@ -1528,7 +1549,7 @@ function SupportPanel() {
 
         {/* Contact support */}
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2">Contact Talosix</p>
+          <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">Contact Talosix</p>
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => {
@@ -1538,22 +1559,22 @@ function SupportPanel() {
                 );
                 window.open(`mailto:support@talosix.com?subject=${subject}&body=${body}`, "_blank");
               }}
-              className="flex items-center gap-2 rounded-lg bg-white/[0.02] px-3 py-3 ring-1 ring-white/[0.04] transition-all hover:bg-white/[0.04] hover:ring-white/[0.08] group"
+              className="flex items-center gap-2 rounded-lg bg-surface-1 px-3 py-3 ring-1 ring-edge-1 transition-all hover:bg-surface-2 hover:ring-edge-3 group"
             >
               <Mail className="h-4 w-4 text-blue-400 group-hover:text-blue-300" />
               <div className="text-left">
-                <p className="text-[11px] font-semibold text-slate-300 group-hover:text-slate-200">Email Support</p>
-                <p className="text-[9px] text-slate-600">support@talosix.com</p>
+                <p className="text-[12px] font-semibold text-body group-hover:text-body">Email Support</p>
+                <p className="text-[9px] text-dim">support@talosix.com</p>
               </div>
             </button>
             <button
               onClick={() => toast.info("Support chat", "Live chat coming soon — use email for now")}
-              className="flex items-center gap-2 rounded-lg bg-white/[0.02] px-3 py-3 ring-1 ring-white/[0.04] transition-all hover:bg-white/[0.04] hover:ring-white/[0.08] group"
+              className="flex items-center gap-2 rounded-lg bg-surface-1 px-3 py-3 ring-1 ring-edge-1 transition-all hover:bg-surface-2 hover:ring-edge-3 group"
             >
               <MessageSquare className="h-4 w-4 text-purple-400 group-hover:text-purple-300" />
               <div className="text-left">
-                <p className="text-[11px] font-semibold text-slate-300 group-hover:text-slate-200">Live Chat</p>
-                <p className="text-[9px] text-slate-600">Coming soon</p>
+                <p className="text-[12px] font-semibold text-body group-hover:text-body">Live Chat</p>
+                <p className="text-[9px] text-dim">Coming soon</p>
               </div>
             </button>
           </div>
@@ -1561,26 +1582,26 @@ function SupportPanel() {
 
         {/* Emergency actions */}
         <div className="rounded-lg border border-amber-500/10 bg-amber-500/5 p-3">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-400/70 mb-2">Troubleshooting</p>
+          <p className="text-[12px] font-semibold uppercase tracking-wider text-amber-400/70 mb-2">Troubleshooting</p>
           <div className="space-y-1.5">
             <button
               onClick={() => toast.info("Safe mode", "Restart the app with --safe-mode flag to disable AI and run deterministic-only screening")}
-              className="flex w-full items-center gap-2 rounded-lg bg-white/[0.02] px-3 py-2 text-left ring-1 ring-white/[0.04] transition-colors hover:bg-white/[0.04]"
+              className="flex w-full items-center gap-2 rounded-lg bg-surface-1 px-3 py-2 text-left ring-1 ring-edge-1 transition-colors hover:bg-surface-2"
             >
               <Shield className="h-3.5 w-3.5 text-amber-400 shrink-0" />
               <div>
-                <p className="text-[11px] font-medium text-slate-300">Start in Safe Mode</p>
-                <p className="text-[9px] text-slate-600">Disable AI, keep deterministic screening active</p>
+                <p className="text-[12px] font-medium text-body">Start in Safe Mode</p>
+                <p className="text-[9px] text-dim">Disable AI, keep deterministic screening active</p>
               </div>
             </button>
             <button
               onClick={() => toast.info("Model cache cleared", "AI model will be reloaded on next start")}
-              className="flex w-full items-center gap-2 rounded-lg bg-white/[0.02] px-3 py-2 text-left ring-1 ring-white/[0.04] transition-colors hover:bg-white/[0.04]"
+              className="flex w-full items-center gap-2 rounded-lg bg-surface-1 px-3 py-2 text-left ring-1 ring-edge-1 transition-colors hover:bg-surface-2"
             >
               <RefreshCw className="h-3.5 w-3.5 text-amber-400 shrink-0" />
               <div>
-                <p className="text-[11px] font-medium text-slate-300">Clear Model Cache</p>
-                <p className="text-[9px] text-slate-600">Reset AI model state without affecting data</p>
+                <p className="text-[12px] font-medium text-body">Clear Model Cache</p>
+                <p className="text-[9px] text-dim">Reset AI model state without affecting data</p>
               </div>
             </button>
           </div>

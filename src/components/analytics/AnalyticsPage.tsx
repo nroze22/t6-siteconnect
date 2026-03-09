@@ -97,12 +97,12 @@ export function AnalyticsPage() {
     <div className="flex h-full flex-col overflow-hidden bg-background">
       <div className="shrink-0 border-b border-border bg-card/50 px-6 py-3">
         <div className="flex items-center justify-between">
-          <p className="text-[12px] text-slate-500">
-            <span className="tabular-nums font-medium text-slate-300">{animatedCount}</span> subjects loaded
+          <p className="text-[12px] text-dim">
+            <span className="tabular-nums font-medium text-body">{animatedCount}</span> subjects loaded
           </p>
           <div className="flex items-center gap-1 rounded-lg bg-emerald-500/8 px-3 py-1.5 ring-1 ring-emerald-500/15">
             <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[11px] font-medium text-emerald-400">Live from your data</span>
+            <span className="text-[12px] font-medium text-emerald-400">Live from your data</span>
           </div>
         </div>
       </div>
@@ -117,12 +117,12 @@ export function AnalyticsPage() {
               className={`flex items-center gap-2 rounded-lg px-4 py-2 text-[12px] font-medium transition-all ${
                 activeTab === tab.id
                   ? "bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-500/25"
-                  : "text-slate-500 hover:bg-white/[0.04] hover:text-slate-300"
+                  : "text-dim hover:bg-surface-2 hover:text-body"
               }`}
             >
               <span className={activeTab === tab.id ? "text-indigo-400" : ""}>{tab.icon}</span>
               {tab.label}
-              <span className={`text-[10px] ${activeTab === tab.id ? "text-indigo-400/60" : "text-slate-600"}`}>
+              <span className={`text-[12px] ${activeTab === tab.id ? "text-indigo-400/60" : "text-dim"}`}>
                 {tab.desc}
               </span>
             </button>
@@ -265,7 +265,7 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
       {/* Query selector */}
       <div className="flex items-center gap-3">
         <Target className="h-5 w-5 text-indigo-400" />
-        <h3 className="text-[14px] font-bold text-white">Select Protocol Template</h3>
+        <h3 className="text-[14px] font-bold text-heading">Select Protocol Template</h3>
         <InfoButton onClick={() => setShowInfo(true)} />
       </div>
       <div className="grid grid-cols-3 gap-2">
@@ -276,13 +276,13 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
             className={`rounded-lg border p-3 text-left transition-all ${
               selectedQueryId === q.id
                 ? "border-indigo-500/30 bg-indigo-500/10 ring-1 ring-indigo-500/20"
-                : "border-white/[0.06] bg-card hover:border-white/[0.1]"
+                : "border-edge-2 bg-card hover:border-edge-4"
             }`}
           >
-            <p className={`text-[12px] font-semibold ${selectedQueryId === q.id ? "text-indigo-300" : "text-slate-200"}`}>
+            <p className={`text-[12px] font-semibold ${selectedQueryId === q.id ? "text-indigo-300" : "text-body"}`}>
               {q.name}
             </p>
-            <p className="mt-0.5 text-[10px] text-slate-500">
+            <p className="mt-0.5 text-[12px] text-dim">
               {q.criteria.length} criteria
             </p>
           </button>
@@ -324,21 +324,21 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
       <div className="flex items-center gap-2">
         <button
           onClick={() => handleDrillDown("All criteria", result.matchingPatients)}
-          className="flex items-center gap-1.5 rounded-lg bg-indigo-500/10 px-3 py-1.5 text-[11px] font-medium text-indigo-300 ring-1 ring-indigo-500/20 transition-colors hover:bg-indigo-500/20"
+          className="flex items-center gap-1.5 rounded-lg bg-indigo-500/10 px-3 py-1.5 text-[12px] font-medium text-indigo-300 ring-1 ring-indigo-500/20 transition-colors hover:bg-indigo-500/20"
         >
           <Eye className="h-3.5 w-3.5" />
           View {result.matchingPatients} Matched Subjects
         </button>
         <button
           onClick={handleExportCSV}
-          className="flex items-center gap-1.5 rounded-lg bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium text-slate-400 ring-1 ring-white/[0.06] transition-colors hover:bg-white/[0.06]"
+          className="flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-1.5 text-[12px] font-medium text-dim ring-1 ring-edge-2 transition-colors hover:bg-surface-3"
         >
           <Download className="h-3.5 w-3.5" />
           Export CSV
         </button>
         <button
           onClick={handleExportReport}
-          className="flex items-center gap-1.5 rounded-lg bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium text-slate-400 ring-1 ring-white/[0.06] transition-colors hover:bg-white/[0.06]"
+          className="flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-1.5 text-[12px] font-medium text-dim ring-1 ring-edge-2 transition-colors hover:bg-surface-3"
         >
           <FileText className="h-3.5 w-3.5" />
           Export Report
@@ -355,12 +355,12 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
       />
 
       {/* Criterion breakdown — clickable for drill-down */}
-      <div className="rounded-xl border border-white/[0.06] bg-card p-4">
-        <h4 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
+      <div className="rounded-xl border border-edge-2 bg-card p-4">
+        <h4 className="flex items-center gap-2 text-[13px] font-bold text-body">
           <BarChart3 className="h-4 w-4 text-indigo-400" />
           Criterion-by-Criterion Feasibility
         </h4>
-        <p className="mt-1 text-[11px] text-slate-500">
+        <p className="mt-1 text-[12px] text-dim">
           Click any criterion to drill down into the matching subjects.
         </p>
         <div className="mt-4 space-y-2.5">
@@ -368,21 +368,21 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
             <button
               key={i}
               onClick={() => handleDrillDown(cb.criterion, cb.matchCount)}
-              className="flex w-full items-center gap-3 rounded-lg px-2 py-1 transition-colors hover:bg-white/[0.03]"
+              className="flex w-full items-center gap-3 rounded-lg px-2 py-1 transition-colors hover:bg-surface-2"
             >
-              <span className="w-48 shrink-0 text-left text-[12px] text-slate-300">{cb.criterion}</span>
+              <span className="w-48 shrink-0 text-left text-[12px] text-body">{cb.criterion}</span>
               <div className="flex-1">
-                <div className="h-5 w-full overflow-hidden rounded-full bg-white/[0.04]">
+                <div className="h-5 w-full overflow-hidden rounded-full bg-surface-2">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-400 transition-all duration-500"
                     style={{ width: `${cb.matchRate * 100}%` }}
                   />
                 </div>
               </div>
-              <span className="w-16 shrink-0 text-right text-[12px] font-bold tabular-nums text-slate-200">
+              <span className="w-16 shrink-0 text-right text-[12px] font-bold tabular-nums text-body">
                 {cb.matchCount}
               </span>
-              <span className="w-12 shrink-0 text-right text-[10px] tabular-nums text-slate-500">
+              <span className="w-12 shrink-0 text-right text-[12px] tabular-nums text-dim">
                 {(cb.matchRate * 100).toFixed(0)}%
               </span>
             </button>
@@ -391,14 +391,14 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
       </div>
 
       {/* Enrollment Forecast */}
-      <div className="rounded-xl border border-white/[0.06] bg-card p-4">
+      <div className="rounded-xl border border-edge-2 bg-card p-4">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
+            <h4 className="flex items-center gap-2 text-[13px] font-bold text-body">
               <TrendingUp className="h-4 w-4 text-emerald-400" />
               Enrollment Forecast
             </h4>
-            <p className="mt-0.5 text-[11px] text-slate-500">
+            <p className="mt-0.5 text-[12px] text-dim">
               Project how quickly you could enroll based on your subject volume.
             </p>
           </div>
@@ -427,20 +427,20 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
             {monteCarlo && (
               <div className="grid grid-cols-3 gap-3">
                 <div className="rounded-lg bg-indigo-500/8 px-3 py-2 ring-1 ring-indigo-500/15">
-                  <p className="text-[10px] font-medium text-indigo-400/60">P(Success)</p>
+                  <p className="text-[12px] font-medium text-indigo-400/60">P(Success)</p>
                   <p className={`text-lg font-bold tabular-nums ${monteCarlo.probabilityOfSuccess >= 70 ? "text-emerald-400" : monteCarlo.probabilityOfSuccess >= 40 ? "text-amber-400" : "text-red-400"}`}>
                     {monteCarlo.probabilityOfSuccess.toFixed(0)}%
                   </p>
                 </div>
-                <div className="rounded-lg bg-white/[0.03] px-3 py-2 ring-1 ring-white/[0.06]">
-                  <p className="text-[10px] font-medium text-slate-500">80% Confidence Interval</p>
-                  <p className="text-lg font-bold tabular-nums text-slate-200">
+                <div className="rounded-lg bg-surface-2 px-3 py-2 ring-1 ring-edge-2">
+                  <p className="text-[12px] font-medium text-dim">80% Confidence Interval</p>
+                  <p className="text-lg font-bold tabular-nums text-body">
                     {Math.round(monteCarlo.confidenceInterval[0])} – {Math.round(monteCarlo.confidenceInterval[1])}
                   </p>
                 </div>
-                <div className="rounded-lg bg-white/[0.03] px-3 py-2 ring-1 ring-white/[0.06]">
-                  <p className="text-[10px] font-medium text-slate-500">Median Time to Target</p>
-                  <p className="text-lg font-bold tabular-nums text-slate-200">
+                <div className="rounded-lg bg-surface-2 px-3 py-2 ring-1 ring-edge-2">
+                  <p className="text-[12px] font-medium text-dim">Median Time to Target</p>
+                  <p className="text-lg font-bold tabular-nums text-body">
                     {monteCarlo.medianTimeToTarget ? `${monteCarlo.medianTimeToTarget} mo` : "Not reached"}
                   </p>
                 </div>
@@ -480,7 +480,7 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
               </div>
             )}
             {monteCarlo && (
-              <p className="text-[10px] text-slate-600 text-center">
+              <p className="text-[12px] text-dim text-center">
                 Monte Carlo simulation (1,000 runs) • Confidence bands: P10–P90 (light) and P25–P75 (dark)
               </p>
             )}
@@ -512,8 +512,8 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
       <div className="flex items-center gap-3">
         <TrendingUp className="h-5 w-5 text-amber-400" />
         <div>
-          <h3 className="text-[14px] font-bold text-white">Subjects Approaching Eligibility</h3>
-          <p className="text-[11px] text-slate-500">
+          <h3 className="text-[14px] font-bold text-heading">Subjects Approaching Eligibility</h3>
+          <p className="text-[12px] text-dim">
             These subjects are near a lab threshold — they may become eligible soon with natural disease progression.
           </p>
         </div>
@@ -529,13 +529,13 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
             className={`rounded-lg border p-3 text-left transition-all ${
               selectedPreset === p.id
                 ? "border-amber-500/30 bg-amber-500/10 ring-1 ring-amber-500/20"
-                : "border-white/[0.06] bg-card hover:border-white/[0.1]"
+                : "border-edge-2 bg-card hover:border-edge-4"
             }`}
           >
-            <p className={`text-[12px] font-semibold ${selectedPreset === p.id ? "text-amber-300" : "text-slate-200"}`}>
+            <p className={`text-[12px] font-semibold ${selectedPreset === p.id ? "text-amber-300" : "text-body"}`}>
               {p.name}
             </p>
-            <p className="mt-0.5 text-[10px] text-slate-500">{p.trialContext}</p>
+            <p className="mt-0.5 text-[12px] text-dim">{p.trialContext}</p>
           </button>
         ))}
       </div>
@@ -569,19 +569,19 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
 
       {/* Subject watchlist */}
       {trajectoryGroup.patients.length > 0 ? (
-        <div className="rounded-xl border border-white/[0.06] bg-card overflow-hidden">
-          <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
-            <h4 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
+        <div className="rounded-xl border border-edge-2 bg-card overflow-hidden">
+          <div className="flex items-center justify-between border-b border-edge-2 px-4 py-3">
+            <h4 className="flex items-center gap-2 text-[13px] font-bold text-body">
               <AlertTriangle className="h-4 w-4 text-amber-400" />
               Watchlist — Schedule Re-screening
             </h4>
-            <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400 ring-1 ring-amber-500/20">
+            <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-[12px] font-semibold text-amber-400 ring-1 ring-amber-500/20">
               {trajectoryGroup.patients.length} subjects
             </span>
           </div>
           <table className="w-full text-[12px]">
             <thead>
-              <tr className="bg-white/[0.02] text-[10px] uppercase tracking-wider text-slate-500">
+              <tr className="bg-surface-1 text-[12px] uppercase tracking-wider text-dim">
                 <th className="px-4 py-2.5 text-left font-semibold">Subject</th>
                 <th className="px-4 py-2.5 text-left font-semibold">Lab</th>
                 <th className="px-4 py-2.5 text-right font-semibold">Current</th>
@@ -593,17 +593,17 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
             </thead>
             <tbody>
               {trajectoryGroup.patients.map((tp) => (
-                <tr key={tp.mrn} className="border-t border-white/[0.03] hover:bg-white/[0.02]">
+                <tr key={tp.mrn} className="border-t border-edge-1 hover:bg-surface-1">
                   <td className="px-4 py-2.5">
-                    <p className="font-semibold font-mono text-slate-200">{tp.mrn}</p>
-                    <p className="text-[10px] text-slate-500">{tp.name}</p>
+                    <p className="font-semibold font-mono text-body">{tp.mrn}</p>
+                    <p className="text-[12px] text-dim">{tp.name}</p>
                   </td>
-                  <td className="px-4 py-2.5 text-slate-400">{tp.labName}</td>
-                  <td className="px-4 py-2.5 text-right font-mono font-bold text-slate-200">
-                    {tp.currentValue} <span className="text-[10px] font-normal text-slate-500">{tp.unit}</span>
+                  <td className="px-4 py-2.5 text-dim">{tp.labName}</td>
+                  <td className="px-4 py-2.5 text-right font-mono font-bold text-body">
+                    {tp.currentValue} <span className="text-[12px] font-normal text-dim">{tp.unit}</span>
                   </td>
                   <td className="px-4 py-2.5 text-center">
-                    <span className="rounded-md bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold text-slate-400 ring-1 ring-white/[0.06]">
+                    <span className="rounded-md bg-surface-2 px-2 py-0.5 text-[12px] font-semibold text-dim ring-1 ring-edge-2">
                       {tp.direction === "rising" ? "≥" : "≤"} {tp.threshold}
                     </span>
                   </td>
@@ -612,16 +612,16 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
                   </td>
                   <td className="px-4 py-2.5 text-right">
                     <div className="inline-flex items-center gap-1.5">
-                      <div className="h-1.5 w-16 overflow-hidden rounded-full bg-white/[0.06]">
+                      <div className="h-1.5 w-16 overflow-hidden rounded-full bg-surface-3">
                         <div
                           className="h-full rounded-full bg-gradient-to-r from-amber-500 to-emerald-500"
                           style={{ width: `${Math.min(tp.percentToThreshold, 100)}%` }}
                         />
                       </div>
-                      <span className="text-[10px] tabular-nums text-slate-400">{tp.percentToThreshold.toFixed(0)}%</span>
+                      <span className="text-[12px] tabular-nums text-dim">{tp.percentToThreshold.toFixed(0)}%</span>
                     </div>
                   </td>
-                  <td className="px-4 py-2.5 text-right text-slate-400">
+                  <td className="px-4 py-2.5 text-right text-dim">
                     {tp.estimatedWeeksToThreshold ? `~${tp.estimatedWeeksToThreshold}w` : "—"}
                   </td>
                 </tr>
@@ -630,10 +630,10 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
           </table>
         </div>
       ) : (
-        <div className="rounded-xl border border-white/[0.06] bg-card p-8 text-center">
+        <div className="rounded-xl border border-edge-2 bg-card p-8 text-center">
           <CheckCircle2 className="mx-auto h-8 w-8 text-emerald-400/50" />
-          <p className="mt-3 text-[13px] font-semibold text-slate-300">No subjects approaching this threshold</p>
-          <p className="mt-1 text-[11px] text-slate-500">
+          <p className="mt-3 text-[13px] font-semibold text-body">No subjects approaching this threshold</p>
+          <p className="mt-1 text-[12px] text-dim">
             No subjects have {preset.labName} values within 25% of the {preset.threshold} {preset.unit} threshold.
           </p>
         </div>
@@ -645,7 +645,7 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
           <Brain className="h-4 w-4 text-indigo-400" />
           <span className="text-[12px] font-bold text-indigo-300">Why this matters</span>
         </div>
-        <p className="mt-2 text-[12px] leading-relaxed text-slate-400">
+        <p className="mt-2 text-[12px] leading-relaxed text-dim">
           Subjects near eligibility thresholds represent your future pipeline. By monitoring lab trajectories,
           you can proactively schedule follow-up visits and labs at the right time — turning "almost eligible"
           subjects into enrolled participants without missing the window. This is predictive enrollment that
@@ -700,8 +700,8 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
         <div className="flex items-center gap-3">
           <ShieldCheck className="h-5 w-5 text-emerald-400" />
           <div>
-            <h3 className="text-[14px] font-bold text-white">Site Diversity Profile</h3>
-            <p className="text-[11px] text-slate-500">
+            <h3 className="text-[14px] font-bold text-heading">Site Diversity Profile</h3>
+            <p className="text-[12px] text-dim">
               Click any demographic segment to cross-filter all analytics views.
             </p>
           </div>
@@ -709,7 +709,7 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
         </div>
         <button
           onClick={handleExportDiversity}
-          className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-[12px] font-medium text-slate-300 hover:bg-white/[0.06]"
+          className="flex items-center gap-1.5 rounded-lg border border-edge-3 bg-surface-2 px-4 py-2 text-[12px] font-medium text-body hover:bg-surface-3"
         >
           <Download className="h-3.5 w-3.5" />
           Export PDF
@@ -727,7 +727,7 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
 
       {/* Diversity Score + Summary */}
       <div className="grid grid-cols-4 gap-3">
-        <div className="col-span-1 flex flex-col items-center justify-center rounded-xl border border-white/[0.06] bg-card p-4">
+        <div className="col-span-1 flex flex-col items-center justify-center rounded-xl border border-edge-2 bg-card p-4">
           <div className="relative flex h-24 w-24 items-center justify-center">
             <svg className="h-24 w-24 -rotate-90" viewBox="0 0 36 36">
               <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="2.5" />
@@ -739,13 +739,13 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
                 strokeLinecap="round"
               />
             </svg>
-            <span className="absolute text-2xl font-black text-white">{profile.diversityScore}</span>
+            <span className="absolute text-2xl font-black text-heading">{profile.diversityScore}</span>
           </div>
-          <p className="mt-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">Diversity Score</p>
+          <p className="mt-2 text-[12px] font-semibold uppercase tracking-wider text-dim">Diversity Score</p>
         </div>
 
-        <div className="col-span-3 rounded-xl border border-white/[0.06] bg-card p-4">
-          <h4 className="flex items-center gap-2 text-[12px] font-bold text-slate-200">
+        <div className="col-span-3 rounded-xl border border-edge-2 bg-card p-4">
+          <h4 className="flex items-center gap-2 text-[12px] font-bold text-body">
             <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
             FDA Compliance Assessment
           </h4>
@@ -753,7 +753,7 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
             {profile.fdaComplianceNotes.map((note, i) => (
               <div key={i} className="flex items-start gap-2">
                 <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-400" />
-                <p className="text-[11px] leading-relaxed text-slate-400">{note}</p>
+                <p className="text-[12px] leading-relaxed text-dim">{note}</p>
               </div>
             ))}
           </div>
@@ -763,8 +763,8 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
       {/* Charts Grid */}
       <div className="grid grid-cols-2 gap-6">
         {/* Race/Ethnicity */}
-        <div className="rounded-xl border border-white/[0.06] bg-card p-4">
-          <h4 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
+        <div className="rounded-xl border border-edge-2 bg-card p-4">
+          <h4 className="flex items-center gap-2 text-[13px] font-bold text-body">
             <Users className="h-4 w-4 text-indigo-400" />
             Race Distribution
           </h4>
@@ -789,8 +789,8 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
         </div>
 
         {/* Gender */}
-        <div className="rounded-xl border border-white/[0.06] bg-card p-4">
-          <h4 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
+        <div className="rounded-xl border border-edge-2 bg-card p-4">
+          <h4 className="flex items-center gap-2 text-[13px] font-bold text-body">
             <Users className="h-4 w-4 text-indigo-400" />
             Gender Distribution
           </h4>
@@ -816,8 +816,8 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
         </div>
 
         {/* Age Distribution */}
-        <div className="rounded-xl border border-white/[0.06] bg-card p-4">
-          <h4 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
+        <div className="rounded-xl border border-edge-2 bg-card p-4">
+          <h4 className="flex items-center gap-2 text-[13px] font-bold text-body">
             <BarChart3 className="h-4 w-4 text-indigo-400" />
             Age Distribution
           </h4>
@@ -838,8 +838,8 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
         </div>
 
         {/* Insurance Mix */}
-        <div className="rounded-xl border border-white/[0.06] bg-card p-4">
-          <h4 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
+        <div className="rounded-xl border border-edge-2 bg-card p-4">
+          <h4 className="flex items-center gap-2 text-[13px] font-bold text-body">
             <Activity className="h-4 w-4 text-indigo-400" />
             Insurance / Payor Mix
           </h4>
@@ -866,25 +866,25 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
       </div>
 
       {/* Ethnicity detail */}
-      <div className="rounded-xl border border-white/[0.06] bg-card p-4">
-        <h4 className="flex items-center gap-2 text-[13px] font-bold text-slate-200">
+      <div className="rounded-xl border border-edge-2 bg-card p-4">
+        <h4 className="flex items-center gap-2 text-[13px] font-bold text-body">
           <Users className="h-4 w-4 text-indigo-400" />
           Ethnicity Breakdown
         </h4>
         <div className="mt-3 space-y-2">
           {profile.ethnicityBreakdown.map((e) => (
             <div key={e.label} className="flex items-center gap-3">
-              <span className="w-36 shrink-0 text-[12px] text-slate-300">{e.label}</span>
+              <span className="w-36 shrink-0 text-[12px] text-body">{e.label}</span>
               <div className="flex-1">
-                <div className="h-4 w-full overflow-hidden rounded-full bg-white/[0.04]">
+                <div className="h-4 w-full overflow-hidden rounded-full bg-surface-2">
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{ width: `${e.percent}%`, backgroundColor: e.color }}
                   />
                 </div>
               </div>
-              <span className="w-12 shrink-0 text-right text-[12px] font-bold tabular-nums text-slate-200">{e.count}</span>
-              <span className="w-12 shrink-0 text-right text-[10px] tabular-nums text-slate-500">{e.percent.toFixed(1)}%</span>
+              <span className="w-12 shrink-0 text-right text-[12px] font-bold tabular-nums text-body">{e.count}</span>
+              <span className="w-12 shrink-0 text-right text-[12px] tabular-nums text-dim">{e.percent.toFixed(1)}%</span>
             </div>
           ))}
         </div>
@@ -896,7 +896,7 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
           <Brain className="h-4 w-4 text-indigo-400" />
           <span className="text-[12px] font-bold text-indigo-300">Sponsor Site Selection Advantage</span>
         </div>
-        <p className="mt-2 text-[12px] leading-relaxed text-slate-400">
+        <p className="mt-2 text-[12px] leading-relaxed text-dim">
           This diversity profile demonstrates your site's ability to meet FDA diversity action plan requirements.
           Sites with strong demographic representation are increasingly preferred during site selection.
           Export this profile as a PDF to include in your site feasibility questionnaire responses — it gives
@@ -919,13 +919,13 @@ function ResultCard({ icon, label, value, subtext, color }: {
   color: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-card p-4">
+    <div className="rounded-xl border border-edge-2 bg-card p-4">
       <div className="flex items-center gap-2.5">
         <div className={`rounded-lg p-2 ${color}`}>{icon}</div>
         <div>
-          <p className="text-[10px] font-medium text-slate-500">{label}</p>
-          <p className="text-xl font-black text-white tabular-nums">{value}</p>
-          {subtext && <p className="text-[10px] text-slate-500">{subtext}</p>}
+          <p className="text-[12px] font-medium text-dim">{label}</p>
+          <p className="text-xl font-black text-heading tabular-nums">{value}</p>
+          {subtext && <p className="text-[12px] text-dim">{subtext}</p>}
         </div>
       </div>
     </div>
@@ -934,9 +934,9 @@ function ResultCard({ icon, label, value, subtext, color }: {
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-white/[0.03] p-3 ring-1 ring-white/[0.06]">
-      <p className="text-[10px] font-medium text-slate-500">{label}</p>
-      <p className="mt-0.5 text-[14px] font-bold text-white">{value}</p>
+    <div className="rounded-lg bg-surface-2 p-3 ring-1 ring-edge-2">
+      <p className="text-[12px] font-medium text-dim">{label}</p>
+      <p className="mt-0.5 text-[14px] font-bold text-heading">{value}</p>
     </div>
   );
 }
@@ -966,7 +966,7 @@ function InfoModal({ open, onClose, icon, iconColor, title, subtitle, highlights
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative z-10 w-full max-w-lg rounded-2xl border border-white/[0.08] bg-[#141824] shadow-2xl">
+      <div className="relative z-10 w-full max-w-lg rounded-2xl border border-edge-3 bg-card shadow-2xl">
         {/* Header gradient */}
         <div className={`rounded-t-2xl px-6 pt-6 pb-4 bg-gradient-to-br ${iconColor}`}>
           <div className="flex items-start justify-between">
@@ -975,13 +975,13 @@ function InfoModal({ open, onClose, icon, iconColor, title, subtitle, highlights
                 {icon}
               </div>
               <div>
-                <h3 className="text-[16px] font-bold text-white">{title}</h3>
-                <p className="mt-0.5 text-[12px] text-white/70">{subtitle}</p>
+                <h3 className="text-[16px] font-bold text-heading">{title}</h3>
+                <p className="mt-0.5 text-[12px] text-heading/70">{subtitle}</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+              className="rounded-lg p-1.5 text-heading/50 transition-colors hover:bg-white/10 hover:text-heading"
             >
               <XIcon className="h-4 w-4" />
             </button>
@@ -994,28 +994,28 @@ function InfoModal({ open, onClose, icon, iconColor, title, subtitle, highlights
           <div className="space-y-3">
             {highlights.map((h, i) => (
               <div key={i} className="flex gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.04] ring-1 ring-white/[0.06]">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-2 ring-1 ring-edge-2">
                   {h.icon}
                 </div>
                 <div>
-                  <p className="text-[12px] font-semibold text-slate-200">{h.title}</p>
-                  <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">{h.desc}</p>
+                  <p className="text-[12px] font-semibold text-body">{h.title}</p>
+                  <p className="mt-0.5 text-[12px] leading-relaxed text-dim">{h.desc}</p>
                 </div>
               </div>
             ))}
           </div>
 
           {/* Divider */}
-          <div className="border-t border-white/[0.06]" />
+          <div className="border-t border-edge-2" />
 
           {/* Use cases */}
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-2.5">When to use this</p>
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2.5">When to use this</p>
             <div className="space-y-2">
               {useCases.map((uc, i) => (
                 <div key={i} className="flex items-start gap-2">
                   <Zap className="mt-0.5 h-3 w-3 shrink-0 text-indigo-400" />
-                  <p className="text-[11px] leading-relaxed text-slate-400">{uc}</p>
+                  <p className="text-[12px] leading-relaxed text-dim">{uc}</p>
                 </div>
               ))}
             </div>
@@ -1023,7 +1023,7 @@ function InfoModal({ open, onClose, icon, iconColor, title, subtitle, highlights
 
           {/* Bottom note */}
           <div className="rounded-lg bg-indigo-500/5 px-4 py-3 ring-1 ring-indigo-500/10">
-            <p className="text-[11px] leading-relaxed text-indigo-300/80">{bottomNote}</p>
+            <p className="text-[12px] leading-relaxed text-indigo-300/80">{bottomNote}</p>
           </div>
         </div>
       </div>
@@ -1035,7 +1035,7 @@ function InfoButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-slate-500 transition-all hover:bg-indigo-500/10 hover:text-indigo-400 hover:border-indigo-500/20"
+      className="flex h-7 w-7 items-center justify-center rounded-lg border border-edge-3 bg-surface-2 text-dim transition-all hover:bg-indigo-500/10 hover:text-indigo-400 hover:border-indigo-500/20"
       title="Learn more about this feature"
     >
       <Info className="h-3.5 w-3.5" />
@@ -1045,7 +1045,7 @@ function InfoButton({ onClick }: { onClick: () => void }) {
 
 // Modal content configs
 const FEASIBILITY_MODAL = {
-  icon: <Calculator className="h-5 w-5 text-white" />,
+  icon: <Calculator className="h-5 w-5 text-heading" />,
   iconColor: "from-indigo-600/20 via-indigo-500/10 to-transparent",
   title: "Protocol Feasibility Calculator",
   subtitle: "Answer the #1 question sponsors ask: \"How many subjects do you have?\"",
@@ -1081,7 +1081,7 @@ const FEASIBILITY_MODAL = {
 };
 
 const TRAJECTORY_MODAL = {
-  icon: <TrendingUp className="h-5 w-5 text-white" />,
+  icon: <TrendingUp className="h-5 w-5 text-heading" />,
   iconColor: "from-amber-600/20 via-amber-500/10 to-transparent",
   title: "Lab Trajectory Monitoring",
   subtitle: "See the future: subjects who are about to become eligible",
@@ -1117,7 +1117,7 @@ const TRAJECTORY_MODAL = {
 };
 
 const DIVERSITY_MODAL = {
-  icon: <Users className="h-5 w-5 text-white" />,
+  icon: <Users className="h-5 w-5 text-heading" />,
   iconColor: "from-emerald-600/20 via-emerald-500/10 to-transparent",
   title: "Site Diversity Profile",
   subtitle: "FDA diversity compliance — your competitive advantage in site selection",

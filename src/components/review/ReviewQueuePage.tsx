@@ -41,7 +41,7 @@ type SortField = "subject" | "score" | "status" | "decision";
 type SortDir = "asc" | "desc";
 
 const filterConfig: { value: ReviewFilter; label: string; icon: React.ReactNode; color: string }[] = [
-  { value: "all", label: "All Subjects", icon: <Users className="h-3.5 w-3.5" />, color: "text-slate-400" },
+  { value: "all", label: "All Subjects", icon: <Users className="h-3.5 w-3.5" />, color: "text-dim" },
   { value: "accepted", label: "Accepted", icon: <CheckCircle2 className="h-3.5 w-3.5" />, color: "text-emerald-400" },
   { value: "rejected", label: "Rejected", icon: <XCircle className="h-3.5 w-3.5" />, color: "text-red-400" },
   { value: "deferred", label: "Deferred", icon: <Clock className="h-3.5 w-3.5" />, color: "text-amber-400" },
@@ -189,13 +189,13 @@ export function ReviewQueuePage() {
         <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/8 ring-1 ring-indigo-500/15">
           <ClipboardList className="h-7 w-7 text-indigo-400/50" />
         </div>
-        <h3 className="text-[14px] font-semibold text-slate-200">No Screening Data Yet</h3>
-        <p className="mt-2 max-w-[300px] text-[12px] leading-relaxed text-slate-500">
+        <h3 className="text-[14px] font-semibold text-body">No Screening Data Yet</h3>
+        <p className="mt-2 max-w-[300px] text-[12px] leading-relaxed text-dim">
           Import subject data and run screening against a study first. Your review decisions will appear here.
         </p>
         <button
           onClick={() => setCurrentPage("import")}
-          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-[12px] font-semibold text-white hover:bg-indigo-500"
+          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-[12px] font-semibold text-heading hover:bg-indigo-500"
         >
           Import Subject Data
           <ArrowRight className="h-3.5 w-3.5" />
@@ -212,29 +212,29 @@ export function ReviewQueuePage() {
       {/* Header */}
       <div className="shrink-0 border-b border-border bg-card/50 px-6 py-3">
         <div className="flex items-center justify-between">
-          <p className="text-[11px] text-slate-500">{studyName}</p>
+          <p className="text-[12px] text-dim">{studyName}</p>
           <div className="flex items-center gap-3">
             {/* Bulk actions (visible when selected) */}
             {someSelected && (
-              <div className="flex items-center gap-1.5 rounded-lg bg-white/[0.04] px-3 py-1.5 ring-1 ring-white/[0.08]">
-                <span className="text-[11px] font-medium text-slate-300 tabular-nums">{selected.size} selected</span>
-                <div className="mx-1.5 h-4 w-px bg-white/[0.08]" />
+              <div className="flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-1.5 ring-1 ring-edge-3">
+                <span className="text-[12px] font-medium text-body tabular-nums">{selected.size} selected</span>
+                <div className="mx-1.5 h-4 w-px bg-surface-4" />
                 <Tooltip content="Accept selected" side="bottom">
-                  <button onClick={() => handleBulkAction("accepted")} className="rounded-md bg-emerald-600/80 p-1.5 text-white transition-colors hover:bg-emerald-500">
+                  <button onClick={() => handleBulkAction("accepted")} className="rounded-md bg-emerald-600/80 p-1.5 text-heading transition-colors hover:bg-emerald-500">
                     <Check className="h-3 w-3" />
                   </button>
                 </Tooltip>
                 <Tooltip content="Reject selected" side="bottom">
-                  <button onClick={() => handleBulkAction("rejected")} className="rounded-md bg-red-600/80 p-1.5 text-white transition-colors hover:bg-red-500">
+                  <button onClick={() => handleBulkAction("rejected")} className="rounded-md bg-red-600/80 p-1.5 text-heading transition-colors hover:bg-red-500">
                     <XIcon className="h-3 w-3" />
                   </button>
                 </Tooltip>
                 <Tooltip content="Defer selected" side="bottom">
-                  <button onClick={() => handleBulkAction("deferred")} className="rounded-md bg-amber-600/80 p-1.5 text-white transition-colors hover:bg-amber-500">
+                  <button onClick={() => handleBulkAction("deferred")} className="rounded-md bg-amber-600/80 p-1.5 text-heading transition-colors hover:bg-amber-500">
                     <Clock className="h-3 w-3" />
                   </button>
                 </Tooltip>
-                <button onClick={() => setSelected(new Set())} className="ml-1 rounded-md p-1 text-slate-500 hover:text-slate-300">
+                <button onClick={() => setSelected(new Set())} className="ml-1 rounded-md p-1 text-dim hover:text-body">
                   <XIcon className="h-3 w-3" />
                 </button>
               </div>
@@ -244,7 +244,7 @@ export function ReviewQueuePage() {
             <div className="relative">
               <button
                 onClick={() => setShowExportMenu(!showExportMenu)}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-[12px] font-medium text-slate-300 transition-colors hover:bg-white/[0.06]"
+                className="inline-flex items-center gap-2 rounded-lg border border-edge-3 bg-surface-2 px-4 py-2 text-[12px] font-medium text-body transition-colors hover:bg-surface-3"
               >
                 <Download className="h-3.5 w-3.5" />
                 Export
@@ -253,25 +253,25 @@ export function ReviewQueuePage() {
               {showExportMenu && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
-                  <div className="absolute right-0 top-full z-50 mt-1 w-56 rounded-lg border border-white/[0.08] bg-[#1a1f2e] p-1 shadow-xl">
+                  <div className="absolute right-0 top-full z-50 mt-1 w-56 rounded-lg border border-edge-3 bg-popover p-1 shadow-xl">
                     <button
                       onClick={handleExportSummary}
-                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2.5 text-left text-[12px] text-slate-300 hover:bg-white/[0.06]"
+                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2.5 text-left text-[12px] text-body hover:bg-surface-3"
                     >
                       <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" />
                       <div>
                         <p className="font-medium">Summary CSV</p>
-                        <p className="text-[10px] text-slate-500">One row per subject with scores</p>
+                        <p className="text-[12px] text-dim">One row per subject with scores</p>
                       </div>
                     </button>
                     <button
                       onClick={handleExportDetailed}
-                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2.5 text-left text-[12px] text-slate-300 hover:bg-white/[0.06]"
+                      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2.5 text-left text-[12px] text-body hover:bg-surface-3"
                     >
                       <ClipboardList className="h-3.5 w-3.5 text-indigo-400" />
                       <div>
                         <p className="font-medium">Detailed CSV</p>
-                        <p className="text-[10px] text-slate-500">One row per criterion per subject</p>
+                        <p className="text-[12px] text-dim">One row per criterion per subject</p>
                       </div>
                     </button>
                   </div>
@@ -287,10 +287,10 @@ export function ReviewQueuePage() {
         <div className="flex items-center gap-6">
           <div className="flex-1">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[11px] font-medium text-slate-400">Review Progress</span>
-              <span className="text-[11px] font-bold tabular-nums text-slate-300">{progressPercent}%</span>
+              <span className="text-[12px] font-medium text-dim">Review Progress</span>
+              <span className="text-[12px] font-bold tabular-nums text-body">{progressPercent}%</span>
             </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.04]">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-400 transition-all duration-500"
                 style={{ width: `${progressPercent}%` }}
@@ -309,17 +309,17 @@ export function ReviewQueuePage() {
       {/* Filter + Search Bar */}
       <div className="shrink-0 border-b border-border px-6 py-2.5">
         <div className="flex items-center gap-3">
-          <Filter className="h-3.5 w-3.5 text-slate-500" />
+          <Filter className="h-3.5 w-3.5 text-dim" />
           {filterConfig.map((f) => {
             const isActive = filter === f.value;
             return (
               <button
                 key={f.value}
                 onClick={() => setFilter(f.value)}
-                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-medium transition-all ${
+                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-medium transition-all ${
                   isActive
-                    ? "bg-white/[0.08] text-slate-200 ring-1 ring-white/[0.1]"
-                    : "text-slate-500 hover:bg-white/[0.04] hover:text-slate-400"
+                    ? "bg-surface-4 text-body ring-1 ring-edge-4"
+                    : "text-dim hover:bg-surface-2 hover:text-dim"
                 }`}
               >
                 <span className={isActive ? f.color : ""}>{f.icon}</span>
@@ -328,18 +328,18 @@ export function ReviewQueuePage() {
             );
           })}
           <div className="ml-auto relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-500" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-dim" />
             <input
               type="text"
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-48 rounded-md border border-white/[0.06] bg-white/[0.03] py-1.5 pl-8 pr-8 text-[11px] text-slate-200 placeholder-slate-600 focus:border-indigo-500/40 focus:outline-none focus:ring-1 focus:ring-indigo-500/20"
+              className="w-48 rounded-md border border-edge-2 bg-surface-2 py-1.5 pl-8 pr-8 text-[12px] text-body placeholder-dim focus:border-indigo-500/40 focus:outline-none focus:ring-1 focus:ring-indigo-500/20"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-500 hover:text-slate-300"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-dim hover:text-body"
               >
                 <XIcon className="h-3 w-3" />
               </button>
@@ -351,8 +351,8 @@ export function ReviewQueuePage() {
       {/* Patient Table */}
       <div className="flex-1 overflow-y-auto">
         <table className="w-full">
-          <thead className="sticky top-0 z-10 bg-[#0e1119]">
-            <tr className="border-b border-white/[0.06]">
+          <thead className="sticky top-0 z-10 bg-background">
+            <tr className="border-b border-edge-2">
               {/* Select all */}
               <th className="w-10 px-4 py-2.5">
                 <input
@@ -363,12 +363,12 @@ export function ReviewQueuePage() {
                 />
               </th>
               <SortHeader field="subject" label="Subject" current={sortField} dir={sortDir} onSort={handleSort} align="left" />
-              <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500">Diagnosis</th>
+              <th className="px-4 py-2.5 text-left text-[12px] font-semibold uppercase tracking-wider text-dim">Diagnosis</th>
               <SortHeader field="score" label="Score" current={sortField} dir={sortDir} onSort={handleSort} align="center" />
-              <th className="px-4 py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-slate-500">Criteria</th>
+              <th className="px-4 py-2.5 text-center text-[12px] font-semibold uppercase tracking-wider text-dim">Criteria</th>
               <SortHeader field="status" label="Status" current={sortField} dir={sortDir} onSort={handleSort} align="center" />
               <SortHeader field="decision" label="Decision" current={sortField} dir={sortDir} onSort={handleSort} align="center" />
-              <th className="px-4 py-2.5 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-500">Actions</th>
+              <th className="px-4 py-2.5 text-right text-[12px] font-semibold uppercase tracking-wider text-dim">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -377,7 +377,7 @@ export function ReviewQueuePage() {
               return (
                 <tr
                   key={p.id}
-                  className={`group border-b border-white/[0.03] transition-colors ${isSelected ? "bg-indigo-500/[0.06]" : "hover:bg-white/[0.02]"}`}
+                  className={`group border-b border-edge-1 transition-colors ${isSelected ? "bg-indigo-500/[0.06]" : "hover:bg-surface-1"}`}
                 >
                   <td className="w-10 px-4 py-3">
                     <input
@@ -388,11 +388,11 @@ export function ReviewQueuePage() {
                     />
                   </td>
                   <td className="px-4 py-3">
-                    <p className="text-[12px] font-semibold font-mono text-slate-200">{p.sitePatientId}</p>
-                    <p className="text-[10px] text-slate-500">{p.age}y {p.gender === "male" ? "M" : p.gender === "female" ? "F" : "O"}</p>
+                    <p className="text-[12px] font-semibold font-mono text-body">{p.sitePatientId}</p>
+                    <p className="text-[12px] text-dim">{p.age}y {p.gender === "male" ? "M" : p.gender === "female" ? "F" : "O"}</p>
                   </td>
                   <td className="px-4 py-3">
-                    <p className="max-w-[200px] truncate text-[11px] text-slate-400">{p.primaryDiagnosis ?? "—"}</p>
+                    <p className="max-w-[200px] truncate text-[12px] text-dim">{p.primaryDiagnosis ?? "—"}</p>
                   </td>
                   <td className="px-4 py-3 text-center">
                     <span className={`inline-block rounded-lg px-2.5 py-1 text-[12px] font-black tabular-nums ${scoreColorClass(p.score)}`}>
@@ -400,7 +400,7 @@ export function ReviewQueuePage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <div className="flex items-center justify-center gap-2 text-[10px]">
+                    <div className="flex items-center justify-center gap-2 text-[12px]">
                       <span className="text-emerald-400 tabular-nums">{p.inclusionMet}/{p.inclusionTotal} inc</span>
                       {p.exclusionTriggered > 0 && (
                         <span className="text-red-400 tabular-nums">{p.exclusionTriggered} exc</span>
@@ -408,7 +408,7 @@ export function ReviewQueuePage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <span className={`rounded-md px-2 py-0.5 text-[10px] font-semibold ${statusBadgeClass(p.overallStatus)}`}>
+                    <span className={`rounded-md px-2 py-0.5 text-[12px] font-semibold ${statusBadgeClass(p.overallStatus)}`}>
                       {formatStatus(p.overallStatus)}
                     </span>
                   </td>
@@ -422,7 +422,7 @@ export function ReviewQueuePage() {
                           <Tooltip content="Accept" side="top">
                             <button
                               onClick={() => { reviewPatient(p.id, "accepted"); toast.success(`${p.sitePatientId} accepted`); }}
-                              className="rounded-md bg-emerald-600/80 p-1.5 text-white transition-colors hover:bg-emerald-500"
+                              className="rounded-md bg-emerald-600/80 p-1.5 text-heading transition-colors hover:bg-emerald-500"
                             >
                               <Check className="h-3 w-3" />
                             </button>
@@ -430,7 +430,7 @@ export function ReviewQueuePage() {
                           <Tooltip content="Reject" side="top">
                             <button
                               onClick={() => { reviewPatient(p.id, "rejected"); toast.error(`${p.sitePatientId} rejected`); }}
-                              className="rounded-md bg-red-600/80 p-1.5 text-white transition-colors hover:bg-red-500"
+                              className="rounded-md bg-red-600/80 p-1.5 text-heading transition-colors hover:bg-red-500"
                             >
                               <XIcon className="h-3 w-3" />
                             </button>
@@ -438,7 +438,7 @@ export function ReviewQueuePage() {
                           <Tooltip content="Defer" side="top">
                             <button
                               onClick={() => { reviewPatient(p.id, "deferred"); toast.warning(`${p.sitePatientId} deferred`); }}
-                              className="rounded-md bg-amber-600/80 p-1.5 text-white transition-colors hover:bg-amber-500"
+                              className="rounded-md bg-amber-600/80 p-1.5 text-heading transition-colors hover:bg-amber-500"
                             >
                               <Clock className="h-3 w-3" />
                             </button>
@@ -447,7 +447,7 @@ export function ReviewQueuePage() {
                       ) : (
                         <button
                           onClick={() => { reviewPatient(p.id, "pending"); toast.info(`${p.sitePatientId} reset to pending`); }}
-                          className="rounded-md border border-white/[0.08] px-2 py-1 text-[10px] font-medium text-slate-500 hover:bg-white/[0.04] hover:text-slate-300"
+                          className="rounded-md border border-edge-3 px-2 py-1 text-[12px] font-medium text-dim hover:bg-surface-2 hover:text-body"
                         >
                           Undo
                         </button>
@@ -455,7 +455,7 @@ export function ReviewQueuePage() {
                       <Tooltip content="View in Screening" side="top">
                         <button
                           onClick={() => handleGoToPatient(p.id)}
-                          className="ml-1 rounded-md border border-white/[0.08] p-1.5 text-slate-500 transition-colors hover:bg-white/[0.04] hover:text-slate-300"
+                          className="ml-1 rounded-md border border-edge-3 p-1.5 text-dim transition-colors hover:bg-surface-2 hover:text-body"
                         >
                           <ArrowRight className="h-3 w-3" />
                         </button>
@@ -486,20 +486,20 @@ export function ReviewQueuePage() {
       {/* Footer Summary */}
       <div className="shrink-0 border-t border-border bg-card/50 px-6 py-2.5">
         <div className="flex items-center justify-between">
-          <p className="text-[11px] text-slate-500">
-            Showing <span className="font-semibold text-slate-400 tabular-nums">{filteredPatients.length}</span> of {patients.length} subjects
+          <p className="text-[12px] text-dim">
+            Showing <span className="font-semibold text-dim tabular-nums">{filteredPatients.length}</span> of {patients.length} subjects
             {someSelected && <span className="ml-2 text-indigo-400">({selected.size} selected)</span>}
           </p>
           <div className="flex items-center gap-3">
             <button
               onClick={() => setCurrentPage("screening")}
-              className="text-[11px] font-medium text-indigo-400 hover:text-indigo-300"
+              className="text-[12px] font-medium text-indigo-400 hover:text-indigo-300"
             >
               Continue Screening
             </button>
             <button
               onClick={handleExportSummary}
-              className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-300"
+              className="inline-flex items-center gap-1.5 text-[12px] font-medium text-dim hover:text-body"
             >
               <Download className="h-3 w-3" />
               Quick Export
@@ -531,8 +531,8 @@ function SortHeader({ field, label, current, dir, onSort, align }: {
     <th className={`px-4 py-2.5 text-${align}`}>
       <button
         onClick={() => onSort(field)}
-        className={`inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider transition-colors ${
-          isActive ? "text-indigo-400" : "text-slate-500 hover:text-slate-300"
+        className={`inline-flex items-center gap-1 text-[12px] font-semibold uppercase tracking-wider transition-colors ${
+          isActive ? "text-indigo-400" : "text-dim hover:text-body"
         }`}
       >
         {label}
@@ -554,7 +554,7 @@ function StatPill({ icon, count, label, color }: { icon: React.ReactNode; count:
     blue: "text-blue-400 bg-blue-500/10 ring-1 ring-blue-500/20",
   };
   return (
-    <div className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[10px] font-semibold ${colorMap[color] ?? ""}`}>
+    <div className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-semibold ${colorMap[color] ?? ""}`}>
       {icon}
       <span className="tabular-nums">{count}</span>
       <span className="opacity-60">{label}</span>
@@ -565,7 +565,7 @@ function StatPill({ icon, count, label, color }: { icon: React.ReactNode; count:
 function DecisionBadge({ status }: { status: ReviewStatus }) {
   if (status === "accepted") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 ring-1 ring-emerald-500/20">
+      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[12px] font-semibold text-emerald-400 ring-1 ring-emerald-500/20">
         <Check className="h-2.5 w-2.5" />
         Accepted
       </span>
@@ -573,7 +573,7 @@ function DecisionBadge({ status }: { status: ReviewStatus }) {
   }
   if (status === "rejected") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold text-red-400 ring-1 ring-red-500/20">
+      <span className="inline-flex items-center gap-1 rounded-md bg-red-500/10 px-2 py-0.5 text-[12px] font-semibold text-red-400 ring-1 ring-red-500/20">
         <XIcon className="h-2.5 w-2.5" />
         Rejected
       </span>
@@ -581,14 +581,14 @@ function DecisionBadge({ status }: { status: ReviewStatus }) {
   }
   if (status === "deferred") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400 ring-1 ring-amber-500/20">
+      <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-0.5 text-[12px] font-semibold text-amber-400 ring-1 ring-amber-500/20">
         <Clock className="h-2.5 w-2.5" />
         Deferred
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-md bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold text-slate-500 ring-1 ring-white/[0.06]">
+    <span className="inline-flex items-center gap-1 rounded-md bg-surface-2 px-2 py-0.5 text-[12px] font-semibold text-dim ring-1 ring-edge-2">
       Pending
     </span>
   );

@@ -35,7 +35,7 @@ const TYPE_ICON_COLORS: Record<NarrativeInsight["type"], string> = {
   positive: "text-emerald-400",
   warning: "text-amber-400",
   opportunity: "text-blue-400",
-  neutral: "text-slate-400",
+  neutral: "text-dim",
 };
 
 function InsightIcon({ type }: { type: NarrativeInsight["type"] }) {
@@ -93,7 +93,7 @@ export function InsightsPanel({
   if (insights.length === 0) {
     return (
       <div className="rounded-xl border border-slate-700/50 bg-card p-5">
-        <div className="flex items-center gap-2 text-slate-400">
+        <div className="flex items-center gap-2 text-dim">
           <Sparkles className="h-4 w-4 text-indigo-400" />
           <span className="text-sm">No insights available for current data</span>
         </div>
@@ -112,18 +112,18 @@ export function InsightsPanel({
         <div className="flex items-center gap-2.5">
           <Sparkles className="h-4 w-4 text-indigo-400" />
           <span className="text-sm font-semibold text-slate-100">{title}</span>
-          <span className="rounded-full bg-indigo-500/15 px-2 py-0.5 text-[10px] font-medium text-indigo-400 uppercase tracking-wider">
+          <span className="rounded-full bg-indigo-500/15 px-2 py-0.5 text-[12px] font-medium text-indigo-400 uppercase tracking-wider">
             AI-generated
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-dim">
             {insights.length} insight{insights.length !== 1 ? "s" : ""}
           </span>
           {expanded ? (
-            <ChevronUp className="h-4 w-4 text-slate-500" />
+            <ChevronUp className="h-4 w-4 text-dim" />
           ) : (
-            <ChevronDown className="h-4 w-4 text-slate-500" />
+            <ChevronDown className="h-4 w-4 text-dim" />
           )}
         </div>
       </button>
@@ -172,7 +172,7 @@ function FullInsightCard({ insight }: { insight: NarrativeInsight }) {
       className={`relative flex gap-3 rounded-lg border-l-[3px] px-3 py-2.5 ${TYPE_COLORS[insight.type]}`}
     >
       {/* Priority badge */}
-      <div className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-800 border border-slate-600 text-[10px] font-bold text-slate-300">
+      <div className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-800 border border-slate-600 text-[12px] font-bold text-body">
         {insight.priority}
       </div>
 
@@ -194,13 +194,13 @@ function FullInsightCard({ insight }: { insight: NarrativeInsight }) {
           )}
         </div>
 
-        <p className="mt-1 text-xs leading-relaxed text-slate-400">
+        <p className="mt-1 text-xs leading-relaxed text-dim">
           {insight.body}
         </p>
 
         {insight.actionable && (
-          <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-slate-800/60 px-2.5 py-1 text-[11px] font-medium text-slate-300 hover:bg-slate-700/60 transition-colors cursor-default">
-            <ArrowRight className="h-3 w-3 text-slate-500" />
+          <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-slate-800/60 px-2.5 py-1 text-[12px] font-medium text-body hover:bg-slate-700/60 transition-colors cursor-default">
+            <ArrowRight className="h-3 w-3 text-dim" />
             {insight.actionable}
           </div>
         )}
@@ -219,11 +219,11 @@ function CompactInsightCard({ insight }: { insight: NarrativeInsight }) {
       className={`flex items-center gap-2 rounded-md border-l-2 px-2.5 py-1.5 ${TYPE_COLORS[insight.type]}`}
     >
       <InsightIcon type={insight.type} />
-      <span className="text-xs font-medium text-slate-200 truncate">
+      <span className="text-xs font-medium text-body truncate">
         {insight.title}
       </span>
       {insight.metric && (
-        <span className="ml-auto flex-shrink-0 text-xs font-bold text-slate-300 tabular-nums">
+        <span className="ml-auto flex-shrink-0 text-xs font-bold text-body tabular-nums">
           {insight.metric}
         </span>
       )}

@@ -41,7 +41,7 @@ interface ColumnMapperProps {
 function ConfidenceBadge({ confidence, isManual }: { confidence: number; isManual: boolean }) {
   if (isManual) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-blue-400 ring-1 ring-blue-500/20">
+      <span className="inline-flex items-center gap-1 rounded-md bg-blue-500/10 px-2 py-0.5 text-[12px] font-semibold text-blue-400 ring-1 ring-blue-500/20">
         <Pencil className="h-2.5 w-2.5" />
         Manual
       </span>
@@ -49,7 +49,7 @@ function ConfidenceBadge({ confidence, isManual }: { confidence: number; isManua
   }
   if (confidence >= 0.9) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 ring-1 ring-emerald-500/20">
+      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[12px] font-semibold text-emerald-400 ring-1 ring-emerald-500/20">
         <Sparkles className="h-2.5 w-2.5" />
         {Math.round(confidence * 100)}%
       </span>
@@ -57,7 +57,7 @@ function ConfidenceBadge({ confidence, isManual }: { confidence: number; isManua
   }
   if (confidence >= 0.7) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400 ring-1 ring-amber-500/20">
+      <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-0.5 text-[12px] font-semibold text-amber-400 ring-1 ring-amber-500/20">
         <Sparkles className="h-2.5 w-2.5" />
         {Math.round(confidence * 100)}%
       </span>
@@ -65,7 +65,7 @@ function ConfidenceBadge({ confidence, isManual }: { confidence: number; isManua
   }
   if (confidence > 0) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-orange-500/10 px-2 py-0.5 text-[10px] font-semibold text-orange-400 ring-1 ring-orange-500/20">
+      <span className="inline-flex items-center gap-1 rounded-md bg-orange-500/10 px-2 py-0.5 text-[12px] font-semibold text-orange-400 ring-1 ring-orange-500/20">
         <Sparkles className="h-2.5 w-2.5" />
         {Math.round(confidence * 100)}%
       </span>
@@ -90,20 +90,20 @@ export function ColumnMapper({ mappings, sampleData, onMappingChange }: ColumnMa
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between rounded-lg bg-white/[0.02] px-4 py-3 ring-1 ring-white/[0.06]">
+      <div className="mb-4 flex items-center justify-between rounded-lg bg-surface-1 px-4 py-3 ring-1 ring-edge-2">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
             <Check className="h-3.5 w-3.5 text-emerald-400" />
-            <span className="text-[11px] font-medium text-slate-300">{mappedCount} of {mappings.length} mapped</span>
+            <span className="text-[12px] font-medium text-body">{mappedCount} of {mappings.length} mapped</span>
           </div>
           {autoMappedCount > 0 && (
             <div className="flex items-center gap-1.5">
               <Sparkles className="h-3.5 w-3.5 text-violet-400" />
-              <span className="text-[11px] text-slate-500">{autoMappedCount} auto-suggested</span>
+              <span className="text-[12px] text-dim">{autoMappedCount} auto-suggested</span>
             </div>
           )}
         </div>
-        <span className="text-[9px] font-semibold uppercase tracking-widest text-slate-600">Smart Mapping</span>
+        <span className="text-[9px] font-semibold uppercase tracking-widest text-dim">Smart Mapping</span>
       </div>
 
       <div className="space-y-2">
@@ -116,13 +116,13 @@ export function ColumnMapper({ mappings, sampleData, onMappingChange }: ColumnMa
             <div
               key={mapping.sourceColumn}
               className={`group rounded-lg border p-3 transition-all duration-150 ${
-                isMapped ? "border-white/[0.06] bg-card" : "border-dashed border-white/[0.06] bg-white/[0.01]"
+                isMapped ? "border-edge-2 bg-card" : "border-dashed border-edge-2 bg-surface-1"
               }`}
             >
               <div className="flex items-center gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className={`text-[12px] font-medium ${isMapped ? "text-slate-200" : "text-slate-500"}`}>
+                    <span className={`text-[12px] font-medium ${isMapped ? "text-body" : "text-dim"}`}>
                       {mapping.sourceColumn}
                     </span>
                     {isMapped && <ConfidenceBadge confidence={mapping.confidence} isManual={isManual} />}
@@ -130,31 +130,31 @@ export function ColumnMapper({ mappings, sampleData, onMappingChange }: ColumnMa
                   {samples.length > 0 && (
                     <div className="mt-1 flex items-center gap-1.5 overflow-hidden">
                       {samples.slice(0, 3).map((s, i) => (
-                        <span key={i} className="max-w-[120px] truncate rounded bg-white/[0.03] px-1.5 py-0.5 font-mono text-[10px] text-slate-500 ring-1 ring-white/[0.04]">
+                        <span key={i} className="max-w-[120px] truncate rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[12px] text-dim ring-1 ring-edge-1">
                           {s}
                         </span>
                       ))}
-                      {samples.length > 3 && <span className="text-[10px] text-slate-600">+{samples.length - 3} more</span>}
+                      {samples.length > 3 && <span className="text-[12px] text-dim">+{samples.length - 3} more</span>}
                     </div>
                   )}
                 </div>
-                <ArrowRight className={`h-4 w-4 shrink-0 ${isMapped ? "text-indigo-500/40" : "text-white/[0.06]"}`} />
+                <ArrowRight className={`h-4 w-4 shrink-0 ${isMapped ? "text-indigo-500/40" : "text-heading/[0.06]"}`} />
                 <div className="relative w-48 shrink-0">
                   <select
                     value={mapping.targetField}
                     onChange={(e) => handleChange(index, e.target.value)}
                     style={{ fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, sans-serif" }}
-                    className={`w-full appearance-none rounded-lg border py-2 pl-3 pr-8 text-[11px] font-medium transition-colors focus:border-indigo-500/40 focus:outline-none focus:ring-1 focus:ring-indigo-500/20 ${
+                    className={`w-full appearance-none rounded-lg border py-2 pl-3 pr-8 text-[12px] font-medium transition-colors focus:border-indigo-500/40 focus:outline-none focus:ring-1 focus:ring-indigo-500/20 ${
                       isMapped
-                        ? "border-white/[0.06] bg-[#1a1f2e] text-slate-200"
-                        : "border-dashed border-white/[0.06] bg-[#12151e] text-slate-500"
+                        ? "border-edge-2 bg-popover text-body"
+                        : "border-dashed border-edge-2 bg-card text-dim"
                     }`}
                   >
                     {TARGET_FIELDS.map((f) => (
                       <option key={f.value} value={f.value}>{f.label}</option>
                     ))}
                   </select>
-                  <ChevronDown className="pointer-events-none absolute right-2.5 top-2.5 h-3.5 w-3.5 text-slate-600" />
+                  <ChevronDown className="pointer-events-none absolute right-2.5 top-2.5 h-3.5 w-3.5 text-dim" />
                 </div>
               </div>
             </div>

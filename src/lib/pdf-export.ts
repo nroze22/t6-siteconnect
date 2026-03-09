@@ -1,38 +1,48 @@
 /**
  * PDF Export utility for generating printable reports.
- * In Tauri mode: saves HTML to a temp file and opens in default browser.
- * In web mode: opens in a new tab with auto-print.
+ * In Tauri mode: saves HTML directly to ~/Downloads and returns the path.
+ * In web mode: opens in a new tab with print dialog.
  */
 
 const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
+/** Result of an export operation */
+export interface ExportResult {
+  success: boolean;
+  filePath?: string;
+  fileName?: string;
+}
+
 /**
  * Export an HTML document for printing/PDF saving.
- * Generates a clean, white-background printable document.
+ * - Tauri: saves to ~/Downloads/{filename}.html and returns the path
+ * - Web: opens in a new tab with print dialog
  */
-export async function exportPrintableHTML(html: string, filename: string): Promise<void> {
+export async function exportPrintableHTML(html: string, filename: string): Promise<ExportResult> {
   if (isTauri) {
     try {
-      const { writeTextFile, BaseDirectory } = await import("@tauri-apps/plugin-fs");
-      const { appDataDir, join } = await import("@tauri-apps/api/path");
+      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+      const { downloadDir, join } = await import("@tauri-apps/api/path");
       const { open } = await import("@tauri-apps/plugin-shell");
 
-      const dir = await appDataDir();
-      const exportsDir = await join(dir, "exports");
-      const filePath = await join(exportsDir, `${filename}.html`);
+      const downloadsPath = await downloadDir();
+      const fileName = `${filename}.html`;
+      const filePath = await join(downloadsPath, fileName);
 
-      // Ensure exports directory exists
-      const { mkdir } = await import("@tauri-apps/plugin-fs");
-      await mkdir(exportsDir, { recursive: true }).catch(() => {});
+      await writeTextFile(filePath, html);
 
-      await writeTextFile(`exports/${filename}.html`, html, { baseDir: BaseDirectory.AppData });
+      // Open in default browser for printing
       await open(filePath);
+
+      return { success: true, filePath, fileName };
     } catch {
       // Fallback to web approach if Tauri APIs fail
       openPrintWindow(html);
+      return { success: true };
     }
   } else {
     openPrintWindow(html);
+    return { success: true };
   }
 }
 
@@ -332,7 +342,7 @@ export function wrapReport(title: string, bodyHTML: string): string {
 <body>
   <!-- Print actions (visible on screen, hidden in print) -->
   <div class="print-actions">
-    <button class="print-btn primary" onclick="window.print()">🖨 Print / Save PDF</button>
+    <button class="print-btn primary" onclick="window.print()">Print / Save PDF</button>
     <button class="print-btn secondary" onclick="window.close()">Close</button>
   </div>
 

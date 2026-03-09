@@ -32,8 +32,8 @@ export function EmptyState({ icon, title, description, action, compact }: EmptyS
         </div>
       </motion.div>
 
-      <h3 className="text-[14px] font-semibold text-slate-200">{title}</h3>
-      <p className="mt-1.5 max-w-[280px] text-[11px] leading-relaxed text-slate-500">
+      <h3 className="text-[14px] font-semibold text-body">{title}</h3>
+      <p className="mt-1.5 max-w-[280px] text-[12px] leading-relaxed text-dim">
         {description}
       </p>
 

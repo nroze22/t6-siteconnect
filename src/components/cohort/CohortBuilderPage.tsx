@@ -428,7 +428,7 @@ function InlineFilterEditor({
   }
 
   const inputClass =
-    "h-8 rounded-md bg-white/5 border border-white/10 px-2.5 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50";
+    "h-8 rounded-md bg-white/5 border border-white/10 px-2.5 text-sm text-body placeholder:text-dim focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50";
 
   return (
     <motion.div
@@ -437,10 +437,10 @@ function InlineFilterEditor({
       exit={{ opacity: 0, height: 0 }}
       className="overflow-hidden"
     >
-      <div className="flex items-center gap-2 px-3 py-2.5 bg-white/[0.03] rounded-lg border border-white/[0.06]">
+      <div className="flex items-center gap-2 px-3 py-2.5 bg-surface-2 rounded-lg border border-edge-2">
         {type === "diagnosis" && (
           <>
-            <span className="text-xs text-slate-400 whitespace-nowrap">ICD-10 or keyword:</span>
+            <span className="text-xs text-dim whitespace-nowrap">ICD-10 or keyword:</span>
             <input
               ref={inputRef}
               className={`${inputClass} w-40`}
@@ -453,7 +453,7 @@ function InlineFilterEditor({
         )}
         {type === "age_range" && (
           <>
-            <span className="text-xs text-slate-400 whitespace-nowrap">Age from:</span>
+            <span className="text-xs text-dim whitespace-nowrap">Age from:</span>
             <input
               ref={inputRef}
               className={`${inputClass} w-16`}
@@ -463,7 +463,7 @@ function InlineFilterEditor({
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={handleKeyDown}
             />
-            <span className="text-xs text-slate-400">to:</span>
+            <span className="text-xs text-dim">to:</span>
             <input
               className={`${inputClass} w-16`}
               placeholder="99"
@@ -476,7 +476,7 @@ function InlineFilterEditor({
         )}
         {type === "lab_range" && (
           <>
-            <span className="text-xs text-slate-400 whitespace-nowrap">Lab:</span>
+            <span className="text-xs text-dim whitespace-nowrap">Lab:</span>
             <input
               ref={inputRef}
               className={`${inputClass} w-24`}
@@ -505,7 +505,7 @@ function InlineFilterEditor({
             />
             {operator === "between" && (
               <>
-                <span className="text-xs text-slate-400">-</span>
+                <span className="text-xs text-dim">-</span>
                 <input
                   className={`${inputClass} w-16`}
                   placeholder="max"
@@ -521,7 +521,7 @@ function InlineFilterEditor({
         )}
         {type === "medication" && (
           <>
-            <span className="text-xs text-slate-400 whitespace-nowrap">Medication:</span>
+            <span className="text-xs text-dim whitespace-nowrap">Medication:</span>
             <input
               ref={inputRef}
               className={`${inputClass} w-40`}
@@ -534,7 +534,7 @@ function InlineFilterEditor({
         )}
         {type === "bmi_range" && (
           <>
-            <span className="text-xs text-slate-400 whitespace-nowrap">BMI</span>
+            <span className="text-xs text-dim whitespace-nowrap">BMI</span>
             <select
               className={`${inputClass} w-16`}
               value={operator}
@@ -556,7 +556,7 @@ function InlineFilterEditor({
             />
             {operator === "between" && (
               <>
-                <span className="text-xs text-slate-400">-</span>
+                <span className="text-xs text-dim">-</span>
                 <input
                   className={`${inputClass} w-16`}
                   placeholder="max"
@@ -572,7 +572,7 @@ function InlineFilterEditor({
         )}
         {type === "sex" && (
           <>
-            <span className="text-xs text-slate-400 whitespace-nowrap">Sex:</span>
+            <span className="text-xs text-dim whitespace-nowrap">Sex:</span>
             <button
               ref={inputRef as unknown as React.Ref<HTMLButtonElement>}
               className={`${inputClass} px-3 ${value === "Male" ? "ring-1 ring-indigo-500" : ""}`}
@@ -596,7 +596,7 @@ function InlineFilterEditor({
         </button>
         <button
           onClick={onCancel}
-          className="h-8 px-2 rounded-md text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors"
+          className="h-8 px-2 rounded-md text-dim hover:text-body hover:bg-white/5 transition-colors"
         >
           <X className="h-3.5 w-3.5" />
         </button>
@@ -1023,7 +1023,7 @@ export function CohortBuilderPage() {
       return;
     }
     generateFeasibilityReportPDF(result, criteria, matchedPatientsList);
-    toast.success("Report generated", "Opening print dialog...");
+    toast.success("Report generated", "Saved to Downloads — use Print > Save as PDF for a PDF copy");
   }, [result, criteria, matchedPatientsList, toast]);
 
   // Icon lookup for criterion type
@@ -1035,7 +1035,7 @@ export function CohortBuilderPage() {
 
   function getCriterionColor(type: CriterionTypeKey) {
     const config = CRITERION_TYPES.find((ct) => ct.key === type);
-    return config?.color ?? "text-slate-400";
+    return config?.color ?? "text-dim";
   }
 
   // Loading state
@@ -1044,7 +1044,7 @@ export function CohortBuilderPage() {
       <div className="flex items-center justify-center h-full min-h-[600px]">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500/30 border-t-indigo-500" />
-          <span className="text-sm text-slate-400">Loading patient data...</span>
+          <span className="text-sm text-dim">Loading patient data...</span>
         </div>
       </div>
     );
@@ -1062,7 +1062,7 @@ export function CohortBuilderPage() {
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-indigo-400" />
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-dim">
               {hasFilters ? (
                 <>
                   <span className="text-indigo-400 font-semibold">{criteria.length} filter{criteria.length !== 1 ? "s" : ""} active</span>
@@ -1078,14 +1078,14 @@ export function CohortBuilderPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSaveQuery}
-                className="flex items-center gap-1.5 h-7 px-2.5 rounded-md text-xs text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors"
+                className="flex items-center gap-1.5 h-7 px-2.5 rounded-md text-xs text-dim hover:text-body hover:bg-white/5 transition-colors"
               >
                 <Bookmark className="h-3.5 w-3.5" />
                 Save Query
               </button>
               <button
                 onClick={handleExportCSV}
-                className="flex items-center gap-1.5 h-7 px-2.5 rounded-md text-xs text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors"
+                className="flex items-center gap-1.5 h-7 px-2.5 rounded-md text-xs text-dim hover:text-body hover:bg-white/5 transition-colors"
               >
                 <Download className="h-3.5 w-3.5" />
                 Export CSV
@@ -1116,7 +1116,7 @@ export function CohortBuilderPage() {
             className={`relative rounded-xl transition-all duration-300 ${
               searchFocused
                 ? "ring-2 ring-indigo-500/50 shadow-[0_0_30px_rgba(99,102,241,0.15)]"
-                : "ring-1 ring-white/[0.08]"
+                : "ring-1 ring-edge-3"
             }`}
             style={
               searchFocused
@@ -1131,13 +1131,13 @@ export function CohortBuilderPage() {
                 {searchFocused ? (
                   <Sparkles className="h-5 w-5 text-indigo-400 animate-pulse" />
                 ) : (
-                  <Search className="h-5 w-5 text-slate-500" />
+                  <Search className="h-5 w-5 text-dim" />
                 )}
               </div>
               <input
                 ref={searchInputRef}
                 type="text"
-                className="flex-1 bg-transparent text-base text-slate-200 placeholder:text-slate-500 focus:outline-none"
+                className="flex-1 bg-transparent text-base text-body placeholder:text-dim focus:outline-none"
                 placeholder="Describe your target population... e.g. 'diabetic patients over 50 with A1c above 8'"
                 value={queryText}
                 onChange={(e) => setQueryText(e.target.value)}
@@ -1148,7 +1148,7 @@ export function CohortBuilderPage() {
               {queryText && (
                 <button
                   onClick={() => setQueryText("")}
-                  className="mr-2 p-1 rounded-md text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-colors"
+                  className="mr-2 p-1 rounded-md text-dim hover:text-body hover:bg-white/5 transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -1156,7 +1156,7 @@ export function CohortBuilderPage() {
               <button
                 onClick={() => handleSearchSubmit(queryText)}
                 disabled={!queryText.trim()}
-                className="h-9 px-4 rounded-lg bg-indigo-600 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
+                className="h-9 px-4 rounded-lg bg-indigo-600 text-sm font-medium text-heading hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
               >
                 <Search className="h-3.5 w-3.5" />
                 Search
@@ -1182,13 +1182,13 @@ export function CohortBuilderPage() {
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.9 }}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.05] border border-white/[0.08] text-xs"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-3 border border-edge-3 text-xs"
                     >
                       <Icon className={`h-3 w-3 ${color}`} />
-                      <span className="text-slate-300">{describeCriterionUI(c)}</span>
+                      <span className="text-body">{describeCriterionUI(c)}</span>
                       <button
                         onClick={() => removeCriterion(i)}
-                        className="ml-0.5 p-0.5 rounded text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        className="ml-0.5 p-0.5 rounded text-dim hover:text-red-400 hover:bg-red-500/10 transition-colors"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -1208,11 +1208,11 @@ export function CohortBuilderPage() {
             <div className="relative" ref={addMenuRef}>
               <button
                 onClick={() => setAddFilterMenuOpen((v) => !v)}
-                className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-slate-300 hover:bg-white/[0.07] hover:border-white/[0.12] transition-colors"
+                className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-surface-2 border border-edge-3 text-xs text-body hover:bg-surface-4 hover:border-edge-4 transition-colors"
               >
                 <Plus className="h-3.5 w-3.5 text-indigo-400" />
                 Add Filter
-                <ChevronDown className="h-3 w-3 text-slate-500" />
+                <ChevronDown className="h-3 w-3 text-dim" />
               </button>
               <AnimatePresence>
                 {addFilterMenuOpen && (
@@ -1221,7 +1221,7 @@ export function CohortBuilderPage() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -4, scale: 0.97 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute top-full left-0 mt-1 z-50 w-52 rounded-xl bg-[#161b2e] border border-white/[0.08] shadow-xl overflow-hidden"
+                    className="absolute top-full left-0 mt-1 z-50 w-52 rounded-xl bg-popover border border-edge-3 shadow-xl overflow-hidden"
                   >
                     {CRITERION_TYPES.map((ct) => {
                       const Icon = ct.icon;
@@ -1232,7 +1232,7 @@ export function CohortBuilderPage() {
                             setAddingFilterType(ct.key);
                             setAddFilterMenuOpen(false);
                           }}
-                          className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-slate-300 hover:bg-white/[0.06] transition-colors"
+                          className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-sm text-body hover:bg-surface-3 transition-colors"
                         >
                           <Icon className={`h-4 w-4 ${ct.color}`} />
                           {ct.label}
@@ -1270,17 +1270,17 @@ export function CohortBuilderPage() {
               <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-indigo-500/10 ring-1 ring-indigo-500/20 mb-4">
                 <Search className="h-8 w-8 text-indigo-400" />
               </div>
-              <h2 className="text-lg font-semibold text-slate-200 mb-1">
+              <h2 className="text-lg font-semibold text-body mb-1">
                 Define Your Target Population
               </h2>
-              <p className="text-sm text-slate-400 max-w-md mx-auto">
+              <p className="text-sm text-dim max-w-md mx-auto">
                 Use the search bar above to describe your ideal cohort in plain language,
                 or build criteria manually with the filter builder.
               </p>
             </div>
 
             <div className="max-w-2xl mx-auto">
-              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+              <h3 className="text-xs font-semibold text-dim uppercase tracking-wider mb-3">
                 Try an example query
               </h3>
               <div className="grid grid-cols-1 gap-2">
@@ -1291,11 +1291,11 @@ export function CohortBuilderPage() {
                       setQueryText(eq);
                       handleSearchSubmit(eq);
                     }}
-                    className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-left text-sm text-slate-300 hover:bg-white/[0.06] hover:border-indigo-500/20 transition-all group"
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-surface-2 border border-edge-2 text-left text-sm text-body hover:bg-surface-3 hover:border-indigo-500/20 transition-all group"
                   >
                     <Sparkles className="h-3.5 w-3.5 text-indigo-400/50 group-hover:text-indigo-400 transition-colors" />
                     <span className="flex-1">{eq}</span>
-                    <ArrowRight className="h-3.5 w-3.5 text-slate-600 group-hover:text-indigo-400 transition-colors" />
+                    <ArrowRight className="h-3.5 w-3.5 text-dim group-hover:text-indigo-400 transition-colors" />
                   </button>
                 ))}
               </div>
@@ -1314,36 +1314,36 @@ export function CohortBuilderPage() {
           >
             {/* Big match count */}
             <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="rounded-xl bg-card border border-white/[0.06] p-5">
-                <div className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">
+              <div className="rounded-xl bg-card border border-edge-2 p-5">
+                <div className="text-xs font-medium text-dim uppercase tracking-wider mb-1">
                   Matching Subjects
                 </div>
                 <div className="text-3xl font-bold text-emerald-400 tracking-tight">
                   {formatNumber(animatedMatch)}
                 </div>
-                <div className="text-xs text-slate-500 mt-1">
+                <div className="text-xs text-dim mt-1">
                   of {formatNumber(animatedTotal)} total
                 </div>
               </div>
-              <div className="rounded-xl bg-card border border-white/[0.06] p-5">
-                <div className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">
+              <div className="rounded-xl bg-card border border-edge-2 p-5">
+                <div className="text-xs font-medium text-dim uppercase tracking-wider mb-1">
                   Match Rate
                 </div>
                 <div className="text-3xl font-bold text-indigo-400 tracking-tight">
                   {animatedRate}%
                 </div>
-                <div className="text-xs text-slate-500 mt-1">
+                <div className="text-xs text-dim mt-1">
                   of population
                 </div>
               </div>
-              <div className="rounded-xl bg-card border border-white/[0.06] p-5">
-                <div className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">
+              <div className="rounded-xl bg-card border border-edge-2 p-5">
+                <div className="text-xs font-medium text-dim uppercase tracking-wider mb-1">
                   Avg Age
                 </div>
-                <div className="text-3xl font-bold text-slate-200 tracking-tight">
+                <div className="text-3xl font-bold text-body tracking-tight">
                   {result.demographics.avgAge}
                 </div>
-                <div className="text-xs text-slate-500 mt-1">
+                <div className="text-xs text-dim mt-1">
                   years old
                 </div>
               </div>
@@ -1351,8 +1351,8 @@ export function CohortBuilderPage() {
 
             {/* Attrition Waterfall */}
             {waterfallData.length > 0 && (
-              <div className="rounded-xl bg-card border border-white/[0.06] p-5 mb-6">
-                <h3 className="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
+              <div className="rounded-xl bg-card border border-edge-2 p-5 mb-6">
+                <h3 className="text-sm font-semibold text-body mb-4 flex items-center gap-2">
                   <Filter className="h-4 w-4 text-indigo-400" />
                   Criterion Attrition
                 </h3>
@@ -1362,22 +1362,22 @@ export function CohortBuilderPage() {
                       <div className="flex items-center justify-between mb-1">
                         <span
                           className={`text-xs font-medium ${
-                            w.isBottleneck ? "text-amber-400" : "text-slate-300"
+                            w.isBottleneck ? "text-amber-400" : "text-body"
                           }`}
                         >
                           {w.criterion}
                           {w.isBottleneck && (
-                            <span className="ml-2 inline-flex items-center gap-1 text-[10px] text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded">
+                            <span className="ml-2 inline-flex items-center gap-1 text-[12px] text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded">
                               <AlertTriangle className="h-2.5 w-2.5" />
                               Bottleneck
                             </span>
                           )}
                         </span>
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-dim">
                           {w.passing} / {result.totalPatients} ({(w.rate * 100).toFixed(0)}%)
                         </span>
                       </div>
-                      <div className="h-5 rounded-md bg-white/[0.04] overflow-hidden flex">
+                      <div className="h-5 rounded-md bg-surface-2 overflow-hidden flex">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${Math.max(2, w.rate * 100)}%` }}
@@ -1398,8 +1398,8 @@ export function CohortBuilderPage() {
             {/* Demographics Row */}
             <div className="grid grid-cols-3 gap-4 mb-6">
               {/* Age Distribution */}
-              <div className="rounded-xl bg-card border border-white/[0.06] p-5">
-                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+              <div className="rounded-xl bg-card border border-edge-2 p-5">
+                <h3 className="text-xs font-semibold text-dim uppercase tracking-wider mb-3">
                   Age Distribution
                 </h3>
                 {ageDistData.length > 0 && (
@@ -1434,8 +1434,8 @@ export function CohortBuilderPage() {
               </div>
 
               {/* Gender Split */}
-              <div className="rounded-xl bg-card border border-white/[0.06] p-5">
-                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+              <div className="rounded-xl bg-card border border-edge-2 p-5">
+                <h3 className="text-xs font-semibold text-dim uppercase tracking-wider mb-3">
                   Gender Split
                 </h3>
                 {genderChartData.length > 0 && (
@@ -1468,7 +1468,7 @@ export function CohortBuilderPage() {
                 )}
                 <div className="flex justify-center gap-4 mt-1">
                   {genderChartData.map((g, idx) => (
-                    <div key={g.name} className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                    <div key={g.name} className="flex items-center gap-1.5 text-[12px] text-dim">
                       <span
                         className="h-2 w-2 rounded-full"
                         style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }}
@@ -1480,8 +1480,8 @@ export function CohortBuilderPage() {
               </div>
 
               {/* Race Breakdown */}
-              <div className="rounded-xl bg-card border border-white/[0.06] p-5">
-                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+              <div className="rounded-xl bg-card border border-edge-2 p-5">
+                <h3 className="text-xs font-semibold text-dim uppercase tracking-wider mb-3">
                   Race Breakdown
                 </h3>
                 <div className="space-y-2">
@@ -1493,14 +1493,14 @@ export function CohortBuilderPage() {
                     return (
                       <div key={r.name}>
                         <div className="flex items-center justify-between mb-0.5">
-                          <span className="text-[11px] text-slate-300 truncate max-w-[140px]">
+                          <span className="text-[12px] text-body truncate max-w-[140px]">
                             {r.name}
                           </span>
-                          <span className="text-[10px] text-slate-500">
+                          <span className="text-[12px] text-dim">
                             {r.value} ({pct.toFixed(0)}%)
                           </span>
                         </div>
-                        <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
+                        <div className="h-2 rounded-full bg-surface-2 overflow-hidden">
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${Math.max(2, pct)}%` }}
@@ -1519,12 +1519,12 @@ export function CohortBuilderPage() {
             </div>
 
             {/* Matched Subjects Table */}
-            <div className="rounded-xl bg-card border border-white/[0.06] overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06]">
-                <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+            <div className="rounded-xl bg-card border border-edge-2 overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-3 border-b border-edge-2">
+                <h3 className="text-sm font-semibold text-body flex items-center gap-2">
                   <Users className="h-4 w-4 text-indigo-400" />
                   Matched Subjects
-                  <span className="text-xs font-normal text-slate-500">
+                  <span className="text-xs font-normal text-dim">
                     ({matchedPatientsList.length})
                   </span>
                 </h3>
@@ -1532,26 +1532,26 @@ export function CohortBuilderPage() {
               <div className="overflow-y-auto max-h-[360px]">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-white/[0.06]">
-                      <th className="text-left px-5 py-2.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                    <tr className="border-b border-edge-2">
+                      <th className="text-left px-5 py-2.5 text-[12px] font-semibold text-dim uppercase tracking-wider">
                         MRN
                       </th>
-                      <th className="text-left px-3 py-2.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                      <th className="text-left px-3 py-2.5 text-[12px] font-semibold text-dim uppercase tracking-wider">
                         Name
                       </th>
-                      <th className="text-left px-3 py-2.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                      <th className="text-left px-3 py-2.5 text-[12px] font-semibold text-dim uppercase tracking-wider">
                         Age
                       </th>
-                      <th className="text-left px-3 py-2.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                      <th className="text-left px-3 py-2.5 text-[12px] font-semibold text-dim uppercase tracking-wider">
                         Sex
                       </th>
-                      <th className="text-left px-3 py-2.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                      <th className="text-left px-3 py-2.5 text-[12px] font-semibold text-dim uppercase tracking-wider">
                         Primary Dx
                       </th>
-                      <th className="text-left px-3 py-2.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                      <th className="text-left px-3 py-2.5 text-[12px] font-semibold text-dim uppercase tracking-wider">
                         BMI
                       </th>
-                      <th className="text-left px-3 py-2.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                      <th className="text-left px-3 py-2.5 text-[12px] font-semibold text-dim uppercase tracking-wider">
                         Dept
                       </th>
                     </tr>
@@ -1562,27 +1562,27 @@ export function CohortBuilderPage() {
                       return (
                         <tr
                           key={p.mrn}
-                          className="border-b border-white/[0.03] hover:bg-white/[0.03] transition-colors"
+                          className="border-b border-edge-1 hover:bg-surface-2 transition-colors"
                         >
-                          <td className="px-5 py-2.5 text-slate-300 font-mono text-xs">
+                          <td className="px-5 py-2.5 text-body font-mono text-xs">
                             {p.mrn}
                           </td>
-                          <td className="px-3 py-2.5 text-slate-200">
+                          <td className="px-3 py-2.5 text-body">
                             {p.lastName}, {p.firstName}
                           </td>
-                          <td className="px-3 py-2.5 text-slate-400">
+                          <td className="px-3 py-2.5 text-dim">
                             {calculateAge(p.dob)}
                           </td>
-                          <td className="px-3 py-2.5 text-slate-400">{p.sex}</td>
-                          <td className="px-3 py-2.5 text-slate-300 text-xs max-w-[200px] truncate">
+                          <td className="px-3 py-2.5 text-dim">{p.sex}</td>
+                          <td className="px-3 py-2.5 text-body text-xs max-w-[200px] truncate">
                             {primaryDx
                               ? `${primaryDx.icd10} ${primaryDx.name}`
                               : "--"}
                           </td>
-                          <td className="px-3 py-2.5 text-slate-400">
+                          <td className="px-3 py-2.5 text-dim">
                             {p.vitals.bmi > 0 ? p.vitals.bmi.toFixed(1) : "--"}
                           </td>
-                          <td className="px-3 py-2.5 text-slate-500 text-xs">
+                          <td className="px-3 py-2.5 text-dim text-xs">
                             {p.department || "--"}
                           </td>
                         </tr>
@@ -1592,7 +1592,7 @@ export function CohortBuilderPage() {
                       <tr>
                         <td
                           colSpan={7}
-                          className="px-5 py-8 text-center text-sm text-slate-500"
+                          className="px-5 py-8 text-center text-sm text-dim"
                         >
                           No subjects match the current criteria.
                         </td>
@@ -1609,15 +1609,15 @@ export function CohortBuilderPage() {
       {/* ============================================================ */}
       {/* SAVED QUERIES SIDEBAR */}
       {/* ============================================================ */}
-      <div className="w-64 shrink-0 border-l border-white/[0.06] bg-card/50 overflow-y-auto px-4 py-5">
-        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+      <div className="w-64 shrink-0 border-l border-edge-2 bg-card/50 overflow-y-auto px-4 py-5">
+        <h3 className="text-xs font-semibold text-dim uppercase tracking-wider mb-3 flex items-center gap-1.5">
           <BookmarkCheck className="h-3.5 w-3.5" />
           Saved Queries
         </h3>
 
         {/* Preset queries */}
         <div className="space-y-1.5 mb-4">
-          <div className="text-[10px] font-medium text-slate-600 uppercase tracking-wider mb-1.5 px-1">
+          <div className="text-[12px] font-medium text-dim uppercase tracking-wider mb-1.5 px-1">
             Presets
           </div>
           {PRESET_QUERIES.map((q) => (
@@ -1627,11 +1627,11 @@ export function CohortBuilderPage() {
               className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors ${
                 activeSavedId === q.id
                   ? "bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-500/30"
-                  : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-300"
+                  : "text-dim hover:bg-surface-2 hover:text-body"
               }`}
             >
-              <div className="font-medium text-[11px] leading-tight mb-0.5">{q.name}</div>
-              <div className="text-[10px] text-slate-500">
+              <div className="font-medium text-[12px] leading-tight mb-0.5">{q.name}</div>
+              <div className="text-[12px] text-dim">
                 {q.criteria.length} criteria
               </div>
             </button>
@@ -1641,7 +1641,7 @@ export function CohortBuilderPage() {
         {/* Custom queries */}
         {customQueries.length > 0 && (
           <div className="space-y-1.5">
-            <div className="text-[10px] font-medium text-slate-600 uppercase tracking-wider mb-1.5 px-1">
+            <div className="text-[12px] font-medium text-dim uppercase tracking-wider mb-1.5 px-1">
               Custom
             </div>
             {customQueries.map((q) => (
@@ -1650,7 +1650,7 @@ export function CohortBuilderPage() {
                 className={`flex items-center rounded-lg transition-colors ${
                   activeSavedId === q.id
                     ? "bg-indigo-500/15 ring-1 ring-indigo-500/30"
-                    : "hover:bg-white/[0.04]"
+                    : "hover:bg-surface-2"
                 }`}
               >
                 <button
@@ -1658,19 +1658,19 @@ export function CohortBuilderPage() {
                   className="flex-1 text-left px-3 py-2 text-xs"
                 >
                   <div
-                    className={`font-medium text-[11px] leading-tight mb-0.5 ${
-                      activeSavedId === q.id ? "text-indigo-300" : "text-slate-400"
+                    className={`font-medium text-[12px] leading-tight mb-0.5 ${
+                      activeSavedId === q.id ? "text-indigo-300" : "text-dim"
                     }`}
                   >
                     {q.name}
                   </div>
-                  <div className="text-[10px] text-slate-500">
+                  <div className="text-[12px] text-dim">
                     {q.criteria.length} criteria
                   </div>
                 </button>
                 <button
                   onClick={() => handleDeleteCustomQuery(q.id)}
-                  className="p-1.5 mr-1.5 rounded text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  className="p-1.5 mr-1.5 rounded text-dim hover:text-red-400 hover:bg-red-500/10 transition-colors"
                 >
                   <Trash2 className="h-3 w-3" />
                 </button>

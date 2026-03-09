@@ -94,17 +94,17 @@ export function Sidebar() {
   const setCurrentPage = useAppStore((s) => s.setCurrentPage);
 
   return (
-    <aside className="no-select flex w-[240px] flex-col border-r border-border bg-[#0e1119]">
+    <aside className="no-select flex w-[240px] flex-col border-r border-border bg-background">
       {/* Logo */}
       <div className="flex h-14 items-center gap-2.5 border-b border-border px-5">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-blue-700 shadow-lg shadow-indigo-500/20">
           <img src="/t6logo.png" alt="Talosix" className="h-6 w-6 object-contain" />
         </div>
         <div>
-          <h1 className="text-[13px] font-bold tracking-tight text-white">
+          <h1 className="text-[13px] font-bold tracking-tight text-heading">
             TalOS SiteConnect
           </h1>
-          <p className="text-[10px] font-medium text-slate-500">
+          <p className="text-[12px] font-medium text-dim">
             On-Premise Screening
           </p>
         </div>
@@ -112,7 +112,7 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex flex-1 flex-col gap-0.5 px-3 py-3">
-        <p className="mb-1 px-2 text-[9px] font-semibold uppercase tracking-widest text-slate-600">
+        <p className="mb-1 px-2 text-[9px] font-semibold uppercase tracking-widest text-dim">
           Workspace
         </p>
         {navItems.map((item) => {
@@ -130,14 +130,14 @@ export function Sidebar() {
                   transition={{ type: "spring", damping: 28, stiffness: 350 }}
                 />
               )}
-              <span className={`relative z-10 ${isActive ? "text-indigo-400" : "text-slate-500 group-hover:text-slate-400"}`}>
+              <span className={`relative z-10 ${isActive ? "text-indigo-400" : "text-dim group-hover:text-dim"}`}>
                 {item.icon}
               </span>
               <div className="relative z-10 flex-1 min-w-0">
-                <span className={`block text-[13px] font-medium leading-tight ${isActive ? "text-indigo-300" : "text-slate-400 group-hover:text-slate-200"}`}>
+                <span className={`block text-[13px] font-medium leading-tight ${isActive ? "text-indigo-300" : "text-dim group-hover:text-body"}`}>
                   {item.label}
                 </span>
-                <span className={`block text-[10px] leading-tight ${isActive ? "text-indigo-400/60" : "text-slate-600"}`}>
+                <span className={`block text-[12px] leading-tight ${isActive ? "text-indigo-400/60" : "text-dim"}`}>
                   {item.hint}
                 </span>
               </div>
@@ -145,7 +145,7 @@ export function Sidebar() {
                 {isActive ? (
                   <ChevronRight className="h-3 w-3 text-indigo-500/50" />
                 ) : (
-                  <kbd className="hidden group-hover:flex h-[18px] items-center rounded bg-white/[0.06] px-1.5 text-[9px] font-medium text-slate-600 ring-1 ring-white/[0.06]">
+                  <kbd className="hidden group-hover:flex h-[18px] items-center rounded bg-surface-3 px-1.5 text-[9px] font-medium text-dim ring-1 ring-edge-2">
                     {item.shortcut}
                   </kbd>
                 )}
@@ -160,12 +160,12 @@ export function Sidebar() {
         <Tooltip content="Zero data leaves this device. HIPAA-ready architecture." side="right">
           <div className="flex items-center gap-2.5 rounded-lg bg-emerald-500/8 px-3 py-2 ring-1 ring-emerald-500/15">
             <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
-            <span className="text-[11px] font-medium text-emerald-400/90">
+            <span className="text-[12px] font-medium text-emerald-400/90">
               100% On-Premise
             </span>
           </div>
         </Tooltip>
-        <p className="mt-2 px-1 text-[10px] leading-relaxed text-slate-600">
+        <p className="mt-2 px-1 text-[12px] leading-relaxed text-dim">
           All data encrypted on this device. No PHI ever leaves your machine.
         </p>
       </div>

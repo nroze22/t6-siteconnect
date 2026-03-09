@@ -12,7 +12,7 @@ import { PerformancePage } from "@/components/performance/PerformancePage";
 import { SettingsPage } from "@/components/settings/SettingsPage";
 import { CohortBuilderPage } from "@/components/cohort/CohortBuilderPage";
 import { IntelligencePage } from "@/components/intelligence/IntelligencePage";
-import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
+import { SiteOnboarding } from "@/components/onboarding/SiteOnboarding";
 import { SetupScreen } from "@/components/setup/SetupScreen";
 import { UnlockScreen } from "@/components/setup/UnlockScreen";
 import { ToastProvider } from "@/components/ui/Toast";
@@ -21,6 +21,7 @@ import { KeyboardShortcutsOverlay } from "@/components/ui/KeyboardShortcuts";
 import { HelpDrawer } from "@/components/ui/HelpDrawer";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { useAppStore } from "@/stores/use-app-store";
+import { useSiteProfileStore } from "@/stores/use-site-profile-store";
 import { useDemoData } from "@/hooks/use-demo-data";
 import { checkDatabaseExists } from "@/lib/tauri";
 import type { NavigationPage } from "@/types";
@@ -181,10 +182,31 @@ function MainApp() {
   useDemoData();
   useGlobalShortcuts();
   const currentPage = useAppStore((s) => s.currentPage);
+  const theme = useAppStore((s) => s.theme);
+  const loadProfile = useSiteProfileStore((s) => s.loadFromStorage);
+
+  // Apply theme class on mount and when theme changes
+  useEffect(() => {
+    if (theme === "light") {
+      document.documentElement.classList.add("light");
+    } else {
+      document.documentElement.classList.remove("light");
+    }
+  }, [theme]);
+
+  // Load site profile on mount
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
 
   const [showOnboarding, setShowOnboarding] = useState(() => {
     try {
-      return !localStorage.getItem("siteconnect-onboarded");
+      const stored = localStorage.getItem("siteconnect-site-profile");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return !parsed.onboardingComplete;
+      }
+      return true;
     } catch {
       return true;
     }
@@ -192,11 +214,6 @@ function MainApp() {
 
   const handleOnboardingComplete = useCallback(() => {
     setShowOnboarding(false);
-    try {
-      localStorage.setItem("siteconnect-onboarded", "1");
-    } catch {
-      // localStorage unavailable — silently ignore
-    }
   }, []);
 
   return (
@@ -210,7 +227,7 @@ function MainApp() {
           </main>
           <StatusBar />
         </div>
-        {showOnboarding && <OnboardingModal onComplete={handleOnboardingComplete} />}
+        {showOnboarding && <SiteOnboarding onComplete={handleOnboardingComplete} />}
         <CommandPalette />
         <KeyboardShortcutsOverlay />
         <HelpDrawer currentPage={currentPage} />

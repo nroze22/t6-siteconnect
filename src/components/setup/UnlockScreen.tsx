@@ -91,10 +91,10 @@ export function UnlockScreen({ onUnlock }: UnlockScreenProps) {
               <img src="/t6logo.png" alt="Talosix" className="h-12 w-12 object-contain" />
             </div>
           </div>
-          <h1 className="mb-1 text-xl font-bold tracking-tight text-white">
+          <h1 className="mb-1 text-xl font-bold tracking-tight text-heading">
             TalOS SiteConnect
           </h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-dim">
             Enter your passphrase to unlock
           </p>
         </div>
@@ -105,7 +105,7 @@ export function UnlockScreen({ onUnlock }: UnlockScreenProps) {
           <div className="mb-4">
             <div className="relative">
               <div className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2">
-                <Lock className="h-4 w-4 text-slate-500" />
+                <Lock className="h-4 w-4 text-dim" />
               </div>
               <input
                 type={showPassphrase ? "text" : "password"}
@@ -116,7 +116,7 @@ export function UnlockScreen({ onUnlock }: UnlockScreenProps) {
                 }}
                 onKeyDown={handleKeyDown}
                 placeholder="Passphrase"
-                className={`w-full rounded-lg border bg-slate-800/50 py-3 pl-10 pr-11 text-sm text-white placeholder-slate-500 transition-colors focus:outline-none focus:ring-1 ${
+                className={`w-full rounded-lg border bg-slate-800/50 py-3 pl-10 pr-11 text-sm text-heading placeholder-dim transition-colors focus:outline-none focus:ring-1 ${
                   error
                     ? "border-red-500/50 focus:border-red-500/50 focus:ring-red-500/30"
                     : "border-slate-700 focus:border-slate-500 focus:ring-slate-500/30"
@@ -127,7 +127,7 @@ export function UnlockScreen({ onUnlock }: UnlockScreenProps) {
               <button
                 type="button"
                 onClick={() => setShowPassphrase(!showPassphrase)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition-colors hover:text-slate-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-dim transition-colors hover:text-body"
                 tabIndex={-1}
               >
                 {showPassphrase ? (
@@ -167,7 +167,7 @@ export function UnlockScreen({ onUnlock }: UnlockScreenProps) {
           <div className="mt-4 text-center">
             <button
               onClick={() => setShowForgotInfo(!showForgotInfo)}
-              className="text-xs text-slate-500 transition-colors hover:text-slate-400"
+              className="text-xs text-dim transition-colors hover:text-dim"
             >
               Forgot passphrase?
             </button>
@@ -178,7 +178,7 @@ export function UnlockScreen({ onUnlock }: UnlockScreenProps) {
               <div className="rounded-lg border border-amber-500/10 bg-amber-500/5 px-4 py-3">
                 <div className="flex items-start gap-2">
                   <Shield className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500/70" />
-                  <div className="text-xs leading-relaxed text-slate-400">
+                  <div className="text-xs leading-relaxed text-dim">
                     <p className="mb-1 font-medium text-amber-400/90">
                       Data cannot be recovered
                     </p>
@@ -193,16 +193,16 @@ export function UnlockScreen({ onUnlock }: UnlockScreenProps) {
 
               {/* Database location */}
               <div className="rounded-lg border border-slate-700/50 bg-slate-800/30 px-4 py-3">
-                <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-slate-500">
+                <p className="mb-1.5 text-[12px] font-medium uppercase tracking-wider text-dim">
                   Database location
                 </p>
-                <p className="break-all font-mono text-[11px] leading-relaxed text-slate-400">
+                <p className="break-all font-mono text-[12px] leading-relaxed text-dim">
                   {dbPath}
                 </p>
                 <div className="mt-2.5 flex gap-2">
                   <button
                     onClick={handleRevealInFinder}
-                    className="flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-[11px] font-medium text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700"
+                    className="flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-[12px] font-medium text-body transition-colors hover:border-slate-600 hover:bg-slate-700"
                   >
                     <FolderOpen className="h-3 w-3" />
                     Show in File Manager
@@ -210,10 +210,10 @@ export function UnlockScreen({ onUnlock }: UnlockScreenProps) {
                   <button
                     onClick={handleDeleteDatabase}
                     disabled={isDeleting}
-                    className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                    className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[12px] font-medium transition-colors ${
                       confirmDelete
                         ? "border-red-500/50 bg-red-500/20 text-red-300 hover:bg-red-500/30"
-                        : "border-slate-700 bg-slate-800 text-slate-300 hover:border-red-500/30 hover:text-red-300"
+                        : "border-slate-700 bg-slate-800 text-body hover:border-red-500/30 hover:text-red-300"
                     }`}
                   >
                     <Trash2 className="h-3 w-3" />
@@ -225,7 +225,7 @@ export function UnlockScreen({ onUnlock }: UnlockScreenProps) {
                   </button>
                 </div>
                 {confirmDelete && (
-                  <p className="mt-2 text-[10px] text-red-400/80">
+                  <p className="mt-2 text-[12px] text-red-400/80">
                     This will permanently delete all patient data. Click again to confirm.
                   </p>
                 )}
@@ -235,7 +235,7 @@ export function UnlockScreen({ onUnlock }: UnlockScreenProps) {
         </div>
 
         {/* Footer */}
-        <p className="mt-6 text-center text-xs text-slate-600">
+        <p className="mt-6 text-center text-xs text-dim">
           TalOS SiteConnect v0.1.0
         </p>
       </div>

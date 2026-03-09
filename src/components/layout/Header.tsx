@@ -69,7 +69,7 @@ export function Header() {
         <h2 className="text-[13px] font-semibold text-foreground leading-tight">
           {config.title}
         </h2>
-        <p className="text-[10px] text-slate-500 leading-tight">
+        <p className="text-[12px] text-dim leading-tight">
           {screeningSub}
         </p>
       </div>
@@ -78,15 +78,15 @@ export function Header() {
         {/* Command palette trigger */}
         <button
           onClick={openCommandPalette}
-          className="flex items-center gap-2 rounded-lg bg-white/[0.03] px-3 py-1.5 text-slate-500 ring-1 ring-white/[0.06] transition-all hover:bg-white/[0.06] hover:text-slate-300 hover:ring-white/[0.1]"
+          className="flex items-center gap-2 rounded-lg bg-surface-2 px-3 py-1.5 text-dim ring-1 ring-edge-2 transition-all hover:bg-surface-3 hover:text-body hover:ring-edge-4"
         >
           <Search className="h-3 w-3" />
-          <span className="text-[11px]">Search...</span>
+          <span className="text-[12px]">Search...</span>
           <div className="flex items-center gap-0.5 ml-2">
-            <kbd className="flex h-[18px] items-center rounded bg-white/[0.06] px-1 text-[9px] font-medium text-slate-500 ring-1 ring-white/[0.08]">
+            <kbd className="flex h-[18px] items-center rounded bg-surface-3 px-1 text-[9px] font-medium text-dim ring-1 ring-edge-3">
               {isMac ? <Command className="h-2.5 w-2.5" /> : <span className="text-[9px]">Ctrl</span>}
             </kbd>
-            <kbd className="flex h-[18px] items-center rounded bg-white/[0.06] px-1 text-[9px] font-medium text-slate-500 ring-1 ring-white/[0.08]">
+            <kbd className="flex h-[18px] items-center rounded bg-surface-3 px-1 text-[9px] font-medium text-dim ring-1 ring-edge-3">
               K
             </kbd>
           </div>
@@ -94,9 +94,9 @@ export function Header() {
 
         {/* Offline indicator */}
         <Tooltip content="All data stays on this device" side="bottom">
-          <div className="flex items-center gap-1.5 rounded-md bg-white/[0.03] px-2.5 py-1 ring-1 ring-white/[0.06]">
-            <WifiOff className="h-3 w-3 text-slate-500" />
-            <span className="text-[10px] font-medium text-slate-500">Offline</span>
+          <div className="flex items-center gap-1.5 rounded-md bg-surface-2 px-2.5 py-1 ring-1 ring-edge-2">
+            <WifiOff className="h-3 w-3 text-dim" />
+            <span className="text-[12px] font-medium text-dim">Offline</span>
           </div>
         </Tooltip>
 
@@ -104,9 +104,9 @@ export function Header() {
         <Tooltip content="Keyboard shortcuts" shortcut="?" side="bottom">
           <button
             onClick={() => window.dispatchEvent(new CustomEvent("toggle-shortcuts"))}
-            className="flex items-center justify-center rounded-md px-2 py-1 text-slate-500 transition-colors hover:bg-white/[0.05] hover:text-slate-300"
+            className="flex items-center justify-center rounded-md px-2 py-1 text-dim transition-colors hover:bg-surface-3 hover:text-body"
           >
-            <kbd className="flex h-[18px] items-center rounded bg-white/[0.06] px-1.5 text-[10px] font-medium text-slate-500 ring-1 ring-white/[0.08]">
+            <kbd className="flex h-[18px] items-center rounded bg-surface-3 px-1.5 text-[12px] font-medium text-dim ring-1 ring-edge-3">
               ?
             </kbd>
           </button>
@@ -116,7 +116,7 @@ export function Header() {
         <Tooltip content="Help & Guide" shortcut="F1" side="bottom">
           <button
             onClick={helpDrawer.toggle}
-            className="flex items-center justify-center rounded-md px-2 py-1 text-slate-500 transition-colors hover:bg-white/[0.05] hover:text-slate-300"
+            className="flex items-center justify-center rounded-md px-2 py-1 text-dim transition-colors hover:bg-surface-3 hover:text-body"
           >
             <HelpCircle className="h-3.5 w-3.5" />
           </button>
@@ -126,7 +126,7 @@ export function Header() {
         <Tooltip content="Lock application" shortcut={isMac ? "Cmd+L" : "Ctrl+L"} side="bottom">
           <button
             onClick={lock}
-            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-slate-500 transition-colors hover:bg-white/[0.05] hover:text-slate-300"
+            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-dim transition-colors hover:bg-surface-3 hover:text-body"
           >
             <Lock className="h-3.5 w-3.5" />
           </button>

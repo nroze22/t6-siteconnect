@@ -363,23 +363,23 @@ export function HelpDrawer({ currentPage }: { currentPage: NavigationPage }) {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
-            className="fixed right-0 top-0 z-[9981] flex h-full w-[400px] flex-col border-l border-white/[0.06] bg-[#0e1119]/98 backdrop-blur-2xl shadow-2xl"
+            className="fixed right-0 top-0 z-[9981] flex h-full w-[400px] flex-col border-l border-edge-2 bg-background/98 backdrop-blur-2xl shadow-2xl"
           >
             {/* Header */}
-            <div className="shrink-0 border-b border-white/[0.06] px-5 py-4">
+            <div className="shrink-0 border-b border-edge-2 px-5 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex items-center justify-center rounded-xl bg-indigo-500/15 p-2.5 ring-1 ring-indigo-500/25">
                     <HelpCircle className="h-5 w-5 text-indigo-400" />
                   </div>
                   <div>
-                    <h2 className="text-[14px] font-bold text-white">Help & Guide</h2>
-                    <p className="text-[10px] text-slate-500">Everything runs offline on your device</p>
+                    <h2 className="text-[14px] font-bold text-heading">Help & Guide</h2>
+                    <p className="text-[12px] text-dim">Everything runs offline on your device</p>
                   </div>
                 </div>
                 <button
                   onClick={close}
-                  className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-white/5 hover:text-slate-300"
+                  className="rounded-lg p-1.5 text-dim transition-colors hover:bg-white/5 hover:text-body"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -387,12 +387,12 @@ export function HelpDrawer({ currentPage }: { currentPage: NavigationPage }) {
             </div>
 
             {/* Page context */}
-            <div className="shrink-0 border-b border-white/[0.06] px-5 py-3">
+            <div className="shrink-0 border-b border-edge-2 px-5 py-3">
               <div className="flex items-center gap-2.5">
                 <span className="text-indigo-400">{help.icon}</span>
                 <div>
-                  <h3 className="text-[13px] font-semibold text-white">{help.title}</h3>
-                  <p className="text-[11px] text-slate-400 leading-snug">{help.description}</p>
+                  <h3 className="text-[13px] font-semibold text-heading">{help.title}</h3>
+                  <p className="text-[12px] text-dim leading-snug">{help.description}</p>
                 </div>
               </div>
             </div>
@@ -401,21 +401,21 @@ export function HelpDrawer({ currentPage }: { currentPage: NavigationPage }) {
             <div className="flex-1 overflow-y-auto">
               {/* Sections (accordion) */}
               <div className="p-4 space-y-1">
-                <p className="px-1 mb-2 text-[9px] font-semibold uppercase tracking-widest text-slate-600">How to use</p>
+                <p className="px-1 mb-2 text-[9px] font-semibold uppercase tracking-widest text-dim">How to use</p>
                 {help.sections.map((section, i) => {
                   const isExpanded = expandedSection === i;
                   return (
-                    <div key={i} className="rounded-xl ring-1 ring-white/[0.04] overflow-hidden">
+                    <div key={i} className="rounded-xl ring-1 ring-edge-1 overflow-hidden">
                       <button
                         onClick={() => setExpandedSection(isExpanded ? null : i)}
                         className={`flex w-full items-center justify-between px-4 py-3 text-left transition-colors ${
-                          isExpanded ? "bg-white/[0.04]" : "hover:bg-white/[0.02]"
+                          isExpanded ? "bg-surface-2" : "hover:bg-surface-1"
                         }`}
                       >
-                        <span className={`text-[12px] font-medium ${isExpanded ? "text-indigo-300" : "text-slate-300"}`}>
+                        <span className={`text-[12px] font-medium ${isExpanded ? "text-indigo-300" : "text-body"}`}>
                           {section.title}
                         </span>
-                        <ChevronRight className={`h-3.5 w-3.5 text-slate-500 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+                        <ChevronRight className={`h-3.5 w-3.5 text-dim transition-transform ${isExpanded ? "rotate-90" : ""}`} />
                       </button>
                       <AnimatePresence>
                         {isExpanded && (
@@ -426,7 +426,7 @@ export function HelpDrawer({ currentPage }: { currentPage: NavigationPage }) {
                             transition={{ duration: 0.2 }}
                             className="overflow-hidden"
                           >
-                            <p className="px-4 pb-3 text-[11px] leading-relaxed text-slate-400">
+                            <p className="px-4 pb-3 text-[12px] leading-relaxed text-dim">
                               {section.content}
                             </p>
                           </motion.div>
@@ -439,7 +439,7 @@ export function HelpDrawer({ currentPage }: { currentPage: NavigationPage }) {
 
               {/* Pro Tips */}
               <div className="px-4 pb-4">
-                <p className="px-1 mb-2 text-[9px] font-semibold uppercase tracking-widest text-slate-600">Pro Tips</p>
+                <p className="px-1 mb-2 text-[9px] font-semibold uppercase tracking-widest text-dim">Pro Tips</p>
                 <div className="space-y-1.5">
                   {help.tips.map((tip, i) => (
                     <div
@@ -447,7 +447,7 @@ export function HelpDrawer({ currentPage }: { currentPage: NavigationPage }) {
                       className="flex items-start gap-2.5 rounded-xl bg-amber-500/[0.04] px-3.5 py-2.5 ring-1 ring-amber-500/10"
                     >
                       <span className="mt-0.5 shrink-0 text-amber-400">{tip.icon}</span>
-                      <p className="text-[11px] leading-snug text-amber-200/80">{tip.text}</p>
+                      <p className="text-[12px] leading-snug text-amber-200/80">{tip.text}</p>
                     </div>
                   ))}
                 </div>
@@ -456,15 +456,15 @@ export function HelpDrawer({ currentPage }: { currentPage: NavigationPage }) {
               {/* Keyboard shortcuts for this page */}
               {help.shortcuts && (
                 <div className="px-4 pb-4">
-                  <p className="px-1 mb-2 text-[9px] font-semibold uppercase tracking-widest text-slate-600">Keyboard Shortcuts</p>
-                  <div className="rounded-xl ring-1 ring-white/[0.04] overflow-hidden">
+                  <p className="px-1 mb-2 text-[9px] font-semibold uppercase tracking-widest text-dim">Keyboard Shortcuts</p>
+                  <div className="rounded-xl ring-1 ring-edge-1 overflow-hidden">
                     {help.shortcuts.map((s, i) => (
                       <div
                         key={i}
-                        className={`flex items-center justify-between px-4 py-2 ${i > 0 ? "border-t border-white/[0.04]" : ""}`}
+                        className={`flex items-center justify-between px-4 py-2 ${i > 0 ? "border-t border-edge-1" : ""}`}
                       >
-                        <span className="text-[11px] text-slate-400">{s.action}</span>
-                        <kbd className="rounded-md bg-white/[0.06] px-2 py-0.5 text-[10px] font-medium text-slate-400 ring-1 ring-white/[0.08]">
+                        <span className="text-[12px] text-dim">{s.action}</span>
+                        <kbd className="rounded-md bg-surface-3 px-2 py-0.5 text-[12px] font-medium text-dim ring-1 ring-edge-3">
                           {s.keys}
                         </kbd>
                       </div>
@@ -478,9 +478,9 @@ export function HelpDrawer({ currentPage }: { currentPage: NavigationPage }) {
                 <div className="rounded-xl bg-emerald-500/[0.04] p-4 ring-1 ring-emerald-500/10">
                   <div className="flex items-center gap-2 mb-2">
                     <Shield className="h-4 w-4 text-emerald-400" />
-                    <span className="text-[11px] font-semibold text-emerald-300">Privacy & Security</span>
+                    <span className="text-[12px] font-semibold text-emerald-300">Privacy & Security</span>
                   </div>
-                  <p className="text-[10px] leading-relaxed text-emerald-400/70">
+                  <p className="text-[12px] leading-relaxed text-emerald-400/70">
                     All data is encrypted with AES-256 and stored locally on this device.
                     No subject data, screening results, or audit trail entries are ever transmitted
                     to any external server. This application is designed for 21 CFR Part 11 compliance.
@@ -490,9 +490,9 @@ export function HelpDrawer({ currentPage }: { currentPage: NavigationPage }) {
             </div>
 
             {/* Footer */}
-            <div className="shrink-0 border-t border-white/[0.06] px-5 py-3">
+            <div className="shrink-0 border-t border-edge-2 px-5 py-3">
               <div className="flex items-center justify-between">
-                <p className="text-[10px] text-slate-600">
+                <p className="text-[12px] text-dim">
                   TalOS SiteConnect v1.0
                 </p>
                 <button
@@ -500,7 +500,7 @@ export function HelpDrawer({ currentPage }: { currentPage: NavigationPage }) {
                     close();
                     window.dispatchEvent(new CustomEvent("toggle-shortcuts"));
                   }}
-                  className="flex items-center gap-1.5 text-[10px] font-medium text-indigo-400 hover:text-indigo-300"
+                  className="flex items-center gap-1.5 text-[12px] font-medium text-indigo-400 hover:text-indigo-300"
                 >
                   <Keyboard className="h-3 w-3" />
                   All Shortcuts

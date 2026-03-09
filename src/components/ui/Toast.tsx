@@ -95,18 +95,18 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, x: 80, scale: 0.95 }}
       transition={{ type: "spring", damping: 25, stiffness: 350 }}
-      className={`pointer-events-auto flex items-start gap-3 rounded-xl bg-[#161b2e]/95 backdrop-blur-xl px-4 py-3 ring-1 ${ringColors[toast.type]} ${glowColors[toast.type]} min-w-[300px] max-w-[420px]`}
+      className={`pointer-events-auto flex items-start gap-3 rounded-xl bg-popover/95 backdrop-blur-xl px-4 py-3 ring-1 ${ringColors[toast.type]} ${glowColors[toast.type]} min-w-[300px] max-w-[420px]`}
     >
       <span className="mt-0.5 shrink-0">{icons[toast.type]}</span>
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-medium text-slate-200 leading-tight">{toast.title}</p>
+        <p className="text-[13px] font-medium text-body leading-tight">{toast.title}</p>
         {toast.description && (
-          <p className="mt-0.5 text-[11px] text-slate-400 leading-snug">{toast.description}</p>
+          <p className="mt-0.5 text-[12px] text-dim leading-snug">{toast.description}</p>
         )}
       </div>
       <button
         onClick={() => onDismiss(toast.id)}
-        className="shrink-0 mt-0.5 rounded-md p-0.5 text-slate-500 transition-colors hover:text-slate-300 hover:bg-white/5"
+        className="shrink-0 mt-0.5 rounded-md p-0.5 text-dim transition-colors hover:text-body hover:bg-white/5"
       >
         <X className="h-3.5 w-3.5" />
       </button>

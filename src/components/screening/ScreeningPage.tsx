@@ -92,19 +92,19 @@ export function ScreeningPage() {
               {study ? (
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-[13px] font-bold text-white">{study.short}</h3>
+                    <h3 className="text-[13px] font-bold text-heading">{study.short}</h3>
                     <span className="rounded-md bg-indigo-500/15 px-2 py-0.5 text-[9px] font-bold text-indigo-300 ring-1 ring-indigo-500/25">
                       {study.phase}
                     </span>
                   </div>
-                  <p className="text-[10px] text-slate-500">
+                  <p className="text-[12px] text-dim">
                     {study.sponsor} &middot; {study.nct}
                   </p>
                 </div>
               ) : (
                 <div>
-                  <h3 className="text-[13px] font-bold text-slate-300">No study selected</h3>
-                  <p className="text-[10px] text-slate-500">Choose a study to screen subjects against</p>
+                  <h3 className="text-[13px] font-bold text-body">No study selected</h3>
+                  <p className="text-[12px] text-dim">Choose a study to screen subjects against</p>
                 </div>
               )}
             </div>
@@ -115,7 +115,7 @@ export function ScreeningPage() {
                 <button
                   onClick={() => setShowStudyPicker(!showStudyPicker)}
                   disabled={screening}
-                  className="flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-[10px] font-medium text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-200 disabled:opacity-50"
+                  className="flex items-center gap-1.5 rounded-lg border border-edge-2 bg-surface-2 px-3 py-1.5 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body disabled:opacity-50"
                 >
                   {screening ? (
                     <Loader2 className="h-3 w-3 animate-spin" />
@@ -141,9 +141,9 @@ export function ScreeningPage() {
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, y: -4 }}
                       transition={{ duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
-                      className="absolute right-0 top-full z-50 mt-1 w-[380px] origin-top-right rounded-lg border border-white/[0.08] bg-[#131825] p-1.5 shadow-xl shadow-black/30"
+                      className="absolute right-0 top-full z-50 mt-1 w-[380px] origin-top-right rounded-lg border border-edge-3 bg-card p-1.5 shadow-xl shadow-black/30"
                     >
-                      <p className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-widest text-slate-600">
+                      <p className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-widest text-dim">
                         Select study to screen against
                       </p>
                       {STUDY_LIST.map((s, i) => {
@@ -158,13 +158,13 @@ export function ScreeningPage() {
                             className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors ${
                               isActive
                                 ? "bg-indigo-500/12 text-indigo-300"
-                                : "text-slate-400 hover:bg-white/[0.04]"
+                                : "text-dim hover:bg-surface-2"
                             }`}
                           >
-                            <FlaskConical className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-indigo-400" : "text-slate-600"}`} />
+                            <FlaskConical className={`h-3.5 w-3.5 shrink-0 ${isActive ? "text-indigo-400" : "text-dim"}`} />
                             <div className="flex-1 min-w-0">
-                              <p className="text-[11px] font-medium truncate">{s.short}</p>
-                              <p className={`text-[9px] ${isActive ? "text-indigo-400/50" : "text-slate-600"}`}>
+                              <p className="text-[12px] font-medium truncate">{s.short}</p>
+                              <p className={`text-[9px] ${isActive ? "text-indigo-400/50" : "text-dim"}`}>
                                 {s.sponsor} &middot; {s.phase}
                               </p>
                             </div>
@@ -186,7 +186,7 @@ export function ScreeningPage() {
               {study && (
                 <button
                   onClick={() => setStudyDetailOpen(true)}
-                  className="flex items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-[10px] font-medium text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-200"
+                  className="flex items-center gap-1.5 rounded-lg border border-edge-2 bg-surface-2 px-3 py-1.5 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body"
                 >
                   <Info className="h-3 w-3" />
                   Study Details
@@ -200,7 +200,7 @@ export function ScreeningPage() {
         {screening && (
           <div className="shrink-0 flex items-center gap-2.5 border-b border-indigo-500/15 bg-indigo-500/[0.04] px-4 py-2">
             <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-400" />
-            <p className="text-[11px] text-indigo-300">Re-screening all subjects against new study criteria...</p>
+            <p className="text-[12px] text-indigo-300">Re-screening all subjects against new study criteria...</p>
           </div>
         )}
 

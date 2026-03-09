@@ -93,12 +93,12 @@ function StepIndicator({ current }: { current: ImportStep }) {
             )}
             <div className="flex items-center gap-1.5">
               <div
-                className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold transition-all duration-300 ${
+                className={`flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-bold transition-all duration-300 ${
                   isDone
                     ? "bg-indigo-600 text-white"
                     : isActive
                     ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/30"
-                    : "bg-white/[0.04] text-slate-500 ring-1 ring-white/[0.08]"
+                    : "bg-surface-2 text-dim ring-1 ring-edge-3"
                 }`}
               >
                 {isDone ? <Check className="h-3 w-3" /> : i + 1}
@@ -361,8 +361,8 @@ export function ImportPage() {
       <div className="shrink-0 border-b border-border bg-card/50 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-[15px] font-bold text-white">Import Subject Data</h2>
-            <p className="mt-0.5 text-[11px] text-slate-500">
+            <h2 className="text-[15px] font-bold text-heading">Import Subject Data</h2>
+            <p className="mt-0.5 text-[12px] text-dim">
               Import subject records from Epic, Cerner, or other EMR exports. All data stays encrypted on this device.
             </p>
           </div>
@@ -389,7 +389,7 @@ export function ImportPage() {
               {importError && (
                 <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3">
                   <p className="text-[12px] font-semibold text-red-400">Import Error</p>
-                  <p className="text-[11px] text-red-400/80 mt-0.5">{importError}</p>
+                  <p className="text-[12px] text-red-400/80 mt-0.5">{importError}</p>
                 </div>
               )}
 
@@ -439,7 +439,7 @@ export function ImportPage() {
                           <FileSpreadsheet className="h-4 w-4 text-muted-foreground" />
                           <div>
                             <p className="text-sm font-medium text-foreground">{imp.name}</p>
-                            <p className="text-[10px] text-muted-foreground">{imp.date}</p>
+                            <p className="text-[12px] text-muted-foreground">{imp.date}</p>
                           </div>
                         </div>
                         <span className="text-xs text-muted-foreground">
@@ -476,7 +476,7 @@ export function ImportPage() {
                 <Sparkles className="h-5 w-5 text-indigo-400" />
                 <div>
                   <p className="text-[12px] font-semibold text-indigo-300">Epic Clarity Format Detected</p>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[12px] text-dim">
                     Recognized PAT_MRN_ID, CURRENT_ICD10_LIST, and {EPIC_COLUMNS.length - 2} other Epic Clarity columns.
                     Auto-mapped {mappedCount} of {EPIC_COLUMNS.length} fields.
                   </p>
@@ -513,7 +513,7 @@ export function ImportPage() {
                   >
                     <div className="flex items-center gap-2 text-muted-foreground">
                       {stat.icon}
-                      <span className="text-[10px] font-semibold uppercase tracking-wider">
+                      <span className="text-[12px] font-semibold uppercase tracking-wider">
                         {stat.label}
                       </span>
                     </div>
@@ -532,7 +532,7 @@ export function ImportPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="border-b border-white/[0.06] bg-white/[0.02]">
+                      <tr className="border-b border-edge-2 bg-surface-1">
                         {EPIC_COLUMNS.slice(0, 12).map((col) => (
                           <th
                             key={col}
@@ -541,7 +541,7 @@ export function ImportPage() {
                             {col}
                           </th>
                         ))}
-                        <th className="whitespace-nowrap px-3 py-2 text-left font-semibold text-slate-600">
+                        <th className="whitespace-nowrap px-3 py-2 text-left font-semibold text-dim">
                           +{EPIC_COLUMNS.length - 12} more...
                         </th>
                       </tr>
@@ -560,7 +560,7 @@ export function ImportPage() {
                               {cell}
                             </td>
                           ))}
-                          <td className="px-3 py-2 text-slate-600">...</td>
+                          <td className="px-3 py-2 text-dim">...</td>
                         </tr>
                       ))}
                     </tbody>
@@ -585,12 +585,12 @@ export function ImportPage() {
               </div>
 
               {/* What happens next */}
-              <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                <h4 className="flex items-center gap-2 text-[11px] font-semibold text-slate-300">
+              <div className="rounded-xl border border-edge-2 bg-surface-1 p-4">
+                <h4 className="flex items-center gap-2 text-[12px] font-semibold text-body">
                   <Database className="h-3.5 w-3.5 text-indigo-400" />
                   What happens on import
                 </h4>
-                <ul className="mt-2 space-y-1 text-[11px] text-slate-500">
+                <ul className="mt-2 space-y-1 text-[12px] text-dim">
                   <li>1. Encounter rows are consolidated into unique subject profiles</li>
                   <li>2. Diagnoses, medications, and labs are normalized and indexed</li>
                   <li>3. Each subject is pre-screened against active studies (KEYNOTE-789)</li>
@@ -602,7 +602,7 @@ export function ImportPage() {
               <div className="flex items-center justify-between pt-2">
                 <button
                   onClick={() => setStep("select")}
-                  className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-[12px] font-medium text-slate-400 transition-colors hover:bg-white/[0.06] hover:text-slate-200"
+                  className="inline-flex items-center gap-2 rounded-lg border border-edge-3 bg-surface-2 px-4 py-2.5 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back
@@ -645,7 +645,7 @@ export function ImportPage() {
                     <span className="text-xs font-medium text-muted-foreground">Progress</span>
                     <span className="font-mono text-xs font-bold text-foreground">{progress}%</span>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-white/[0.04]">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-surface-2">
                     <div
                       className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-400 transition-all duration-300 ease-out"
                       style={{ width: `${progress}%` }}
@@ -662,8 +662,8 @@ export function ImportPage() {
                     return (
                       <div
                         key={stage.label}
-                        className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-[11px] transition-all duration-300 ${
-                          isDone ? "text-emerald-400" : isActive ? "text-indigo-300 bg-indigo-500/5" : "text-slate-600"
+                        className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-[12px] transition-all duration-300 ${
+                          isDone ? "text-emerald-400" : isActive ? "text-indigo-300 bg-indigo-500/5" : "text-dim"
                         }`}
                       >
                         {isDone ? (
@@ -734,7 +734,7 @@ export function ImportPage() {
                         {stat.icon}
                       </div>
                       <span className="mt-2 text-lg font-bold text-foreground">{stat.value}</span>
-                      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                      <span className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">
                         {stat.label}
                       </span>
                     </div>
@@ -770,14 +770,14 @@ export function ImportPage() {
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={goToScreening}
-                      className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-[12px] font-medium text-slate-300 transition-colors hover:bg-white/[0.06]"
+                      className="inline-flex items-center justify-center gap-2 rounded-lg border border-edge-3 bg-surface-2 px-4 py-2.5 text-[12px] font-medium text-body transition-colors hover:bg-surface-3"
                     >
                       <Users className="h-4 w-4" />
                       View Subjects
                     </button>
                     <button
                       onClick={resetImport}
-                      className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-[12px] font-medium text-slate-300 transition-colors hover:bg-white/[0.06]"
+                      className="inline-flex items-center justify-center gap-2 rounded-lg border border-edge-3 bg-surface-2 px-4 py-2.5 text-[12px] font-medium text-body transition-colors hover:bg-surface-3"
                     >
                       <FileUp className="h-4 w-4" />
                       Import More
