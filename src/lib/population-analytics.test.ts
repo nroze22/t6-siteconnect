@@ -98,7 +98,7 @@ describe("population-analytics", () => {
         id: "test-2",
         name: "Impossible",
         criteria: [
-          { type: "age" as const, field: "age", operator: "greaterThan" as const, value: "200" },
+          { type: "age_range" as const, field: "age", operator: "gte" as const, value: "200" },
         ],
       };
       const result = runFeasibilityQuery(population, query);
@@ -110,7 +110,7 @@ describe("population-analytics", () => {
         id: "test-3",
         name: "Male patients",
         criteria: [
-          { type: "demographic" as const, field: "sex", operator: "equals" as const, value: "Male" },
+          { type: "sex" as const, field: "sex", operator: "equals" as const, value: "Male" },
         ],
       };
       const result = runFeasibilityQuery(population, query);

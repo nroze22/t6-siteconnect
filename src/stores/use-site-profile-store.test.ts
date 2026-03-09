@@ -19,10 +19,10 @@ describe("useSiteProfileStore", () => {
 
     it("updates operational capacity", () => {
       useSiteProfileStore.getState().updateOperations({
-        totalCoordinators: 5,
+        coordinatorCount: 5,
       });
       const ops = useSiteProfileStore.getState().profile.operations;
-      expect(ops.totalCoordinators).toBe(5);
+      expect(ops.coordinatorCount).toBe(5);
     });
 
     it("updates financial defaults", () => {
