@@ -75,18 +75,7 @@ pub fn validate_import(path: String, mapping: ColumnMapping) -> Result<Validatio
     let file_path = Path::new(&path);
     tracing::info!("Validating import data");
 
-    // Handle XLSX by converting to temp CSV first
-    let (parse_path, temp_file) = prepare_parse_path(file_path)?;
-
-    let patients = import::parse_csv(&parse_path, &mapping).map_err(|e| {
-        let cmd_err = ImportCommandError::from(e);
-        serde_json::to_string(&cmd_err).unwrap_or_else(|_| cmd_err.message)
-    })?;
-
-    // Clean up temp file if created
-    if let Some(ref tf) = temp_file {
-        let _ = std::fs::remove_file(tf);
-    }
+    let patients = parse_patients_from_file(file_path, &mapping)?;
 
     let report = import::validate_patient_records(&patients);
     Ok(report)
@@ -102,19 +91,7 @@ pub fn execute_import(
     let file_path = Path::new(&path);
     tracing::info!("Executing patient data import");
 
-    // Handle XLSX by converting to temp CSV first
-    let (parse_path, temp_file) = prepare_parse_path(file_path)?;
-
-    // Parse the CSV file
-    let patients = import::parse_csv(&parse_path, &mapping).map_err(|e| {
-        let cmd_err = ImportCommandError::from(e);
-        serde_json::to_string(&cmd_err).unwrap_or_else(|_| cmd_err.message)
-    })?;
-
-    // Clean up temp file if created
-    if let Some(ref tf) = temp_file {
-        let _ = std::fs::remove_file(tf);
-    }
+    let patients = parse_patients_from_file(file_path, &mapping)?;
 
     // Try to persist to DB if available
     let db_state = app.state::<DbState>();
@@ -157,22 +134,52 @@ pub fn execute_import(
     }
 }
 
-/// Determine the parse path, converting XLSX to temp CSV if needed.
-/// Returns (path_to_parse, optional_temp_file_to_cleanup).
-fn prepare_parse_path(file_path: &Path) -> Result<(std::path::PathBuf, Option<std::path::PathBuf>), String> {
+/// Parse patients from a file, automatically detecting multi-sheet XLSX workbooks.
+/// For multi-sheet XLSX: uses parse_xlsx_multi to merge sheets by patient ID.
+/// For single-sheet XLSX: converts to temp CSV then parses.
+/// For CSV/TSV/pipe: parses directly.
+fn parse_patients_from_file(file_path: &Path, mapping: &ColumnMapping) -> Result<Vec<PatientRecord>, String> {
     let format_info = import::detect_file_format(file_path).map_err(|e| {
         let cmd_err = ImportCommandError::from(e);
         serde_json::to_string(&cmd_err).unwrap_or_else(|_| cmd_err.message)
     })?;
 
     if format_info.format == FileFormat::Xlsx {
+        // Check if this is a multi-sheet workbook with multiple data sheets
+        let is_multi = import::is_multi_sheet_xlsx(file_path).map_err(|e| {
+            let cmd_err = ImportCommandError::from(e);
+            serde_json::to_string(&cmd_err).unwrap_or_else(|_| cmd_err.message)
+        })?;
+
+        if is_multi {
+            tracing::info!("Detected multi-sheet XLSX, using multi-sheet parser");
+            return import::parse_xlsx_multi(file_path, mapping).map_err(|e| {
+                let cmd_err = ImportCommandError::from(e);
+                serde_json::to_string(&cmd_err).unwrap_or_else(|_| cmd_err.message)
+            });
+        }
+
+        // Single-sheet XLSX: convert to temp CSV
         let temp_path = import::xlsx_to_csv_temp(file_path).map_err(|e| {
             let cmd_err = ImportCommandError::from(e);
             serde_json::to_string(&cmd_err).unwrap_or_else(|_| cmd_err.message)
         })?;
-        Ok((temp_path.clone(), Some(temp_path)))
+
+        let patients = import::parse_csv(&temp_path, mapping).map_err(|e| {
+            let cmd_err = ImportCommandError::from(e);
+            serde_json::to_string(&cmd_err).unwrap_or_else(|_| cmd_err.message)
+        });
+
+        // Clean up temp file
+        let _ = std::fs::remove_file(&temp_path);
+
+        patients
     } else {
-        Ok((file_path.to_path_buf(), None))
+        // CSV/TSV/pipe: parse directly
+        import::parse_csv(file_path, mapping).map_err(|e| {
+            let cmd_err = ImportCommandError::from(e);
+            serde_json::to_string(&cmd_err).unwrap_or_else(|_| cmd_err.message)
+        })
     }
 }
 
@@ -308,6 +315,50 @@ fn persist_patients(
                         lab.reference_range, lab.result_date, lab.abnormal_flag,
                     ],
                 );
+            }
+
+            // Insert vitals (always insert — vitals are time-series data)
+            for vital in &patient.vitals {
+                let vital_id = uuid::Uuid::new_v4().to_string();
+                let _ = conn.execute(
+                    "INSERT INTO vitals (id, patient_id, vital_type, value, unit, measurement_date)
+                     VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                    rusqlite::params![vital_id, patient_id, vital.vital_type, vital.value, vital.unit, vital.measurement_date],
+                );
+            }
+
+            // Insert procedures (dedup by description)
+            for proc in &patient.procedures {
+                let exists: bool = conn.query_row(
+                    "SELECT COUNT(*) > 0 FROM procedures WHERE patient_id = ?1 AND description = ?2",
+                    rusqlite::params![patient_id, proc.description],
+                    |row| row.get(0),
+                ).unwrap_or(false);
+                if !exists {
+                    let proc_id = uuid::Uuid::new_v4().to_string();
+                    let _ = conn.execute(
+                        "INSERT INTO procedures (id, patient_id, cpt_code, description, procedure_date, status)
+                         VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                        rusqlite::params![proc_id, patient_id, proc.cpt_code, proc.description, proc.procedure_date, proc.status.as_deref().unwrap_or("completed")],
+                    );
+                }
+            }
+
+            // Insert allergies (dedup by allergen)
+            for allergy in &patient.allergies {
+                let exists: bool = conn.query_row(
+                    "SELECT COUNT(*) > 0 FROM allergies WHERE patient_id = ?1 AND allergen = ?2",
+                    rusqlite::params![patient_id, allergy.allergen],
+                    |row| row.get(0),
+                ).unwrap_or(false);
+                if !exists {
+                    let allergy_id = uuid::Uuid::new_v4().to_string();
+                    let _ = conn.execute(
+                        "INSERT INTO allergies (id, patient_id, allergen, reaction, severity, allergy_type, onset_date, status)
+                         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+                        rusqlite::params![allergy_id, patient_id, allergy.allergen, allergy.reaction, allergy.severity, allergy.allergy_type, allergy.onset_date, allergy.status.as_deref().unwrap_or("active")],
+                    );
+                }
             }
         }
         Ok(())

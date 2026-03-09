@@ -128,7 +128,7 @@ fn load_labs(conn: &Connection, patient_id: &str) -> Result<Vec<AnalyticsLab>, S
 
 fn load_vitals(conn: &Connection, patient_id: &str) -> Result<Vec<AnalyticsVital>, String> {
     let mut stmt = conn.prepare(
-        "SELECT measurement_type, value, unit, measurement_date
+        "SELECT vital_type, value, unit, measurement_date
          FROM vitals WHERE patient_id = ?1 ORDER BY measurement_date DESC"
     ).map_err(|e| format!("Query error: {}", e))?;
     let rows = stmt.query_map([patient_id], |row| {

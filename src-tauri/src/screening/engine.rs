@@ -345,7 +345,7 @@ impl ScreeningEngine {
 
         // Load vitals
         let mut stmt = conn.prepare(
-            "SELECT measurement_type, value, unit, measurement_date FROM vitals WHERE patient_id = ?1"
+            "SELECT vital_type, value, unit, measurement_date FROM vitals WHERE patient_id = ?1"
         )?;
         let vitals = stmt.query_map([patient_id], |row| {
             Ok(VitalRecord {

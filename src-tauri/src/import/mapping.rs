@@ -248,6 +248,113 @@ const FIELD_ALIASES: &[(&str, &[&str])] = &[
         // Generic
         "interpretation_code", "result_interpretation", "flag_value", "hi_lo_flag",
     ]),
+
+    // Vital sign fields
+    ("vital_type", &[
+        "vital_type", "vital_sign", "vital_name", "measurement_type", "vital",
+        "flowsheet_name", "flowsheet_measure",
+        // Epic
+        "flo_meas_name", "flowsheet_measure_name", "disp_name",
+        // Cerner
+        "event_cd_disp", "vital_sign_type",
+    ]),
+    ("vital_value", &[
+        "vital_value", "vital_result", "measurement_value", "vital_measurement",
+        // Common specific vitals (these appear as column headers directly)
+        "weight", "height", "bmi", "systolic", "diastolic", "heart_rate",
+        "pulse", "temperature", "temp", "respiratory_rate", "resp_rate", "spo2", "o2_sat",
+        "blood_pressure", "bp",
+        // Epic
+        "meas_value", "flowsheet_value",
+        // Cerner
+        "result_val",
+    ]),
+    ("vital_unit", &[
+        "vital_unit", "measurement_unit", "vital_units",
+        "weight_unit", "height_unit", "temp_unit",
+    ]),
+    ("vital_date", &[
+        "vital_date", "measurement_date", "vital_sign_date", "recorded_date",
+        "vital_datetime", "observation_datetime",
+        // Epic
+        "recorded_time", "taken_time",
+        // Cerner
+        "performed_dt_tm",
+    ]),
+
+    // Procedure fields
+    ("procedure_description", &[
+        "procedure", "procedure_description", "procedure_name", "proc_name",
+        "surgery", "surgery_description", "surgical_procedure", "operation",
+        "procedure_desc", "proc_description",
+        // Epic
+        "procedure_display_name", "or_proc_name", "coded_procedure",
+        // Cerner
+        "procedure_disp", "nomenclature_disp", "surgical_case",
+        // Generic
+        "clinical_procedure", "medical_procedure", "surgical_history",
+    ]),
+    ("cpt_code", &[
+        "cpt", "cpt_code", "cpt4", "cpt_4", "procedure_code", "proc_code",
+        "hcpcs", "hcpcs_code", "surgery_code",
+        // Cerner
+        "procedure_cd", "nomenclature_id",
+    ]),
+    ("procedure_date", &[
+        "procedure_date", "proc_date", "surgery_date", "operation_date",
+        "service_date", "procedure_datetime",
+        // Epic
+        "or_proc_date",
+        // Cerner
+        "procedure_dt_tm", "surg_start_dt_tm",
+    ]),
+    ("procedure_status", &[
+        "procedure_status", "proc_status", "case_status",
+    ]),
+
+    // Allergy fields
+    ("allergen", &[
+        "allergen", "allergy", "allergy_name", "allergic_to", "allergy_description",
+        "substance", "causative_agent",
+        // Epic
+        "allergen_name", "allergy_desc", "allergen_id",
+        // Cerner
+        "substance_disp", "allergy_display",
+        // Generic
+        "drug_allergy", "allergy_substance", "allergen_description",
+    ]),
+    ("allergy_reaction", &[
+        "reaction", "allergy_reaction", "adverse_reaction", "reaction_description",
+        "allergy_rxn",
+        // Epic
+        "reaction_name", "rxn_name",
+        // Cerner
+        "reaction_disp",
+    ]),
+    ("allergy_severity", &[
+        "severity", "allergy_severity", "reaction_severity",
+        // Epic
+        "severity_c", "severity_name",
+        // Cerner
+        "severity_disp",
+    ]),
+    ("allergy_type", &[
+        "allergy_type", "allergen_type", "allergy_category",
+        // Epic
+        "allergy_type_c", "allergy_class",
+        // Cerner
+        "substance_type_cd",
+    ]),
+    ("allergy_status", &[
+        "allergy_status",
+        // Epic
+        "allergy_status_c",
+    ]),
+    ("allergy_onset_date", &[
+        "allergy_onset_date", "allergy_date", "allergy_noted_date",
+        // Cerner
+        "onset_dt_tm",
+    ]),
 ];
 
 /// Normalize a header string for comparison: lowercase, strip non-alphanumeric,

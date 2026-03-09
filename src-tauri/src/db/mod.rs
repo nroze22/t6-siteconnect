@@ -102,10 +102,30 @@ pub(crate) fn run_migrations(conn: &Connection) -> Result<(), DbError> {
         CREATE TABLE IF NOT EXISTS vitals (
             id TEXT PRIMARY KEY,
             patient_id TEXT NOT NULL REFERENCES patients(id),
-            measurement_type TEXT NOT NULL,
-            value REAL NOT NULL,
-            unit TEXT NOT NULL,
+            vital_type TEXT NOT NULL,
+            value REAL,
+            unit TEXT,
             measurement_date TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS procedures (
+            id TEXT PRIMARY KEY,
+            patient_id TEXT NOT NULL REFERENCES patients(id),
+            cpt_code TEXT,
+            description TEXT NOT NULL,
+            procedure_date TEXT,
+            status TEXT DEFAULT 'completed'
+        );
+
+        CREATE TABLE IF NOT EXISTS allergies (
+            id TEXT PRIMARY KEY,
+            patient_id TEXT NOT NULL REFERENCES patients(id),
+            allergen TEXT NOT NULL,
+            reaction TEXT,
+            severity TEXT,
+            allergy_type TEXT,
+            onset_date TEXT,
+            status TEXT DEFAULT 'active'
         );
 
         CREATE TABLE IF NOT EXISTS clinical_notes (
@@ -209,6 +229,8 @@ pub(crate) fn run_migrations(conn: &Connection) -> Result<(), DbError> {
         CREATE INDEX IF NOT EXISTS idx_lab_results_patient ON lab_results(patient_id);
         CREATE INDEX IF NOT EXISTS idx_lab_results_loinc ON lab_results(loinc_code);
         CREATE INDEX IF NOT EXISTS idx_vitals_patient ON vitals(patient_id);
+        CREATE INDEX IF NOT EXISTS idx_procedures_patient ON procedures(patient_id);
+        CREATE INDEX IF NOT EXISTS idx_allergies_patient ON allergies(patient_id);
         CREATE INDEX IF NOT EXISTS idx_screening_results_patient ON screening_results(patient_id);
         CREATE INDEX IF NOT EXISTS idx_screening_results_study ON screening_results(study_id);
         CREATE INDEX IF NOT EXISTS idx_screening_criteria_result ON screening_criteria_results(screening_result_id);

@@ -70,6 +70,43 @@ pub struct ImportPreview {
     pub total_rows: usize,
     pub suggested_mapping: ColumnMapping,
     pub format_detected: DataLayoutFormat,
+    /// Present for multi-sheet XLSX files with detected sheet metadata.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sheets: Option<Vec<SheetInfo>>,
+}
+
+/// Metadata about a single sheet in a multi-sheet XLSX workbook.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SheetInfo {
+    pub name: String,
+    pub headers: Vec<String>,
+    pub row_count: usize,
+    pub detected_type: SheetDataType,
+    pub patient_id_column: Option<String>,
+}
+
+/// The type of clinical data a sheet contains, inferred from its column headers.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum SheetDataType {
+    Demographics,
+    Diagnoses,
+    Medications,
+    Labs,
+    Vitals,
+    Procedures,
+    Allergies,
+    Mixed,
+    Unknown,
+}
+
+/// A preview encompassing all sheets of a multi-sheet XLSX workbook.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultiSheetPreview {
+    pub sheets: Vec<SheetInfo>,
+    pub is_multi_sheet: bool,
+    /// Merged preview using first sheet's structure for backward compatibility.
+    pub merged_preview: ImportPreview,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -109,6 +146,9 @@ pub struct PatientRecord {
     pub diagnoses: Vec<DiagnosisRecord>,
     pub medications: Vec<MedicationRecord>,
     pub lab_results: Vec<LabResultRecord>,
+    pub vitals: Vec<VitalRecord>,
+    pub procedures: Vec<ProcedureRecord>,
+    pub allergies: Vec<AllergyRecord>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -139,6 +179,32 @@ pub struct LabResultRecord {
     pub reference_range: Option<String>,
     pub result_date: Option<String>,
     pub abnormal_flag: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VitalRecord {
+    pub vital_type: String,        // "weight", "height", "bmi", "systolic_bp", "diastolic_bp", "heart_rate", "temperature", "respiratory_rate", "spo2"
+    pub value: Option<f64>,
+    pub unit: Option<String>,
+    pub measurement_date: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProcedureRecord {
+    pub cpt_code: Option<String>,
+    pub description: String,
+    pub procedure_date: Option<String>,
+    pub status: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AllergyRecord {
+    pub allergen: String,
+    pub reaction: Option<String>,
+    pub severity: Option<String>,   // "mild", "moderate", "severe"
+    pub allergy_type: Option<String>, // "drug", "food", "environmental"
+    pub onset_date: Option<String>,
+    pub status: Option<String>,      // "active", "inactive", "resolved"
 }
 
 // --- Validation types ---
@@ -574,7 +640,8 @@ pub fn validate_patient_records(records: &[PatientRecord]) -> ValidationReport {
         }
 
         // --- Empty record detection ---
-        if record.diagnoses.is_empty() && record.medications.is_empty() && record.lab_results.is_empty() {
+        if record.diagnoses.is_empty() && record.medications.is_empty() && record.lab_results.is_empty()
+            && record.vitals.is_empty() && record.procedures.is_empty() && record.allergies.is_empty() {
             warnings.push(ValidationWarning {
                 patient_id: pid.clone(),
                 field: "clinical_data".to_string(),
@@ -966,6 +1033,9 @@ pub fn parse_csv(path: &Path, mapping: &ColumnMapping) -> Result<Vec<PatientReco
             diagnoses: Vec::new(),
             medications: Vec::new(),
             lab_results: Vec::new(),
+            vitals: Vec::new(),
+            procedures: Vec::new(),
+            allergies: Vec::new(),
         });
 
         // Update demographic fields if they were empty and this row has them
@@ -1030,6 +1100,44 @@ pub fn parse_csv(path: &Path, mapping: &ColumnMapping) -> Result<Vec<PatientReco
                 abnormal_flag: get_field("abnormal_flag"),
             });
         }
+
+        // Extract vitals if present
+        let vital_type = get_field("vital_type");
+        let vital_value = get_field("vital_value");
+        if let Some(vtype) = vital_type {
+            if let Some(vval) = vital_value {
+                patient.vitals.push(VitalRecord {
+                    vital_type: vtype.to_lowercase(),
+                    value: vval.parse::<f64>().ok(),
+                    unit: get_field("vital_unit"),
+                    measurement_date: get_date_field("vital_date"),
+                });
+            }
+        }
+
+        // Extract procedure if present
+        let proc_desc = get_field("procedure_description");
+        if let Some(desc) = proc_desc {
+            patient.procedures.push(ProcedureRecord {
+                cpt_code: get_field("cpt_code"),
+                description: desc,
+                procedure_date: get_date_field("procedure_date"),
+                status: get_field("procedure_status"),
+            });
+        }
+
+        // Extract allergy if present
+        let allergen = get_field("allergen");
+        if let Some(name) = allergen {
+            patient.allergies.push(AllergyRecord {
+                allergen: name,
+                reaction: get_field("allergy_reaction"),
+                severity: get_field("allergy_severity"),
+                allergy_type: get_field("allergy_type"),
+                onset_date: get_date_field("allergy_onset_date"),
+                status: get_field("allergy_status"),
+            });
+        }
     }
 
     let patients: Vec<PatientRecord> = patients_map.into_values().collect();
@@ -1037,15 +1145,534 @@ pub fn parse_csv(path: &Path, mapping: &ColumnMapping) -> Result<Vec<PatientReco
     Ok(patients)
 }
 
+// --- Multi-sheet XLSX support ---
+
+/// Classify a sheet based on which target fields its headers map to.
+fn classify_sheet(headers: &[String]) -> SheetDataType {
+    let mapping = auto_map_columns(headers);
+    let targets: Vec<&str> = mapping
+        .field_mappings
+        .iter()
+        .map(|m| m.target_field.as_str())
+        .collect();
+
+    let has_demographics = targets.iter().any(|t| {
+        matches!(*t, "date_of_birth" | "gender" | "race" | "ethnicity" | "insurance_type")
+    });
+    let has_diagnoses = targets.iter().any(|t| {
+        matches!(*t, "icd10_code" | "diagnosis_description" | "diagnosis_onset_date" | "diagnosis_status")
+    });
+    let has_medications = targets.iter().any(|t| {
+        matches!(*t, "drug_name" | "rxnorm_code" | "dose" | "frequency"
+            | "medication_start_date" | "medication_end_date" | "medication_status")
+    });
+    let has_labs = targets.iter().any(|t| {
+        matches!(*t, "test_name" | "loinc_code" | "lab_value" | "lab_unit"
+            | "reference_range" | "result_date" | "abnormal_flag")
+    });
+    let has_vitals = targets.iter().any(|t| {
+        matches!(*t, "vital_type" | "vital_value" | "vital_unit" | "vital_date")
+    });
+    let has_procedures = targets.iter().any(|t| {
+        matches!(*t, "procedure_description" | "cpt_code" | "procedure_date" | "procedure_status")
+    });
+    let has_allergies = targets.iter().any(|t| {
+        matches!(*t, "allergen" | "allergy_reaction" | "allergy_severity"
+            | "allergy_type" | "allergy_status" | "allergy_onset_date")
+    });
+
+    let categories = [
+        has_demographics, has_diagnoses, has_medications, has_labs,
+        has_vitals, has_procedures, has_allergies,
+    ];
+    let count = categories.iter().filter(|&&v| v).count();
+
+    if count == 0 {
+        SheetDataType::Unknown
+    } else if count > 1 {
+        SheetDataType::Mixed
+    } else if has_demographics {
+        SheetDataType::Demographics
+    } else if has_diagnoses {
+        SheetDataType::Diagnoses
+    } else if has_medications {
+        SheetDataType::Medications
+    } else if has_labs {
+        SheetDataType::Labs
+    } else if has_vitals {
+        SheetDataType::Vitals
+    } else if has_procedures {
+        SheetDataType::Procedures
+    } else {
+        SheetDataType::Allergies
+    }
+}
+
+/// Detect the type of a sheet using both header-based classification and sheet name heuristics.
+fn classify_sheet_with_name(name: &str, headers: &[String]) -> SheetDataType {
+    let lower_name = name.to_lowercase();
+
+    // Check sheet name for types that might not be fully detectable by headers alone
+    if lower_name.contains("vital") {
+        let header_type = classify_sheet(headers);
+        if header_type == SheetDataType::Unknown {
+            return SheetDataType::Vitals;
+        }
+        return header_type;
+    }
+    if lower_name.contains("procedure") || lower_name.contains("surgery") || lower_name.contains("operation") {
+        let header_type = classify_sheet(headers);
+        if header_type == SheetDataType::Unknown {
+            return SheetDataType::Procedures;
+        }
+        return header_type;
+    }
+    if lower_name.contains("allerg") {
+        let header_type = classify_sheet(headers);
+        if header_type == SheetDataType::Unknown {
+            return SheetDataType::Allergies;
+        }
+        return header_type;
+    }
+    if lower_name.contains("demo") || lower_name.contains("patient") {
+        let header_type = classify_sheet(headers);
+        if header_type == SheetDataType::Unknown {
+            return SheetDataType::Demographics;
+        }
+        return header_type;
+    }
+    if lower_name.contains("diag") || lower_name.contains("problem") || lower_name.contains("condition") {
+        let header_type = classify_sheet(headers);
+        if header_type == SheetDataType::Unknown {
+            return SheetDataType::Diagnoses;
+        }
+        return header_type;
+    }
+    if lower_name.contains("med") || lower_name.contains("rx") || lower_name.contains("drug") || lower_name.contains("prescription") {
+        let header_type = classify_sheet(headers);
+        if header_type == SheetDataType::Unknown {
+            return SheetDataType::Medications;
+        }
+        return header_type;
+    }
+    if lower_name.contains("lab") || lower_name.contains("result") || lower_name.contains("test") {
+        let header_type = classify_sheet(headers);
+        if header_type == SheetDataType::Unknown {
+            return SheetDataType::Labs;
+        }
+        return header_type;
+    }
+
+    classify_sheet(headers)
+}
+
+/// Find the patient ID column header on a sheet.
+fn find_patient_id_column(headers: &[String]) -> Option<String> {
+    let mapping = auto_map_columns(headers);
+    mapping
+        .field_mappings
+        .iter()
+        .find(|m| m.target_field == "site_patient_id")
+        .map(|m| m.source_column.clone())
+}
+
+/// Detect all sheets in an XLSX workbook and classify each one.
+pub fn detect_xlsx_sheets(path: &Path) -> Result<Vec<SheetInfo>, ImportError> {
+    let mut workbook = open_workbook_auto(path).map_err(|e| ImportError::XlsxError(e.to_string()))?;
+    let sheet_names = workbook.sheet_names().to_vec();
+
+    let mut sheets = Vec::new();
+
+    for name in &sheet_names {
+        let range = workbook
+            .worksheet_range(name)
+            .map_err(|e| ImportError::XlsxError(e.to_string()))?;
+
+        let mut rows_iter = range.rows();
+
+        let headers: Vec<String> = match rows_iter.next() {
+            Some(row) => row.iter().map(|cell| cell.to_string().trim().to_string()).collect(),
+            None => continue, // Skip empty sheets
+        };
+
+        if headers.is_empty() || headers.iter().all(|h| h.is_empty()) {
+            continue;
+        }
+
+        // Count non-empty data rows
+        let mut row_count = 0usize;
+        for row in rows_iter {
+            let row_data: Vec<String> = row.iter().map(|cell| cell.to_string().trim().to_string()).collect();
+            if !row_data.iter().all(|v| v.is_empty()) {
+                row_count += 1;
+            }
+        }
+
+        let detected_type = classify_sheet_with_name(name, &headers);
+        let patient_id_column = find_patient_id_column(&headers);
+
+        sheets.push(SheetInfo {
+            name: name.clone(),
+            headers,
+            row_count,
+            detected_type,
+            patient_id_column,
+        });
+    }
+
+    Ok(sheets)
+}
+
+/// Preview all sheets in a multi-sheet XLSX workbook.
+pub fn preview_xlsx_multi(path: &Path, max_rows: usize) -> Result<MultiSheetPreview, ImportError> {
+    let sheets = detect_xlsx_sheets(path)?;
+    let is_multi_sheet = sheets.len() > 1;
+
+    // Build a merged preview from the first sheet (backward compat)
+    let (headers, sample_rows, total_rows) = preview_xlsx(path, max_rows)?;
+    let suggested_mapping = auto_map_columns(&headers);
+    let format_detected = detect_data_layout(&headers, &sample_rows, &suggested_mapping);
+
+    let merged_preview = ImportPreview {
+        headers,
+        sample_rows,
+        total_rows,
+        suggested_mapping,
+        format_detected,
+        sheets: if is_multi_sheet { Some(sheets.clone()) } else { None },
+    };
+
+    Ok(MultiSheetPreview {
+        sheets,
+        is_multi_sheet,
+        merged_preview,
+    })
+}
+
+/// Parse rows (in-memory) using a column mapping, returning partial PatientRecords.
+/// Mirrors parse_csv logic but operates on pre-read data.
+fn parse_rows_to_patients(
+    headers: &[String],
+    rows: &[Vec<String>],
+    mapping: &ColumnMapping,
+) -> Vec<PatientRecord> {
+    // Build column index lookup from mapping
+    let field_indices: HashMap<String, usize> = mapping
+        .field_mappings
+        .iter()
+        .filter_map(|m| {
+            headers
+                .iter()
+                .position(|h| h == &m.source_column)
+                .map(|idx| (m.target_field.clone(), idx))
+        })
+        .collect();
+
+    let mut patients_map: HashMap<String, PatientRecord> = HashMap::new();
+
+    for row in rows {
+        let get_field = |target: &str| -> Option<String> {
+            field_indices
+                .get(target)
+                .and_then(|&idx| row.get(idx))
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty())
+        };
+
+        let get_date_field = |target: &str| -> Option<String> {
+            field_indices
+                .get(target)
+                .and_then(|&idx| row.get(idx))
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty())
+                .map(|v| normalize_date(&v).unwrap_or(v))
+        };
+
+        let get_gender_field = |target: &str| -> Option<String> {
+            field_indices
+                .get(target)
+                .and_then(|&idx| row.get(idx))
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty())
+                .map(|v| normalize_gender(&v))
+                .filter(|v| !v.is_empty())
+        };
+
+        let patient_id = match get_field("site_patient_id") {
+            Some(id) => id,
+            None => continue,
+        };
+
+        let patient = patients_map.entry(patient_id.clone()).or_insert_with(|| PatientRecord {
+            site_patient_id: patient_id.clone(),
+            date_of_birth: get_date_field("date_of_birth"),
+            gender: get_gender_field("gender"),
+            race: get_field("race"),
+            ethnicity: get_field("ethnicity"),
+            insurance_type: get_field("insurance_type"),
+            diagnoses: Vec::new(),
+            medications: Vec::new(),
+            lab_results: Vec::new(),
+            vitals: Vec::new(),
+            procedures: Vec::new(),
+            allergies: Vec::new(),
+        });
+
+        // Update demographic fields if empty
+        if patient.date_of_birth.is_none() {
+            patient.date_of_birth = get_date_field("date_of_birth");
+        }
+        if patient.gender.is_none() {
+            patient.gender = get_gender_field("gender");
+        }
+        if patient.race.is_none() {
+            patient.race = get_field("race");
+        }
+        if patient.ethnicity.is_none() {
+            patient.ethnicity = get_field("ethnicity");
+        }
+        if patient.insurance_type.is_none() {
+            patient.insurance_type = get_field("insurance_type");
+        }
+
+        // Extract diagnosis if present
+        let diagnosis_desc = get_field("diagnosis_description")
+            .or_else(|| get_field("diagnosis"));
+        if let Some(desc) = diagnosis_desc {
+            patient.diagnoses.push(DiagnosisRecord {
+                icd10_code: get_field("icd10_code"),
+                description: desc,
+                onset_date: get_date_field("diagnosis_onset_date"),
+                status: get_field("diagnosis_status"),
+            });
+        }
+
+        // Extract medication if present
+        let drug_name = get_field("drug_name")
+            .or_else(|| get_field("medication"));
+        if let Some(name) = drug_name {
+            patient.medications.push(MedicationRecord {
+                rxnorm_code: get_field("rxnorm_code"),
+                drug_name: name,
+                dose: get_field("dose"),
+                frequency: get_field("frequency"),
+                start_date: get_date_field("medication_start_date"),
+                end_date: get_date_field("medication_end_date"),
+                status: get_field("medication_status"),
+            });
+        }
+
+        // Extract lab result if present
+        let test_name = get_field("test_name")
+            .or_else(|| get_field("lab_test"));
+        if let Some(name) = test_name {
+            let value = get_field("lab_value")
+                .or_else(|| get_field("result_value"))
+                .and_then(|v| v.parse::<f64>().ok());
+
+            patient.lab_results.push(LabResultRecord {
+                loinc_code: get_field("loinc_code"),
+                test_name: name,
+                value,
+                unit: get_field("lab_unit").or_else(|| get_field("unit")),
+                reference_range: get_field("reference_range"),
+                result_date: get_date_field("result_date"),
+                abnormal_flag: get_field("abnormal_flag"),
+            });
+        }
+
+        // Extract vitals if present
+        let vital_type = get_field("vital_type");
+        let vital_value = get_field("vital_value");
+        if let Some(vtype) = vital_type {
+            if let Some(vval) = vital_value {
+                patient.vitals.push(VitalRecord {
+                    vital_type: vtype.to_lowercase(),
+                    value: vval.parse::<f64>().ok(),
+                    unit: get_field("vital_unit"),
+                    measurement_date: get_date_field("vital_date"),
+                });
+            }
+        }
+
+        // Extract procedure if present
+        let proc_desc = get_field("procedure_description");
+        if let Some(desc) = proc_desc {
+            patient.procedures.push(ProcedureRecord {
+                cpt_code: get_field("cpt_code"),
+                description: desc,
+                procedure_date: get_date_field("procedure_date"),
+                status: get_field("procedure_status"),
+            });
+        }
+
+        // Extract allergy if present
+        let allergen = get_field("allergen");
+        if let Some(name) = allergen {
+            patient.allergies.push(AllergyRecord {
+                allergen: name,
+                reaction: get_field("allergy_reaction"),
+                severity: get_field("allergy_severity"),
+                allergy_type: get_field("allergy_type"),
+                onset_date: get_date_field("allergy_onset_date"),
+                status: get_field("allergy_status"),
+            });
+        }
+    }
+
+    patients_map.into_values().collect()
+}
+
+/// Read all rows from a single XLSX sheet as string vectors.
+fn read_xlsx_sheet_rows(path: &Path, sheet_name: &str) -> Result<(Vec<String>, Vec<Vec<String>>), ImportError> {
+    let mut workbook = open_workbook_auto(path).map_err(|e| ImportError::XlsxError(e.to_string()))?;
+
+    let range = workbook
+        .worksheet_range(sheet_name)
+        .map_err(|e| ImportError::XlsxError(e.to_string()))?;
+
+    let mut rows_iter = range.rows();
+
+    let headers: Vec<String> = match rows_iter.next() {
+        Some(row) => row.iter().map(|cell| cell.to_string().trim().to_string()).collect(),
+        None => return Ok((Vec::new(), Vec::new())),
+    };
+
+    let mut data_rows = Vec::new();
+    for row in rows_iter {
+        let row_data: Vec<String> = row.iter().map(|cell| cell.to_string().trim().to_string()).collect();
+        if !row_data.iter().all(|v| v.is_empty()) {
+            data_rows.push(row_data);
+        }
+    }
+
+    Ok((headers, data_rows))
+}
+
+/// Merge partial patient records from multiple sheets into unified records.
+/// Demographics come first, then clinical data is appended by patient ID.
+fn merge_patient_records(all_partials: Vec<Vec<PatientRecord>>) -> Vec<PatientRecord> {
+    let mut merged: HashMap<String, PatientRecord> = HashMap::new();
+
+    for patients in all_partials {
+        for patient in patients {
+            let entry = merged.entry(patient.site_patient_id.clone()).or_insert_with(|| PatientRecord {
+                site_patient_id: patient.site_patient_id.clone(),
+                date_of_birth: None,
+                gender: None,
+                race: None,
+                ethnicity: None,
+                insurance_type: None,
+                diagnoses: Vec::new(),
+                medications: Vec::new(),
+                lab_results: Vec::new(),
+                vitals: Vec::new(),
+                procedures: Vec::new(),
+                allergies: Vec::new(),
+            });
+
+            // Fill in demographics if not yet set
+            if entry.date_of_birth.is_none() {
+                entry.date_of_birth = patient.date_of_birth;
+            }
+            if entry.gender.is_none() {
+                entry.gender = patient.gender;
+            }
+            if entry.race.is_none() {
+                entry.race = patient.race;
+            }
+            if entry.ethnicity.is_none() {
+                entry.ethnicity = patient.ethnicity;
+            }
+            if entry.insurance_type.is_none() {
+                entry.insurance_type = patient.insurance_type;
+            }
+
+            // Append clinical data
+            entry.diagnoses.extend(patient.diagnoses);
+            entry.medications.extend(patient.medications);
+            entry.lab_results.extend(patient.lab_results);
+            entry.vitals.extend(patient.vitals);
+            entry.procedures.extend(patient.procedures);
+            entry.allergies.extend(patient.allergies);
+        }
+    }
+
+    merged.into_values().collect()
+}
+
+/// Parse a multi-sheet XLSX workbook, auto-mapping each sheet's columns and
+/// merging all data by patient ID.
+pub fn parse_xlsx_multi(path: &Path, mapping: &ColumnMapping) -> Result<Vec<PatientRecord>, ImportError> {
+    let sheets = detect_xlsx_sheets(path)?;
+
+    // Filter to sheets that have a patient ID column
+    let usable_sheets: Vec<&SheetInfo> = sheets
+        .iter()
+        .filter(|s| s.patient_id_column.is_some() && s.detected_type != SheetDataType::Unknown)
+        .collect();
+
+    if usable_sheets.is_empty() {
+        return Err(ImportError::XlsxError(
+            "No sheets with a recognizable patient ID column found".to_string(),
+        ));
+    }
+
+    let mut all_partials: Vec<Vec<PatientRecord>> = Vec::new();
+
+    for sheet in &usable_sheets {
+        let (headers, rows) = read_xlsx_sheet_rows(path, &sheet.name)?;
+        if headers.is_empty() {
+            continue;
+        }
+
+        // Auto-map columns for this specific sheet, then overlay any user-provided mappings
+        let mut sheet_mapping = auto_map_columns(&headers);
+
+        // Apply user overrides: if a user mapping's source_column exists in this sheet's headers,
+        // replace the auto-detected mapping for that target field
+        for user_field in &mapping.field_mappings {
+            if headers.contains(&user_field.source_column) {
+                // Remove any existing auto-mapping for this target
+                sheet_mapping.field_mappings.retain(|m| m.target_field != user_field.target_field);
+                sheet_mapping.field_mappings.push(user_field.clone());
+            }
+        }
+
+        let patients = parse_rows_to_patients(&headers, &rows, &sheet_mapping);
+        all_partials.push(patients);
+    }
+
+    let merged = merge_patient_records(all_partials);
+    tracing::info!(
+        sheets = usable_sheets.len(),
+        patients = merged.len(),
+        "Parsed multi-sheet XLSX"
+    );
+    Ok(merged)
+}
+
+/// Check if an XLSX file has multiple data sheets (more than one with a patient ID column).
+pub fn is_multi_sheet_xlsx(path: &Path) -> Result<bool, ImportError> {
+    let sheets = detect_xlsx_sheets(path)?;
+    let data_sheets = sheets
+        .iter()
+        .filter(|s| s.patient_id_column.is_some() && s.detected_type != SheetDataType::Unknown)
+        .count();
+    Ok(data_sheets > 1)
+}
+
 /// Generate an ImportPreview for a given file path.
 pub fn generate_preview(path: &Path) -> Result<ImportPreview, ImportError> {
     let format_info = detect_file_format(path)?;
 
-    let (headers, sample_rows, total_rows) = match format_info.format {
-        FileFormat::Xlsx => preview_xlsx(path, 10)?,
-        _ => preview_csv(path, 10)?,
-    };
+    if format_info.format == FileFormat::Xlsx {
+        // Check for multi-sheet workbook
+        let multi = preview_xlsx_multi(path, 10)?;
+        return Ok(multi.merged_preview);
+    }
 
+    let (headers, sample_rows, total_rows) = preview_csv(path, 10)?;
     let suggested_mapping = auto_map_columns(&headers);
     let format_detected = detect_data_layout(&headers, &sample_rows, &suggested_mapping);
 
@@ -1055,5 +1682,6 @@ pub fn generate_preview(path: &Path) -> Result<ImportPreview, ImportError> {
         total_rows,
         suggested_mapping,
         format_detected,
+        sheets: None,
     })
 }
