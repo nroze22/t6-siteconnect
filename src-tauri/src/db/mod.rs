@@ -221,6 +221,28 @@ pub(crate) fn run_migrations(conn: &Connection) -> Result<(), DbError> {
             checksum TEXT NOT NULL
         );
 
+        CREATE TABLE IF NOT EXISTS import_file_hashes (
+            id TEXT PRIMARY KEY,
+            file_hash TEXT NOT NULL,
+            file_name TEXT NOT NULL,
+            imported_at TEXT NOT NULL DEFAULT (datetime('now')),
+            records_count INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE INDEX IF NOT EXISTS idx_import_file_hashes_hash ON import_file_hashes(file_hash);
+
+        CREATE TABLE IF NOT EXISTS import_profiles (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            description TEXT,
+            emr_system TEXT,
+            file_format TEXT NOT NULL,
+            column_mapping TEXT NOT NULL,
+            header_row_index INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            last_used_at TEXT,
+            use_count INTEGER NOT NULL DEFAULT 0
+        );
+
         -- Indexes for common queries
         CREATE INDEX IF NOT EXISTS idx_diagnoses_patient ON diagnoses(patient_id);
         CREATE INDEX IF NOT EXISTS idx_diagnoses_icd10 ON diagnoses(icd10_code);

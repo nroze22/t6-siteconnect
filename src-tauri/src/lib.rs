@@ -5,7 +5,7 @@ mod screening;
 
 use commands::{greet, get_app_status};
 use commands::database::{init_database, unlock_database, check_database_exists};
-use commands::import::{detect_file_format, preview_import, execute_import, validate_import};
+use commands::import::{detect_file_format, preview_import, execute_import, validate_import, check_duplicate_import, adjust_column_mapping, get_available_target_fields, save_import_profile, list_import_profiles, delete_import_profile, use_import_profile};
 use commands::screening::{screen_patients, override_criterion, get_study_criteria};
 use commands::watcher::{start_folder_watcher, stop_folder_watcher, get_watcher_status, WatcherState};
 use commands::analytics::{get_analytics_patients, get_analytics_studies, get_analytics_summary, screen_patients_for_study, get_audit_trail, export_audit_trail, verify_audit_chain_cmd};
@@ -61,6 +61,13 @@ pub fn run() {
             preview_import,
             execute_import,
             validate_import,
+            check_duplicate_import,
+            adjust_column_mapping,
+            get_available_target_fields,
+            save_import_profile,
+            list_import_profiles,
+            delete_import_profile,
+            use_import_profile,
             screen_patients,
             override_criterion,
             get_study_criteria,

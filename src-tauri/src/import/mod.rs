@@ -1,6 +1,8 @@
 pub mod mapping;
 
 use std::collections::HashMap;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 use std::path::Path;
 
 use calamine::{open_workbook_auto, Reader};
@@ -73,6 +75,9 @@ pub struct ImportPreview {
     /// Present for multi-sheet XLSX files with detected sheet metadata.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sheets: Option<Vec<SheetInfo>>,
+    /// 0-based index of the detected header row (rows before this are metadata).
+    #[serde(default)]
+    pub header_row_index: usize,
 }
 
 /// Metadata about a single sheet in a multi-sheet XLSX workbook.
@@ -730,6 +735,14 @@ fn read_file_with_encoding(path: &Path) -> Result<String, ImportError> {
     }
 }
 
+/// Compute a simple hash of file contents for dedup detection.
+pub fn compute_file_hash(path: &Path) -> Result<String, ImportError> {
+    let bytes = std::fs::read(path)?;
+    let mut hasher = DefaultHasher::new();
+    bytes.hash(&mut hasher);
+    Ok(format!("{:016x}", hasher.finish()))
+}
+
 /// Detect file format from extension and content sniffing.
 pub fn detect_file_format(path: &Path) -> Result<FileFormatInfo, ImportError> {
     if !path.exists() {
@@ -1340,6 +1353,7 @@ pub fn preview_xlsx_multi(path: &Path, max_rows: usize) -> Result<MultiSheetPrev
         suggested_mapping,
         format_detected,
         sheets: if is_multi_sheet { Some(sheets.clone()) } else { None },
+        header_row_index: 0,
     };
 
     Ok(MultiSheetPreview {
@@ -1663,6 +1677,7 @@ pub fn is_multi_sheet_xlsx(path: &Path) -> Result<bool, ImportError> {
 }
 
 /// Generate an ImportPreview for a given file path.
+/// For CSV/TSV/Pipe formats, detects the header row automatically (skipping metadata rows).
 pub fn generate_preview(path: &Path) -> Result<ImportPreview, ImportError> {
     let format_info = detect_file_format(path)?;
 
@@ -1672,16 +1687,353 @@ pub fn generate_preview(path: &Path) -> Result<ImportPreview, ImportError> {
         return Ok(multi.merged_preview);
     }
 
-    let (headers, sample_rows, total_rows) = preview_csv(path, 10)?;
-    let suggested_mapping = auto_map_columns(&headers);
-    let format_detected = detect_data_layout(&headers, &sample_rows, &suggested_mapping);
+    // Detect header row (skip metadata rows above actual column headers)
+    let header_row = detect_header_row(path)?;
 
-    Ok(ImportPreview {
-        headers,
-        sample_rows,
-        total_rows,
-        suggested_mapping,
-        format_detected,
-        sheets: None,
-    })
+    if header_row > 0 {
+        tracing::info!(header_row = header_row, "Detected header row offset, skipping metadata rows");
+        let (headers, sample_rows, total_rows) = preview_csv_with_offset(path, 10, header_row)?;
+        let suggested_mapping = auto_map_columns(&headers);
+        let format_detected = detect_data_layout(&headers, &sample_rows, &suggested_mapping);
+
+        Ok(ImportPreview {
+            headers,
+            sample_rows,
+            total_rows,
+            suggested_mapping,
+            format_detected,
+            sheets: None,
+            header_row_index: header_row,
+        })
+    } else {
+        let (headers, sample_rows, total_rows) = preview_csv(path, 10)?;
+        let suggested_mapping = auto_map_columns(&headers);
+        let format_detected = detect_data_layout(&headers, &sample_rows, &suggested_mapping);
+
+        Ok(ImportPreview {
+            headers,
+            sample_rows,
+            total_rows,
+            suggested_mapping,
+            format_detected,
+            sheets: None,
+            header_row_index: 0,
+        })
+    }
+}
+
+/// Detect the actual header row index in a file.
+/// Scans the first 20 rows looking for the row that best matches known column aliases.
+/// Returns the 0-based row index of the header row.
+pub fn detect_header_row(path: &Path) -> Result<usize, ImportError> {
+    let content = read_file_with_encoding(path)?;
+    let format_info = detect_file_format(path)?;
+    let delimiter = match format_info.format {
+        FileFormat::Tsv => b'\t',
+        FileFormat::Pipe => b'|',
+        _ => b',',
+    };
+
+    let lines: Vec<&str> = content.lines().take(20).collect();
+
+    let mut best_row = 0usize;
+    let mut best_score = 0usize;
+
+    for (idx, line) in lines.iter().enumerate() {
+        let mut reader = csv::ReaderBuilder::new()
+            .has_headers(false)
+            .flexible(true)
+            .delimiter(delimiter)
+            .trim(csv::Trim::All)
+            .from_reader(std::io::Cursor::new(line.as_bytes()));
+
+        if let Some(Ok(record)) = reader.records().next() {
+            let fields: Vec<String> = record.iter().map(|f| f.to_string()).collect();
+
+            // Skip rows with very few fields (likely metadata lines)
+            if fields.len() < 2 {
+                continue;
+            }
+
+            let mapping = auto_map_columns(&fields);
+            let matched = mapping.field_mappings.len();
+
+            // Score: number of recognized columns, with bonus for having patient_id
+            let has_patient_id = mapping.field_mappings.iter().any(|m| m.target_field == "site_patient_id");
+            let score = matched + if has_patient_id { 5 } else { 0 };
+
+            if score > best_score {
+                best_score = score;
+                best_row = idx;
+            }
+        }
+    }
+
+    Ok(best_row)
+}
+
+/// Read a CSV/TSV file starting from a specific row offset, returning headers plus sample rows.
+/// The `header_row` parameter specifies the 0-based index of the row to treat as headers.
+/// Rows before `header_row` are skipped (metadata rows).
+pub fn preview_csv_with_offset(path: &Path, max_rows: usize, header_row: usize) -> Result<(Vec<String>, Vec<Vec<String>>, usize), ImportError> {
+    let format_info = detect_file_format(path)?;
+    let delimiter = match format_info.format {
+        FileFormat::Tsv => b'\t',
+        FileFormat::Pipe => b'|',
+        _ => b',',
+    };
+
+    let content = read_file_with_encoding(path)?;
+    let lines: Vec<&str> = content.lines().collect();
+
+    if header_row >= lines.len() {
+        return Ok((Vec::new(), Vec::new(), 0));
+    }
+
+    // Join lines from header_row onward
+    let relevant_content = lines[header_row..].join("\n");
+
+    let mut reader = csv::ReaderBuilder::new()
+        .delimiter(delimiter)
+        .flexible(true)
+        .trim(csv::Trim::All)
+        .from_reader(std::io::Cursor::new(relevant_content));
+
+    let headers: Vec<String> = reader
+        .headers()?
+        .iter()
+        .map(|h| h.to_string())
+        .collect();
+
+    let mut sample_rows = Vec::new();
+    let mut total_rows = 0;
+
+    for result in reader.records() {
+        total_rows += 1;
+        if sample_rows.len() < max_rows {
+            match result {
+                Ok(record) => {
+                    sample_rows.push(record.iter().map(|f| f.to_string()).collect());
+                }
+                Err(_) => {
+                    continue;
+                }
+            }
+        } else if result.is_ok() {
+            // just counting
+        }
+    }
+
+    Ok((headers, sample_rows, total_rows))
+}
+
+/// Parse a CSV file into PatientRecords, skipping rows before the header row.
+/// This is a variant of `parse_csv` that accepts a header row offset for files
+/// with metadata rows above the actual column headers.
+pub fn parse_csv_with_offset(path: &Path, mapping: &ColumnMapping, header_row: usize) -> Result<Vec<PatientRecord>, ImportError> {
+    if header_row == 0 {
+        return parse_csv(path, mapping);
+    }
+
+    // Validate that we have the required patient_id mapping
+    let has_patient_id = mapping.field_mappings.iter().any(|m| m.target_field == "site_patient_id");
+    if !has_patient_id {
+        return Err(ImportError::MissingRequiredMapping(
+            "site_patient_id (Patient ID)".to_string(),
+        ));
+    }
+
+    let format_info = detect_file_format(path)?;
+    let delimiter = match format_info.format {
+        FileFormat::Tsv => b'\t',
+        FileFormat::Pipe => b'|',
+        _ => b',',
+    };
+
+    let content = read_file_with_encoding(path)?;
+    let lines: Vec<&str> = content.lines().collect();
+
+    if header_row >= lines.len() {
+        return Ok(Vec::new());
+    }
+
+    let relevant_content = lines[header_row..].join("\n");
+
+    let mut reader = csv::ReaderBuilder::new()
+        .delimiter(delimiter)
+        .flexible(true)
+        .trim(csv::Trim::All)
+        .from_reader(std::io::Cursor::new(relevant_content));
+
+    let headers: Vec<String> = reader
+        .headers()?
+        .iter()
+        .map(|h| h.to_string())
+        .collect();
+
+    // Build column index lookup from mapping
+    let field_indices: std::collections::HashMap<String, usize> = mapping
+        .field_mappings
+        .iter()
+        .filter_map(|m| {
+            headers
+                .iter()
+                .position(|h| h == &m.source_column)
+                .map(|idx| (m.target_field.clone(), idx))
+        })
+        .collect();
+
+    let mut patients_map: std::collections::HashMap<String, PatientRecord> = std::collections::HashMap::new();
+
+    for (row_idx, result) in reader.records().enumerate() {
+        let record = result.map_err(|e| ImportError::InvalidData {
+            row: row_idx + header_row + 2,
+            message: e.to_string(),
+        })?;
+
+        let get_field = |target: &str| -> Option<String> {
+            field_indices
+                .get(target)
+                .and_then(|&idx| record.get(idx))
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty())
+        };
+
+        let get_date_field = |target: &str| -> Option<String> {
+            field_indices
+                .get(target)
+                .and_then(|&idx| record.get(idx))
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty())
+                .map(|v| normalize_date(&v).unwrap_or(v))
+        };
+
+        let get_gender_field = |target: &str| -> Option<String> {
+            field_indices
+                .get(target)
+                .and_then(|&idx| record.get(idx))
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty())
+                .map(|v| normalize_gender(&v))
+                .filter(|v| !v.is_empty())
+        };
+
+        let patient_id = match get_field("site_patient_id") {
+            Some(id) => id,
+            None => continue,
+        };
+
+        let patient = patients_map.entry(patient_id.clone()).or_insert_with(|| PatientRecord {
+            site_patient_id: patient_id.clone(),
+            date_of_birth: get_date_field("date_of_birth"),
+            gender: get_gender_field("gender"),
+            race: get_field("race"),
+            ethnicity: get_field("ethnicity"),
+            insurance_type: get_field("insurance_type"),
+            diagnoses: Vec::new(),
+            medications: Vec::new(),
+            lab_results: Vec::new(),
+            vitals: Vec::new(),
+            procedures: Vec::new(),
+            allergies: Vec::new(),
+        });
+
+        if patient.date_of_birth.is_none() {
+            patient.date_of_birth = get_date_field("date_of_birth");
+        }
+        if patient.gender.is_none() {
+            patient.gender = get_gender_field("gender");
+        }
+        if patient.race.is_none() {
+            patient.race = get_field("race");
+        }
+        if patient.ethnicity.is_none() {
+            patient.ethnicity = get_field("ethnicity");
+        }
+        if patient.insurance_type.is_none() {
+            patient.insurance_type = get_field("insurance_type");
+        }
+
+        let diagnosis_desc = get_field("diagnosis_description")
+            .or_else(|| get_field("diagnosis"));
+        if let Some(desc) = diagnosis_desc {
+            patient.diagnoses.push(DiagnosisRecord {
+                icd10_code: get_field("icd10_code"),
+                description: desc,
+                onset_date: get_date_field("diagnosis_onset_date"),
+                status: get_field("diagnosis_status"),
+            });
+        }
+
+        let drug_name = get_field("drug_name")
+            .or_else(|| get_field("medication"));
+        if let Some(name) = drug_name {
+            patient.medications.push(MedicationRecord {
+                rxnorm_code: get_field("rxnorm_code"),
+                drug_name: name,
+                dose: get_field("dose"),
+                frequency: get_field("frequency"),
+                start_date: get_date_field("medication_start_date"),
+                end_date: get_date_field("medication_end_date"),
+                status: get_field("medication_status"),
+            });
+        }
+
+        let test_name = get_field("test_name")
+            .or_else(|| get_field("lab_test"));
+        if let Some(name) = test_name {
+            let value = get_field("lab_value")
+                .or_else(|| get_field("result_value"))
+                .and_then(|v| v.parse::<f64>().ok());
+
+            patient.lab_results.push(LabResultRecord {
+                loinc_code: get_field("loinc_code"),
+                test_name: name,
+                value,
+                unit: get_field("lab_unit").or_else(|| get_field("unit")),
+                reference_range: get_field("reference_range"),
+                result_date: get_date_field("result_date"),
+                abnormal_flag: get_field("abnormal_flag"),
+            });
+        }
+
+        let vital_type = get_field("vital_type");
+        let vital_value = get_field("vital_value");
+        if let Some(vtype) = vital_type {
+            if let Some(vval) = vital_value {
+                patient.vitals.push(VitalRecord {
+                    vital_type: vtype.to_lowercase(),
+                    value: vval.parse::<f64>().ok(),
+                    unit: get_field("vital_unit"),
+                    measurement_date: get_date_field("vital_date"),
+                });
+            }
+        }
+
+        let proc_desc = get_field("procedure_description");
+        if let Some(desc) = proc_desc {
+            patient.procedures.push(ProcedureRecord {
+                cpt_code: get_field("cpt_code"),
+                description: desc,
+                procedure_date: get_date_field("procedure_date"),
+                status: get_field("procedure_status"),
+            });
+        }
+
+        let allergen = get_field("allergen");
+        if let Some(name) = allergen {
+            patient.allergies.push(AllergyRecord {
+                allergen: name,
+                reaction: get_field("allergy_reaction"),
+                severity: get_field("allergy_severity"),
+                allergy_type: get_field("allergy_type"),
+                onset_date: get_date_field("allergy_onset_date"),
+                status: get_field("allergy_status"),
+            });
+        }
+    }
+
+    let patients: Vec<PatientRecord> = patients_map.into_values().collect();
+    tracing::info!(count = patients.len(), header_row = header_row, "Parsed patient records from CSV with offset");
+    Ok(patients)
 }

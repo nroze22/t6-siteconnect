@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
 
 use crate::db::DbState;
@@ -9,7 +9,7 @@ use crate::import::{
     self, FileFormat, FileFormatInfo, ImportPreview, ImportResult, ImportRowError,
     PatientRecord, ValidationReport,
 };
-use crate::import::mapping::ColumnMapping;
+use crate::import::mapping::{ColumnMapping, MappedField};
 
 /// Wrapper for user-friendly error responses from import commands.
 #[derive(Debug, Serialize)]
@@ -304,27 +304,43 @@ fn persist_patients(
                 }
             }
 
-            // Insert lab results (always insert — labs are time-series data)
+            // Insert lab results (dedup by patient_id, test_name, result_date, value)
             for lab in &patient.lab_results {
-                let lab_id = uuid::Uuid::new_v4().to_string();
-                let _ = conn.execute(
-                    "INSERT INTO lab_results (id, patient_id, test_name, value, unit, reference_range, result_date, abnormal_flag)
-                     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
-                    rusqlite::params![
-                        lab_id, patient_id, lab.test_name, lab.value, lab.unit,
-                        lab.reference_range, lab.result_date, lab.abnormal_flag,
-                    ],
-                );
+                let exists: bool = conn.query_row(
+                    "SELECT COUNT(*) > 0 FROM lab_results WHERE patient_id = ?1 AND test_name = ?2 AND result_date IS ?3 AND value IS ?4",
+                    rusqlite::params![patient_id, lab.test_name, lab.result_date, lab.value],
+                    |row| row.get(0),
+                ).unwrap_or(false);
+
+                if !exists {
+                    let lab_id = uuid::Uuid::new_v4().to_string();
+                    let _ = conn.execute(
+                        "INSERT INTO lab_results (id, patient_id, test_name, value, unit, reference_range, result_date, abnormal_flag)
+                         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+                        rusqlite::params![
+                            lab_id, patient_id, lab.test_name, lab.value, lab.unit,
+                            lab.reference_range, lab.result_date, lab.abnormal_flag,
+                        ],
+                    );
+                }
             }
 
-            // Insert vitals (always insert — vitals are time-series data)
+            // Insert vitals (dedup by patient_id, vital_type, measurement_date, value)
             for vital in &patient.vitals {
-                let vital_id = uuid::Uuid::new_v4().to_string();
-                let _ = conn.execute(
-                    "INSERT INTO vitals (id, patient_id, vital_type, value, unit, measurement_date)
-                     VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-                    rusqlite::params![vital_id, patient_id, vital.vital_type, vital.value, vital.unit, vital.measurement_date],
-                );
+                let exists: bool = conn.query_row(
+                    "SELECT COUNT(*) > 0 FROM vitals WHERE patient_id = ?1 AND vital_type = ?2 AND measurement_date IS ?3 AND value IS ?4",
+                    rusqlite::params![patient_id, vital.vital_type, vital.measurement_date, vital.value],
+                    |row| row.get(0),
+                ).unwrap_or(false);
+
+                if !exists {
+                    let vital_id = uuid::Uuid::new_v4().to_string();
+                    let _ = conn.execute(
+                        "INSERT INTO vitals (id, patient_id, vital_type, value, unit, measurement_date)
+                         VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                        rusqlite::params![vital_id, patient_id, vital.vital_type, vital.value, vital.unit, vital.measurement_date],
+                    );
+                }
             }
 
             // Insert procedures (dedup by description)
@@ -375,6 +391,15 @@ fn persist_patients(
         }
     }
 
+    // After successful commit, record file hash for future dedup detection
+    if let Ok(hash) = import::compute_file_hash(Path::new(file_name)) {
+        let hash_id = uuid::Uuid::new_v4().to_string();
+        let _ = conn.execute(
+            "INSERT INTO import_file_hashes (id, file_hash, file_name, records_count) VALUES (?1, ?2, ?3, ?4)",
+            rusqlite::params![hash_id, hash, file_name, records_imported + records_updated],
+        );
+    }
+
     tracing::info!(
         imported = records_imported,
         updated = records_updated,
@@ -390,6 +415,143 @@ fn persist_patients(
         errors,
         import_log_id,
     })
+}
+
+/// Check if a file has been imported before based on its content hash.
+#[tauri::command]
+pub fn check_duplicate_import(app: AppHandle, path: String) -> Result<DuplicateCheckResult, String> {
+    let file_path = Path::new(&path);
+    let hash = import::compute_file_hash(file_path).map_err(|e| {
+        let cmd_err = ImportCommandError::from(e);
+        serde_json::to_string(&cmd_err).unwrap_or_else(|_| cmd_err.message)
+    })?;
+
+    let db_state = app.state::<DbState>();
+    let lock = db_state.0.lock().map_err(|e| format!("Lock poisoned: {}", e))?;
+
+    if let Some(pool) = lock.as_ref() {
+        let conn = pool.get().map_err(|e| format!("Failed to get connection: {}", e))?;
+
+        let result: Option<(String, i64)> = conn.query_row(
+            "SELECT imported_at, records_count FROM import_file_hashes WHERE file_hash = ?1 ORDER BY imported_at DESC LIMIT 1",
+            [&hash],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        ).ok();
+
+        if let Some((imported_at, records_count)) = result {
+            Ok(DuplicateCheckResult {
+                is_duplicate: true,
+                previous_import_date: Some(imported_at),
+                previous_record_count: Some(records_count as u32),
+                file_hash: hash,
+            })
+        } else {
+            Ok(DuplicateCheckResult {
+                is_duplicate: false,
+                previous_import_date: None,
+                previous_record_count: None,
+                file_hash: hash,
+            })
+        }
+    } else {
+        // No DB available, can't check for duplicates
+        Ok(DuplicateCheckResult {
+            is_duplicate: false,
+            previous_import_date: None,
+            previous_record_count: None,
+            file_hash: hash,
+        })
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DuplicateCheckResult {
+    pub is_duplicate: bool,
+    pub previous_import_date: Option<String>,
+    pub previous_record_count: Option<u32>,
+    pub file_hash: String,
+}
+
+/// Adjust a column mapping by reassigning a source column to a new target field.
+#[tauri::command]
+pub fn adjust_column_mapping(
+    current_mapping: ColumnMapping,
+    source_column: String,
+    new_target_field: String,
+) -> Result<ColumnMapping, String> {
+    let mut mapping = current_mapping;
+
+    // Remove any existing mapping to the new_target_field (to avoid duplicates)
+    mapping.field_mappings.retain(|m| m.target_field != new_target_field);
+
+    // Update or add the mapping for source_column
+    if let Some(existing) = mapping.field_mappings.iter_mut().find(|m| m.source_column == source_column) {
+        existing.target_field = new_target_field;
+        existing.confidence = 1.0; // User-specified = max confidence
+        existing.auto_detected = false;
+    } else {
+        mapping.field_mappings.push(MappedField {
+            source_column,
+            target_field: new_target_field,
+            confidence: 1.0,
+            auto_detected: false,
+        });
+    }
+
+    Ok(mapping)
+}
+
+/// Get the list of all available target fields for mapping.
+#[tauri::command]
+pub fn get_available_target_fields() -> Vec<TargetFieldInfo> {
+    vec![
+        TargetFieldInfo { field: "site_patient_id".into(), label: "Patient ID".into(), required: true, category: "demographics".into() },
+        TargetFieldInfo { field: "date_of_birth".into(), label: "Date of Birth".into(), required: false, category: "demographics".into() },
+        TargetFieldInfo { field: "gender".into(), label: "Gender".into(), required: false, category: "demographics".into() },
+        TargetFieldInfo { field: "race".into(), label: "Race".into(), required: false, category: "demographics".into() },
+        TargetFieldInfo { field: "ethnicity".into(), label: "Ethnicity".into(), required: false, category: "demographics".into() },
+        TargetFieldInfo { field: "insurance_type".into(), label: "Insurance Type".into(), required: false, category: "demographics".into() },
+        TargetFieldInfo { field: "diagnosis_description".into(), label: "Diagnosis".into(), required: false, category: "diagnoses".into() },
+        TargetFieldInfo { field: "icd10_code".into(), label: "ICD-10 Code".into(), required: false, category: "diagnoses".into() },
+        TargetFieldInfo { field: "diagnosis_onset_date".into(), label: "Diagnosis Date".into(), required: false, category: "diagnoses".into() },
+        TargetFieldInfo { field: "diagnosis_status".into(), label: "Diagnosis Status".into(), required: false, category: "diagnoses".into() },
+        TargetFieldInfo { field: "drug_name".into(), label: "Medication Name".into(), required: false, category: "medications".into() },
+        TargetFieldInfo { field: "rxnorm_code".into(), label: "RxNorm Code".into(), required: false, category: "medications".into() },
+        TargetFieldInfo { field: "dose".into(), label: "Dose".into(), required: false, category: "medications".into() },
+        TargetFieldInfo { field: "frequency".into(), label: "Frequency".into(), required: false, category: "medications".into() },
+        TargetFieldInfo { field: "medication_start_date".into(), label: "Medication Start".into(), required: false, category: "medications".into() },
+        TargetFieldInfo { field: "medication_end_date".into(), label: "Medication End".into(), required: false, category: "medications".into() },
+        TargetFieldInfo { field: "medication_status".into(), label: "Medication Status".into(), required: false, category: "medications".into() },
+        TargetFieldInfo { field: "test_name".into(), label: "Lab Test Name".into(), required: false, category: "labs".into() },
+        TargetFieldInfo { field: "loinc_code".into(), label: "LOINC Code".into(), required: false, category: "labs".into() },
+        TargetFieldInfo { field: "lab_value".into(), label: "Lab Value".into(), required: false, category: "labs".into() },
+        TargetFieldInfo { field: "lab_unit".into(), label: "Lab Unit".into(), required: false, category: "labs".into() },
+        TargetFieldInfo { field: "reference_range".into(), label: "Reference Range".into(), required: false, category: "labs".into() },
+        TargetFieldInfo { field: "result_date".into(), label: "Result Date".into(), required: false, category: "labs".into() },
+        TargetFieldInfo { field: "abnormal_flag".into(), label: "Abnormal Flag".into(), required: false, category: "labs".into() },
+        TargetFieldInfo { field: "vital_type".into(), label: "Vital Type".into(), required: false, category: "vitals".into() },
+        TargetFieldInfo { field: "vital_value".into(), label: "Vital Value".into(), required: false, category: "vitals".into() },
+        TargetFieldInfo { field: "vital_unit".into(), label: "Vital Unit".into(), required: false, category: "vitals".into() },
+        TargetFieldInfo { field: "vital_date".into(), label: "Vital Date".into(), required: false, category: "vitals".into() },
+        TargetFieldInfo { field: "procedure_description".into(), label: "Procedure".into(), required: false, category: "procedures".into() },
+        TargetFieldInfo { field: "cpt_code".into(), label: "CPT Code".into(), required: false, category: "procedures".into() },
+        TargetFieldInfo { field: "procedure_date".into(), label: "Procedure Date".into(), required: false, category: "procedures".into() },
+        TargetFieldInfo { field: "procedure_status".into(), label: "Procedure Status".into(), required: false, category: "procedures".into() },
+        TargetFieldInfo { field: "allergen".into(), label: "Allergen".into(), required: false, category: "allergies".into() },
+        TargetFieldInfo { field: "allergy_reaction".into(), label: "Reaction".into(), required: false, category: "allergies".into() },
+        TargetFieldInfo { field: "allergy_severity".into(), label: "Severity".into(), required: false, category: "allergies".into() },
+        TargetFieldInfo { field: "allergy_type".into(), label: "Allergy Type".into(), required: false, category: "allergies".into() },
+        TargetFieldInfo { field: "allergy_onset_date".into(), label: "Allergy Onset".into(), required: false, category: "allergies".into() },
+        TargetFieldInfo { field: "allergy_status".into(), label: "Allergy Status".into(), required: false, category: "allergies".into() },
+    ]
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TargetFieldInfo {
+    pub field: String,
+    pub label: String,
+    pub required: bool,
+    pub category: String,
 }
 
 /// Dry-run store (when DB is not available).
@@ -421,4 +583,167 @@ fn store_patients_dry_run(
         errors,
         import_log_id,
     })
+}
+
+// --- Import Profile types and commands ---
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportProfile {
+    pub id: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub emr_system: Option<String>,
+    pub file_format: String,
+    pub column_mapping: ColumnMapping,
+    pub header_row_index: usize,
+    pub created_at: String,
+    pub last_used_at: Option<String>,
+    pub use_count: u32,
+}
+
+#[tauri::command]
+pub fn save_import_profile(
+    app: AppHandle,
+    name: String,
+    description: Option<String>,
+    emr_system: Option<String>,
+    file_format: String,
+    mapping: ColumnMapping,
+    header_row_index: usize,
+) -> Result<ImportProfile, String> {
+    let db_state = app.state::<DbState>();
+    let lock = db_state.0.lock().map_err(|e| format!("Lock poisoned: {}", e))?;
+    let pool = lock.as_ref().ok_or("Database not initialized")?;
+    let conn = pool.get().map_err(|e| format!("Failed to get connection: {}", e))?;
+
+    let id = uuid::Uuid::new_v4().to_string();
+    let mapping_json = serde_json::to_string(&mapping)
+        .map_err(|e| format!("Failed to serialize mapping: {}", e))?;
+
+    conn.execute(
+        "INSERT INTO import_profiles (id, name, description, emr_system, file_format, column_mapping, header_row_index)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        rusqlite::params![id, name, description, emr_system, file_format, mapping_json, header_row_index as i64],
+    ).map_err(|e| format!("Failed to save profile: {}", e))?;
+
+    let created_at: String = conn.query_row(
+        "SELECT created_at FROM import_profiles WHERE id = ?1",
+        [&id],
+        |row| row.get(0),
+    ).map_err(|e| format!("Failed to read profile: {}", e))?;
+
+    tracing::info!(profile_id = %id, profile_name = %name, "Import profile saved");
+
+    Ok(ImportProfile {
+        id,
+        name,
+        description,
+        emr_system,
+        file_format,
+        column_mapping: mapping,
+        header_row_index,
+        created_at,
+        last_used_at: None,
+        use_count: 0,
+    })
+}
+
+#[tauri::command]
+pub fn list_import_profiles(app: AppHandle) -> Result<Vec<ImportProfile>, String> {
+    let db_state = app.state::<DbState>();
+    let lock = db_state.0.lock().map_err(|e| format!("Lock poisoned: {}", e))?;
+    let pool = lock.as_ref().ok_or("Database not initialized")?;
+    let conn = pool.get().map_err(|e| format!("Failed to get connection: {}", e))?;
+
+    let mut stmt = conn.prepare(
+        "SELECT id, name, description, emr_system, file_format, column_mapping, header_row_index, created_at, last_used_at, use_count
+         FROM import_profiles
+         ORDER BY last_used_at DESC NULLS LAST, use_count DESC"
+    ).map_err(|e| format!("Failed to prepare query: {}", e))?;
+
+    let profiles = stmt.query_map([], |row| {
+        let mapping_json: String = row.get(5)?;
+        let column_mapping: ColumnMapping = serde_json::from_str(&mapping_json)
+            .map_err(|e| rusqlite::Error::FromSqlConversionFailure(5, rusqlite::types::Type::Text, Box::new(e)))?;
+        let header_row_index: i64 = row.get(6)?;
+        Ok(ImportProfile {
+            id: row.get(0)?,
+            name: row.get(1)?,
+            description: row.get(2)?,
+            emr_system: row.get(3)?,
+            file_format: row.get(4)?,
+            column_mapping,
+            header_row_index: header_row_index as usize,
+            created_at: row.get(7)?,
+            last_used_at: row.get(8)?,
+            use_count: row.get(9)?,
+        })
+    }).map_err(|e| format!("Failed to query profiles: {}", e))?;
+
+    let mut result = Vec::new();
+    for profile in profiles {
+        result.push(profile.map_err(|e| format!("Failed to read profile row: {}", e))?);
+    }
+
+    Ok(result)
+}
+
+#[tauri::command]
+pub fn delete_import_profile(app: AppHandle, profile_id: String) -> Result<(), String> {
+    let db_state = app.state::<DbState>();
+    let lock = db_state.0.lock().map_err(|e| format!("Lock poisoned: {}", e))?;
+    let pool = lock.as_ref().ok_or("Database not initialized")?;
+    let conn = pool.get().map_err(|e| format!("Failed to get connection: {}", e))?;
+
+    let rows_affected = conn.execute(
+        "DELETE FROM import_profiles WHERE id = ?1",
+        [&profile_id],
+    ).map_err(|e| format!("Failed to delete profile: {}", e))?;
+
+    if rows_affected == 0 {
+        return Err(format!("Profile not found: {}", profile_id));
+    }
+
+    tracing::info!(profile_id = %profile_id, "Import profile deleted");
+    Ok(())
+}
+
+#[tauri::command]
+pub fn use_import_profile(app: AppHandle, profile_id: String) -> Result<ImportProfile, String> {
+    let db_state = app.state::<DbState>();
+    let lock = db_state.0.lock().map_err(|e| format!("Lock poisoned: {}", e))?;
+    let pool = lock.as_ref().ok_or("Database not initialized")?;
+    let conn = pool.get().map_err(|e| format!("Failed to get connection: {}", e))?;
+
+    conn.execute(
+        "UPDATE import_profiles SET use_count = use_count + 1, last_used_at = datetime('now') WHERE id = ?1",
+        [&profile_id],
+    ).map_err(|e| format!("Failed to update profile: {}", e))?;
+
+    let profile = conn.query_row(
+        "SELECT id, name, description, emr_system, file_format, column_mapping, header_row_index, created_at, last_used_at, use_count
+         FROM import_profiles WHERE id = ?1",
+        [&profile_id],
+        |row| {
+            let mapping_json: String = row.get(5)?;
+            let column_mapping: ColumnMapping = serde_json::from_str(&mapping_json)
+                .map_err(|e| rusqlite::Error::FromSqlConversionFailure(5, rusqlite::types::Type::Text, Box::new(e)))?;
+            let header_row_index: i64 = row.get(6)?;
+            Ok(ImportProfile {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                description: row.get(2)?,
+                emr_system: row.get(3)?,
+                file_format: row.get(4)?,
+                column_mapping,
+                header_row_index: header_row_index as usize,
+                created_at: row.get(7)?,
+                last_used_at: row.get(8)?,
+                use_count: row.get(9)?,
+            })
+        },
+    ).map_err(|e| format!("Profile not found: {}", e))?;
+
+    tracing::info!(profile_id = %profile_id, use_count = profile.use_count, "Import profile used");
+    Ok(profile)
 }
