@@ -27,44 +27,72 @@ const FIELD_ALIASES: &[(&str, &[&str])] = &[
         "patient id", "patient_id", "patientid", "pat_id", "mrn", "medical record number",
         "medical_record_number", "chart number", "chart_number", "chartno", "subject_id",
         "subject id", "subjectid", "patient number", "patient_number", "pat_mrn_id",
-        // Epic
-        "pat_id", "pat_enc_csn_id",
-        // Cerner
-        "person_id", "encntr_id",
-        // Athena
-        "patientid", "enterpriseid",
+        // Epic Clarity/Caboodle
+        "pat_id", "pat_enc_csn_id", "patient_num", "hsp_account_id", "identity_id",
+        // Cerner Millennium
+        "person_id", "encntr_id", "alias", "cmrn", "fin_nbr",
+        // MEDITECH
+        "mpi_no", "med_rec_no", "account_no", "a_number", "unit_number",
+        // eClinicalWorks
+        "ecw_patientid", "chart_id",
+        // NextGen
+        "person_nbr", "patient_nbr",
+        // Allscripts/Veradigm
+        "patientprofileid", "unity_patient_id",
+        // athenahealth
+        "athena_patientid", "enterprise_id", "enterpriseid",
+        // Generic/FHIR
+        "participant_id", "record_id", "id", "patient_key",
     ]),
     ("date_of_birth", &[
         "dob", "date of birth", "date_of_birth", "dateofbirth", "birth_date", "birth date",
         "birthdate", "birthday", "birth_dt",
         // Epic
-        "birth_date",
+        "pat_birth_date",
         // Cerner
         "birth_dt_tm",
+        // HL7/FHIR
+        "patient_dob",
+        // Generic
+        "patient_birth_date", "pt_dob",
     ]),
     ("gender", &[
         "gender", "sex", "patient_sex", "patient_gender", "biological_sex",
         "sex_assigned_at_birth", "admin_sex",
         // Epic
-        "sex_c", "patient_sex",
+        "sex_c", "sex_name",
         // Cerner
-        "sex_cd",
+        "sex_cd", "sex_disp", "sex_raw",
+        // Generic
+        "sex_at_birth", "legal_sex",
     ]),
     ("race", &[
         "race", "patient_race", "race_ethnicity",
         // Epic
-        "patient_race_c",
+        "patient_race_c", "race_name",
         // Cerner
-        "race_cd",
+        "race_cd", "race_disp", "race_raw",
+        // Generic
+        "race_category", "omb_race",
     ]),
     ("ethnicity", &[
         "ethnicity", "patient_ethnicity", "ethnic_group", "hispanic_latino",
         // Epic
-        "ethnic_group_c",
+        "ethnic_group_c", "ethnicity_name",
+        // Cerner
+        "ethnic_cd", "ethnic_group_raw",
+        // Generic
+        "omb_ethnicity", "hispanic_indicator",
     ]),
     ("insurance_type", &[
         "insurance", "insurance_type", "insurance type", "payer", "payer_name",
         "primary_insurance", "coverage_type", "plan_name", "benefit_plan",
+        // Epic
+        "benefit_plan_name", "payor_name", "financial_class", "coverage_name",
+        // Cerner
+        "health_plan_id", "plan_name_disp", "payer_org",
+        // Generic
+        "insurance_name", "health_plan", "coverage", "ins_type", "primary_payer",
     ]),
 
     // Diagnosis fields
@@ -73,11 +101,23 @@ const FIELD_ALIASES: &[(&str, &[&str])] = &[
         "condition", "problem", "problem_list", "problem_description",
         "diagnosis description", "clinical_diagnosis", "primary_diagnosis",
         "principal_diagnosis", "admitting_diagnosis",
+        // Epic
+        "current_icd10_list", "problem_list_name",
+        // Cerner
+        "diagnosis_display", "diagnosis_desc", "nomenclature_disp",
+        // Generic
+        "condition_name", "medical_condition", "active_diagnosis", "problem_name",
     ]),
     ("icd10_code", &[
         "icd10", "icd10_code", "icd-10", "icd_10_code", "icd10_cm",
         "diagnosis_code", "dx_code", "icd_code", "problem_code",
         "icd10code", "icd", "diagnostic_code",
+        // Epic
+        "icd10_list", "dx_icd_code",
+        // Cerner
+        "source_identifier", "nomenclature_id",
+        // Generic
+        "icd10cm", "icd_10_cm_code", "condition_code", "dx_cd",
     ]),
     ("diagnosis_onset_date", &[
         "onset_date", "diagnosis_date", "dx_date", "problem_onset_date",
@@ -93,18 +133,42 @@ const FIELD_ALIASES: &[(&str, &[&str])] = &[
         "medication", "drug_name", "drug", "medication_name", "med_name",
         "medication name", "rx_name", "prescription", "med", "generic_name",
         "brand_name", "ordered_medication",
+        // Epic
+        "order_med_id", "med_list_name", "pharm_class", "thera_class",
+        // Cerner
+        "ordered_med_name", "catalog_disp", "orig_ord_as_mnemonic", "med_product",
+        // Generic
+        "drug_description", "active_medication", "med_description", "current_medication",
     ]),
     ("rxnorm_code", &[
         "rxnorm", "rxnorm_code", "rxcui", "rx_code", "ndc", "ndc_code",
         "medication_code", "drug_code",
+        // Epic
+        "med_rxnorm",
+        // Cerner
+        "cki", "multum_drug_id",
+        // Generic
+        "medication_ndc", "drug_ndc",
     ]),
     ("dose", &[
         "dose", "dosage", "dose_amount", "med_dose", "strength",
         "dose_strength", "medication_dose",
+        // Epic
+        "dose_unit", "hv_dose_unit",
+        // Cerner
+        "ordered_dose", "dose_quantity",
+        // Generic
+        "dosage_amount", "prescribed_dose", "dose_value",
     ]),
     ("frequency", &[
         "frequency", "freq", "dosing_frequency", "med_frequency",
         "sig", "directions", "schedule",
+        // Epic
+        "med_freq", "frequency_name", "hv_discrete_dose",
+        // Cerner
+        "freq_cd_disp", "order_frequency", "admin_freq",
+        // Generic
+        "dosing_schedule", "administration_frequency", "dose_frequency",
     ]),
     ("medication_start_date", &[
         "med_start_date", "medication_start_date", "rx_start_date",
@@ -123,6 +187,12 @@ const FIELD_ALIASES: &[(&str, &[&str])] = &[
         "test_name", "lab_test", "lab_name", "test", "lab test",
         "component_name", "result_name", "analyte", "lab_component",
         "procedure_name", "order_name",
+        // Epic
+        "proc_name", "order_proc_id", "lab_component_name",
+        // Cerner
+        "event_cd_disp", "task_description", "catalog_cd_disp", "result_component",
+        // Generic
+        "lab_description", "test_description", "observation_name", "lab_test_name",
     ]),
     ("loinc_code", &[
         "loinc", "loinc_code", "loinc_num", "lab_code", "test_code",
@@ -131,22 +201,52 @@ const FIELD_ALIASES: &[(&str, &[&str])] = &[
     ("lab_value", &[
         "lab_value", "result_value", "value", "result", "numeric_value",
         "ord_value", "result_val", "observation_value",
+        // Epic
+        "result_value_num", "numeric_result",
+        // Cerner
+        "event_result_txt", "clinical_event_result",
+        // Generic
+        "lab_result", "test_result", "measured_value",
     ]),
     ("lab_unit", &[
         "unit", "units", "lab_unit", "result_unit", "uom",
         "unit_of_measure", "reference_unit",
+        // Epic
+        "result_unit_c",
+        // Cerner
+        "result_units_cd_disp", "event_result_units",
+        // Generic
+        "measurement_unit", "result_units", "lab_units",
     ]),
     ("reference_range", &[
         "reference_range", "ref_range", "normal_range", "ref_low_high",
         "reference_low", "reference_high", "normal_low", "normal_high",
+        // Epic
+        "ref_normal_vals", "ref_low", "ref_high",
+        // Cerner
+        "critical_low", "critical_high", "normal_range_txt",
+        // Generic
+        "expected_range", "therapeutic_range",
     ]),
     ("result_date", &[
         "result_date", "lab_date", "collection_date", "specimen_date",
         "observation_date", "test_date", "collected_date",
+        // Epic
+        "result_time", "order_time", "specimen_taken_time", "result_date_time",
+        // Cerner
+        "performed_dt_tm", "event_end_dt_tm", "collected_dt_tm",
+        // Generic
+        "lab_result_date", "observation_date_time", "specimen_collection_date", "report_date",
     ]),
     ("abnormal_flag", &[
         "abnormal_flag", "flag", "abnormal", "result_flag",
         "abnormal_yn", "critical_flag", "interpretation",
+        // Epic
+        "result_flag_c",
+        // Cerner
+        "normalcy_cd_disp", "critical_ind", "normalcy_method",
+        // Generic
+        "interpretation_code", "result_interpretation", "flag_value", "hi_lo_flag",
     ]),
 ];
 

@@ -55,6 +55,7 @@ pub struct FileFormatInfo {
 pub enum FileFormat {
     Csv,
     Tsv,
+    Pipe,
     Xlsx,
     Json,
     Xml,
@@ -177,7 +178,9 @@ pub struct FieldCoverage {
 // --- Date normalization ---
 
 /// Normalize a date string to YYYY-MM-DD format.
-/// Handles: YYYY-MM-DD, YYYY/MM/DD, MM/DD/YYYY, MM-DD-YYYY, M/D/YYYY.
+/// Handles: YYYY-MM-DD, YYYY/MM/DD, MM/DD/YYYY, MM-DD-YYYY, M/D/YYYY,
+/// DD/MM/YYYY (when day > 12), YYYYMMDD (HL7 compact), timestamps with time
+/// components, DD-Mon-YYYY, DD Mon YYYY, Mon DD YYYY, Month DD, YYYY.
 /// Returns None for unrecognizable formats.
 pub fn normalize_date(input: &str) -> Option<String> {
     let input = input.trim();
@@ -185,17 +188,64 @@ pub fn normalize_date(input: &str) -> Option<String> {
         return None;
     }
 
-    // Try YYYY-MM-DD or YYYY/MM/DD
-    if let Some(caps) = parse_ymd(input) {
-        return Some(caps);
+    // Strip time component (anything after T or space followed by time)
+    let date_part = strip_time_component(input);
+
+    // Try YYYYMMDD (8 digits, no separators — HL7 compact format)
+    if let Some(d) = parse_yyyymmdd(&date_part) {
+        return Some(d);
     }
 
-    // Try MM/DD/YYYY or MM-DD-YYYY (also handles M/D/YYYY)
-    if let Some(caps) = parse_mdy(input) {
-        return Some(caps);
+    // Try YYYY-MM-DD or YYYY/MM/DD
+    if let Some(d) = parse_ymd(&date_part) {
+        return Some(d);
+    }
+
+    // Try MM/DD/YYYY or MM-DD-YYYY (also handles DD/MM/YYYY when day > 12)
+    if let Some(d) = parse_mdy(&date_part) {
+        return Some(d);
+    }
+
+    // Try DD-Mon-YYYY, DD Mon YYYY, Mon DD YYYY, Month DD, YYYY
+    if let Some(d) = parse_named_month(&date_part) {
+        return Some(d);
     }
 
     None
+}
+
+/// Strip time component from a date-time string, returning just the date part.
+fn strip_time_component(input: &str) -> String {
+    // Handle ISO 8601: "2024-03-15T10:30:00"
+    if let Some(idx) = input.find('T') {
+        return input[..idx].to_string();
+    }
+    // Handle "2024-03-15 14:22:00" or "03/15/2024 14:22"
+    // Look for space followed by a time-like pattern (contains colon)
+    let parts: Vec<&str> = input.splitn(2, ' ').collect();
+    if parts.len() == 2 {
+        if let Some(after_space) = parts.get(1) {
+            if after_space.contains(':') {
+                return parts[0].to_string();
+            }
+        }
+    }
+    input.to_string()
+}
+
+/// Parse YYYYMMDD compact format (e.g., "20240315").
+fn parse_yyyymmdd(input: &str) -> Option<String> {
+    if input.len() != 8 || !input.chars().all(|c| c.is_ascii_digit()) {
+        return None;
+    }
+    let year: u32 = input[0..4].parse().ok()?;
+    let month: u32 = input[4..6].parse().ok()?;
+    let day: u32 = input[6..8].parse().ok()?;
+    if year >= 1900 && year <= 2100 && month >= 1 && month <= 12 && day >= 1 && day <= 31 {
+        Some(format!("{:04}-{:02}-{:02}", year, month, day))
+    } else {
+        None
+    }
 }
 
 fn parse_ymd(input: &str) -> Option<String> {
@@ -246,9 +296,77 @@ fn parse_mdy(input: &str) -> Option<String> {
     let second: u32 = parts[1].parse().ok()?;
     let third: u32 = parts[2].parse().ok()?;
 
-    // If third part is >= 1000, treat as MM/DD/YYYY or MM-DD-YYYY
-    if third >= 1000 && first >= 1 && first <= 12 && second >= 1 && second <= 31 {
-        return Some(format!("{:04}-{:02}-{:02}", third, first, second));
+    // If third part is >= 1000, it's the year
+    if third >= 1000 {
+        // DD/MM/YYYY — first must be day since > 12
+        if first > 12 && second >= 1 && second <= 12 && first >= 1 && first <= 31 {
+            return Some(format!("{:04}-{:02}-{:02}", third, second, first));
+        }
+        // MM/DD/YYYY (US convention default when ambiguous)
+        if first >= 1 && first <= 12 && second >= 1 && second <= 31 {
+            return Some(format!("{:04}-{:02}-{:02}", third, first, second));
+        }
+    }
+
+    None
+}
+
+/// Parse dates with named months: "15-Mar-2024", "15 Mar 2024", "Mar 15, 2024",
+/// "March 15, 2024".
+fn parse_named_month(input: &str) -> Option<String> {
+    const MONTH_NAMES: &[(&str, u32)] = &[
+        ("january", 1), ("february", 2), ("march", 3), ("april", 4),
+        ("may", 5), ("june", 6), ("july", 7), ("august", 8),
+        ("september", 9), ("october", 10), ("november", 11), ("december", 12),
+        ("jan", 1), ("feb", 2), ("mar", 3), ("apr", 4),
+        ("jun", 6), ("jul", 7), ("aug", 8), ("sep", 9),
+        ("oct", 10), ("nov", 11), ("dec", 12),
+    ];
+
+    let lower = input.to_lowercase();
+    // Remove commas for parsing
+    let cleaned = lower.replace(',', " ");
+    let tokens: Vec<&str> = cleaned.split_whitespace().collect();
+
+    if tokens.len() >= 3 {
+        // Try "DD Mon YYYY"
+        if let Ok(day) = tokens[0].parse::<u32>() {
+            if let Some(&(_, month)) = MONTH_NAMES.iter().find(|&&(name, _)| name == tokens[1]) {
+                if let Ok(year) = tokens[2].parse::<u32>() {
+                    if day >= 1 && day <= 31 && year >= 1900 && year <= 2100 {
+                        return Some(format!("{:04}-{:02}-{:02}", year, month, day));
+                    }
+                }
+            }
+        }
+
+        // Try "Mon DD YYYY" or "Month DD YYYY"
+        if let Some(&(_, month)) = MONTH_NAMES.iter().find(|&&(name, _)| name == tokens[0]) {
+            if let Ok(day) = tokens[1].parse::<u32>() {
+                if let Ok(year) = tokens[2].parse::<u32>() {
+                    if day >= 1 && day <= 31 && year >= 1900 && year <= 2100 {
+                        return Some(format!("{:04}-{:02}-{:02}", year, month, day));
+                    }
+                }
+            }
+        }
+
+        return None;
+    }
+
+    // Try DD-Mon-YYYY with hyphens (fewer than 3 space-separated tokens)
+    let parts: Vec<&str> = cleaned.splitn(3, '-').collect();
+    if parts.len() == 3 {
+        // Try DD-Mon-YYYY
+        if let Ok(day) = parts[0].trim().parse::<u32>() {
+            if let Some(&(_, month)) = MONTH_NAMES.iter().find(|&&(name, _)| name == parts[1].trim()) {
+                if let Ok(year) = parts[2].trim().parse::<u32>() {
+                    if day >= 1 && day <= 31 && year >= 1900 && year <= 2100 {
+                        return Some(format!("{:04}-{:02}-{:02}", year, month, day));
+                    }
+                }
+            }
+        }
     }
 
     None
@@ -522,6 +640,29 @@ pub fn validate_patient_records(records: &[PatientRecord]) -> ValidationReport {
     }
 }
 
+/// Read file contents, handling BOM and common encodings.
+/// Strips UTF-8 BOM if present. Falls back to Windows-1252 if UTF-8 fails.
+fn read_file_with_encoding(path: &Path) -> Result<String, ImportError> {
+    let bytes = std::fs::read(path)?;
+
+    // Strip UTF-8 BOM (EF BB BF)
+    let bytes = if bytes.starts_with(&[0xEF, 0xBB, 0xBF]) {
+        &bytes[3..]
+    } else {
+        &bytes
+    };
+
+    // Try UTF-8 first
+    match std::str::from_utf8(bytes) {
+        Ok(s) => Ok(s.to_string()),
+        Err(_) => {
+            // Fall back to Windows-1252 (ISO 8859-1 superset)
+            // Each byte maps directly to a Unicode code point in Windows-1252
+            Ok(bytes.iter().map(|&b| b as char).collect())
+        }
+    }
+}
+
 /// Detect file format from extension and content sniffing.
 pub fn detect_file_format(path: &Path) -> Result<FileFormatInfo, ImportError> {
     if !path.exists() {
@@ -542,14 +683,17 @@ pub fn detect_file_format(path: &Path) -> Result<FileFormatInfo, ImportError> {
     let (format, mime_type) = match extension.as_str() {
         "csv" => (FileFormat::Csv, "text/csv".to_string()),
         "tsv" | "tab" => (FileFormat::Tsv, "text/tab-separated-values".to_string()),
+        "pip" | "dat" => (FileFormat::Pipe, "text/plain".to_string()),
         "xlsx" | "xls" => (FileFormat::Xlsx, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet".to_string()),
         "json" => (FileFormat::Json, "application/json".to_string()),
         "xml" => (FileFormat::Xml, "application/xml".to_string()),
         _ => {
-            // Try content sniffing for CSV (check if first few bytes look like CSV)
-            if let Ok(content) = std::fs::read_to_string(path) {
+            // Try content sniffing for delimited files
+            if let Ok(content) = read_file_with_encoding(path) {
                 let first_line = content.lines().next().unwrap_or("");
-                if first_line.contains(',') {
+                if first_line.contains('|') {
+                    (FileFormat::Pipe, "text/plain".to_string())
+                } else if first_line.contains(',') {
                     (FileFormat::Csv, "text/csv".to_string())
                 } else if first_line.contains('\t') {
                     (FileFormat::Tsv, "text/tab-separated-values".to_string())
@@ -563,9 +707,9 @@ pub fn detect_file_format(path: &Path) -> Result<FileFormatInfo, ImportError> {
     };
 
     // Estimate row count for CSV/TSV by counting newlines
-    let estimated_rows = if format == FileFormat::Csv || format == FileFormat::Tsv {
+    let estimated_rows = if format == FileFormat::Csv || format == FileFormat::Tsv || format == FileFormat::Pipe {
         // Quick estimate: read file and count lines, subtract 1 for header
-        if let Ok(content) = std::fs::read_to_string(path) {
+        if let Ok(content) = read_file_with_encoding(path) {
             let line_count = content.lines().count();
             Some(if line_count > 0 { (line_count - 1) as u64 } else { 0 })
         } else {
@@ -588,14 +732,16 @@ pub fn preview_csv(path: &Path, max_rows: usize) -> Result<(Vec<String>, Vec<Vec
     let format_info = detect_file_format(path)?;
     let delimiter = match format_info.format {
         FileFormat::Tsv => b'\t',
+        FileFormat::Pipe => b'|',
         _ => b',',
     };
 
+    let content = read_file_with_encoding(path)?;
     let mut reader = csv::ReaderBuilder::new()
         .delimiter(delimiter)
         .flexible(true)
         .trim(csv::Trim::All)
-        .from_path(path)?;
+        .from_reader(std::io::Cursor::new(content));
 
     let headers: Vec<String> = reader
         .headers()?
@@ -737,14 +883,16 @@ pub fn parse_csv(path: &Path, mapping: &ColumnMapping) -> Result<Vec<PatientReco
     let format_info = detect_file_format(path)?;
     let delimiter = match format_info.format {
         FileFormat::Tsv => b'\t',
+        FileFormat::Pipe => b'|',
         _ => b',',
     };
 
+    let content = read_file_with_encoding(path)?;
     let mut reader = csv::ReaderBuilder::new()
         .delimiter(delimiter)
         .flexible(true)
         .trim(csv::Trim::All)
-        .from_path(path)?;
+        .from_reader(std::io::Cursor::new(content));
 
     let headers: Vec<String> = reader
         .headers()?

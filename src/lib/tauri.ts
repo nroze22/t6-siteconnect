@@ -179,7 +179,7 @@ export async function pickWatchFolder(): Promise<string | null> {
 }
 
 /** File extensions accepted by the watcher and import pipeline */
-export const ACCEPTED_EXTENSIONS = [".csv", ".tsv", ".xlsx", ".xls"];
+export const ACCEPTED_EXTENSIONS = [".csv", ".tsv", ".xlsx", ".xls", ".pip", ".dat"];
 
 /** Check if a filename has an accepted data file extension */
 export function isAcceptedFileExtension(fileName: string): boolean {

@@ -42,7 +42,7 @@ const FORMAT_META: Record<
 
 function detectFormat(name: string): SelectedFile["format"] {
   const lower = name.toLowerCase();
-  if (lower.endsWith(".csv") || lower.endsWith(".tsv")) return "csv";
+  if (lower.endsWith(".csv") || lower.endsWith(".tsv") || lower.endsWith(".pip") || lower.endsWith(".dat")) return "csv";
   if (lower.endsWith(".xlsx") || lower.endsWith(".xls")) return "excel";
   if (lower.endsWith(".json")) return "fhir_json";
   if (lower.endsWith(".xml")) return "ccda_xml";
@@ -311,7 +311,7 @@ export function FileDropZone({ onFileSelected, selectedFile, onClear }: FileDrop
             ref={inputRef}
             type="file"
             className="hidden"
-            accept=".csv,.tsv,.xlsx,.xls"
+            accept=".csv,.tsv,.xlsx,.xls,.pip,.dat"
             onChange={handleInputChange}
           />
 
@@ -339,10 +339,10 @@ export function FileDropZone({ onFileSelected, selectedFile, onClear }: FileDrop
               ? "Parsing file..."
               : isDragOver
               ? "Drop your data file here"
-              : "Drop your CSV, TSV, or Excel file here"}
+              : "Drop your CSV, TSV, pipe-delimited, or Excel file here"}
           </p>
           <p className="mt-1.5 text-[12px] text-dim">
-            {isDragOver ? "Release to load and preview" : "Supports CSV, TSV, XLSX, and XLS formats"}
+            {isDragOver ? "Release to load and preview" : "Supports CSV, TSV, pipe-delimited, XLSX, and XLS formats"}
           </p>
 
           <div className="mt-6 flex items-center justify-center gap-2">

@@ -156,8 +156,8 @@ export async function pickImportFile(): Promise<string | null> {
   const result = await open({
     title: "Select Patient Data File",
     filters: [
-      { name: "Data Files", extensions: ["csv", "tsv", "xlsx", "xls"] },
-      { name: "CSV Files", extensions: ["csv", "tsv"] },
+      { name: "Data Files", extensions: ["csv", "tsv", "xlsx", "xls", "pip", "dat"] },
+      { name: "CSV Files", extensions: ["csv", "tsv", "pip", "dat"] },
       { name: "Excel Files", extensions: ["xlsx", "xls"] },
       { name: "All Files", extensions: ["*"] },
     ],
