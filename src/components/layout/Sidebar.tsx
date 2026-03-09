@@ -130,14 +130,14 @@ export function Sidebar() {
                   transition={{ type: "spring", damping: 28, stiffness: 350 }}
                 />
               )}
-              <span className={`relative z-10 ${isActive ? "text-indigo-400" : "text-dim group-hover:text-dim"}`}>
+              <span className={`relative z-10 ${isActive ? "text-indigo-600 dark:text-indigo-400" : "text-dim group-hover:text-dim"}`}>
                 {item.icon}
               </span>
               <div className="relative z-10 flex-1 min-w-0">
-                <span className={`block text-[13px] font-medium leading-tight ${isActive ? "text-indigo-300" : "text-dim group-hover:text-body"}`}>
+                <span className={`block text-[13px] font-medium leading-tight ${isActive ? "text-indigo-700 dark:text-indigo-300" : "text-dim group-hover:text-body"}`}>
                   {item.label}
                 </span>
-                <span className={`block text-[12px] leading-tight ${isActive ? "text-indigo-400/60" : "text-dim"}`}>
+                <span className={`block text-[12px] leading-tight ${isActive ? "text-indigo-600/70 dark:text-indigo-400/60" : "text-dim"}`}>
                   {item.hint}
                 </span>
               </div>
