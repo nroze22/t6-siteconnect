@@ -65,12 +65,15 @@ jobs:
       - name: Run TypeScript tests
         run: npx vitest run
 
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+
+      - name: Build frontend (required by Tauri generate_context macro)
+        run: npm run build
+
       - name: Run Rust tests
         working-directory: src-tauri
         run: cargo test
-
-      - name: TypeScript type check
-        run: npx tsc --noEmit
 
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0

@@ -408,7 +408,7 @@ fn similarity(header: &str, alias: &str) -> f64 {
 pub fn auto_map_columns(headers: &[String]) -> ColumnMapping {
     let mut field_mappings = Vec::new();
     // Track which target fields have already been mapped to avoid duplicates
-    let mut mapped_targets: Vec<(String, f64, usize)> = Vec::new(); // (target, confidence, header_idx)
+    let _mapped_targets: Vec<(String, f64, usize)> = Vec::new(); // (target, confidence, header_idx)
 
     // For each header, find the best matching target field
     let mut candidates: Vec<(usize, String, f64)> = Vec::new(); // (header_idx, target_field, confidence)
