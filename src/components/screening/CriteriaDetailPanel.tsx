@@ -189,7 +189,7 @@ export function CriteriaDetailPanel() {
           <div className="text-center">
             <div className={`rounded-xl px-4 py-2 ${scoreColorClass(patient.score)}`}>
               <span className="text-2xl font-black tabular-nums">{patient.score}</span>
-              <span className="text-[12px] font-medium opacity-60">/100</span>
+              <span className="text-[12px] font-medium text-dim">/100</span>
             </div>
             <p className="mt-1 text-[12px] font-semibold text-dim">
               {formatStatus(patient.overallStatus)}
@@ -446,7 +446,7 @@ function ReviewActionBar({ patientId, reviewStatus }: { patientId: string; revie
         <Tooltip content="Accept this subject" shortcut="A" side="top" className="flex-1">
           <button
             onClick={() => handleReview("accepted")}
-            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 py-2 text-[12px] font-semibold text-heading shadow-md shadow-emerald-900/20 transition-all hover:bg-emerald-500 hover:shadow-emerald-500/20 active:scale-[0.97]"
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 py-2 text-[12px] font-semibold text-white shadow-md shadow-emerald-900/20 transition-all hover:bg-emerald-500 hover:shadow-emerald-500/20 active:scale-[0.97]"
           >
             <Check className="h-3.5 w-3.5" />
             Accept
@@ -455,7 +455,7 @@ function ReviewActionBar({ patientId, reviewStatus }: { patientId: string; revie
         <Tooltip content="Reject this subject" shortcut="R" side="top" className="flex-1">
           <button
             onClick={() => handleReview("rejected")}
-            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-red-600 py-2 text-[12px] font-semibold text-heading shadow-md shadow-red-900/20 transition-all hover:bg-red-500 hover:shadow-red-500/20 active:scale-[0.97]"
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-red-600 py-2 text-[12px] font-semibold text-white shadow-md shadow-red-900/20 transition-all hover:bg-red-500 hover:shadow-red-500/20 active:scale-[0.97]"
           >
             <XIcon className="h-3.5 w-3.5" />
             Reject
@@ -464,7 +464,7 @@ function ReviewActionBar({ patientId, reviewStatus }: { patientId: string; revie
         <Tooltip content="Defer for later review" shortcut="D" side="top" className="flex-1">
           <button
             onClick={() => handleReview("deferred")}
-            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-amber-600 py-2 text-[12px] font-semibold text-heading shadow-md shadow-amber-900/20 transition-all hover:bg-amber-500 hover:shadow-amber-500/20 active:scale-[0.97]"
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-amber-600 py-2 text-[12px] font-semibold text-white shadow-md shadow-amber-900/20 transition-all hover:bg-amber-500 hover:shadow-amber-500/20 active:scale-[0.97]"
           >
             <Clock className="h-3.5 w-3.5" />
             Defer

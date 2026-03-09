@@ -74,7 +74,7 @@ export function SettingsPage() {
     <div className="flex h-full flex-col bg-background">
       <div className="border-b border-border bg-card/50 px-6 py-4">
         <h2 className="text-[15px] font-bold text-heading">Settings</h2>
-        <p className="text-[12px] text-dim">
+        <p className="text-[12px] text-body">
           Configure your SiteConnect installation. All settings are stored locally.
         </p>
       </div>
@@ -226,7 +226,7 @@ function WatcherPanel() {
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[12px] text-dim">
+          <p className="mt-0.5 text-[12px] text-body">
             Watch a local folder for new data files (CSV, TSV, Excel). Files are auto-imported and screened.
           </p>
         </div>
@@ -273,7 +273,7 @@ function WatcherPanel() {
 
         <div className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
           <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">How it works</p>
-          <div className="space-y-1.5 text-[12px] text-dim">
+          <div className="space-y-1.5 text-[12px] text-body">
             <p>1. Point to your EMR export folder (e.g., where Epic Clarity drops CSVs)</p>
             <p>2. OS-level file events — no polling, instant detection</p>
             <p>3. New .csv, .tsv, .xlsx, and .xls files are detected automatically</p>
@@ -408,7 +408,7 @@ function LlmPanel() {
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[12px] text-dim">Local LLM for AI-powered criterion evaluation. 100% on-device.</p>
+          <p className="mt-0.5 text-[12px] text-body">Local LLM for AI-powered criterion evaluation. 100% on-device.</p>
         </div>
       </div>
 
@@ -463,10 +463,10 @@ function LlmPanel() {
 
         <div className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
           <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">How it works</p>
-          <div className="space-y-1.5 text-[12px] text-dim">
+          <div className="space-y-1.5 text-[12px] text-body">
             <p>1. Your deployment profile selects the model automatically (or choose manually)</p>
             <p>2. SiteConnect runs inference locally via sidecar — no internet or cloud needed</p>
-            <p>3. Criteria that can't be evaluated by rules go to the LLM for assessment</p>
+            <p>3. Criteria that can&apos;t be evaluated by rules go to the LLM for assessment</p>
             <p>4. Results include confidence scores and evidence citations</p>
           </div>
         </div>
@@ -591,7 +591,7 @@ function AuditTrailPanel() {
               {entries.length} entries
             </span>
           </div>
-          <p className="mt-0.5 text-[12px] text-dim">
+          <p className="mt-0.5 text-[12px] text-body">
             Immutable, HMAC-chained log of every data action. Tamper-evident and export-ready.
           </p>
         </div>
@@ -698,7 +698,7 @@ function AuditTrailPanel() {
         {/* Compliance note */}
         <div className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
           <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">Compliance</p>
-          <div className="space-y-1.5 text-[12px] text-dim">
+          <div className="space-y-1.5 text-[12px] text-body">
             <p>Every data mutation creates an immutable, timestamped audit entry per 21 CFR Part 11 §11.10(e).</p>
             <p>Entries are SHA-256 chained — modifying any historical entry breaks the chain and is immediately detectable.</p>
             <p>Export includes full checksums for independent verification by QA, auditors, or sponsors.</p>
@@ -733,7 +733,7 @@ function DatabasePanel() {
               AES-256 Active
             </span>
           </div>
-          <p className="mt-0.5 text-[12px] text-dim">
+          <p className="mt-0.5 text-[12px] text-body">
             SQLCipher-encrypted local database. All PHI encrypted at rest.
           </p>
         </div>
@@ -780,7 +780,7 @@ function PreferencesPanel() {
         </div>
         <div className="flex-1">
           <h3 className="text-[13px] font-semibold text-body">Preferences</h3>
-          <p className="mt-0.5 text-[12px] text-dim">Application behavior and notification settings.</p>
+          <p className="mt-0.5 text-[12px] text-body">Application behavior and notification settings.</p>
         </div>
       </div>
       <div className="p-4 space-y-3">
@@ -802,7 +802,7 @@ function PreferencesPanel() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[12px] font-medium text-body">Auto-screen on import</p>
-            <p className="text-[12px] text-dim">Automatically screen subjects when new data is imported</p>
+            <p className="text-[12px] text-body">Automatically screen subjects when new data is imported</p>
           </div>
           <button
             onClick={() => setAutoScreen(!autoScreen)}
@@ -814,7 +814,7 @@ function PreferencesPanel() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[12px] font-medium text-body">Desktop notifications</p>
-            <p className="text-[12px] text-dim">Show alerts when new files are detected or screening completes</p>
+            <p className="text-[12px] text-body">Show alerts when new files are detected or screening completes</p>
           </div>
           <button
             onClick={() => setNotifications(!notifications)}
@@ -826,7 +826,7 @@ function PreferencesPanel() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[12px] font-medium text-body">Session timeout</p>
-            <p className="text-[12px] text-dim">Lock screen after inactivity (minutes)</p>
+            <p className="text-[12px] text-body">Lock screen after inactivity (minutes)</p>
           </div>
           <select
             value={sessionTimeout}
@@ -1020,7 +1020,7 @@ function SystemProfilePanel() {
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[12px] text-dim">
+          <p className="mt-0.5 text-[12px] text-body">
             SiteConnect analyzes your hardware and selects the optimal AI configuration automatically.
           </p>
         </div>
@@ -1129,7 +1129,7 @@ function SystemProfilePanel() {
                             {profile.label}
                           </span>
                         </div>
-                        <p className="text-[12px] text-dim leading-relaxed mb-2">{profile.desc}</p>
+                        <p className="text-[12px] text-body leading-relaxed mb-2">{profile.desc}</p>
                         <div className="space-y-1 border-t border-edge-1 pt-2">
                           <div className="flex items-center justify-between text-[9px]">
                             <span className="text-dim">Model</span>
@@ -1285,7 +1285,7 @@ function UpdatePanel() {
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[12px] text-dim">
+          <p className="mt-0.5 text-[12px] text-body">
             App updates, model packs, and rule templates ship independently.
           </p>
         </div>
@@ -1386,7 +1386,7 @@ function UpdatePanel() {
               </div>
             </div>
             <div className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
-              <div className="space-y-1.5 text-[12px] text-dim">
+              <div className="space-y-1.5 text-[12px] text-body">
                 <p>App binaries, model packs, rule engines, and mapping templates update independently.</p>
                 <p>All updates are cryptographically signed. Rollback to the previous version is always available.</p>
                 <p>Emergency fixes can be applied without re-downloading AI models.</p>
@@ -1483,7 +1483,7 @@ function SupportPanel() {
           <div className="flex items-center gap-2">
             <h3 className="text-[13px] font-semibold text-body">Support & Diagnostics</h3>
           </div>
-          <p className="mt-0.5 text-[12px] text-dim">
+          <p className="mt-0.5 text-[12px] text-body">
             Get help, generate diagnostics bundles, and contact the Talosix team.
           </p>
         </div>
@@ -1517,7 +1517,7 @@ function SupportPanel() {
         <div className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
           <div className="flex items-start gap-2 mb-3">
             <Info className="h-3.5 w-3.5 text-blue-400 shrink-0 mt-0.5" />
-            <p className="text-[12px] text-dim leading-relaxed">
+            <p className="text-[12px] text-body leading-relaxed">
               Diagnostics bundles include app version, hardware profile, error logs, and health status.
               <span className="font-semibold text-emerald-400"> No patient data or PHI is ever included.</span>
             </p>

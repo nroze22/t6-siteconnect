@@ -111,7 +111,7 @@ export function InsightsPanel({
       >
         <div className="flex items-center gap-2.5">
           <Sparkles className="h-4 w-4 text-indigo-400" />
-          <span className="text-sm font-semibold text-slate-100">{title}</span>
+          <span className="text-sm font-semibold text-heading">{title}</span>
           <span className="rounded-full bg-indigo-500/15 px-2 py-0.5 text-[12px] font-medium text-indigo-400 uppercase tracking-wider">
             AI-generated
           </span>
@@ -184,17 +184,17 @@ function FullInsightCard({ insight }: { insight: NarrativeInsight }) {
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-start gap-2">
-          <p className="text-sm font-semibold text-slate-100 leading-snug">
+          <p className="text-sm font-semibold text-heading leading-snug">
             {insight.title}
           </p>
           {insight.metric && (
-            <span className="flex-shrink-0 text-lg font-bold text-slate-100 leading-none tabular-nums">
+            <span className="flex-shrink-0 text-lg font-bold text-heading leading-none tabular-nums">
               {insight.metric}
             </span>
           )}
         </div>
 
-        <p className="mt-1 text-xs leading-relaxed text-dim">
+        <p className="mt-1 text-xs leading-relaxed text-body">
           {insight.body}
         </p>
 

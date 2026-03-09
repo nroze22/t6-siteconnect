@@ -115,7 +115,7 @@ export function ScreeningPage() {
                 <button
                   onClick={() => setShowStudyPicker(!showStudyPicker)}
                   disabled={screening}
-                  className="flex items-center gap-1.5 rounded-lg border border-edge-2 bg-surface-2 px-3 py-1.5 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body disabled:opacity-50"
+                  className="flex items-center gap-1.5 rounded-lg border border-edge-2 bg-surface-2 px-3 py-1.5 text-[12px] font-medium text-body transition-colors hover:bg-surface-3 hover:text-heading disabled:opacity-50"
                 >
                   {screening ? (
                     <Loader2 className="h-3 w-3 animate-spin" />

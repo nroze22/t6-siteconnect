@@ -603,7 +603,7 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
                     {tp.currentValue} <span className="text-[12px] font-normal text-dim">{tp.unit}</span>
                   </td>
                   <td className="px-4 py-2.5 text-center">
-                    <span className="rounded-md bg-surface-2 px-2 py-0.5 text-[12px] font-semibold text-dim ring-1 ring-edge-2">
+                    <span className="rounded-md bg-surface-2 px-2 py-0.5 text-[12px] font-semibold text-body ring-1 ring-edge-2">
                       {tp.direction === "rising" ? "≥" : "≤"} {tp.threshold}
                     </span>
                   </td>
@@ -645,7 +645,7 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
           <Brain className="h-4 w-4 text-indigo-400" />
           <span className="text-[12px] font-bold text-indigo-300">Why this matters</span>
         </div>
-        <p className="mt-2 text-[12px] leading-relaxed text-dim">
+        <p className="mt-2 text-[12px] leading-relaxed text-body">
           Subjects near eligibility thresholds represent your future pipeline. By monitoring lab trajectories,
           you can proactively schedule follow-up visits and labs at the right time — turning "almost eligible"
           subjects into enrolled participants without missing the window. This is predictive enrollment that
@@ -753,7 +753,7 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
             {profile.fdaComplianceNotes.map((note, i) => (
               <div key={i} className="flex items-start gap-2">
                 <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-emerald-400" />
-                <p className="text-[12px] leading-relaxed text-dim">{note}</p>
+                <p className="text-[12px] leading-relaxed text-body">{note}</p>
               </div>
             ))}
           </div>
@@ -896,7 +896,7 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
           <Brain className="h-4 w-4 text-indigo-400" />
           <span className="text-[12px] font-bold text-indigo-300">Sponsor Site Selection Advantage</span>
         </div>
-        <p className="mt-2 text-[12px] leading-relaxed text-dim">
+        <p className="mt-2 text-[12px] leading-relaxed text-body">
           This diversity profile demonstrates your site's ability to meet FDA diversity action plan requirements.
           Sites with strong demographic representation are increasingly preferred during site selection.
           Export this profile as a PDF to include in your site feasibility questionnaire responses — it gives

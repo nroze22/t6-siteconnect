@@ -195,7 +195,7 @@ export function ReviewQueuePage() {
         </p>
         <button
           onClick={() => setCurrentPage("import")}
-          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-[12px] font-semibold text-heading hover:bg-indigo-500"
+          className="mt-6 inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-[12px] font-semibold text-white hover:bg-indigo-500"
         >
           Import Subject Data
           <ArrowRight className="h-3.5 w-3.5" />
@@ -220,17 +220,17 @@ export function ReviewQueuePage() {
                 <span className="text-[12px] font-medium text-body tabular-nums">{selected.size} selected</span>
                 <div className="mx-1.5 h-4 w-px bg-surface-4" />
                 <Tooltip content="Accept selected" side="bottom">
-                  <button onClick={() => handleBulkAction("accepted")} className="rounded-md bg-emerald-600/80 p-1.5 text-heading transition-colors hover:bg-emerald-500">
+                  <button onClick={() => handleBulkAction("accepted")} className="rounded-md bg-emerald-600/80 p-1.5 text-white transition-colors hover:bg-emerald-500">
                     <Check className="h-3 w-3" />
                   </button>
                 </Tooltip>
                 <Tooltip content="Reject selected" side="bottom">
-                  <button onClick={() => handleBulkAction("rejected")} className="rounded-md bg-red-600/80 p-1.5 text-heading transition-colors hover:bg-red-500">
+                  <button onClick={() => handleBulkAction("rejected")} className="rounded-md bg-red-600/80 p-1.5 text-white transition-colors hover:bg-red-500">
                     <XIcon className="h-3 w-3" />
                   </button>
                 </Tooltip>
                 <Tooltip content="Defer selected" side="bottom">
-                  <button onClick={() => handleBulkAction("deferred")} className="rounded-md bg-amber-600/80 p-1.5 text-heading transition-colors hover:bg-amber-500">
+                  <button onClick={() => handleBulkAction("deferred")} className="rounded-md bg-amber-600/80 p-1.5 text-white transition-colors hover:bg-amber-500">
                     <Clock className="h-3 w-3" />
                   </button>
                 </Tooltip>
@@ -422,7 +422,7 @@ export function ReviewQueuePage() {
                           <Tooltip content="Accept" side="top">
                             <button
                               onClick={() => { reviewPatient(p.id, "accepted"); toast.success(`${p.sitePatientId} accepted`); }}
-                              className="rounded-md bg-emerald-600/80 p-1.5 text-heading transition-colors hover:bg-emerald-500"
+                              className="rounded-md bg-emerald-600/80 p-1.5 text-white transition-colors hover:bg-emerald-500"
                             >
                               <Check className="h-3 w-3" />
                             </button>
@@ -430,7 +430,7 @@ export function ReviewQueuePage() {
                           <Tooltip content="Reject" side="top">
                             <button
                               onClick={() => { reviewPatient(p.id, "rejected"); toast.error(`${p.sitePatientId} rejected`); }}
-                              className="rounded-md bg-red-600/80 p-1.5 text-heading transition-colors hover:bg-red-500"
+                              className="rounded-md bg-red-600/80 p-1.5 text-white transition-colors hover:bg-red-500"
                             >
                               <XIcon className="h-3 w-3" />
                             </button>
@@ -438,7 +438,7 @@ export function ReviewQueuePage() {
                           <Tooltip content="Defer" side="top">
                             <button
                               onClick={() => { reviewPatient(p.id, "deferred"); toast.warning(`${p.sitePatientId} deferred`); }}
-                              className="rounded-md bg-amber-600/80 p-1.5 text-heading transition-colors hover:bg-amber-500"
+                              className="rounded-md bg-amber-600/80 p-1.5 text-white transition-colors hover:bg-amber-500"
                             >
                               <Clock className="h-3 w-3" />
                             </button>
@@ -557,7 +557,7 @@ function StatPill({ icon, count, label, color }: { icon: React.ReactNode; count:
     <div className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-semibold ${colorMap[color] ?? ""}`}>
       {icon}
       <span className="tabular-nums">{count}</span>
-      <span className="opacity-60">{label}</span>
+      <span className="text-dim">{label}</span>
     </div>
   );
 }

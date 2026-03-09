@@ -221,7 +221,7 @@ function StudyCard({
                 {model.confidence} conf.
               </span>
             </div>
-            <h3 className="mt-1.5 text-[13px] font-bold text-slate-100 leading-snug">{study.shortTitle}</h3>
+            <h3 className="mt-1.5 text-[13px] font-bold text-heading leading-snug">{study.shortTitle}</h3>
             <p className="mt-0.5 flex items-center gap-1.5 text-[12px] text-dim">
               <Building2 className="h-3 w-3" />
               {ps.sponsor}
@@ -341,15 +341,15 @@ function StudyCard({
                     <div className="mt-2 space-y-1 text-[12px]">
                       <div className="flex justify-between">
                         <span className="text-dim">Sponsor Type</span>
-                        <span className="text-dim capitalize">{ps.leadSponsorType}</span>
+                        <span className="text-body capitalize">{ps.leadSponsorType}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-dim">Intervention</span>
-                        <span className="text-dim">{ps.interventions.map(i => i.name).slice(0, 2).join(", ")}</span>
+                        <span className="text-body">{ps.interventions.map(i => i.name).slice(0, 2).join(", ")}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-dim">Target Enrollment</span>
-                        <span className="text-dim">{formatNumber(ps.enrollmentTarget)} patients</span>
+                        <span className="text-body">{formatNumber(ps.enrollmentTarget)} patients</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-dim">Active Sites</span>
@@ -359,7 +359,7 @@ function StudyCard({
                       </div>
                       <div className="flex justify-between">
                         <span className="text-dim">Competing Studies</span>
-                        <span className="text-dim">{ps.competition.competingStudyCount} in same TA+phase</span>
+                        <span className="text-body">{ps.competition.competingStudyCount} in same TA+phase</span>
                       </div>
                     </div>
                   </div>
@@ -367,7 +367,7 @@ function StudyCard({
                     <h4 className="text-[12px] font-bold uppercase tracking-wider text-dim">Key Inclusion Criteria</h4>
                     <ul className="mt-2 space-y-0.5">
                       {ps.keyInclusionCriteria.slice(0, 5).map((c, i) => (
-                        <li key={i} className="text-[12px] text-dim flex items-start gap-1">
+                        <li key={i} className="text-[12px] text-body flex items-start gap-1">
                           <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-emerald-500" />
                           {c}
                         </li>
@@ -406,7 +406,7 @@ function StudyCard({
                           </div>
                           <div className="flex justify-between">
                             <span className="text-dim">Break-even</span>
-                            <span className="text-dim">{s.breakEvenEnrollment} pts</span>
+                            <span className="text-body">{s.breakEvenEnrollment} pts</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-dim">Total net</span>
@@ -468,7 +468,7 @@ function StudyCard({
                       .slice(0, 5)
                       .map((d, i) => (
                         <div key={i} className="flex items-center justify-between text-[12px]">
-                          <span className="text-dim">{d.label} <span className="text-dim">×{d.quantity}</span></span>
+                          <span className="text-body">{d.label} <span className="text-dim">×{d.quantity}</span></span>
                           <span className="font-semibold text-emerald-400">{formatCurrency(d.totalCents)}</span>
                         </div>
                       ))}

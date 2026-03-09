@@ -237,7 +237,7 @@ export function FileDropZone({ onFileSelected, selectedFile, onClear }: FileDrop
               className="rounded-xl border border-edge-2 bg-card"
             >
               <div className="flex items-center justify-between border-b border-edge-2 px-4 py-3">
-                <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-body">
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
                   Data Preview (first {preview.rows.length} rows of {preview.totalRows.toLocaleString()})
                 </h3>
@@ -249,7 +249,7 @@ export function FileDropZone({ onFileSelected, selectedFile, onClear }: FileDrop
                       {preview.headers.map((header, idx) => (
                         <th
                           key={`${header}-${idx}`}
-                          className="whitespace-nowrap px-3 py-2 text-left font-semibold text-muted-foreground"
+                          className="whitespace-nowrap px-3 py-2 text-left font-semibold text-body"
                         >
                           {header}
                         </th>

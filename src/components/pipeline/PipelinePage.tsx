@@ -405,7 +405,7 @@ function PipelineCard({ patient, expanded, onToggle, onAdvance, onLogCall, onAdd
         <div className="border-t border-edge-2 px-3 py-2.5 space-y-2">
           <div>
             <span className="text-[9px] font-semibold uppercase tracking-wider text-dim">Diagnosis</span>
-            <p className="text-[12px] text-dim truncate">{patient.diagnosis}</p>
+            <p className="text-[12px] text-body truncate">{patient.diagnosis}</p>
           </div>
           <div>
             <span className="text-[9px] font-semibold uppercase tracking-wider text-dim">Eligibility Score</span>
@@ -419,7 +419,7 @@ function PipelineCard({ patient, expanded, onToggle, onAdvance, onLogCall, onAdd
           {patient.notes && (
             <div>
               <span className="text-[9px] font-semibold uppercase tracking-wider text-dim">Notes</span>
-              <p className="text-[12px] text-dim whitespace-pre-line">{patient.notes}</p>
+              <p className="text-[12px] text-body whitespace-pre-line">{patient.notes}</p>
             </div>
           )}
           <div>
@@ -447,7 +447,7 @@ function PipelineCard({ patient, expanded, onToggle, onAdvance, onLogCall, onAdd
               <button
                 onClick={handleSubmitNote}
                 disabled={!noteText.trim()}
-                className="rounded-md bg-indigo-600 p-1.5 text-heading transition-colors hover:bg-indigo-500 disabled:opacity-30 disabled:hover:bg-indigo-600"
+                className="rounded-md bg-indigo-600 p-1.5 text-white transition-colors hover:bg-indigo-500 disabled:opacity-30 disabled:hover:bg-indigo-600"
               >
                 <Send className="h-3 w-3" />
               </button>
@@ -481,7 +481,7 @@ function PipelineCard({ patient, expanded, onToggle, onAdvance, onLogCall, onAdd
             {!isLastStage && (
               <button
                 onClick={onAdvance}
-                className="flex items-center gap-1 rounded-md bg-emerald-600/80 px-2 py-1 text-[12px] font-medium text-heading hover:bg-emerald-500 transition-colors active:scale-[0.97]"
+                className="flex items-center gap-1 rounded-md bg-emerald-600/80 px-2 py-1 text-[12px] font-medium text-white hover:bg-emerald-500 transition-colors active:scale-[0.97]"
               >
                 <ArrowRight className="h-3 w-3" /> Advance
               </button>
@@ -535,7 +535,7 @@ function PipelineInfoModal({ onClose }: { onClose: () => void }) {
 
           <div className="rounded-lg bg-surface-1 px-4 py-3 ring-1 ring-edge-2">
             <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-1.5">Why This Matters</p>
-            <p className="text-[12px] text-dim leading-relaxed">
+            <p className="text-[12px] text-body leading-relaxed">
               Sites lose 20-30% of eligible subjects between identification and enrollment. This pipeline ensures no candidate falls through the cracks, shortening enrollment timelines and maximizing per-study revenue.
             </p>
           </div>

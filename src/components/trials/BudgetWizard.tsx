@@ -686,9 +686,9 @@ function SummaryCard({ label, value, sub, color }: { label: string; value: strin
   };
   return (
     <div className={`rounded-xl p-3.5 ring-1 ${colors[color] ?? colors.blue}`}>
-      <p className="text-[12px] font-medium opacity-60">{label}</p>
+      <p className="text-[12px] font-medium text-body">{label}</p>
       <p className="mt-1 text-[18px] font-black capitalize">{value}</p>
-      <p className="text-[12px] opacity-50">{sub}</p>
+      <p className="text-[12px] text-dim">{sub}</p>
     </div>
   );
 }
@@ -735,19 +735,19 @@ function ScenarioCard({ scenario, color, highlight }: { scenario: ScenarioCase; 
         <div className="grid grid-cols-2 gap-2 text-[12px]">
           <div>
             <p className="text-dim">Enrollment</p>
-            <p className="font-semibold text-dim">{scenario.enrollmentCount}</p>
+            <p className="font-semibold text-body">{scenario.enrollmentCount}</p>
           </div>
           <div>
             <p className="text-dim">Screen-Fail</p>
-            <p className="font-semibold text-dim">{scenario.screenFailRate}%</p>
+            <p className="font-semibold text-body">{scenario.screenFailRate}%</p>
           </div>
           <div>
             <p className="text-dim">Completion</p>
-            <p className="font-semibold text-dim">{scenario.completionRate}%</p>
+            <p className="font-semibold text-body">{scenario.completionRate}%</p>
           </div>
           <div>
             <p className="text-dim">Break-Even</p>
-            <p className="font-semibold text-dim">{scenario.breakEvenEnrollment} pts</p>
+            <p className="font-semibold text-body">{scenario.breakEvenEnrollment} pts</p>
           </div>
         </div>
       </div>

@@ -61,7 +61,7 @@ export function OverrideModal() {
               <h2 className="text-sm font-bold text-foreground">
                 Manual Override
               </h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">
+              <p className="mt-0.5 text-xs text-body">
                 Override the automated screening result for this criterion.
               </p>
             </div>
@@ -78,13 +78,13 @@ export function OverrideModal() {
         <div className="p-5">
           {/* Criterion text */}
           <div className="rounded-lg bg-muted/50 p-3">
-            <p className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-body">
               {criterion.criterionType === "inclusion" ? "Inclusion" : "Exclusion"} Criterion
             </p>
             <p className="mt-1 text-xs leading-relaxed text-foreground">
               {criterion.criterionText}
             </p>
-            <p className="mt-2 text-[12px] text-muted-foreground">
+            <p className="mt-2 text-[12px] text-body">
               Current result:{" "}
               <span className="font-semibold">
                 {criterion.result === "met" ? "Met" : criterion.result === "not_met" ? "Not Met" : criterion.result === "unknown" ? "Unknown" : "Needs Review"}
@@ -106,7 +106,7 @@ export function OverrideModal() {
                   className={`rounded-lg border px-3 py-2 text-xs font-medium transition-all ${
                     selectedOverride === opt.value
                       ? `${opt.color} ring-2 ring-primary/30`
-                      : "border-border text-muted-foreground hover:border-foreground/30"
+                      : "border-border text-body hover:border-foreground/30"
                   }`}
                 >
                   {opt.label}

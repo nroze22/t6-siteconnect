@@ -667,7 +667,7 @@ function MultiStudyMatchingTab({ patients }: { patients: ParsedPatient[] }) {
           <GitBranch className="h-4.5 w-4.5 text-purple-400" />
           <h3 className="text-[13px] font-bold text-purple-300">Multi-Study Eligible Subjects</h3>
         </div>
-        <p className="text-[12px] text-dim">
+        <p className="text-[12px] text-body">
           <span className="font-bold text-purple-400">{matches.length} subjects</span> are eligible for multiple studies simultaneously.
           Cross-enrolling maximizes per-subject revenue and reduces recruitment costs.
         </p>
@@ -721,7 +721,7 @@ function MultiStudyMatchingTab({ patients }: { patients: ParsedPatient[] }) {
           <div className="flex h-48 items-center justify-center rounded-xl border border-edge-2 bg-card">
             <div className="text-center">
               <GitBranch className="mx-auto h-8 w-8 text-dim mb-2" />
-              <p className="text-[13px] text-dim">No cross-study matches found</p>
+              <p className="text-[13px] text-body">No cross-study matches found</p>
               <p className="text-[12px] text-dim">Import more subject data to find multi-study candidates</p>
             </div>
           </div>
@@ -768,7 +768,7 @@ function PerformanceInfoModal({ onClose }: { onClose: () => void }) {
 
           <div className="rounded-lg bg-surface-1 px-4 py-3 ring-1 ring-edge-2">
             <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-1.5">The Bottom Line</p>
-            <p className="text-[12px] text-dim leading-relaxed">
+            <p className="text-[12px] text-body leading-relaxed">
               Sponsors select sites based on metrics. Sites that can demonstrate strong screen pass rates, fast enrollment velocity, and diverse subject populations win more studies. This dashboard gives you the data to prove it.
             </p>
           </div>

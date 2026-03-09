@@ -541,14 +541,14 @@ export function ImportPage() {
                     onClick={() => setShowProfiles((p) => !p)}
                     className="flex w-full items-center justify-between border-b border-border px-4 py-3"
                   >
-                    <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-body">
                       <Bookmark className="h-3.5 w-3.5" />
                       Saved Import Profiles ({importProfiles.length})
                     </h3>
                     {showProfiles ? (
-                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                      <ChevronUp className="h-4 w-4 text-body" />
                     ) : (
-                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      <ChevronDown className="h-4 w-4 text-body" />
                     )}
                   </button>
                   {showProfiles && (
@@ -732,7 +732,7 @@ export function ImportPage() {
               {/* Recent imports */}
               {importHistory.length > 0 && (
                 <div>
-                  <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-body">
                     <Clock className="h-3.5 w-3.5" />
                     Recent Imports
                   </h3>
@@ -821,7 +821,7 @@ export function ImportPage() {
               {realPreview?.sheets && realPreview.sheets.length > 1 && (
                 <div className="rounded-xl border border-border bg-card">
                   <div className="border-b border-border px-4 py-3">
-                    <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-body">
                       <Layers className="h-3.5 w-3.5" />
                       Sheets Detected ({realPreview.sheets.length})
                     </h3>
@@ -882,7 +882,7 @@ export function ImportPage() {
                     key={stat.label}
                     className="rounded-lg border border-border bg-card px-4 py-3"
                   >
-                    <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="flex items-center gap-2 text-body">
                       {stat.icon}
                       <span className="text-[12px] font-semibold uppercase tracking-wider">
                         {stat.label}
@@ -896,7 +896,7 @@ export function ImportPage() {
               {/* Data preview table */}
               <div className="rounded-xl border border-border bg-card">
                 <div className="border-b border-border px-4 py-3">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-body">
                     Data Preview (first {previewRows.length} rows of {totalRows.toLocaleString()})
                   </h3>
                 </div>
@@ -907,7 +907,7 @@ export function ImportPage() {
                         {previewHeaders.slice(0, displayCols).map((col) => (
                           <th
                             key={col}
-                            className="whitespace-nowrap px-3 py-2 text-left font-semibold text-muted-foreground"
+                            className="whitespace-nowrap px-3 py-2 text-left font-semibold text-body"
                           >
                             {col}
                           </th>
@@ -1045,7 +1045,7 @@ export function ImportPage() {
                     {validationReport.field_coverage.length > 0 && (
                       <div className="rounded-xl border border-border bg-card">
                         <div className="border-b border-border px-4 py-3">
-                          <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-body">
                             <BarChart3 className="h-3.5 w-3.5" />
                             Field Coverage
                           </h4>
@@ -1204,7 +1204,7 @@ export function ImportPage() {
                 {/* Progress bar */}
                 <div>
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs font-medium text-muted-foreground">Progress</span>
+                    <span className="text-xs font-medium text-body">Progress</span>
                     <span className="font-mono text-xs font-bold text-foreground">{progress}%</span>
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-surface-2">
@@ -1296,7 +1296,7 @@ export function ImportPage() {
                         {stat.icon}
                       </div>
                       <span className="mt-2 text-lg font-bold text-foreground">{stat.value}</span>
-                      <span className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">
+                      <span className="text-[12px] font-medium uppercase tracking-wider text-body">
                         {stat.label}
                       </span>
                     </div>
@@ -1358,7 +1358,7 @@ export function ImportPage() {
                     {!showProfileSave ? (
                       <button
                         onClick={() => setShowProfileSave(true)}
-                        className="flex w-full items-center justify-center gap-2 px-4 py-3 text-[12px] font-medium text-muted-foreground transition-colors hover:bg-surface-1 hover:text-body"
+                        className="flex w-full items-center justify-center gap-2 px-4 py-3 text-[12px] font-medium text-body transition-colors hover:bg-surface-1 hover:text-heading"
                       >
                         <Save className="h-3.5 w-3.5" />
                         Save column mapping as a profile for future imports
