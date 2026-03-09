@@ -133,6 +133,7 @@ function WatcherPanel() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const toast = useToast();
+  const setCurrentPage = useAppStore((s) => s.setCurrentPage);
 
   useEffect(() => {
     getWatcherStatus().then((s) => {
@@ -226,7 +227,7 @@ function WatcherPanel() {
             )}
           </div>
           <p className="mt-0.5 text-[12px] text-dim">
-            Watch a local folder for new CSV exports. Files are auto-imported and screened.
+            Watch a local folder for new data files (CSV, TSV, Excel). Files are auto-imported and screened.
           </p>
         </div>
       </div>
@@ -266,7 +267,7 @@ function WatcherPanel() {
             </button>
           )}
           <p className="text-[12px] text-dim">
-            {status.active ? "Monitoring for new .csv files using OS file events." : "Select a folder and click Start to begin."}
+            {status.active ? "Monitoring for new CSV, TSV, and Excel files using OS file events." : "Select a folder and click Start to begin."}
           </p>
         </div>
 
@@ -275,8 +276,8 @@ function WatcherPanel() {
           <div className="space-y-1.5 text-[12px] text-dim">
             <p>1. Point to your EMR export folder (e.g., where Epic Clarity drops CSVs)</p>
             <p>2. OS-level file events — no polling, instant detection</p>
-            <p>3. New .csv files are auto-imported, columns auto-mapped, subjects screened</p>
-            <p>4. Notification when new subjects are ready for review</p>
+            <p>3. New .csv, .tsv, .xlsx, and .xls files are detected automatically</p>
+            <p>4. Preview and import files, then subjects are screened against active studies</p>
           </div>
         </div>
 
@@ -293,12 +294,17 @@ function WatcherPanel() {
                   </div>
                   <button
                     onClick={() => {
-                      toast.success("Import started", f.file_name);
-                      setTimeout(() => toast.success("Import complete", `${f.file_name} — subjects added to screening`), 1500);
+                      // Store the file path so the import page can pick it up
+                      sessionStorage.setItem("siteconnect-import-file", JSON.stringify({
+                        path: f.path,
+                        name: f.file_name,
+                        size: f.size_bytes,
+                      }));
+                      setCurrentPage("import");
                     }}
-                    className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold text-emerald-400 ring-1 ring-emerald-500/20 hover:bg-emerald-500/20 transition-colors"
+                    className="rounded-md bg-indigo-500/10 px-2.5 py-1 text-[10px] font-semibold text-indigo-400 ring-1 ring-indigo-500/20 hover:bg-indigo-500/20 transition-colors"
                   >
-                    Import
+                    Preview & Import
                   </button>
                 </div>
               ))}

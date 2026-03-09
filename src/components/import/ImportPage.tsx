@@ -37,19 +37,23 @@ import {
   previewRealFile,
   executeRealImport,
   pickImportFile,
+  validateImport,
   type RustImportPreview,
   type RustColumnMapping,
+  type ValidationReport,
 } from "@/lib/real-import";
+import {
+  AlertTriangle,
+  AlertCircle,
+  Info,
+  ShieldCheck,
+} from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Preview rows — first 5 unique patients from Epic data
 // ---------------------------------------------------------------------------
 
 const PREVIEW_ROWS = EPIC_ROWS.slice(0, 5);
-
-const MOCK_RECENT_IMPORTS = [
-  { name: "epic_clarity_q4_2025.csv", date: "2025-12-15", records: 1208 },
-];
 
 const PROGRESS_STAGES = [
   { label: "Parsing Epic CSV format...", duration: 600 },
@@ -62,7 +66,17 @@ const PROGRESS_STAGES = [
   { label: "Indexing for screening queue...", duration: 400 },
 ];
 
-type ImportStep = "select" | "preview" | "importing" | "complete";
+type ImportStep = "select" | "preview" | "validate" | "importing" | "complete";
+
+// ---------------------------------------------------------------------------
+// Import history type
+// ---------------------------------------------------------------------------
+
+interface ImportHistoryEntry {
+  name: string;
+  date: string;
+  records: number;
+}
 
 // ---------------------------------------------------------------------------
 // Step indicator
@@ -71,6 +85,7 @@ type ImportStep = "select" | "preview" | "importing" | "complete";
 const STEPS: { key: ImportStep; label: string }[] = [
   { key: "select", label: "Select File" },
   { key: "preview", label: "Map Columns" },
+  { key: "validate", label: "Validate" },
   { key: "importing", label: "Import" },
   { key: "complete", label: "Complete" },
 ];
@@ -135,6 +150,13 @@ export function ImportPage() {
   const [realPreview, setRealPreview] = useState<RustImportPreview | null>(null);
   const [realMapping, setRealMapping] = useState<RustColumnMapping | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
+  // Validation state
+  const [validationReport, setValidationReport] = useState<ValidationReport | null>(null);
+  const [isValidating, setIsValidating] = useState(false);
+  // Import history
+  const [importHistory, setImportHistory] = useState<ImportHistoryEntry[]>([
+    { name: "epic_clarity_q4_2025.csv", date: "2025-12-15", records: 1208 },
+  ]);
 
   // Store access for loading imported patients into screening
   const setPatients = useScreeningStore((s) => s.setPatients);
@@ -144,6 +166,22 @@ export function ImportPage() {
   const setAppStatus = useAppStore((s) => s.setStatus);
   const setCurrentPage = useAppStore((s) => s.setCurrentPage);
   const toast = useToast();
+
+  // Fetch real import history in Tauri mode
+  useEffect(() => {
+    if (!isTauri) return;
+    (async () => {
+      try {
+        const { invoke } = await import("@tauri-apps/api/core");
+        const history = await invoke<ImportHistoryEntry[]>("get_import_history");
+        if (history.length > 0) {
+          setImportHistory(history);
+        }
+      } catch {
+        // Command may not exist yet — keep mock data
+      }
+    })();
+  }, []);
 
   // Handle file selection — auto-detect Epic format
   const handleFileSelected = useCallback(async (file: SelectedFile) => {
@@ -171,6 +209,22 @@ export function ImportPage() {
       }
     }
   }, []);
+
+  // Check if a file was passed from the watcher panel via session storage
+  useEffect(() => {
+    const stored = sessionStorage.getItem("siteconnect-import-file");
+    if (stored) {
+      sessionStorage.removeItem("siteconnect-import-file");
+      try {
+        const parsed = JSON.parse(stored) as { path: string; name: string; size: number };
+        const ext = parsed.name.toLowerCase();
+        const format: SelectedFile["format"] = ext.endsWith(".xlsx") || ext.endsWith(".xls") ? "excel" : "csv";
+        void handleFileSelected({ name: parsed.name, size: parsed.size, format, path: parsed.path });
+      } catch {
+        // Invalid stored data — ignore
+      }
+    }
+  }, [handleFileSelected]);
 
   const handleFileClear = useCallback(() => {
     setSelectedFile(null);
@@ -202,7 +256,7 @@ export function ImportPage() {
   }, []);
 
   // Start the import — uses Rust backend in Tauri mode, demo data in web mode
-  const startImport = useCallback(() => {
+  const startImportExecution = useCallback(() => {
     setStep("importing");
     setProgress(0);
     setRecordsProcessed(0);
@@ -327,7 +381,28 @@ export function ImportPage() {
     };
 
     runImport();
-  }, [setPatients, setScreeningResult, selectStudy, setAppStatus, selectedFile, realMapping, realPreview]);
+  }, [setPatients, setScreeningResult, setCriteriaResults, selectStudy, setAppStatus, setCurrentPage, selectedFile, realMapping, realPreview, toast]);
+
+  // Run validation before import (Tauri mode only)
+  const runValidation = useCallback(async () => {
+    if (isTauri && selectedFile?.path && realMapping) {
+      setIsValidating(true);
+      setStep("validate");
+      try {
+        const report = await validateImport(selectedFile.path, realMapping);
+        setValidationReport(report);
+      } catch {
+        // Validation command may not exist — skip validation and proceed
+        setValidationReport(null);
+        startImportExecution();
+      } finally {
+        setIsValidating(false);
+      }
+    } else {
+      // Web/demo mode — skip validation, go straight to import
+      startImportExecution();
+    }
+  }, [selectedFile, realMapping, startImportExecution]);
 
   // Navigate to screening after import
   const goToScreening = useCallback(() => {
@@ -344,6 +419,8 @@ export function ImportPage() {
     setProgressStage("");
     setRecordsProcessed(0);
     setImportResult(null);
+    setValidationReport(null);
+    setIsValidating(false);
   }, []);
 
   // Cleanup on unmount
@@ -402,14 +479,15 @@ export function ImportPage() {
                         const path = await pickImportFile();
                         if (path) {
                           const name = path.split("/").pop() ?? path;
-                          // Get file size from Rust
-                          handleFileSelected({ name, size: 0, format: "csv", path });
+                          const lower = name.toLowerCase();
+                          const format: SelectedFile["format"] = (lower.endsWith(".xlsx") || lower.endsWith(".xls")) ? "excel" : "csv";
+                          void handleFileSelected({ name, size: 0, format, path });
                         }
                       }}
                       className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-indigo-500"
                     >
                       <FileUp className="h-3.5 w-3.5" />
-                      Select CSV from Disk
+                      Select File from Disk
                     </button>
                   )}
                   <button
@@ -423,16 +501,16 @@ export function ImportPage() {
               )}
 
               {/* Recent imports */}
-              {MOCK_RECENT_IMPORTS.length > 0 && (
+              {importHistory.length > 0 && (
                 <div>
                   <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     <Clock className="h-3.5 w-3.5" />
                     Recent Imports
                   </h3>
                   <div className="space-y-2">
-                    {MOCK_RECENT_IMPORTS.map((imp) => (
+                    {importHistory.map((imp) => (
                       <div
-                        key={imp.name}
+                        key={`${imp.name}-${imp.date}`}
                         className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3"
                       >
                         <div className="flex items-center gap-3">
@@ -443,7 +521,7 @@ export function ImportPage() {
                           </div>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          {imp.records} records
+                          {imp.records.toLocaleString()} records
                         </span>
                       </div>
                     ))}
@@ -469,16 +547,33 @@ export function ImportPage() {
           {/* ============================================= */}
           {/* Step 2: Preview & Column Mapping              */}
           {/* ============================================= */}
-          {step === "preview" && (
+          {step === "preview" && (() => {
+            // Use real data from Rust when available, otherwise fall back to demo
+            const previewHeaders = realPreview ? realPreview.headers : EPIC_COLUMNS;
+            const previewRows = realPreview ? realPreview.sample_rows : PREVIEW_ROWS;
+            const totalRows = realPreview ? realPreview.total_rows : EPIC_ROWS.length;
+            const formatLabel = realPreview
+              ? (realPreview.format_detected === "long" ? "Long Format" : "Wide Format")
+              : "Epic Clarity CSV";
+            const columnCount = previewHeaders.length;
+            const displayCols = Math.min(columnCount, 12);
+            const uniqueSubjects = realPreview
+              ? realPreview.total_rows
+              : new Set(EPIC_ROWS.map((r) => r[0])).size;
+
+            return (
             <div className="space-y-6">
               {/* Format detection banner */}
               <div className="flex items-center gap-3 rounded-xl border border-indigo-500/15 bg-indigo-500/5 px-4 py-3 ring-1 ring-indigo-500/10">
                 <Sparkles className="h-5 w-5 text-indigo-400" />
                 <div>
-                  <p className="text-[12px] font-semibold text-indigo-300">Epic Clarity Format Detected</p>
+                  <p className="text-[12px] font-semibold text-indigo-300">
+                    {realPreview ? `${formatLabel} Detected` : "Epic Clarity Format Detected"}
+                  </p>
                   <p className="text-[12px] text-dim">
-                    Recognized PAT_MRN_ID, CURRENT_ICD10_LIST, and {EPIC_COLUMNS.length - 2} other Epic Clarity columns.
-                    Auto-mapped {mappedCount} of {EPIC_COLUMNS.length} fields.
+                    {realPreview
+                      ? `Detected ${columnCount} columns in ${formatLabel.toLowerCase()} layout. Auto-mapped ${mappedCount} of ${columnCount} fields.`
+                      : `Recognized PAT_MRN_ID, CURRENT_ICD10_LIST, and ${EPIC_COLUMNS.length - 2} other Epic Clarity columns. Auto-mapped ${mappedCount} of ${EPIC_COLUMNS.length} fields.`}
                   </p>
                 </div>
               </div>
@@ -489,22 +584,22 @@ export function ImportPage() {
                   {
                     icon: <Table2 className="h-4 w-4" />,
                     label: "Format",
-                    value: "Epic Clarity CSV",
+                    value: formatLabel,
                   },
                   {
                     icon: <BarChart3 className="h-4 w-4" />,
-                    label: "Encounter Rows",
-                    value: `${EPIC_ROWS.length} rows`,
+                    label: "Data Rows",
+                    value: `${totalRows} rows`,
                   },
                   {
                     icon: <Users className="h-4 w-4" />,
                     label: "Unique Subjects",
-                    value: `${new Set(EPIC_ROWS.map((r) => r[0])).size} subjects`,
+                    value: `${uniqueSubjects} subjects`,
                   },
                   {
                     icon: <Columns3 className="h-4 w-4" />,
                     label: "Columns",
-                    value: `${EPIC_COLUMNS.length} fields`,
+                    value: `${columnCount} fields`,
                   },
                 ].map((stat) => (
                   <div
@@ -526,14 +621,14 @@ export function ImportPage() {
               <div className="rounded-xl border border-border bg-card">
                 <div className="border-b border-border px-4 py-3">
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Data Preview (first 5 encounter rows)
+                    Data Preview (first {previewRows.length} rows of {totalRows.toLocaleString()})
                   </h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b border-edge-2 bg-surface-1">
-                        {EPIC_COLUMNS.slice(0, 12).map((col) => (
+                        {previewHeaders.slice(0, displayCols).map((col) => (
                           <th
                             key={col}
                             className="whitespace-nowrap px-3 py-2 text-left font-semibold text-muted-foreground"
@@ -541,18 +636,20 @@ export function ImportPage() {
                             {col}
                           </th>
                         ))}
-                        <th className="whitespace-nowrap px-3 py-2 text-left font-semibold text-dim">
-                          +{EPIC_COLUMNS.length - 12} more...
-                        </th>
+                        {columnCount > displayCols && (
+                          <th className="whitespace-nowrap px-3 py-2 text-left font-semibold text-dim">
+                            +{columnCount - displayCols} more...
+                          </th>
+                        )}
                       </tr>
                     </thead>
                     <tbody>
-                      {PREVIEW_ROWS.map((row, i) => (
+                      {previewRows.map((row, i) => (
                         <tr
                           key={i}
                           className="border-b border-border/50 last:border-0"
                         >
-                          {row.slice(0, 12).map((cell, j) => (
+                          {row.slice(0, displayCols).map((cell, j) => (
                             <td
                               key={j}
                               className="max-w-[140px] truncate whitespace-nowrap px-3 py-2 font-mono text-foreground/80"
@@ -560,7 +657,9 @@ export function ImportPage() {
                               {cell}
                             </td>
                           ))}
-                          <td className="px-3 py-2 text-dim">...</td>
+                          {columnCount > displayCols && (
+                            <td className="px-3 py-2 text-dim">...</td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
@@ -608,12 +707,186 @@ export function ImportPage() {
                   Back
                 </button>
                 <button
-                  onClick={startImport}
+                  onClick={runValidation}
                   className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-indigo-500"
                 >
-                  Import & Screen {new Set(EPIC_ROWS.map((r) => r[0])).size} Subjects
+                  Import & Screen {uniqueSubjects} Subjects
                   <ArrowRight className="h-4 w-4" />
                 </button>
+              </div>
+            </div>
+            );
+          })()}
+
+          {/* ============================================= */}
+          {/* Step 2.5: Validation (Tauri mode only)        */}
+          {/* ============================================= */}
+          {step === "validate" && (
+            <div className="flex flex-col items-center py-8">
+              <div className="w-full max-w-lg space-y-6">
+                {isValidating ? (
+                  <>
+                    <div className="flex justify-center">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10 ring-1 ring-indigo-500/20">
+                        <Loader2 className="h-8 w-8 animate-spin text-indigo-400" />
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-foreground">Validating data...</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Checking field coverage, data quality, and duplicates
+                      </p>
+                    </div>
+                  </>
+                ) : validationReport ? (
+                  <>
+                    <div className="flex justify-center">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 ring-1 ring-emerald-500/20">
+                        <ShieldCheck className="h-8 w-8 text-emerald-400" />
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <h3 className="text-lg font-bold text-foreground">Validation Report</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {validationReport.valid_records} of {validationReport.total_records} records are valid
+                      </p>
+                    </div>
+
+                    {/* Field coverage */}
+                    {validationReport.field_coverage.length > 0 && (
+                      <div className="rounded-xl border border-border bg-card">
+                        <div className="border-b border-border px-4 py-3">
+                          <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            <BarChart3 className="h-3.5 w-3.5" />
+                            Field Coverage
+                          </h4>
+                        </div>
+                        <div className="p-4 space-y-3">
+                          {validationReport.field_coverage.map((fc) => (
+                            <div key={fc.field_name}>
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-[12px] font-medium text-body">{fc.field_name}</span>
+                                <span className="text-[12px] font-mono text-dim">
+                                  {fc.populated_count}/{fc.total_count} ({Math.round(fc.coverage_percent)}%)
+                                </span>
+                              </div>
+                              <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
+                                <div
+                                  className={`h-full rounded-full transition-all ${
+                                    fc.coverage_percent >= 90 ? "bg-emerald-500" :
+                                    fc.coverage_percent >= 50 ? "bg-amber-500" : "bg-red-500"
+                                  }`}
+                                  style={{ width: `${fc.coverage_percent}%` }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Duplicate patient IDs */}
+                    {validationReport.duplicate_patient_ids.length > 0 && (
+                      <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertTriangle className="h-4 w-4 text-amber-400" />
+                          <span className="text-xs font-semibold text-amber-400">
+                            {validationReport.duplicate_patient_ids.length} Duplicate Patient IDs
+                          </span>
+                        </div>
+                        <p className="text-[12px] text-amber-300/70">
+                          {validationReport.duplicate_patient_ids.slice(0, 5).join(", ")}
+                          {validationReport.duplicate_patient_ids.length > 5 && ` and ${validationReport.duplicate_patient_ids.length - 5} more`}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Warnings */}
+                    {validationReport.warnings.length > 0 && (
+                      <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertTriangle className="h-4 w-4 text-amber-400" />
+                          <span className="text-xs font-semibold text-amber-400">
+                            {validationReport.warnings.length} Warnings
+                          </span>
+                        </div>
+                        <div className="space-y-1 max-h-32 overflow-y-auto">
+                          {validationReport.warnings.slice(0, 10).map((w, i) => (
+                            <p key={i} className="text-[12px] text-amber-300/70">
+                              Patient {w.patient_id}: {w.field} — {w.message}
+                            </p>
+                          ))}
+                          {validationReport.warnings.length > 10 && (
+                            <p className="text-[12px] text-amber-300/50">
+                              ...and {validationReport.warnings.length - 10} more warnings
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Errors */}
+                    {validationReport.errors.length > 0 && (
+                      <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertCircle className="h-4 w-4 text-red-400" />
+                          <span className="text-xs font-semibold text-red-400">
+                            {validationReport.errors.length} Errors
+                          </span>
+                        </div>
+                        <div className="space-y-1 max-h-32 overflow-y-auto">
+                          {validationReport.errors.slice(0, 10).map((e, i) => (
+                            <p key={i} className="text-[12px] text-red-300/70">
+                              Patient {e.patient_id}: {e.field} — {e.message}
+                            </p>
+                          ))}
+                          {validationReport.errors.length > 10 && (
+                            <p className="text-[12px] text-red-300/50">
+                              ...and {validationReport.errors.length - 10} more errors
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* No issues */}
+                    {validationReport.warnings.length === 0 &&
+                     validationReport.errors.length === 0 &&
+                     validationReport.duplicate_patient_ids.length === 0 && (
+                      <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                          <span className="text-xs font-semibold text-emerald-400">
+                            All records passed validation
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex items-center justify-between pt-2">
+                      <button
+                        onClick={() => setStep("preview")}
+                        className="inline-flex items-center gap-2 rounded-lg border border-edge-3 bg-surface-2 px-4 py-2.5 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                        Back to Preview
+                      </button>
+                      <button
+                        onClick={startImportExecution}
+                        className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-indigo-500"
+                      >
+                        Proceed with Import
+                        <ArrowRight className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  /* Validation command not available — auto-proceed */
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">Proceeding to import...</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -635,7 +908,7 @@ export function ImportPage() {
                 <div className="text-center">
                   <p className="text-sm font-semibold text-foreground">{progressStage}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {recordsProcessed} of {EPIC_ROWS.length} encounter rows processed
+                    {recordsProcessed} of {realPreview ? realPreview.total_rows : EPIC_ROWS.length} rows processed
                   </p>
                 </div>
 
@@ -741,22 +1014,54 @@ export function ImportPage() {
                   ))}
                 </div>
 
-                {/* Info detail */}
-                {importResult.errors.length > 0 && (
-                  <div className="rounded-lg border border-indigo-500/15 bg-indigo-500/5 p-4 ring-1 ring-indigo-500/10">
-                    <div className="mb-2 flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-indigo-400" />
-                      <span className="text-xs font-semibold text-indigo-400">Import Summary</span>
-                    </div>
-                    <ul className="space-y-1">
-                      {importResult.errors.map((e, i) => (
-                        <li key={i} className="text-xs text-indigo-300/70">
-                          {e}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                {/* Import messages — distinguish info from real errors */}
+                {importResult.errors.length > 0 && (() => {
+                  // Messages starting with "Row" are real import errors from Rust
+                  const realErrors = importResult.errors.filter((e) => /^Row\s+\d+/.test(e));
+                  const infoMessages = importResult.errors.filter((e) => !/^Row\s+\d+/.test(e));
+
+                  return (
+                    <>
+                      {infoMessages.length > 0 && (
+                        <div className="rounded-lg border border-indigo-500/15 bg-indigo-500/5 p-4 ring-1 ring-indigo-500/10">
+                          <div className="mb-2 flex items-center gap-2">
+                            <Info className="h-4 w-4 text-indigo-400" />
+                            <span className="text-xs font-semibold text-indigo-400">Import Summary</span>
+                          </div>
+                          <ul className="space-y-1">
+                            {infoMessages.map((e, i) => (
+                              <li key={i} className="text-xs text-indigo-300/70">
+                                {e}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {realErrors.length > 0 && (
+                        <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4">
+                          <div className="mb-2 flex items-center gap-2">
+                            <AlertCircle className="h-4 w-4 text-red-400" />
+                            <span className="text-xs font-semibold text-red-400">
+                              {realErrors.length} Import {realErrors.length === 1 ? "Error" : "Errors"}
+                            </span>
+                          </div>
+                          <div className="space-y-1 max-h-32 overflow-y-auto">
+                            {realErrors.slice(0, 20).map((e, i) => (
+                              <p key={i} className="text-[12px] text-red-300/70">
+                                {e}
+                              </p>
+                            ))}
+                            {realErrors.length > 20 && (
+                              <p className="text-[12px] text-red-300/50">
+                                ...and {realErrors.length - 20} more errors
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
 
                 {/* Quick actions */}
                 <div className="flex flex-col gap-2 pt-2">

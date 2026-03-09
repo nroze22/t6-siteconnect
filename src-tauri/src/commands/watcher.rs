@@ -35,8 +35,8 @@ pub struct WatcherStatus {
     pub path: Option<String>,
 }
 
-/// Start watching a folder for new CSV files.
-/// Emits `watcher://file-detected` events to the frontend when a CSV appears.
+/// Start watching a folder for new data files (CSV, TSV, XLSX, XLS).
+/// Emits `watcher://file-detected` events to the frontend when a supported file appears.
 #[tauri::command]
 pub fn start_folder_watcher(
     app: AppHandle,
@@ -70,8 +70,8 @@ pub fn start_folder_watcher(
                         .unwrap_or("")
                         .to_lowercase();
 
-                    // Only CSV files
-                    if ext != "csv" {
+                    // Only supported import file types
+                    if !matches!(ext.as_str(), "csv" | "tsv" | "xlsx" | "xls") {
                         continue;
                     }
 
@@ -102,7 +102,7 @@ pub fn start_folder_watcher(
                     tracing::info!(
                         file = %payload.file_name,
                         size = payload.size_bytes,
-                        "CSV file detected in watched folder"
+                        "Data file detected in watched folder"
                     );
 
                     let _ = app_handle.emit("watcher://file-detected", payload);

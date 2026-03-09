@@ -311,7 +311,7 @@ export function FileDropZone({ onFileSelected, selectedFile, onClear }: FileDrop
             ref={inputRef}
             type="file"
             className="hidden"
-            accept=".csv"
+            accept=".csv,.tsv,.xlsx,.xls"
             onChange={handleInputChange}
           />
 
@@ -338,20 +338,20 @@ export function FileDropZone({ onFileSelected, selectedFile, onClear }: FileDrop
             {isParsing
               ? "Parsing file..."
               : isDragOver
-              ? "Drop your CSV file here"
-              : "Drop your CSV file here"}
+              ? "Drop your data file here"
+              : "Drop your CSV, TSV, or Excel file here"}
           </p>
           <p className="mt-1.5 text-[12px] text-dim">
-            {isDragOver ? "Release to load and preview" : "or click to browse your files"}
+            {isDragOver ? "Release to load and preview" : "Supports CSV, TSV, XLSX, and XLS formats"}
           </p>
 
           <div className="mt-6 flex items-center justify-center gap-2">
             {(
               [
-                { label: "Epic Clarity", color: "text-blue-400 bg-blue-500/10 ring-1 ring-blue-500/20" },
+                { label: "CSV / TSV", color: "text-blue-400 bg-blue-500/10 ring-1 ring-blue-500/20" },
+                { label: "Excel", color: "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20" },
                 { label: "FHIR Bundle", color: "text-violet-400 bg-violet-500/10 ring-1 ring-violet-500/20" },
                 { label: "HL7 v2", color: "text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20" },
-                { label: "CSV", color: "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20" },
               ] as const
             ).map((fmt) => (
               <span

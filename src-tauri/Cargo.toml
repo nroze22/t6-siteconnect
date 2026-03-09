@@ -38,6 +38,7 @@ zeroize = { version = "1", features = ["derive"] }
 sha2 = "0.10"
 hex = "0.4"
 notify = { version = "6", features = ["macos_fsevent"] }
+calamine = "0.25"
 
 [features]
 default = ["custom-protocol"]

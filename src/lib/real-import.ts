@@ -106,8 +106,49 @@ export function rustPatientsToScreeningFormat(patients: RustPatientRecord[]): im
   });
 }
 
+// ---------------------------------------------------------------------------
+// Validation types matching Rust backend
+// ---------------------------------------------------------------------------
+
+export interface ValidationReport {
+  total_records: number;
+  valid_records: number;
+  warnings: ValidationWarning[];
+  errors: ValidationError[];
+  field_coverage: FieldCoverage[];
+  duplicate_patient_ids: string[];
+}
+
+export interface ValidationWarning {
+  patient_id: string;
+  field: string;
+  message: string;
+}
+
+export interface ValidationError {
+  patient_id: string;
+  field: string;
+  message: string;
+}
+
+export interface FieldCoverage {
+  field_name: string;
+  populated_count: number;
+  total_count: number;
+  coverage_percent: number;
+}
+
 /**
- * Open a file dialog to select a CSV file (Tauri only).
+ * Call Rust backend to validate an import before executing it.
+ */
+export async function validateImport(path: string, mapping: RustColumnMapping): Promise<ValidationReport> {
+  if (!isTauri) throw new Error("Validation only available in Tauri mode");
+  const { invoke } = await import("@tauri-apps/api/core");
+  return invoke<ValidationReport>("validate_import", { path, mapping });
+}
+
+/**
+ * Open a file dialog to select a patient data file (Tauri only).
  */
 export async function pickImportFile(): Promise<string | null> {
   if (!isTauri) return null;
@@ -115,7 +156,9 @@ export async function pickImportFile(): Promise<string | null> {
   const result = await open({
     title: "Select Patient Data File",
     filters: [
+      { name: "Data Files", extensions: ["csv", "tsv", "xlsx", "xls"] },
       { name: "CSV Files", extensions: ["csv", "tsv"] },
+      { name: "Excel Files", extensions: ["xlsx", "xls"] },
       { name: "All Files", extensions: ["*"] },
     ],
   });

@@ -178,13 +178,25 @@ export async function pickWatchFolder(): Promise<string | null> {
   return null;
 }
 
+/** File extensions accepted by the watcher and import pipeline */
+export const ACCEPTED_EXTENSIONS = [".csv", ".tsv", ".xlsx", ".xls"];
+
+/** Check if a filename has an accepted data file extension */
+export function isAcceptedFileExtension(fileName: string): boolean {
+  const lower = fileName.toLowerCase();
+  return ACCEPTED_EXTENSIONS.some((ext) => lower.endsWith(ext));
+}
+
 export async function listenForFileDetected(
   callback: (event: FileDetectedEvent) => void
 ): Promise<(() => void) | null> {
   if (!isTauri) return null;
   const { listen } = await import("@tauri-apps/api/event");
   const unlisten = await listen<FileDetectedEvent>("watcher://file-detected", (event) => {
-    callback(event.payload);
+    // Filter to only accepted file extensions
+    if (isAcceptedFileExtension(event.payload.file_name)) {
+      callback(event.payload);
+    }
   });
   return unlisten;
 }
@@ -219,4 +231,11 @@ export async function deleteDatabaseFile(): Promise<void> {
   const dir = await appDataDir();
   const dbPath = await join(dir, "siteconnect.db");
   await remove(dbPath);
+}
+
+/** Open a file path with the system's default application */
+export async function openFilePath(path: string): Promise<void> {
+  if (!isTauri) return;
+  const { open } = await import("@tauri-apps/plugin-shell");
+  await open(path);
 }

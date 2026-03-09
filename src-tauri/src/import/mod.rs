@@ -3,10 +3,11 @@ pub mod mapping;
 use std::collections::HashMap;
 use std::path::Path;
 
+use calamine::{open_workbook_auto, Reader};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::import::mapping::{auto_map_columns, ColumnMapping, MappedField};
+use crate::import::mapping::{auto_map_columns, ColumnMapping};
 
 #[derive(Error, Debug)]
 pub enum ImportError {
@@ -18,12 +19,26 @@ pub enum ImportError {
     CsvError(#[from] csv::Error),
     #[error("IO error: {0}")]
     IoError(#[from] std::io::Error),
+    #[error("XLSX parse error: {0}")]
+    XlsxError(String),
     #[error("Missing required column mapping: {0}")]
     MissingRequiredMapping(String),
     #[error("Invalid data in row {row}: {message}")]
     InvalidData { row: usize, message: String },
     #[error("Database error: {0}")]
     DatabaseError(String),
+}
+
+impl From<calamine::Error> for ImportError {
+    fn from(err: calamine::Error) -> Self {
+        ImportError::XlsxError(err.to_string())
+    }
+}
+
+impl From<calamine::XlsxError> for ImportError {
+    fn from(err: calamine::XlsxError) -> Self {
+        ImportError::XlsxError(err.to_string())
+    }
 }
 
 /// Detected file format information.
@@ -123,6 +138,388 @@ pub struct LabResultRecord {
     pub reference_range: Option<String>,
     pub result_date: Option<String>,
     pub abnormal_flag: Option<String>,
+}
+
+// --- Validation types ---
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidationReport {
+    pub total_records: usize,
+    pub valid_records: usize,
+    pub warnings: Vec<ValidationWarning>,
+    pub errors: Vec<ValidationError>,
+    pub field_coverage: Vec<FieldCoverage>,
+    pub duplicate_patient_ids: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidationWarning {
+    pub patient_id: String,
+    pub field: String,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidationError {
+    pub patient_id: String,
+    pub field: String,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FieldCoverage {
+    pub field_name: String,
+    pub populated_count: usize,
+    pub total_count: usize,
+    pub coverage_percent: f64,
+}
+
+// --- Date normalization ---
+
+/// Normalize a date string to YYYY-MM-DD format.
+/// Handles: YYYY-MM-DD, YYYY/MM/DD, MM/DD/YYYY, MM-DD-YYYY, M/D/YYYY.
+/// Returns None for unrecognizable formats.
+pub fn normalize_date(input: &str) -> Option<String> {
+    let input = input.trim();
+    if input.is_empty() {
+        return None;
+    }
+
+    // Try YYYY-MM-DD or YYYY/MM/DD
+    if let Some(caps) = parse_ymd(input) {
+        return Some(caps);
+    }
+
+    // Try MM/DD/YYYY or MM-DD-YYYY (also handles M/D/YYYY)
+    if let Some(caps) = parse_mdy(input) {
+        return Some(caps);
+    }
+
+    None
+}
+
+fn parse_ymd(input: &str) -> Option<String> {
+    // Split on - or /
+    let parts: Vec<&str> = if input.contains('-') {
+        input.splitn(3, '-').collect()
+    } else if input.contains('/') {
+        input.splitn(3, '/').collect()
+    } else {
+        return None;
+    };
+
+    if parts.len() != 3 {
+        return None;
+    }
+
+    let first: u32 = parts[0].parse().ok()?;
+    let second: u32 = parts[1].parse().ok()?;
+    let third: u32 = parts[2].parse().ok()?;
+
+    // If first part is >= 1000, treat as year (YYYY-MM-DD or YYYY/MM/DD)
+    if first >= 1000 {
+        let year = first;
+        let month = second;
+        let day = third;
+        if month >= 1 && month <= 12 && day >= 1 && day <= 31 {
+            return Some(format!("{:04}-{:02}-{:02}", year, month, day));
+        }
+    }
+
+    None
+}
+
+fn parse_mdy(input: &str) -> Option<String> {
+    let parts: Vec<&str> = if input.contains('/') {
+        input.splitn(3, '/').collect()
+    } else if input.contains('-') {
+        input.splitn(3, '-').collect()
+    } else {
+        return None;
+    };
+
+    if parts.len() != 3 {
+        return None;
+    }
+
+    let first: u32 = parts[0].parse().ok()?;
+    let second: u32 = parts[1].parse().ok()?;
+    let third: u32 = parts[2].parse().ok()?;
+
+    // If third part is >= 1000, treat as MM/DD/YYYY or MM-DD-YYYY
+    if third >= 1000 && first >= 1 && first <= 12 && second >= 1 && second <= 31 {
+        return Some(format!("{:04}-{:02}-{:02}", third, first, second));
+    }
+
+    None
+}
+
+// --- Gender normalization ---
+
+/// Normalize gender values to "Male", "Female", or "Other".
+pub fn normalize_gender(input: &str) -> String {
+    match input.trim().to_lowercase().as_str() {
+        "m" | "male" => "Male".to_string(),
+        "f" | "female" => "Female".to_string(),
+        "" => String::new(),
+        _ => "Other".to_string(),
+    }
+}
+
+// --- ICD-10 validation ---
+
+fn is_valid_icd10(code: &str) -> bool {
+    let code = code.trim();
+    if code.is_empty() {
+        return true; // empty is not invalid, just missing
+    }
+    // Pattern: [A-Z][0-9]{2}(.[0-9]{1,4})?
+    let bytes = code.as_bytes();
+    if bytes.len() < 3 {
+        return false;
+    }
+    if !bytes[0].is_ascii_uppercase() {
+        return false;
+    }
+    if !bytes[1].is_ascii_digit() || !bytes[2].is_ascii_digit() {
+        return false;
+    }
+    if bytes.len() == 3 {
+        return true;
+    }
+    if bytes[3] != b'.' {
+        return false;
+    }
+    let decimal_part = &code[4..];
+    if decimal_part.is_empty() || decimal_part.len() > 4 {
+        return false;
+    }
+    decimal_part.bytes().all(|b| b.is_ascii_digit())
+}
+
+// --- Validation ---
+
+/// Validate a set of parsed patient records, returning a detailed report.
+pub fn validate_patient_records(records: &[PatientRecord]) -> ValidationReport {
+    let total_records = records.len();
+    let mut warnings: Vec<ValidationWarning> = Vec::new();
+    let mut errors: Vec<ValidationError> = Vec::new();
+    let mut valid_count = 0usize;
+
+    // Field coverage counters
+    let mut dob_count = 0usize;
+    let mut gender_count = 0usize;
+    let mut race_count = 0usize;
+    let mut ethnicity_count = 0usize;
+    let mut insurance_count = 0usize;
+
+    // Duplicate detection
+    let mut id_counts: HashMap<String, usize> = HashMap::new();
+    for r in records {
+        *id_counts.entry(r.site_patient_id.clone()).or_insert(0) += 1;
+    }
+    let duplicate_patient_ids: Vec<String> = id_counts
+        .iter()
+        .filter(|(_, &count)| count > 1)
+        .map(|(id, _)| id.clone())
+        .collect();
+
+    for record in records {
+        let pid = &record.site_patient_id;
+        let mut has_error = false;
+
+        // --- Date of birth validation ---
+        if let Some(ref dob) = record.date_of_birth {
+            dob_count += 1;
+            if normalize_date(dob).is_none() && !dob.is_empty() {
+                warnings.push(ValidationWarning {
+                    patient_id: pid.clone(),
+                    field: "date_of_birth".to_string(),
+                    message: format!("Unrecognized date format: '{}'", dob),
+                });
+            }
+        }
+
+        // --- Gender ---
+        if let Some(ref gender) = record.gender {
+            if !gender.is_empty() {
+                gender_count += 1;
+            }
+        }
+
+        // --- Race ---
+        if let Some(ref race) = record.race {
+            if !race.is_empty() {
+                race_count += 1;
+            }
+        }
+
+        // --- Ethnicity ---
+        if let Some(ref eth) = record.ethnicity {
+            if !eth.is_empty() {
+                ethnicity_count += 1;
+            }
+        }
+
+        // --- Insurance ---
+        if let Some(ref ins) = record.insurance_type {
+            if !ins.is_empty() {
+                insurance_count += 1;
+            }
+        }
+
+        // --- ICD-10 validation ---
+        for dx in &record.diagnoses {
+            if let Some(ref code) = dx.icd10_code {
+                if !is_valid_icd10(code) {
+                    warnings.push(ValidationWarning {
+                        patient_id: pid.clone(),
+                        field: "icd10_code".to_string(),
+                        message: format!("Invalid ICD-10 format: '{}'", code),
+                    });
+                }
+            }
+            // Onset date validation
+            if let Some(ref d) = dx.onset_date {
+                if !d.is_empty() && normalize_date(d).is_none() {
+                    warnings.push(ValidationWarning {
+                        patient_id: pid.clone(),
+                        field: "onset_date".to_string(),
+                        message: format!("Unrecognized date format: '{}'", d),
+                    });
+                }
+            }
+        }
+
+        // --- Lab value range checks ---
+        for lab in &record.lab_results {
+            if let Some(val) = lab.value {
+                if val < 0.0 {
+                    warnings.push(ValidationWarning {
+                        patient_id: pid.clone(),
+                        field: "lab_value".to_string(),
+                        message: format!("Negative lab value for '{}': {}", lab.test_name, val),
+                    });
+                }
+                let test_lower = lab.test_name.to_lowercase();
+                if test_lower.contains("hba1c") || test_lower.contains("a1c") {
+                    if val > 20.0 {
+                        warnings.push(ValidationWarning {
+                            patient_id: pid.clone(),
+                            field: "lab_value".to_string(),
+                            message: format!("HbA1c value {} exceeds expected maximum of 20", val),
+                        });
+                    }
+                }
+                if test_lower.contains("egfr") || test_lower.contains("gfr") {
+                    if val > 300.0 {
+                        warnings.push(ValidationWarning {
+                            patient_id: pid.clone(),
+                            field: "lab_value".to_string(),
+                            message: format!("eGFR value {} exceeds expected maximum of 300", val),
+                        });
+                    }
+                }
+            }
+            // Result date validation
+            if let Some(ref d) = lab.result_date {
+                if !d.is_empty() && normalize_date(d).is_none() {
+                    warnings.push(ValidationWarning {
+                        patient_id: pid.clone(),
+                        field: "result_date".to_string(),
+                        message: format!("Unrecognized date format: '{}'", d),
+                    });
+                }
+            }
+        }
+
+        // --- Medication date validation ---
+        for med in &record.medications {
+            if let Some(ref d) = med.start_date {
+                if !d.is_empty() && normalize_date(d).is_none() {
+                    warnings.push(ValidationWarning {
+                        patient_id: pid.clone(),
+                        field: "start_date".to_string(),
+                        message: format!("Unrecognized date format: '{}'", d),
+                    });
+                }
+            }
+            if let Some(ref d) = med.end_date {
+                if !d.is_empty() && normalize_date(d).is_none() {
+                    warnings.push(ValidationWarning {
+                        patient_id: pid.clone(),
+                        field: "end_date".to_string(),
+                        message: format!("Unrecognized date format: '{}'", d),
+                    });
+                }
+            }
+        }
+
+        // --- Empty record detection ---
+        if record.diagnoses.is_empty() && record.medications.is_empty() && record.lab_results.is_empty() {
+            warnings.push(ValidationWarning {
+                patient_id: pid.clone(),
+                field: "clinical_data".to_string(),
+                message: "No diagnoses, medications, or lab results".to_string(),
+            });
+        }
+
+        // --- Patient ID empty ---
+        if pid.trim().is_empty() {
+            errors.push(ValidationError {
+                patient_id: pid.clone(),
+                field: "site_patient_id".to_string(),
+                message: "Empty patient ID".to_string(),
+            });
+            has_error = true;
+        }
+
+        if !has_error {
+            valid_count += 1;
+        }
+    }
+
+    let field_coverage = vec![
+        FieldCoverage {
+            field_name: "date_of_birth".to_string(),
+            populated_count: dob_count,
+            total_count: total_records,
+            coverage_percent: if total_records > 0 { (dob_count as f64 / total_records as f64) * 100.0 } else { 0.0 },
+        },
+        FieldCoverage {
+            field_name: "gender".to_string(),
+            populated_count: gender_count,
+            total_count: total_records,
+            coverage_percent: if total_records > 0 { (gender_count as f64 / total_records as f64) * 100.0 } else { 0.0 },
+        },
+        FieldCoverage {
+            field_name: "race".to_string(),
+            populated_count: race_count,
+            total_count: total_records,
+            coverage_percent: if total_records > 0 { (race_count as f64 / total_records as f64) * 100.0 } else { 0.0 },
+        },
+        FieldCoverage {
+            field_name: "ethnicity".to_string(),
+            populated_count: ethnicity_count,
+            total_count: total_records,
+            coverage_percent: if total_records > 0 { (ethnicity_count as f64 / total_records as f64) * 100.0 } else { 0.0 },
+        },
+        FieldCoverage {
+            field_name: "insurance_type".to_string(),
+            populated_count: insurance_count,
+            total_count: total_records,
+            coverage_percent: if total_records > 0 { (insurance_count as f64 / total_records as f64) * 100.0 } else { 0.0 },
+        },
+    ];
+
+    ValidationReport {
+        total_records,
+        valid_records: valid_count,
+        warnings,
+        errors,
+        field_coverage,
+        duplicate_patient_ids,
+    }
 }
 
 /// Detect file format from extension and content sniffing.
@@ -232,6 +629,80 @@ pub fn preview_csv(path: &Path, max_rows: usize) -> Result<(Vec<String>, Vec<Vec
     Ok((headers, sample_rows, total_rows))
 }
 
+/// Read an XLSX/XLS file and return headers plus sample rows for preview.
+pub fn preview_xlsx(path: &Path, max_rows: usize) -> Result<(Vec<String>, Vec<Vec<String>>, usize), ImportError> {
+    let mut workbook = open_workbook_auto(path).map_err(|e| ImportError::XlsxError(e.to_string()))?;
+
+    let sheet_names = workbook.sheet_names().to_vec();
+    let first_sheet = sheet_names.first().ok_or_else(|| {
+        ImportError::XlsxError("Workbook contains no sheets".to_string())
+    })?;
+
+    let range = workbook
+        .worksheet_range(first_sheet)
+        .map_err(|e| ImportError::XlsxError(e.to_string()))?;
+
+    let mut rows_iter = range.rows();
+
+    // Extract headers from row 0
+    let headers: Vec<String> = match rows_iter.next() {
+        Some(row) => row.iter().map(|cell| cell.to_string().trim().to_string()).collect(),
+        None => return Ok((Vec::new(), Vec::new(), 0)),
+    };
+
+    let mut sample_rows = Vec::new();
+    let mut total_rows = 0;
+
+    for row in rows_iter {
+        total_rows += 1;
+        if sample_rows.len() < max_rows {
+            let row_data: Vec<String> = row.iter().map(|cell| cell.to_string().trim().to_string()).collect();
+            // Skip completely empty rows
+            if row_data.iter().all(|v| v.is_empty()) {
+                total_rows -= 1;
+                continue;
+            }
+            sample_rows.push(row_data);
+        }
+    }
+
+    Ok((headers, sample_rows, total_rows))
+}
+
+/// Convert an XLSX file to a temporary CSV file for parsing.
+/// Returns the path to the temporary CSV file.
+pub fn xlsx_to_csv_temp(path: &Path) -> Result<std::path::PathBuf, ImportError> {
+    let mut workbook = open_workbook_auto(path).map_err(|e| ImportError::XlsxError(e.to_string()))?;
+
+    let sheet_names = workbook.sheet_names().to_vec();
+    let first_sheet = sheet_names.first().ok_or_else(|| {
+        ImportError::XlsxError("Workbook contains no sheets".to_string())
+    })?;
+
+    let range = workbook
+        .worksheet_range(first_sheet)
+        .map_err(|e| ImportError::XlsxError(e.to_string()))?;
+
+    // Build temp CSV path in same directory
+    let parent = path.parent().unwrap_or_else(|| Path::new("."));
+    let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("import");
+    let temp_path = parent.join(format!("{}.tmp.csv", stem));
+
+    let mut writer = csv::Writer::from_path(&temp_path)?;
+
+    for row in range.rows() {
+        let fields: Vec<String> = row.iter().map(|cell| cell.to_string()).collect();
+        writer.write_record(&fields).map_err(|e| {
+            ImportError::IoError(std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
+        })?;
+    }
+
+    writer.flush()?;
+
+    tracing::info!(path = %temp_path.display(), "Converted XLSX to temporary CSV");
+    Ok(temp_path)
+}
+
 /// Detect if data is in wide format (one row per patient) or long format.
 pub fn detect_data_layout(headers: &[String], sample_rows: &[Vec<String>], mapping: &ColumnMapping) -> DataLayoutFormat {
     // If there's a patient ID column, check for duplicate patient IDs in sample data
@@ -253,6 +724,7 @@ pub fn detect_data_layout(headers: &[String], sample_rows: &[Vec<String>], mappi
 }
 
 /// Parse a CSV file into PatientRecords using the provided column mapping.
+/// Applies date normalization and gender normalization during parsing.
 pub fn parse_csv(path: &Path, mapping: &ColumnMapping) -> Result<Vec<PatientRecord>, ImportError> {
     // Validate that we have the required patient_id mapping
     let has_patient_id = mapping.field_mappings.iter().any(|m| m.target_field == "site_patient_id");
@@ -310,6 +782,27 @@ pub fn parse_csv(path: &Path, mapping: &ColumnMapping) -> Result<Vec<PatientReco
                 .filter(|v| !v.is_empty())
         };
 
+        // Get a date field, normalizing the format.
+        let get_date_field = |target: &str| -> Option<String> {
+            field_indices
+                .get(target)
+                .and_then(|&idx| record.get(idx))
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty())
+                .map(|v| normalize_date(&v).unwrap_or(v))
+        };
+
+        // Get a gender field, normalizing the value.
+        let get_gender_field = |target: &str| -> Option<String> {
+            field_indices
+                .get(target)
+                .and_then(|&idx| record.get(idx))
+                .map(|v| v.trim().to_string())
+                .filter(|v| !v.is_empty())
+                .map(|v| normalize_gender(&v))
+                .filter(|v| !v.is_empty())
+        };
+
         let patient_id = match get_field("site_patient_id") {
             Some(id) => id,
             None => continue, // Skip rows without patient ID
@@ -317,8 +810,8 @@ pub fn parse_csv(path: &Path, mapping: &ColumnMapping) -> Result<Vec<PatientReco
 
         let patient = patients_map.entry(patient_id.clone()).or_insert_with(|| PatientRecord {
             site_patient_id: patient_id.clone(),
-            date_of_birth: get_field("date_of_birth"),
-            gender: get_field("gender"),
+            date_of_birth: get_date_field("date_of_birth"),
+            gender: get_gender_field("gender"),
             race: get_field("race"),
             ethnicity: get_field("ethnicity"),
             insurance_type: get_field("insurance_type"),
@@ -329,10 +822,10 @@ pub fn parse_csv(path: &Path, mapping: &ColumnMapping) -> Result<Vec<PatientReco
 
         // Update demographic fields if they were empty and this row has them
         if patient.date_of_birth.is_none() {
-            patient.date_of_birth = get_field("date_of_birth");
+            patient.date_of_birth = get_date_field("date_of_birth");
         }
         if patient.gender.is_none() {
-            patient.gender = get_field("gender");
+            patient.gender = get_gender_field("gender");
         }
         if patient.race.is_none() {
             patient.race = get_field("race");
@@ -351,7 +844,7 @@ pub fn parse_csv(path: &Path, mapping: &ColumnMapping) -> Result<Vec<PatientReco
             patient.diagnoses.push(DiagnosisRecord {
                 icd10_code: get_field("icd10_code"),
                 description: desc,
-                onset_date: get_field("diagnosis_onset_date"),
+                onset_date: get_date_field("diagnosis_onset_date"),
                 status: get_field("diagnosis_status"),
             });
         }
@@ -365,8 +858,8 @@ pub fn parse_csv(path: &Path, mapping: &ColumnMapping) -> Result<Vec<PatientReco
                 drug_name: name,
                 dose: get_field("dose"),
                 frequency: get_field("frequency"),
-                start_date: get_field("medication_start_date"),
-                end_date: get_field("medication_end_date"),
+                start_date: get_date_field("medication_start_date"),
+                end_date: get_date_field("medication_end_date"),
                 status: get_field("medication_status"),
             });
         }
@@ -385,7 +878,7 @@ pub fn parse_csv(path: &Path, mapping: &ColumnMapping) -> Result<Vec<PatientReco
                 value,
                 unit: get_field("lab_unit").or_else(|| get_field("unit")),
                 reference_range: get_field("reference_range"),
-                result_date: get_field("result_date"),
+                result_date: get_date_field("result_date"),
                 abnormal_flag: get_field("abnormal_flag"),
             });
         }
@@ -398,7 +891,13 @@ pub fn parse_csv(path: &Path, mapping: &ColumnMapping) -> Result<Vec<PatientReco
 
 /// Generate an ImportPreview for a given file path.
 pub fn generate_preview(path: &Path) -> Result<ImportPreview, ImportError> {
-    let (headers, sample_rows, total_rows) = preview_csv(path, 10)?;
+    let format_info = detect_file_format(path)?;
+
+    let (headers, sample_rows, total_rows) = match format_info.format {
+        FileFormat::Xlsx => preview_xlsx(path, 10)?,
+        _ => preview_csv(path, 10)?,
+    };
+
     let suggested_mapping = auto_map_columns(&headers);
     let format_detected = detect_data_layout(&headers, &sample_rows, &suggested_mapping);
 
