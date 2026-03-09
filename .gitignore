@@ -10,7 +10,7 @@ dist-ssr/
 
 # Tauri
 src-tauri/target/
-src-tauri/models/
+src-tauri/models/*
 !src-tauri/models/.gitkeep
 
 # NER service

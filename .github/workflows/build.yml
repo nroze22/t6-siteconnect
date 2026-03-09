@@ -55,8 +55,22 @@ jobs:
           echo "OPENSSL_DIR=$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows-static-md" >> $env:GITHUB_ENV
           echo "OPENSSL_STATIC=1" >> $env:GITHUB_ENV
 
+      - name: Ensure models directory exists for Tauri resource bundling
+        run: mkdir -p src-tauri/models && echo "placeholder" > src-tauri/models/PLACEHOLDER
+        shell: bash
+
       - name: Install frontend dependencies
         run: npm ci
+
+      - name: Run TypeScript tests
+        run: npx vitest run
+
+      - name: Run Rust tests
+        working-directory: src-tauri
+        run: cargo test
+
+      - name: TypeScript type check
+        run: npx tsc --noEmit
 
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0

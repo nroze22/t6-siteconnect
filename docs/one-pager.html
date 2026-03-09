@@ -5,42 +5,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TalOS SiteConnect — Product One-Pager</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&display=swap');
-
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-  @page {
-    size: letter;
-    margin: 0;
-  }
+  @page { size: letter; margin: 0; }
 
   body {
-    font-family: 'DM Sans', system-ui, sans-serif;
+    font-family: Calibri, 'Segoe UI', sans-serif;
     background: #07090E;
-    color: #C8D0E0;
+    color: #D8DEE9;
     width: 8.5in;
     min-height: 11in;
     margin: 0 auto;
     padding: 0;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-    overflow: hidden;
   }
 
   .page {
     width: 8.5in;
-    height: 11in;
-    padding: 0.45in 0.5in 0.4in;
+    min-height: 11in;
+    padding: 0.45in 0.5in 0.6in;
     position: relative;
-    overflow: hidden;
   }
 
   /* ── Top bar ── */
   .top-bar {
     height: 3px;
-    background: linear-gradient(90deg, #10B981, #06B6D4, #3B82F6);
+    background: linear-gradient(90deg, #5BA4E6, #7DC0F5, #A0D4FA);
     border-radius: 2px;
-    margin-bottom: 0.3in;
+    margin-bottom: 0.28in;
   }
 
   /* ── Header ── */
@@ -50,18 +43,27 @@
     align-items: flex-start;
     margin-bottom: 0.22in;
   }
-  .logo-area h1 {
-    font-family: 'Fraunces', serif;
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .logo-area img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+  }
+  .logo-text h1 {
+    font-family: Calibri, sans-serif;
     font-size: 26pt;
     font-weight: 700;
-    color: #F0F4FF;
+    color: #FFFFFF;
     letter-spacing: -0.5px;
     line-height: 1.1;
   }
-  .logo-area h1 span { color: #10B981; }
-  .logo-area .tagline {
+  .logo-text .tagline {
     font-size: 9.5pt;
-    color: #7B8AA0;
+    color: #9AABC0;
     margin-top: 3px;
     letter-spacing: 0.3px;
   }
@@ -79,26 +81,23 @@
     border-radius: 4px;
     margin-left: 6px;
   }
-  .badge-green { background: rgba(16,185,129,0.15); color: #10B981; border: 1px solid rgba(16,185,129,0.3); }
-  .badge-blue { background: rgba(59,130,246,0.12); color: #60A5FA; border: 1px solid rgba(59,130,246,0.25); }
+  .badge-primary { background: rgba(91,164,230,0.15); color: #7DC0F5; border: 1px solid rgba(91,164,230,0.3); }
+  .badge-light { background: rgba(160,212,250,0.1); color: #A0D4FA; border: 1px solid rgba(160,212,250,0.2); }
 
   /* ── Hero strip ── */
   .hero-strip {
-    background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(6,182,212,0.06) 50%, rgba(59,130,246,0.08) 100%);
-    border: 1px solid rgba(16,185,129,0.15);
+    background: rgba(91,164,230,0.06);
+    border: 1px solid rgba(91,164,230,0.15);
     border-radius: 10px;
     padding: 14px 20px;
     margin-bottom: 0.2in;
-    display: flex;
-    align-items: center;
-    gap: 20px;
   }
   .hero-strip p {
-    font-size: 10pt;
-    line-height: 1.55;
-    color: #A8B8D0;
+    font-size: 10.5pt;
+    line-height: 1.6;
+    color: #C0CBE0;
   }
-  .hero-strip strong { color: #F0F4FF; font-weight: 600; }
+  .hero-strip strong { color: #FFFFFF; font-weight: 600; }
 
   /* ── Stats row ── */
   .stats-row {
@@ -109,26 +108,26 @@
   .stat-card {
     flex: 1;
     background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.07);
     border-radius: 8px;
     padding: 10px 14px;
     text-align: center;
   }
   .stat-card .value {
-    font-family: 'Fraunces', serif;
+    font-family: Calibri, sans-serif;
     font-size: 20pt;
     font-weight: 700;
-    color: #10B981;
+    color: #5BA4E6;
     line-height: 1.1;
   }
-  .stat-card .value.cyan { color: #06B6D4; }
-  .stat-card .value.blue { color: #60A5FA; }
-  .stat-card .value.amber { color: #F59E0B; }
+  .stat-card .value.light { color: #7DC0F5; }
+  .stat-card .value.pale { color: #A0D4FA; }
+  .stat-card .value.white { color: #FFFFFF; }
   .stat-card .label {
-    font-size: 7pt;
+    font-size: 7.5pt;
     text-transform: uppercase;
     letter-spacing: 0.8px;
-    color: #7B8AA0;
+    color: #8A9AB0;
     margin-top: 3px;
   }
 
@@ -141,15 +140,13 @@
   .col { flex: 1; }
 
   /* ── Section blocks ── */
-  .section {
-    margin-bottom: 12px;
-  }
+  .section { margin-bottom: 12px; }
   .section-title {
-    font-size: 8pt;
+    font-size: 8.5pt;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1.5px;
-    color: #10B981;
+    color: #5BA4E6;
     margin-bottom: 6px;
     display: flex;
     align-items: center;
@@ -160,24 +157,22 @@
     display: inline-block;
     width: 3px;
     height: 12px;
-    background: #10B981;
+    background: #5BA4E6;
     border-radius: 2px;
   }
-  .section-title.cyan { color: #06B6D4; }
-  .section-title.cyan::before { background: #06B6D4; }
-  .section-title.blue { color: #60A5FA; }
-  .section-title.blue::before { background: #60A5FA; }
-  .section-title.amber { color: #F59E0B; }
-  .section-title.amber::before { background: #F59E0B; }
+  .section-title.light { color: #7DC0F5; }
+  .section-title.light::before { background: #7DC0F5; }
+  .section-title.pale { color: #A0D4FA; }
+  .section-title.pale::before { background: #A0D4FA; }
 
   .feature-list {
     list-style: none;
     padding: 0;
   }
   .feature-list li {
-    font-size: 8.5pt;
-    line-height: 1.5;
-    color: #A0ADBF;
+    font-size: 9pt;
+    line-height: 1.55;
+    color: #B8C4D8;
     padding: 2px 0 2px 14px;
     position: relative;
   }
@@ -185,16 +180,16 @@
     content: '›';
     position: absolute;
     left: 2px;
-    color: #10B981;
+    color: #5BA4E6;
     font-weight: 700;
     font-size: 10pt;
   }
-  .feature-list li strong { color: #D0D8E8; font-weight: 600; }
+  .feature-list li strong { color: #E8EDF5; font-weight: 600; }
 
   /* ── Architecture strip ── */
   .arch-strip {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.07);
     border-radius: 8px;
     padding: 10px 16px;
     margin-bottom: 0.12in;
@@ -209,38 +204,29 @@
   }
   .arch-block:last-child { border-right: none; }
   .arch-block .arch-label {
-    font-size: 6.5pt;
+    font-size: 7pt;
     text-transform: uppercase;
     letter-spacing: 0.8px;
-    color: #6B7A94;
+    color: #7A8A9E;
     margin-bottom: 2px;
   }
   .arch-block .arch-tech {
-    font-size: 8pt;
+    font-size: 8.5pt;
     font-weight: 600;
-    color: #C8D0E0;
+    color: #D0D8E8;
   }
 
   /* ── Bottom bar ── */
   .bottom-bar {
-    position: absolute;
-    bottom: 0.35in;
-    left: 0.5in;
-    right: 0.5in;
+    margin-top: 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding-top: 8px;
-    border-top: 1px solid rgba(255,255,255,0.06);
+    border-top: 1px solid rgba(255,255,255,0.07);
   }
-  .bottom-bar .left {
-    font-size: 7pt;
-    color: #4A5568;
-  }
-  .bottom-bar .right {
-    font-size: 7pt;
-    color: #4A5568;
-  }
+  .bottom-bar .left { font-size: 7.5pt; color: #5A6A80; }
+  .bottom-bar .right { font-size: 7.5pt; color: #5A6A80; }
 
   /* ── Differentiator boxes ── */
   .diff-row {
@@ -250,21 +236,21 @@
   }
   .diff-box {
     flex: 1;
-    background: rgba(255,255,255,0.025);
-    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
     border-radius: 8px;
     padding: 9px 12px;
   }
   .diff-box .diff-title {
-    font-size: 8pt;
+    font-size: 8.5pt;
     font-weight: 700;
-    color: #E0E8F0;
+    color: #E8EDF5;
     margin-bottom: 3px;
   }
   .diff-box .diff-desc {
-    font-size: 7.5pt;
-    line-height: 1.45;
-    color: #8895A8;
+    font-size: 8pt;
+    line-height: 1.5;
+    color: #98A8BC;
   }
 
   @media print {
@@ -280,12 +266,15 @@
   <!-- Header -->
   <div class="header">
     <div class="logo-area">
-      <h1>Tal<span>OS</span> SiteConnect</h1>
-      <div class="tagline">AI-Powered Patient Screening for Clinical Research Sites</div>
+      <img src="t6logo.png" alt="TalOS">
+      <div class="logo-text">
+        <h1>TalOS SiteConnect</h1>
+        <div class="tagline">AI-Powered Patient Screening for Clinical Research Sites</div>
+      </div>
     </div>
     <div class="badge-area">
-      <span class="badge badge-green">Tauri v2 Desktop</span>
-      <span class="badge badge-blue">100% Offline</span>
+      <span class="badge badge-primary">Tauri v2 Desktop</span>
+      <span class="badge badge-light">100% Offline</span>
     </div>
   </div>
 
@@ -305,15 +294,15 @@
       <div class="label">Integrated Screens</div>
     </div>
     <div class="stat-card">
-      <div class="value cyan">9</div>
+      <div class="value light">9</div>
       <div class="label">Screening Rule Types</div>
     </div>
     <div class="stat-card">
-      <div class="value blue">30+</div>
+      <div class="value pale">30+</div>
       <div class="label">Curated Trials</div>
     </div>
     <div class="stat-card">
-      <div class="value amber">20+</div>
+      <div class="value white">20+</div>
       <div class="label">Financial Archetypes</div>
     </div>
   </div>
@@ -332,7 +321,7 @@
         </ul>
       </div>
       <div class="section">
-        <div class="section-title cyan">Financial Intelligence</div>
+        <div class="section-title light">Financial Intelligence</div>
         <ul class="feature-list">
           <li><strong>3-scenario modeling:</strong> Conservative / Base / Optimistic per-patient revenue</li>
           <li><strong>20+ study archetypes:</strong> From oncology infusion to rare disease gene therapy</li>
@@ -342,7 +331,7 @@
         </ul>
       </div>
       <div class="section">
-        <div class="section-title blue">Data Import & Security</div>
+        <div class="section-title pale">Data Import & Security</div>
         <ul class="feature-list">
           <li><strong>Universal EHR import:</strong> Epic, Cerner, Athena — 150+ column aliases auto-mapped</li>
           <li><strong>SQLCipher encryption:</strong> AES-256 + PBKDF2 with user passphrase</li>
@@ -363,7 +352,7 @@
         </ul>
       </div>
       <div class="section">
-        <div class="section-title cyan">Research Intelligence</div>
+        <div class="section-title light">Research Intelligence</div>
         <ul class="feature-list">
           <li><strong>Curated trial packs:</strong> 30+ real studies with NCT IDs, CMS-anchored pricing</li>
           <li><strong>Sponsor profiles:</strong> Payment reputation, therapeutic focus, pipeline trends</li>
@@ -373,7 +362,7 @@
         </ul>
       </div>
       <div class="section">
-        <div class="section-title amber">Operational Workflow</div>
+        <div class="section-title pale">Operational Workflow</div>
         <ul class="feature-list">
           <li><strong>Review queue:</strong> Bulk accept/reject/defer with filtering and CSV export</li>
           <li><strong>6-stage pipeline:</strong> Kanban enrollment funnel with conversion metrics</li>
