@@ -26,6 +26,7 @@ import { getPatients, screenPatientsViaRust, screeningResultToOutput } from "@/l
 import type { ParsedPatient } from "@/lib/epic-demo-data";
 import { SkeletonCard } from "@/components/ui/Skeleton";
 import { useToast } from "@/components/ui/Toast";
+import { useScreeningStore } from "@/stores/use-screening-store";
 
 // Pipeline stages
 type PipelineStage = "identified" | "contacted" | "interested" | "consented" | "enrolled" | "screen_failed";
@@ -133,6 +134,8 @@ async function generatePipelineData(parsed: ParsedPatient[]): Promise<PipelinePa
 export function PipelinePage() {
   const [pipelineData, setPipelineData] = useState<PipelinePatient[]>([]);
   const [loading, setLoading] = useState(true);
+  const screeningPatients = useScreeningStore((s) => s.patients);
+  const selectedStudyId = useScreeningStore((s) => s.selectedStudyId);
 
   useEffect(() => {
     getPatients().then(async (parsed) => {
@@ -141,6 +144,42 @@ export function PipelinePage() {
       setLoading(false);
     });
   }, []);
+
+  // Merge accepted patients from screening into the pipeline as "identified"
+  const mergedPipelineData = useMemo(() => {
+    const acceptedPatients = screeningPatients.filter((p) => p.reviewStatus === "accepted");
+    if (acceptedPatients.length === 0) return pipelineData;
+
+    const existingMrns = new Set(pipelineData.map((p) => p.mrn));
+    const newEntries: PipelinePatient[] = [];
+
+    for (const patient of acceptedPatients) {
+      // Skip if already in pipeline (matched by MRN)
+      if (existingMrns.has(patient.sitePatientId)) continue;
+
+      const studyId = selectedStudyId ?? "study-1";
+      newEntries.push({
+        id: `pipe-accepted-${patient.id}`,
+        mrn: patient.sitePatientId,
+        name: patient.sitePatientId, // MRN as name fallback
+        age: patient.age,
+        gender: patient.gender,
+        diagnosis: patient.primaryDiagnosis ?? "Unknown",
+        stage: "identified",
+        score: patient.score,
+        studyId,
+        studyName: STUDY_NAMES[studyId] ?? studyId,
+        daysInStage: 0,
+        lastContact: null,
+        contactAttempts: 0,
+        notes: "Accepted from screening review",
+        nextAction: "Schedule initial outreach call",
+        assignedTo: STAFF[Math.floor(Math.random() * STAFF.length)]!,
+      });
+    }
+
+    return [...newEntries, ...pipelineData];
+  }, [pipelineData, screeningPatients, selectedStudyId]);
   const [selectedStudy, setSelectedStudy] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -174,14 +213,14 @@ export function PipelinePage() {
   }, []);
 
   const filteredData = useMemo(() => {
-    let data = pipelineData;
+    let data = mergedPipelineData;
     if (selectedStudy !== "all") data = data.filter((p) => p.studyId === selectedStudy);
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       data = data.filter((p) => p.name.toLowerCase().includes(q) || p.mrn.toLowerCase().includes(q));
     }
     return data;
-  }, [pipelineData, selectedStudy, searchQuery]);
+  }, [mergedPipelineData, selectedStudy, searchQuery]);
 
   const stageCounts = useMemo(() => {
     const counts: Record<PipelineStage, number> = { identified: 0, contacted: 0, interested: 0, consented: 0, enrolled: 0, screen_failed: 0 };
@@ -205,9 +244,9 @@ export function PipelinePage() {
   }, [filteredData]);
 
   const studyIds = useMemo(() => {
-    const ids = new Set(pipelineData.map((p) => p.studyId));
+    const ids = new Set(mergedPipelineData.map((p) => p.studyId));
     return Array.from(ids);
-  }, [pipelineData]);
+  }, [mergedPipelineData]);
 
   return (
     <div className="flex h-full flex-col bg-background">

@@ -126,7 +126,7 @@ export function Sidebar() {
               {isActive && (
                 <motion.div
                   layoutId="sidebar-active"
-                  className="absolute inset-0 rounded-lg bg-indigo-500/15 ring-1 ring-indigo-500/20"
+                  className="absolute inset-0 rounded-lg bg-indigo-100 dark:bg-indigo-500/30 ring-1 ring-indigo-400/40 dark:ring-indigo-400/40"
                   transition={{ type: "spring", damping: 28, stiffness: 350 }}
                 />
               )}
@@ -134,10 +134,10 @@ export function Sidebar() {
                 {item.icon}
               </span>
               <div className="relative z-10 flex-1 min-w-0">
-                <span className={`block text-[13px] font-medium leading-tight ${isActive ? "text-indigo-700 dark:text-white" : "text-dim group-hover:text-body"}`}>
+                <span className={`block text-[13px] font-semibold leading-tight ${isActive ? "text-indigo-700 dark:text-white" : "text-dim group-hover:text-body"}`}>
                   {item.label}
                 </span>
-                <span className={`block text-[12px] leading-tight ${isActive ? "text-indigo-600/70 dark:text-indigo-300/70" : "text-dim"}`}>
+                <span className={`block text-[12px] leading-tight ${isActive ? "text-indigo-600 dark:text-indigo-200" : "text-dim"}`}>
                   {item.hint}
                 </span>
               </div>

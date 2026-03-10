@@ -1,8 +1,59 @@
 import { useState, useEffect } from "react";
 import { Table2, ArrowRight } from "lucide-react";
 import { useScreeningStore } from "@/stores/use-screening-store";
-import { getPatientClinicalData } from "@/lib/demo-data";
+import { getPatients } from "@/lib/data-provider";
+import type { ParsedPatient } from "@/lib/epic-demo-data";
 import type { Diagnosis, Medication, LabResult, VitalSign } from "@/types";
+
+/** Convert ParsedPatient clinical data to the typed format used by tabs */
+function parsedPatientToClinical(p: ParsedPatient): { diagnoses: Diagnosis[]; medications: Medication[]; labs: LabResult[]; vitals: VitalSign[] } {
+  return {
+    diagnoses: p.diagnoses.map((d, i) => ({
+      id: `dx-${i}`,
+      patientId: p.mrn,
+      icd10Code: d.icd10 || null,
+      description: d.name,
+      onsetDate: d.onset || null,
+      status: "active" as const,
+      source: "structured" as const,
+      confidence: 1.0,
+      rawText: null,
+    })),
+    medications: p.medications.map((m, i) => ({
+      id: `med-${i}`,
+      patientId: p.mrn,
+      rxnormCode: null,
+      drugName: m.name,
+      dose: m.dose || null,
+      frequency: null,
+      startDate: null,
+      endDate: null,
+      status: (m.status?.toLowerCase() === "active" ? "active" : "historical") as "active" | "discontinued" | "historical",
+      source: "structured" as const,
+      confidence: 1.0,
+    })),
+    labs: p.labs.map((l, i) => ({
+      id: `lab-${i}`,
+      patientId: p.mrn,
+      loincCode: null,
+      testName: l.test,
+      value: l.value ? parseFloat(l.value) || null : null,
+      unit: l.unit || null,
+      referenceRange: l.ref || null,
+      resultDate: l.date || null,
+      abnormalFlag: l.abnormal ? "Y" : null,
+      source: "structured",
+    })),
+    vitals: [
+      ...(p.vitals.systolic ? [{ id: "v-sys", patientId: p.mrn, measurementType: "bp_systolic" as const, value: p.vitals.systolic, unit: "mmHg", measurementDate: null }] : []),
+      ...(p.vitals.diastolic ? [{ id: "v-dia", patientId: p.mrn, measurementType: "bp_diastolic" as const, value: p.vitals.diastolic, unit: "mmHg", measurementDate: null }] : []),
+      ...(p.vitals.pulse ? [{ id: "v-hr", patientId: p.mrn, measurementType: "hr" as const, value: p.vitals.pulse, unit: "bpm", measurementDate: null }] : []),
+      ...(p.vitals.weight ? [{ id: "v-wt", patientId: p.mrn, measurementType: "weight" as const, value: p.vitals.weight, unit: "kg", measurementDate: null }] : []),
+      ...(p.vitals.height ? [{ id: "v-ht", patientId: p.mrn, measurementType: "height" as const, value: p.vitals.height, unit: "cm", measurementDate: null }] : []),
+      ...(p.vitals.bmi ? [{ id: "v-bmi", patientId: p.mrn, measurementType: "bmi" as const, value: p.vitals.bmi, unit: "kg/m²", measurementDate: null }] : []),
+    ],
+  };
+}
 
 const tabs = [
   { id: "demographics", label: "Demographics" },
@@ -29,10 +80,22 @@ export function SourceDataPanel() {
   const selectedCriterionId = useScreeningStore((s) => s.selectedCriterionId);
   const screeningResults = useScreeningStore((s) => s.screeningResults);
   const criteriaResults = useScreeningStore((s) => s.criteriaResults);
+  const patients = useScreeningStore((s) => s.patients);
   const setStudyDetailOpen = useScreeningStore((s) => s.setStudyDetailOpen);
   const [activeTab, setActiveTab] = useState<TabId>("demographics");
+  const [allParsedPatients, setAllParsedPatients] = useState<ParsedPatient[]>([]);
 
-  const clinicalData = selectedPatientId ? getPatientClinicalData(selectedPatientId) : null;
+  // Load actual patient data (from DB or demo) for clinical data display
+  useEffect(() => {
+    getPatients().then(setAllParsedPatients);
+  }, []);
+
+  // Look up clinical data by matching the patient's sitePatientId (MRN) against ParsedPatient.mrn
+  const selectedPatient = selectedPatientId ? patients.find((p) => p.id === selectedPatientId) : null;
+  const matchedParsed = selectedPatient
+    ? allParsedPatients.find((pp) => pp.mrn === selectedPatient.sitePatientId)
+    : null;
+  const clinicalData = matchedParsed ? parsedPatientToClinical(matchedParsed) : null;
   const screening = selectedPatientId ? screeningResults.get(selectedPatientId) : null;
   const criteria = screening ? criteriaResults.get(screening.id) ?? [] : [];
   const selectedCriterion = criteria.find((c) => c.id === selectedCriterionId);

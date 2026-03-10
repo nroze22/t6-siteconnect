@@ -188,7 +188,12 @@ export async function getStudies(): Promise<AnalyticsStudy[]> {
 export async function screenPatientsViaRust(studyId: string): Promise<ScreeningResult[]> {
   if (isTauri) {
     try {
-      return await tauriInvoke<ScreeningResult[]>("screen_patients_for_study", { studyId });
+      const results = await tauriInvoke<ScreeningResult[]>("screen_patients_for_study", { studyId });
+      // Only use Rust results if they contain meaningful screening data
+      // (study exists in DB with criteria and patients were actually screened)
+      if (results.length > 0 && results[0]!.criteria_results.length > 0) {
+        return results;
+      }
     } catch {
       // DB not initialized or no patients
     }
