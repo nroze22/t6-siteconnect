@@ -234,12 +234,12 @@ function StudyCard({
           </div>
 
           {/* Financial highlight — range-based */}
-          <div className="shrink-0 rounded-xl bg-emerald-500/8 dark:bg-emerald-500/10 p-3 text-center ring-2 ring-emerald-500/25 dark:ring-1 dark:ring-emerald-400/25">
-            <p className="text-[9px] font-semibold text-emerald-700/80 dark:text-emerald-300/80 uppercase tracking-wider">Est. Opportunity</p>
-            <p className="text-[17px] font-black text-emerald-700 dark:text-emerald-300 tracking-tight">
+          <div className="shrink-0 rounded-xl bg-emerald-500/8 dark:bg-emerald-500/12 p-3 text-center ring-2 ring-emerald-500/25 dark:ring-1 dark:ring-emerald-400/30">
+            <p className="text-[9px] font-semibold text-emerald-700/80 dark:text-emerald-200/80 uppercase tracking-wider">Est. Opportunity</p>
+            <p className="text-[17px] font-black text-emerald-700 dark:text-emerald-100 tracking-tight">
               {formatRangeCurrency(model.perPatientRange)}
             </p>
-            <p className="text-[9px] text-emerald-700/60 dark:text-emerald-300/60">/ enrolled patient</p>
+            <p className="text-[9px] text-emerald-700/60 dark:text-emerald-200/60">/ enrolled patient</p>
           </div>
         </div>
 
@@ -793,25 +793,25 @@ export function TrialsPage() {
 
         {/* Revenue summary bar */}
         <div className="mt-3 flex items-center gap-3">
-          <div className="flex items-center gap-2.5 rounded-lg bg-emerald-500/8 dark:bg-emerald-500/10 px-4 py-2.5 ring-2 ring-emerald-500/25 dark:ring-1 dark:ring-emerald-400/25">
-            <DollarSign className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />
+          <div className="flex items-center gap-2.5 rounded-lg bg-emerald-500/8 dark:bg-emerald-500/12 px-4 py-2.5 ring-2 ring-emerald-500/25 dark:ring-1 dark:ring-emerald-400/30">
+            <DollarSign className="h-5 w-5 text-emerald-600 dark:text-emerald-200" />
             <div>
-              <p className="text-[12px] font-semibold text-emerald-700/80 dark:text-emerald-300/80">Total Net Opportunity</p>
-              <p className="text-xl font-black tabular-nums text-emerald-700 dark:text-emerald-300">{animatedRevenue}</p>
+              <p className="text-[12px] font-semibold text-emerald-700/80 dark:text-emerald-200/80">Total Net Opportunity</p>
+              <p className="text-xl font-black tabular-nums text-emerald-700 dark:text-emerald-100">{animatedRevenue}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2.5 rounded-lg bg-blue-500/8 dark:bg-blue-500/10 px-4 py-2.5 ring-2 ring-blue-500/25 dark:ring-1 dark:ring-blue-400/25">
-            <Users className="h-5 w-5 text-blue-600 dark:text-blue-300" />
+          <div className="flex items-center gap-2.5 rounded-lg bg-blue-500/8 dark:bg-blue-500/12 px-4 py-2.5 ring-2 ring-blue-500/25 dark:ring-1 dark:ring-blue-400/30">
+            <Users className="h-5 w-5 text-blue-600 dark:text-blue-200" />
             <div>
-              <p className="text-[12px] font-semibold text-blue-700/80 dark:text-blue-300/80">Eligible Subjects</p>
-              <p className="text-xl font-black tabular-nums text-blue-700 dark:text-blue-300">{formatNumber(totalEligible)}</p>
+              <p className="text-[12px] font-semibold text-blue-700/80 dark:text-blue-200/80">Eligible Subjects</p>
+              <p className="text-xl font-black tabular-nums text-blue-700 dark:text-blue-100">{formatNumber(totalEligible)}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2.5 rounded-lg bg-purple-500/8 dark:bg-purple-500/10 px-4 py-2.5 ring-2 ring-purple-500/25 dark:ring-1 dark:ring-purple-400/25">
-            <FlaskConical className="h-5 w-5 text-purple-600 dark:text-purple-300" />
+          <div className="flex items-center gap-2.5 rounded-lg bg-purple-500/8 dark:bg-purple-500/12 px-4 py-2.5 ring-2 ring-purple-500/25 dark:ring-1 dark:ring-purple-400/30">
+            <FlaskConical className="h-5 w-5 text-purple-600 dark:text-purple-200" />
             <div>
-              <p className="text-[12px] font-semibold text-purple-700/80 dark:text-purple-300/80">Active Studies</p>
-              <p className="text-xl font-black tabular-nums text-purple-700 dark:text-purple-300">{studies.length}</p>
+              <p className="text-[12px] font-semibold text-purple-700/80 dark:text-purple-200/80">Active Studies</p>
+              <p className="text-xl font-black tabular-nums text-purple-700 dark:text-purple-100">{studies.length}</p>
             </div>
           </div>
           <div className="ml-auto flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-2 ring-1 ring-edge-2">

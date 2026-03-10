@@ -123,7 +123,7 @@ export function BudgetWizard({ study, model: initialModel, onClose }: BudgetWiza
                   isCurrent
                     ? "border-indigo-500 text-indigo-700 dark:text-indigo-300"
                     : isPast
-                      ? "border-transparent text-emerald-600 dark:text-emerald-400/70 hover:text-emerald-700 dark:hover:text-emerald-300"
+                      ? "border-transparent text-emerald-600 dark:text-emerald-300 hover:text-emerald-700 dark:hover:text-emerald-200"
                       : "border-transparent text-dim hover:text-body"
                 }`}
               >
@@ -333,8 +333,8 @@ function StepAssumptions({
         <div className="flex items-start gap-2">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
           <div>
-            <p className="text-[12px] font-semibold text-amber-700 dark:text-amber-300">Adjust to your site&apos;s economics</p>
-            <p className="mt-1 text-[12px] text-amber-800/80 dark:text-amber-400/70">
+            <p className="text-[12px] font-semibold text-amber-700 dark:text-amber-200">Adjust to your site&apos;s economics</p>
+            <p className="mt-1 text-[12px] text-amber-800/80 dark:text-amber-200/80">
               These defaults are based on industry benchmarks. Updating them with your actual rates
               will improve estimate accuracy and shift confidence from Low/Medium to High.
             </p>
@@ -470,23 +470,23 @@ function StepAssumptions({
 
       {/* Live recalculated summary */}
       <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4">
-        <h3 className="text-[12px] font-bold text-indigo-700 dark:text-indigo-300">Live Recalculated Estimate</h3>
+        <h3 className="text-[12px] font-bold text-indigo-700 dark:text-indigo-200">Live Recalculated Estimate</h3>
         <div className="mt-3 grid grid-cols-3 gap-4">
           <div>
-            <p className="text-[12px] text-indigo-700/80 dark:text-indigo-400/60">Per Patient (Net)</p>
-            <p className="text-[18px] font-black text-indigo-700 dark:text-indigo-300">
+            <p className="text-[12px] text-indigo-700/80 dark:text-indigo-300/80">Per Patient (Net)</p>
+            <p className="text-[18px] font-black text-indigo-700 dark:text-indigo-100">
               {formatCurrency(model.scenarioOutputs.base.perPatientNetCents)}
             </p>
           </div>
           <div>
-            <p className="text-[12px] text-indigo-700/80 dark:text-indigo-400/60">Total Net Contribution</p>
-            <p className="text-[18px] font-black text-indigo-700 dark:text-indigo-300">
+            <p className="text-[12px] text-indigo-700/80 dark:text-indigo-300/80">Total Net Contribution</p>
+            <p className="text-[18px] font-black text-indigo-700 dark:text-indigo-100">
               {formatCurrency(model.scenarioOutputs.base.totalNetContributionCents)}
             </p>
           </div>
           <div>
-            <p className="text-[12px] text-indigo-700/80 dark:text-indigo-400/60">Break-Even at</p>
-            <p className="text-[18px] font-black text-indigo-700 dark:text-indigo-300">
+            <p className="text-[12px] text-indigo-700/80 dark:text-indigo-300/80">Break-Even at</p>
+            <p className="text-[18px] font-black text-indigo-700 dark:text-indigo-100">
               {model.scenarioOutputs.base.breakEvenEnrollment} patients
             </p>
           </div>
@@ -616,8 +616,8 @@ function StepTuning({
         <div className="flex items-start gap-2">
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-400" />
           <div>
-            <p className="text-[12px] font-semibold text-blue-700 dark:text-blue-300">Override individual line items</p>
-            <p className="mt-1 text-[12px] text-blue-800/80 dark:text-blue-400/70">
+            <p className="text-[12px] font-semibold text-blue-700 dark:text-blue-200">Override individual line items</p>
+            <p className="mt-1 text-[12px] text-blue-800/80 dark:text-blue-200/80">
               Click any unit value to enter your negotiated rate. Overrides are highlighted in blue
               and recalculate all outputs in real-time.
             </p>
