@@ -5,6 +5,8 @@
 
 import { isTauri } from "./tauri";
 import type { ParsedPatient } from "./epic-demo-data";
+import type { ScreeningOutput } from "./epic-demo-data";
+import type { PatientSummary, ScreeningResult as StoreScreeningResult, CriterionResult } from "@/types";
 
 // Types matching Rust analytics commands
 export interface AnalyticsPatient {
@@ -57,6 +59,10 @@ export interface ScreeningResult {
   exclusion_triggered: number;
   exclusion_total: number;
   missing_data_count: number;
+  site_patient_id?: string;
+  age?: number;
+  gender?: string;
+  primary_diagnosis?: string | null;
   criteria_results: {
     criterion_id: string;
     criterion_type: string;
@@ -320,6 +326,61 @@ export async function verifyAuditChain(): Promise<{ valid: boolean; count: numbe
     }
   }
   return { valid: true, count: DEMO_AUDIT_ENTRIES.length };
+}
+
+// --- Converter: ScreeningResult (Rust/data-provider) → ScreeningOutput (store) ---
+
+export function screeningResultToOutput(r: ScreeningResult): ScreeningOutput {
+  const summary: PatientSummary = {
+    id: r.screening_id,
+    sitePatientId: r.site_patient_id ?? r.patient_id,
+    age: r.age ?? 0,
+    gender: r.gender ?? "Unknown",
+    primaryDiagnosis: r.primary_diagnosis ?? null,
+    score: r.score,
+    overallStatus: r.overall_status as PatientSummary["overallStatus"],
+    reviewStatus: "pending",
+    inclusionMet: r.inclusion_met,
+    inclusionTotal: r.inclusion_total,
+    exclusionTriggered: r.exclusion_triggered,
+    exclusionTotal: r.exclusion_total,
+    missingDataCount: r.missing_data_count,
+  };
+
+  const result: StoreScreeningResult = {
+    id: r.screening_id,
+    patientId: r.patient_id,
+    studyId: r.study_id,
+    overallStatus: r.overall_status as StoreScreeningResult["overallStatus"],
+    inclusionMet: r.inclusion_met,
+    inclusionTotal: r.inclusion_total,
+    exclusionTriggered: r.exclusion_triggered,
+    exclusionTotal: r.exclusion_total,
+    missingDataCount: r.missing_data_count,
+    score: r.score,
+    screenedAt: new Date().toISOString(),
+    reviewedBy: null,
+    reviewStatus: "pending",
+    reviewNotes: null,
+  };
+
+  const criteria: CriterionResult[] = r.criteria_results.map((c) => ({
+    id: `${r.screening_id}-${c.criterion_id}`,
+    screeningResultId: r.screening_id,
+    criterionId: c.criterion_id,
+    criterionType: c.criterion_type as CriterionResult["criterionType"],
+    criterionText: c.criterion_text,
+    result: c.result as CriterionResult["result"],
+    evidence: c.evidence,
+    evidenceSource: c.evidence_source,
+    confidence: c.confidence,
+    reasoning: null,
+    aiDetermined: c.ai_determined,
+    humanVerified: false,
+    humanOverride: null,
+  }));
+
+  return { summary, result, criteria };
 }
 
 // --- Converter: AnalyticsPatient → ParsedPatient ---

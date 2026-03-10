@@ -25,9 +25,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { screenPatientsForStudy, STUDY_SCREENING_DEFS } from "@/lib/epic-demo-data";
+import { STUDY_SCREENING_DEFS } from "@/lib/epic-demo-data";
 import type { ParsedPatient } from "@/lib/epic-demo-data";
-import { getPatients } from "@/lib/data-provider";
+import { getPatients, screenPatientsViaRust, screeningResultToOutput } from "@/lib/data-provider";
 import { SkeletonCard, SkeletonChart } from "@/components/ui/Skeleton";
 import { useAnimatedNumber } from "@/hooks/use-animated-number";
 import { PerformanceInsights } from "@/components/analytics/InsightsPanel";
@@ -68,11 +68,12 @@ interface StudyMetrics {
   projectedRevenue: number;
 }
 
-function computeStudyMetrics(parsed: ParsedPatient[]): StudyMetrics[] {
+async function computeStudyMetrics(): Promise<StudyMetrics[]> {
   const metrics: StudyMetrics[] = [];
 
   for (const studyDef of STUDY_SCREENING_DEFS) {
-    const screening = screenPatientsForStudy(parsed, studyDef.studyId);
+    const rustResults = await screenPatientsViaRust(studyDef.studyId);
+    const screening = rustResults.map(screeningResultToOutput);
     const eligible = screening.filter((s) => s.summary.overallStatus === "eligible");
     const potentiallyEligible = screening.filter((s) => s.summary.overallStatus === "potentially_eligible");
     const ineligible = screening.filter((s) => s.summary.overallStatus === "ineligible");
@@ -150,11 +151,12 @@ function computeFailureIntelligence(metrics: StudyMetrics[]) {
 }
 
 // Multi-study matching
-function computeMultiStudyMatches(parsed: ParsedPatient[]) {
+async function computeMultiStudyMatches(parsed: ParsedPatient[]) {
   const patientStudyMap = new Map<string, { name: string; studies: { id: string; name: string; score: number; status: string }[] }>();
 
   for (const studyDef of STUDY_SCREENING_DEFS) {
-    const screening = screenPatientsForStudy(parsed, studyDef.studyId);
+    const rustResults = await screenPatientsViaRust(studyDef.studyId);
+    const screening = rustResults.map(screeningResultToOutput);
     for (const s of screening) {
       if (s.summary.overallStatus === "eligible" || s.summary.overallStatus === "potentially_eligible") {
         const p = parsed.find((pp) => pp.mrn === s.summary.sitePatientId);
@@ -189,9 +191,9 @@ export function PerformancePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getPatients().then((parsed) => {
+    Promise.all([getPatients(), computeStudyMetrics()]).then(([parsed, studyMetrics]) => {
       setPatients(parsed);
-      setMetrics(computeStudyMetrics(parsed));
+      setMetrics(studyMetrics);
       setLoading(false);
     });
   }, []);
@@ -376,16 +378,21 @@ function OverviewTab({ metrics, patients }: { metrics: StudyMetrics[]; patients:
   })), [metrics]);
 
   // Pre-compute eligible patient IDs per study for drill-down
-  const eligibleByStudy = useMemo(() => {
-    const map = new Map<string, string[]>();
-    for (const studyDef of STUDY_SCREENING_DEFS) {
-      const screening = screenPatientsForStudy(patients, studyDef.studyId);
-      const eligibleIds = screening
-        .filter((s) => s.summary.overallStatus === "eligible")
-        .map((s) => s.summary.sitePatientId);
-      map.set(studyDef.studyId, eligibleIds);
+  const [eligibleByStudy, setEligibleByStudy] = useState(new Map<string, string[]>());
+  useEffect(() => {
+    async function loadEligible() {
+      const map = new Map<string, string[]>();
+      for (const studyDef of STUDY_SCREENING_DEFS) {
+        const rustResults = await screenPatientsViaRust(studyDef.studyId);
+        const screening = rustResults.map(screeningResultToOutput);
+        const eligibleIds = screening
+          .filter((s) => s.summary.overallStatus === "eligible")
+          .map((s) => s.summary.sitePatientId);
+        map.set(studyDef.studyId, eligibleIds);
+      }
+      setEligibleByStudy(map);
     }
-    return map;
+    if (patients.length > 0) loadEligible();
   }, [patients]);
 
   const handleStudyClick = (m: StudyMetrics) => {
@@ -657,7 +664,10 @@ function FailureIntelligenceTab({ metrics }: { metrics: StudyMetrics[] }) {
 }
 
 function MultiStudyMatchingTab({ patients }: { patients: ParsedPatient[] }) {
-  const matches = useMemo(() => computeMultiStudyMatches(patients), [patients]);
+  const [matches, setMatches] = useState<{ mrn: string; name: string; studies: { id: string; name: string; score: number; status: string }[] }[]>([]);
+  useEffect(() => {
+    computeMultiStudyMatches(patients).then(setMatches);
+  }, [patients]);
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">

@@ -12,8 +12,7 @@ import { StudyDetailModal } from "./StudyDetailModal";
 import { OverrideModal } from "./OverrideModal";
 import { useScreeningStore } from "@/stores/use-screening-store";
 import { useToast } from "@/components/ui/Toast";
-import { getPatients } from "@/lib/data-provider";
-import { screenPatientsForStudy } from "@/lib/epic-demo-data";
+import { screenPatientsViaRust, screeningResultToOutput } from "@/lib/data-provider";
 import { FlaskConical, Info, ChevronDown, Loader2, RefreshCw } from "lucide-react";
 
 // Study lookup for display
@@ -53,8 +52,8 @@ export function ScreeningPage() {
     selectPatient(null);
 
     try {
-      const parsed = await getPatients();
-      const results = screenPatientsForStudy(parsed, studyId);
+      const rustResults = await screenPatientsViaRust(studyId);
+      const results = rustResults.map(screeningResultToOutput);
       if (results.length === 0) {
         toast.warning("No subjects to screen", "Import subject data first");
         setScreening(false);

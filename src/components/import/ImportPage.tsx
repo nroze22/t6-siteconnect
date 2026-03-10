@@ -27,8 +27,8 @@ import {
   EPIC_AUTO_MAPPINGS,
   EPIC_SAMPLE_DATA,
   parseEpicRows,
-  screenPatientsForStudy,
 } from "@/lib/epic-demo-data";
+import { screenPatientsViaRust, screeningResultToOutput } from "@/lib/data-provider";
 import {
   generateAutoMappings,
   parseCsvWithMappings,
@@ -355,11 +355,9 @@ export function ImportPage() {
           setProgress(60);
           setProgressStage("Screening subjects against active studies...");
 
-          // The Rust backend parsed and stored the patients.
-          // Now re-parse the same file via the JS demo engine for screening display.
-          // (In production, screening would also run in Rust)
-          const parsed = parseEpicRows(); // TODO: replace with Rust-parsed patients
-          const screening = screenPatientsForStudy(parsed, "study-1");
+          // The Rust backend parsed and stored the patients — screen via Rust engine.
+          const rustResults = await screenPatientsViaRust("study-1");
+          const screening = rustResults.map(screeningResultToOutput);
 
           setProgress(90);
           setProgressStage("Loading into screening queue...");
@@ -427,7 +425,8 @@ export function ImportPage() {
       const parsed = hasBrowserData
         ? parseCsvWithMappings(browserCsv.headers, browserCsv.allRows, mappings)
         : parseEpicRows();
-      const screening = screenPatientsForStudy(parsed, "study-1");
+      const browserRustResults = await screenPatientsViaRust("study-1");
+      const screening = browserRustResults.map(screeningResultToOutput);
       const summaries = screening.map((s) => s.summary);
       setPatients(summaries);
       for (const s of screening) {

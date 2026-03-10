@@ -21,8 +21,8 @@ import {
   Check,
   Send,
 } from "lucide-react";
-import { screenPatientsForStudy, STUDY_SCREENING_DEFS } from "@/lib/epic-demo-data";
-import { getPatients } from "@/lib/data-provider";
+import { STUDY_SCREENING_DEFS } from "@/lib/epic-demo-data";
+import { getPatients, screenPatientsViaRust, screeningResultToOutput } from "@/lib/data-provider";
 import type { ParsedPatient } from "@/lib/epic-demo-data";
 import { SkeletonCard } from "@/components/ui/Skeleton";
 import { useToast } from "@/components/ui/Toast";
@@ -71,12 +71,13 @@ const STUDY_NAMES: Record<string, string> = {
 
 const STAFF = ["Sarah Chen, CRC", "James Wright, CRC", "Maria Lopez, CRC", "Kevin Park, RN"];
 
-function generatePipelineData(parsed: ParsedPatient[]): PipelinePatient[] {
+async function generatePipelineData(parsed: ParsedPatient[]): Promise<PipelinePatient[]> {
   const patients: PipelinePatient[] = [];
 
   // Screen all patients across all studies and place top candidates in pipeline
   for (const studyDef of STUDY_SCREENING_DEFS) {
-    const screening = screenPatientsForStudy(parsed, studyDef.studyId);
+    const rustResults = await screenPatientsViaRust(studyDef.studyId);
+    const screening = rustResults.map(screeningResultToOutput);
     const eligible = screening
       .filter((s) => s.summary.overallStatus === "eligible" || s.summary.overallStatus === "potentially_eligible")
       .sort((a, b) => b.summary.score - a.summary.score);
@@ -134,8 +135,9 @@ export function PipelinePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getPatients().then((parsed) => {
-      setPipelineData(generatePipelineData(parsed));
+    getPatients().then(async (parsed) => {
+      const data = await generatePipelineData(parsed);
+      setPipelineData(data);
       setLoading(false);
     });
   }, []);

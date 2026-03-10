@@ -45,6 +45,10 @@ pub struct PatientScreeningResult {
     pub screening_id: String,
     pub patient_id: String,
     pub study_id: String,
+    pub site_patient_id: String,
+    pub age: Option<u32>,
+    pub gender: Option<String>,
+    pub primary_diagnosis: Option<String>,
     pub overall_status: String,
     pub score: f64,
     pub inclusion_met: u32,
@@ -77,6 +81,18 @@ impl ScreeningEngine {
         // Load patient data
         let patient = Self::load_patient_data(conn, patient_id)
             .map_err(|e| format!("Failed to load patient data: {}", e))?;
+
+        // Extract enrichment fields before patient is consumed by screening
+        let patient_age = patient.age;
+        let patient_gender = patient.gender.clone();
+        let primary_diagnosis = patient.diagnoses.first().map(|d| d.description.clone());
+
+        // Load site_patient_id from patients table
+        let site_patient_id: String = conn.query_row(
+            "SELECT site_patient_id FROM patients WHERE id = ?1",
+            [patient_id],
+            |row| row.get(0),
+        ).map_err(|e| format!("Failed to load site_patient_id: {}", e))?;
 
         // Load study criteria
         let criteria = Self::load_study_criteria(conn, study_id)
@@ -175,6 +191,10 @@ impl ScreeningEngine {
             screening_id: Uuid::new_v4().to_string(),
             patient_id: patient_id.to_string(),
             study_id: study_id.to_string(),
+            site_patient_id,
+            age: patient_age,
+            gender: patient_gender,
+            primary_diagnosis,
             overall_status: status.as_str().to_string(),
             score,
             inclusion_met,

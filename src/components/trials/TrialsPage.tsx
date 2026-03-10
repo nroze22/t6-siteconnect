@@ -24,8 +24,7 @@ import {
   Crosshair,
 } from "lucide-react";
 import { formatCurrency, formatCurrencyCompact, formatNumber } from "@/lib/formatters";
-import { screenPatientsForStudy } from "@/lib/epic-demo-data";
-import { getPatients } from "@/lib/data-provider";
+import { screenPatientsViaRust, screeningResultToOutput } from "@/lib/data-provider";
 import { generatePitchPDF } from "@/lib/generate-pitch";
 import { useScreeningStore } from "@/stores/use-screening-store";
 import { useAppStore } from "@/stores/use-app-store";
@@ -643,8 +642,8 @@ export function TrialsPage() {
 
   const handleScreenPatients = useCallback(
     async (studyId: string) => {
-      const parsed = await getPatients();
-      const screening = screenPatientsForStudy(parsed, studyId);
+      const rustResults = await screenPatientsViaRust(studyId);
+      const screening = rustResults.map(screeningResultToOutput);
       if (screening.length === 0) {
         toast.warning("No subjects to screen", "Import subject data first");
         return;
