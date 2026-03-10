@@ -16,6 +16,8 @@ import {
 export interface CsvPreview {
   headers: string[];
   rows: string[][];
+  /** All parsed data rows (for import, not just preview) */
+  allRows: string[][];
   totalRows: number;
 }
 
@@ -64,13 +66,27 @@ function parseCsvPreview(text: string, maxRows: number = 5): CsvPreview | null {
   const headerLine = lines[0];
   if (!headerLine) return null;
 
-  const headers = headerLine.split(",").map((h) => h.trim());
-  const dataLines = lines.slice(1);
-  const rows = dataLines.slice(0, maxRows).map((line) =>
-    line.split(",").map((cell) => cell.trim())
-  );
+  // Detect delimiter: comma, tab, or pipe
+  const delimiters = [",", "\t", "|"] as const;
+  let bestDelim: string = ",";
+  let bestCount = 0;
+  for (const d of delimiters) {
+    const count = (headerLine.match(new RegExp(d === "|" ? "\\|" : d, "g")) ?? []).length;
+    if (count > bestCount) {
+      bestCount = count;
+      bestDelim = d;
+    }
+  }
 
-  return { headers, rows, totalRows: dataLines.length };
+  const splitRow = (line: string) =>
+    line.split(bestDelim).map((cell) => cell.trim().replace(/^"|"$/g, ""));
+
+  const headers = splitRow(headerLine);
+  const dataLines = lines.slice(1);
+  const allRows = dataLines.map(splitRow);
+  const rows = allRows.slice(0, maxRows);
+
+  return { headers, rows, allRows, totalRows: dataLines.length };
 }
 
 /**

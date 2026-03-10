@@ -102,7 +102,7 @@ export function InsightsPanel({
   }
 
   return (
-    <div className="rounded-xl border border-slate-700/50 bg-card overflow-hidden bg-gradient-to-br from-card to-card/80">
+    <div className="rounded-xl border border-slate-700/50 bg-card bg-gradient-to-br from-card to-card/80">
       {/* Header */}
       <button
         type="button"
@@ -137,13 +137,13 @@ export function InsightsPanel({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="overflow-hidden"
+            style={{ overflow: "hidden" }}
           >
             <motion.div
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className={compact ? "space-y-1.5 px-3 pb-3" : "space-y-2.5 px-4 pb-4"}
+              className={compact ? "space-y-1.5 px-3 pb-3" : "space-y-3 px-4 pb-4 pt-2"}
             >
               {insights.map((insight) => (
                 <motion.div key={insight.id} variants={itemVariants}>
@@ -172,7 +172,7 @@ function FullInsightCard({ insight }: { insight: NarrativeInsight }) {
       className={`relative flex gap-3 rounded-lg border-l-[3px] px-3 py-2.5 ${TYPE_COLORS[insight.type]}`}
     >
       {/* Priority badge */}
-      <div className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-800 border border-slate-600 text-[12px] font-bold text-body">
+      <div className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-800 dark:bg-slate-800 bg-slate-200 border border-slate-300 dark:border-slate-600 text-[10px] font-bold text-body">
         {insight.priority}
       </div>
 

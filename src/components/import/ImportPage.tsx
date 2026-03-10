@@ -29,6 +29,11 @@ import {
   parseEpicRows,
   screenPatientsForStudy,
 } from "@/lib/epic-demo-data";
+import {
+  generateAutoMappings,
+  parseCsvWithMappings,
+  generateSampleData,
+} from "@/lib/csv-import";
 import { useScreeningStore } from "@/stores/use-screening-store";
 import { useAppStore } from "@/stores/use-app-store";
 import { useToast } from "@/components/ui/Toast";
@@ -229,7 +234,7 @@ export function ImportPage() {
     })();
   }, []);
 
-  // Handle file selection — auto-detect Epic format
+  // Handle file selection — auto-detect format and generate mappings
   const handleFileSelected = useCallback(async (file: SelectedFile) => {
     setSelectedFile(file);
     setImportError(null);
@@ -263,6 +268,10 @@ export function ImportPage() {
       } catch (err) {
         setImportError(err instanceof Error ? err.message : String(err));
       }
+    } else if (file.preview) {
+      // Browser mode with parsed CSV data — generate auto-mappings from actual headers
+      const autoMappings = generateAutoMappings(file.preview.headers);
+      setMappings(autoMappings);
     }
   }, []);
 
@@ -323,6 +332,7 @@ export function ImportPage() {
       size: 847293,
       format: "csv",
     });
+    setMappings(EPIC_AUTO_MAPPINGS);
   }, []);
 
   // Start the import — uses Rust backend in Tauri mode, demo data in web mode
@@ -391,8 +401,10 @@ export function ImportPage() {
         }
       }
 
-      // === DEMO IMPORT (web mode or fallback) ===
-      const totalRows = EPIC_ROWS.length;
+      // === BROWSER IMPORT (web mode or fallback) ===
+      const browserCsv = selectedFile?.preview;
+      const hasBrowserData = browserCsv && browserCsv.allRows.length > 0;
+      const totalRows = hasBrowserData ? browserCsv.allRows.length : EPIC_ROWS.length;
       let accumulated = 0;
 
       for (const stage of PROGRESS_STAGES) {
@@ -411,7 +423,10 @@ export function ImportPage() {
         }
       }
 
-      const parsed = parseEpicRows();
+      // Parse actual CSV data when available, otherwise fall back to demo
+      const parsed = hasBrowserData
+        ? parseCsvWithMappings(browserCsv.headers, browserCsv.allRows, mappings)
+        : parseEpicRows();
       const screening = screenPatientsForStudy(parsed, "study-1");
       const summaries = screening.map((s) => s.summary);
       setPatients(summaries);
@@ -437,21 +452,26 @@ export function ImportPage() {
 
       setImportResult({
         fileName: selectedFile?.name ?? "epic_clarity_export_mar2026.csv",
-        format: "Epic Clarity CSV",
+        format: hasBrowserData ? "CSV" : "Epic Clarity CSV",
         recordsImported: uniquePatients,
         recordsUpdated: 0,
         recordsSkipped: totalRows - uniquePatients,
-        errors: [
-          `${totalRows} encounter rows consolidated into ${uniquePatients} unique subjects`,
-          `${eligibleCount} subjects pre-screened as eligible for KEYNOTE-789`,
-        ],
+        errors: hasBrowserData
+          ? [
+              `${totalRows} data rows consolidated into ${uniquePatients} unique subjects`,
+              `${eligibleCount} subjects pre-screened as eligible`,
+            ]
+          : [
+              `${totalRows} encounter rows consolidated into ${uniquePatients} unique subjects`,
+              `${eligibleCount} subjects pre-screened as eligible for KEYNOTE-789`,
+            ],
       });
       setStep("complete");
       toast.success(`Imported ${uniquePatients} subjects`, `${eligibleCount} pre-screened as eligible`);
     };
 
     runImport();
-  }, [setPatients, setScreeningResult, setCriteriaResults, selectStudy, setAppStatus, setCurrentPage, selectedFile, realMapping, realPreview, toast]);
+  }, [setPatients, setScreeningResult, setCriteriaResults, selectStudy, setAppStatus, setCurrentPage, selectedFile, realMapping, realPreview, mappings, toast]);
 
   // Run validation before import (Tauri mode only)
   const runValidation = useCallback(async () => {
@@ -777,18 +797,22 @@ export function ImportPage() {
           {/* Step 2: Preview & Column Mapping              */}
           {/* ============================================= */}
           {step === "preview" && (() => {
-            // Use real data from Rust when available, otherwise fall back to demo
-            const previewHeaders = realPreview ? realPreview.headers : EPIC_COLUMNS;
-            const previewRows = realPreview ? realPreview.sample_rows : PREVIEW_ROWS;
-            const totalRows = realPreview ? realPreview.total_rows : EPIC_ROWS.length;
+            // Use real data from Rust when available, then browser CSV, then demo
+            const browserPreview = selectedFile?.preview;
+            const hasBrowserCsv = !realPreview && browserPreview && browserPreview.headers.length > 0;
+            const previewHeaders = realPreview ? realPreview.headers : hasBrowserCsv ? browserPreview.headers : EPIC_COLUMNS;
+            const previewRows = realPreview ? realPreview.sample_rows : hasBrowserCsv ? browserPreview.rows : PREVIEW_ROWS;
+            const totalRows = realPreview ? realPreview.total_rows : hasBrowserCsv ? browserPreview.totalRows : EPIC_ROWS.length;
             const formatLabel = realPreview
               ? (realPreview.format_detected === "long" ? "Long Format" : "Wide Format")
-              : "Epic Clarity CSV";
+              : hasBrowserCsv ? "CSV" : "Epic Clarity CSV";
             const columnCount = previewHeaders.length;
             const displayCols = Math.min(columnCount, 12);
             const uniqueSubjects = realPreview
               ? realPreview.total_rows
-              : new Set(EPIC_ROWS.map((r) => r[0])).size;
+              : hasBrowserCsv
+                ? new Set(browserPreview.allRows.map((r) => r[0])).size
+                : new Set(EPIC_ROWS.map((r) => r[0])).size;
 
             return (
             <div className="space-y-6">
@@ -797,12 +821,14 @@ export function ImportPage() {
                 <Sparkles className="h-5 w-5 text-indigo-400" />
                 <div>
                   <p className="text-[12px] font-semibold text-indigo-300">
-                    {realPreview ? `${formatLabel} Detected` : "Epic Clarity Format Detected"}
+                    {realPreview ? `${formatLabel} Detected` : hasBrowserCsv ? `${formatLabel} — ${columnCount} Columns Detected` : "Epic Clarity Format Detected"}
                   </p>
                   <p className="text-[12px] text-dim">
                     {realPreview
                       ? `Detected ${columnCount} columns in ${formatLabel.toLowerCase()} layout. Auto-mapped ${mappedCount} of ${columnCount} fields.`
-                      : `Recognized PAT_MRN_ID, CURRENT_ICD10_LIST, and ${EPIC_COLUMNS.length - 2} other Epic Clarity columns. Auto-mapped ${mappedCount} of ${EPIC_COLUMNS.length} fields.`}
+                      : hasBrowserCsv
+                        ? `Found ${columnCount} columns and ${totalRows.toLocaleString()} data rows. Auto-mapped ${mappedCount} of ${columnCount} fields.`
+                        : `Recognized PAT_MRN_ID, CURRENT_ICD10_LIST, and ${EPIC_COLUMNS.length - 2} other Epic Clarity columns. Auto-mapped ${mappedCount} of ${EPIC_COLUMNS.length} fields.`}
                   </p>
                 </div>
               </div>
@@ -966,7 +992,9 @@ export function ImportPage() {
                             realPreview.sample_rows.map((row) => row[idx] ?? "").filter(Boolean).slice(0, 3),
                           ])
                         )
-                      : EPIC_SAMPLE_DATA}
+                      : hasBrowserCsv
+                        ? generateSampleData(browserPreview.headers, browserPreview.allRows)
+                        : EPIC_SAMPLE_DATA}
                     onMappingChange={handleMappingChange}
                   />
                 </div>
