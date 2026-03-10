@@ -677,11 +677,11 @@ function StepTuning({
 
 function SummaryCard({ label, value, sub, color }: { label: string; value: string; sub: string; color: string }) {
   const colors: Record<string, string> = {
-    emerald: "bg-emerald-500/8 ring-emerald-500/15 text-emerald-400",
-    blue: "bg-blue-500/8 ring-blue-500/15 text-blue-400",
-    amber: "bg-amber-500/8 ring-amber-500/15 text-amber-400",
-    red: "bg-red-500/8 ring-red-500/15 text-red-400",
-    purple: "bg-purple-500/8 ring-purple-500/15 text-purple-400",
+    emerald: "bg-emerald-500/8 dark:bg-emerald-500/10 ring-emerald-500/15 dark:ring-emerald-400/20 text-emerald-600 dark:text-emerald-300",
+    blue: "bg-blue-500/8 dark:bg-blue-500/10 ring-blue-500/15 dark:ring-blue-400/20 text-blue-600 dark:text-blue-300",
+    amber: "bg-amber-500/8 dark:bg-amber-500/10 ring-amber-500/15 dark:ring-amber-400/20 text-amber-600 dark:text-amber-300",
+    red: "bg-red-500/8 dark:bg-red-500/10 ring-red-500/15 dark:ring-red-400/20 text-red-600 dark:text-red-300",
+    purple: "bg-purple-500/8 dark:bg-purple-500/10 ring-purple-500/15 dark:ring-purple-400/20 text-purple-600 dark:text-purple-300",
   };
   return (
     <div className={`rounded-xl p-3.5 ring-1 ${colors[color] ?? colors.blue}`}>

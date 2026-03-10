@@ -141,11 +141,11 @@ export function Sidebar() {
                   {item.hint}
                 </span>
               </div>
-              <span className="relative z-10">
+              <span className="relative z-10 flex h-[18px] w-5 items-center justify-center">
                 {isActive ? (
                   <ChevronRight className="h-3 w-3 text-indigo-500/50" />
                 ) : (
-                  <kbd className="hidden group-hover:flex h-[18px] items-center rounded bg-surface-3 px-1.5 text-[9px] font-medium text-dim ring-1 ring-edge-2">
+                  <kbd className="flex h-[18px] items-center rounded bg-surface-3 px-1.5 text-[9px] font-medium text-dim ring-1 ring-edge-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     {item.shortcut}
                   </kbd>
                 )}
