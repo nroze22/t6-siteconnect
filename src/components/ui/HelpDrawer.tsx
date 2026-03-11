@@ -48,6 +48,19 @@ interface PageHelp {
 }
 
 const pageHelp: Record<NavigationPage, PageHelp> = {
+  dashboard: {
+    title: "Dashboard",
+    icon: <Search className="h-5 w-5" />,
+    description: "Your site screening command center. View key metrics, access workflows, and track onboarding progress.",
+    sections: [
+      { title: "Overview", content: "The dashboard shows patient counts, active studies, pipeline status, and revenue opportunity at a glance." },
+      { title: "Workflows", content: "Click any feature card to navigate directly to that section of the application." },
+    ],
+    tips: [
+      { icon: <Lightbulb className="h-4 w-4" />, text: "Complete the Getting Started checklist to unlock the full power of SiteConnect." },
+    ],
+    shortcuts: [{ keys: "`", action: "Go to Dashboard" }],
+  },
   screening: {
     title: "Subject Screening",
     icon: <Search className="h-5 w-5" />,
@@ -444,10 +457,10 @@ export function HelpDrawer({ currentPage }: { currentPage: NavigationPage }) {
                   {help.tips.map((tip, i) => (
                     <div
                       key={i}
-                      className="flex items-start gap-2.5 rounded-xl bg-amber-500/[0.04] px-3.5 py-2.5 ring-1 ring-amber-500/10"
+                      className="help-tip-card flex items-start gap-2.5 rounded-xl bg-amber-500/[0.04] px-3.5 py-2.5 ring-1 ring-amber-500/10"
                     >
-                      <span className="mt-0.5 shrink-0 text-amber-400">{tip.icon}</span>
-                      <p className="text-[12px] leading-snug text-amber-200/80">{tip.text}</p>
+                      <span className="help-tip-icon mt-0.5 shrink-0 text-amber-400">{tip.icon}</span>
+                      <p className="help-tip-text text-[12px] leading-snug text-amber-200/80">{tip.text}</p>
                     </div>
                   ))}
                 </div>
@@ -475,12 +488,12 @@ export function HelpDrawer({ currentPage }: { currentPage: NavigationPage }) {
 
               {/* Security reminder */}
               <div className="px-4 pb-6">
-                <div className="rounded-xl bg-emerald-500/[0.04] p-4 ring-1 ring-emerald-500/10">
+                <div className="help-security-card rounded-xl bg-emerald-500/[0.04] p-4 ring-1 ring-emerald-500/10">
                   <div className="flex items-center gap-2 mb-2">
-                    <Shield className="h-4 w-4 text-emerald-400" />
-                    <span className="text-[12px] font-semibold text-emerald-300">Privacy & Security</span>
+                    <Shield className="help-security-icon h-4 w-4 text-emerald-400" />
+                    <span className="help-security-title text-[12px] font-semibold text-emerald-300">Privacy & Security</span>
                   </div>
-                  <p className="text-[12px] leading-relaxed text-emerald-400/70">
+                  <p className="help-security-text text-[12px] leading-relaxed text-emerald-400/70">
                     All data is encrypted with AES-256 and stored locally on this device.
                     No subject data, screening results, or audit trail entries are ever transmitted
                     to any external server. This application is designed for 21 CFR Part 11 compliance.

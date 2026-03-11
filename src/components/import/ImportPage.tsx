@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { FileDropZone, type SelectedFile } from "./FileDropZone";
 import { ColumnMapper } from "./ColumnMapper";
+import { SmartImportPanel } from "./SmartImportPanel";
 import type { ColumnMapping, ImportResult } from "@/types";
 import {
   EPIC_COLUMNS,
@@ -158,7 +159,10 @@ function StepIndicator({ current }: { current: ImportStep }) {
 // Main component
 // ---------------------------------------------------------------------------
 
+type ImportMode = "structured" | "ai-assisted";
+
 export function ImportPage() {
+  const [importMode, setImportMode] = useState<ImportMode>("structured");
   const [step, setStep] = useState<ImportStep>("select");
   const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null);
   const [mappings, setMappings] = useState<ColumnMapping[]>(EPIC_AUTO_MAPPINGS);
@@ -623,13 +627,53 @@ export function ImportPage() {
               Import subject records from Epic, Cerner, or other EMR exports. All data stays encrypted on this device.
             </p>
           </div>
-          <StepIndicator current={step} />
+          {importMode === "structured" && <StepIndicator current={step} />}
+        </div>
+
+        {/* Mode toggle */}
+        <div className="mt-3 flex items-center gap-1 rounded-lg bg-surface-1 p-1 w-fit">
+          <button
+            onClick={() => setImportMode("structured")}
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              importMode === "structured"
+                ? "bg-card text-heading shadow-sm ring-1 ring-edge-2"
+                : "text-dim hover:text-body"
+            }`}
+          >
+            <FileSpreadsheet className="h-3 w-3" />
+            Import Structured Data (CSV/Excel)
+          </button>
+          <button
+            onClick={() => setImportMode("ai-assisted")}
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              importMode === "ai-assisted"
+                ? "bg-card text-heading shadow-sm ring-1 ring-edge-2"
+                : "text-dim hover:text-body"
+            }`}
+          >
+            <Sparkles className="h-3 w-3" />
+            Import Unstructured Notes (AI)
+          </button>
         </div>
       </div>
 
       {/* Content area */}
       <div className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-4xl">
+
+          {/* AI-Assisted Import Mode */}
+          {importMode === "ai-assisted" && (
+            <SmartImportPanel
+              onImportComplete={(patients) => {
+                toast.success(`Extracted ${patients.length} patient record${patients.length !== 1 ? "s" : ""} from clinical notes`);
+                setAppStatus({ patientCount: (useAppStore.getState().status.patientCount || 0) + patients.length });
+              }}
+            />
+          )}
+
+          {/* Structured Import Mode — existing flow */}
+          {importMode === "structured" && (<>
+
 
           {/* ============================================= */}
           {/* Step 1: File Selection                        */}
@@ -1693,6 +1737,8 @@ export function ImportPage() {
               </div>
             </div>
           )}
+
+          </>)}
 
         </div>
       </div>

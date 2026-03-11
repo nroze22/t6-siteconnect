@@ -7,11 +7,18 @@ export function StatusBar() {
   const status = useAppStore((s) => s.status);
 
   const llmConfig: Record<string, { label: string; dotColor: string; textColor: string; tooltip: string }> = {
-    not_configured: { label: "LLM not configured", dotColor: "bg-slate-600", textColor: "text-dim", tooltip: "Go to Settings to configure a local LLM for Tier 2 screening" },
-    starting: { label: "LLM starting...", dotColor: "bg-amber-400 animate-pulse", textColor: "text-amber-400/70", tooltip: "Loading model into memory — this may take a moment" },
-    ready: { label: `LLM ready  ${status.llmModel ?? ""}`, dotColor: "bg-emerald-400 shadow-[0_0_4px_rgba(16,185,129,0.5)]", textColor: "text-emerald-400/70", tooltip: "Local LLM is running and ready for Tier 2 criterion evaluation" },
-    error: { label: "LLM error", dotColor: "bg-red-400", textColor: "text-red-400/70", tooltip: "LLM failed to start — check Settings for details" },
-    disabled: { label: "Rule-based only", dotColor: "bg-slate-500", textColor: "text-dim", tooltip: "Screening uses rule-based engine only (no LLM assistance)" },
+    not_configured: { label: "AI screening off", dotColor: "bg-slate-600", textColor: "text-dim", tooltip: "Go to Settings → Data & AI to enable AI-powered screening" },
+    model_downloading: { label: "Downloading AI model...", dotColor: "bg-amber-400 animate-pulse", textColor: "text-amber-400/70", tooltip: "Downloading the AI model — this may take a few minutes" },
+    model_ready: { label: "AI model ready", dotColor: "bg-blue-400", textColor: "text-blue-400/70", tooltip: "AI model is downloaded — activate it from Settings" },
+    starting: { label: "AI starting...", dotColor: "bg-amber-400 animate-pulse", textColor: "text-amber-400/70", tooltip: "Loading AI model into memory — this may take a moment" },
+    running: {
+      label: `AI active${status.llmModel ? ` · ${status.llmModel}` : ""}`,
+      dotColor: "bg-emerald-400 shadow-[0_0_4px_rgba(16,185,129,0.5)]",
+      textColor: "text-emerald-400/70",
+      tooltip: `AI screening is running${status.llmModel ? ` with ${status.llmModel}` : ""} — all inference happens locally on this device`,
+    },
+    error: { label: "AI error", dotColor: "bg-red-400", textColor: "text-red-400/70", tooltip: "AI screening encountered an error — check Settings for details" },
+    stopped: { label: "AI stopped", dotColor: "bg-slate-600", textColor: "text-dim", tooltip: "AI screening is stopped — re-enable from Settings" },
   };
 
   const llm = llmConfig[status.llmStatus] ?? llmConfig["not_configured"]!;

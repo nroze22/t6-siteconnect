@@ -9,7 +9,8 @@ use commands::import::{detect_file_format, preview_import, execute_import, valid
 use commands::screening::{screen_patients, override_criterion, get_study_criteria};
 use commands::watcher::{start_folder_watcher, stop_folder_watcher, get_watcher_status, WatcherState};
 use commands::analytics::{get_analytics_patients, get_analytics_studies, get_analytics_summary, screen_patients_for_study, get_audit_trail, export_audit_trail, verify_audit_chain_cmd};
-use commands::llm::{get_llm_status, set_llm_model, start_llm_server, stop_llm_server, check_llm_health, evaluate_criterion_with_llm, pick_llm_model, LlmState};
+use commands::llm::{get_llm_status, set_llm_model, start_llm_server, stop_llm_server, check_llm_health, evaluate_criterion_with_llm, pick_llm_model, chat_with_llm, parse_clinical_notes, generate_ai_insight, LlmState};
+use commands::ollama::{check_ollama_status, get_ollama_models, install_ollama, start_ollama, pull_ollama_model, detect_system_hardware, configure_ollama_backend, test_ollama_inference};
 use db::DbState;
 use tauri::Manager;
 
@@ -90,6 +91,18 @@ pub fn run() {
             check_llm_health,
             evaluate_criterion_with_llm,
             pick_llm_model,
+            chat_with_llm,
+            parse_clinical_notes,
+            generate_ai_insight,
+            // Ollama
+            check_ollama_status,
+            get_ollama_models,
+            install_ollama,
+            start_ollama,
+            pull_ollama_model,
+            detect_system_hardware,
+            configure_ollama_backend,
+            test_ollama_inference,
         ])
         .run(tauri::generate_context!())
         .expect("error while running TalOS SiteConnect");

@@ -35,6 +35,7 @@ import {
   Tooltip,
 } from "recharts";
 import { motion } from "framer-motion";
+import { useAppStore } from "@/stores/use-app-store";
 import { getPatients } from "@/lib/data-provider";
 import type { ParsedPatient } from "@/lib/epic-demo-data";
 import {
@@ -113,13 +114,27 @@ const SEVERITY_STYLES: Record<string, { bg: string; badge: string; border: strin
   },
 };
 
-const tooltipStyle = {
-  backgroundColor: "#1a1f2e",
-  border: "1px solid rgba(255,255,255,0.08)",
-  borderRadius: "8px",
-  fontSize: 11,
-  color: "#e2e8f0",
-};
+function getTooltipStyle(isLight: boolean) {
+  return {
+    backgroundColor: isLight ? "#ffffff" : "#1a1f2e",
+    border: isLight ? "1px solid #e2e8f0" : "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "8px",
+    fontSize: 11,
+    color: isLight ? "#1e293b" : "#e2e8f0",
+    boxShadow: isLight ? "0 4px 12px rgba(0,0,0,0.1)" : "none",
+  };
+}
+
+function getChartColors(isLight: boolean) {
+  return {
+    grid: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.06)",
+    gridFaint: isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.04)",
+    tickFill: isLight ? "#475569" : "#64748b",
+    tickFillLight: isLight ? "#64748b" : "#94a3b8",
+    axisLine: isLight ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.06)",
+    gaugeTrack: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.06)",
+  };
+}
 
 const stagger = {
   hidden: { opacity: 0 },
@@ -546,7 +561,7 @@ function AnimatedDollar({ value }: { value: number }) {
 // SVG Radial Gauge
 // ---------------------------------------------------------------------------
 
-function RadialGauge({ score, size = 160 }: { score: number; size?: number }) {
+function RadialGauge({ score, size = 160, trackStroke }: { score: number; size?: number; trackStroke?: string }) {
   const animatedScore = useAnimatedNumber(score);
   const radius = (size - 16) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -565,7 +580,7 @@ function RadialGauge({ score, size = 160 }: { score: number; size?: number }) {
           cy={cy}
           r={radius}
           fill="none"
-          stroke="rgba(255,255,255,0.06)"
+          stroke={trackStroke ?? "rgba(255,255,255,0.06)"}
           strokeWidth={10}
         />
         {/* Score arc */}
@@ -640,6 +655,9 @@ function Slider({
 // ---------------------------------------------------------------------------
 
 function ResearchReadinessSection({ patients }: { patients: ParsedPatient[] }) {
+  const theme = useAppStore((s) => s.theme);
+  const isLight = theme === "light";
+  const cc = getChartColors(isLight);
   const diversity = useMemo(() => computeDiversityProfile(patients), [patients]);
 
   const subScores: SubScore[] = useMemo(() => {
@@ -693,7 +711,7 @@ function ResearchReadinessSection({ patients }: { patients: ParsedPatient[] }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
         {/* Radial Gauge */}
         <div className="flex flex-col items-center gap-4">
-          <RadialGauge score={overall} size={160} />
+          <RadialGauge score={overall} size={160} trackStroke={cc.gaugeTrack} />
           <p className="text-sm text-dim text-center max-w-xs leading-relaxed">
             {summary}
           </p>
@@ -703,15 +721,15 @@ function ResearchReadinessSection({ patients }: { patients: ParsedPatient[] }) {
         <div className="lg:col-span-1 h-64">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart data={radarData} outerRadius="75%">
-              <PolarGrid stroke="rgba(255,255,255,0.06)" />
+              <PolarGrid stroke={cc.grid} />
               <PolarAngleAxis
                 dataKey="subject"
-                tick={{ fill: "#94a3b8", fontSize: 10 }}
+                tick={{ fill: cc.tickFillLight, fontSize: 10 }}
               />
               <PolarRadiusAxis
                 angle={90}
                 domain={[0, 100]}
-                tick={{ fill: "#64748b", fontSize: 9 }}
+                tick={{ fill: cc.tickFill, fontSize: 9 }}
                 axisLine={false}
               />
               <Radar
@@ -928,7 +946,7 @@ function EnrollmentFunnelSection({ totalSubjects }: { totalSubjects: number }) {
               {/* Drop-off indicator */}
               {i > 0 && dropoff > 0 && (
                 <div className="flex items-center gap-2 mb-1 ml-4">
-                  <div className="h-3 border-l border-dashed border-white/10" />
+                  <div className="h-3 border-l border-dashed border-edge-2" />
                   <span className="text-[12px] text-dim font-mono">
                     -{dropoff}% drop-off
                   </span>
@@ -1083,6 +1101,9 @@ function EnrollmentFunnelSection({ totalSubjects }: { totalSubjects: number }) {
 // ---------------------------------------------------------------------------
 
 function ROICalculatorSection({ defaultEligible }: { defaultEligible: number }) {
+  const theme = useAppStore((s) => s.theme);
+  const isLight = theme === "light";
+  const cc = getChartColors(isLight);
   const [inputs, setInputs] = useState<ROIInputs>({
     perSubjectValue: 28000,
     eligibleSubjects: defaultEligible,
@@ -1303,23 +1324,23 @@ function ROICalculatorSection({ defaultEligible }: { defaultEligible: number }) 
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={breakevenData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={cc.gridFaint} />
                   <XAxis
                     dataKey="month"
-                    tick={{ fill: "#64748b", fontSize: 10 }}
+                    tick={{ fill: cc.tickFill, fontSize: 10 }}
                     tickFormatter={(v: number) => `M${v}`}
-                    axisLine={{ stroke: "rgba(255,255,255,0.06)" }}
+                    axisLine={{ stroke: cc.axisLine }}
                   />
                   <YAxis
-                    tick={{ fill: "#64748b", fontSize: 10 }}
+                    tick={{ fill: cc.tickFill, fontSize: 10 }}
                     tickFormatter={(v: number) =>
                       v >= 1000000 ? `$${(v / 1000000).toFixed(1)}M` : `$${Math.round(v / 1000)}K`
                     }
-                    axisLine={{ stroke: "rgba(255,255,255,0.06)" }}
+                    axisLine={{ stroke: cc.axisLine }}
                     width={55}
                   />
                   <Tooltip
-                    contentStyle={tooltipStyle}
+                    contentStyle={getTooltipStyle(isLight)}
                     formatter={(value) => [
                       `$${formatNumber(Number(value))}`,
                       "",

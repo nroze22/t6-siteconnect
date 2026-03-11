@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ResizableHandle,
@@ -26,6 +26,77 @@ const STUDY_LIST: { id: string; short: string; sponsor: string; phase: string; n
 ];
 
 const STUDY_MAP = Object.fromEntries(STUDY_LIST.map((s) => [s.id, s]));
+
+const SCREENING_STEPS = [
+  "Loading patient records...",
+  "Parsing eligibility criteria...",
+  "Evaluating inclusion criteria...",
+  "Evaluating exclusion criteria...",
+  "Checking lab value thresholds...",
+  "Scoring patient eligibility...",
+  "Ranking candidates...",
+];
+
+function ScreeningProgressOverlay() {
+  const [stepIdx, setStepIdx] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStepIdx((prev) => (prev + 1) % SCREENING_STEPS.length);
+    }, 1400);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="bg-gradient-to-r from-indigo-500/[0.06] via-indigo-500/[0.04] to-transparent px-4 py-3">
+      <div className="flex items-center gap-3">
+        {/* Animated pulse ring */}
+        <div className="relative flex h-8 w-8 items-center justify-center">
+          <motion.div
+            className="absolute inset-0 rounded-full border-2 border-indigo-500/30"
+            animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute inset-0 rounded-full border border-indigo-500/20"
+            animate={{ scale: [1, 1.8, 1], opacity: [0.3, 0, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+          />
+          <Loader2 className="h-4 w-4 animate-spin text-indigo-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[12px] font-semibold text-indigo-300">Screening in progress</p>
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={stepIdx}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.2 }}
+              className="text-[11px] text-indigo-400/60"
+            >
+              {SCREENING_STEPS[stepIdx]}
+            </motion.p>
+          </AnimatePresence>
+        </div>
+        {/* Progress dots */}
+        <div className="flex items-center gap-1">
+          {SCREENING_STEPS.map((_, i) => (
+            <motion.div
+              key={i}
+              className="h-1.5 w-1.5 rounded-full"
+              animate={{
+                backgroundColor: i <= stepIdx ? "rgb(129 140 248)" : "rgb(129 140 248 / 0.2)",
+                scale: i === stepIdx ? 1.3 : 1,
+              }}
+              transition={{ duration: 0.3 }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function ScreeningPage() {
   const selectedStudyId = useScreeningStore((s) => s.selectedStudyId);
@@ -196,12 +267,19 @@ export function ScreeningPage() {
         </div>
 
         {/* Screening overlay */}
+        <AnimatePresence>
         {screening && (
-          <div className="shrink-0 flex items-center gap-2.5 border-b border-indigo-500/15 bg-indigo-500/[0.04] px-4 py-2">
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-400" />
-            <p className="text-[12px] text-indigo-300">Re-screening all subjects against new study criteria...</p>
-          </div>
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="shrink-0 overflow-hidden border-b border-indigo-500/15"
+          >
+            <ScreeningProgressOverlay />
+          </motion.div>
         )}
+        </AnimatePresence>
 
         {/* Panels */}
         <div className="flex-1 overflow-hidden">

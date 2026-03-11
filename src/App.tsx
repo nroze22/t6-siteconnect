@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { StatusBar } from "@/components/layout/StatusBar";
+import { DashboardPage } from "@/components/dashboard/DashboardPage";
 import { ScreeningPage } from "@/components/screening/ScreeningPage";
 import { ImportPage } from "@/components/import/ImportPage";
 import { TrialsPage } from "@/components/trials/TrialsPage";
@@ -25,6 +26,7 @@ import { useAppStore } from "@/stores/use-app-store";
 import { useSiteProfileStore } from "@/stores/use-site-profile-store";
 import { useDemoData } from "@/hooks/use-demo-data";
 import { checkDatabaseExists } from "@/lib/tauri";
+import { getLlmStatus } from "@/lib/data-provider";
 import type { NavigationPage } from "@/types";
 
 class ErrorBoundary extends React.Component<
@@ -102,6 +104,8 @@ function PageRouter() {
 
   const page = (() => {
     switch (currentPage) {
+      case "dashboard":
+        return <DashboardPage />;
       case "screening":
         return <ScreeningPage />;
       case "import":
@@ -123,7 +127,7 @@ function PageRouter() {
       case "settings":
         return <SettingsPage />;
       default:
-        return <ScreeningPage />;
+        return <DashboardPage />;
     }
   })();
 
@@ -136,6 +140,7 @@ function PageRouter() {
 
 // Global keyboard navigation: 1-8 for pages
 const pageKeys: Record<string, NavigationPage> = {
+  "`": "dashboard",
   "1": "screening",
   "2": "import",
   "3": "trials",
@@ -184,6 +189,7 @@ function MainApp() {
   useGlobalShortcuts();
   const currentPage = useAppStore((s) => s.currentPage);
   const theme = useAppStore((s) => s.theme);
+  const setLlmStatus = useAppStore((s) => s.setLlmStatus);
   const loadProfile = useSiteProfileStore((s) => s.loadFromStorage);
   // Apply theme class on mount and when theme changes
   useEffect(() => {
@@ -198,6 +204,15 @@ function MainApp() {
   useEffect(() => {
     loadProfile();
   }, [loadProfile]);
+
+  // Fetch LLM status on startup and sync to global store
+  useEffect(() => {
+    getLlmStatus().then((s) => {
+      setLlmStatus(s.status, s.model_name);
+    }).catch(() => {
+      // Ignore — store default is "not_configured"
+    });
+  }, [setLlmStatus]);
 
   const [showOnboarding, setShowOnboarding] = useState(() => {
     try {

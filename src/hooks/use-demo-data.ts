@@ -27,7 +27,7 @@ export function useDemoData() {
         databaseReady: true,
         patientCount: patients.length,
         studyCount: 6,
-        llmStatus: "ready",
+        llmStatus: "running",
         llmModel: "BioMistral-7B",
       });
       if (!selectedStudyId) selectStudy("study-1");
@@ -51,7 +51,7 @@ export function useDemoData() {
         databaseReady: true,
         patientCount: parsed.length,
         studyCount: 6,
-        llmStatus: "ready",
+        llmStatus: "running",
         llmModel: "BioMistral-7B",
       });
     });

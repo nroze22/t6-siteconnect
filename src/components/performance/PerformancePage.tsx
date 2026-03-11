@@ -25,6 +25,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useAppStore } from "@/stores/use-app-store";
 import { STUDY_SCREENING_DEFS } from "@/lib/epic-demo-data";
 import type { ParsedPatient } from "@/lib/epic-demo-data";
 import { getPatients, screenPatientsViaRust, screeningResultToOutput } from "@/lib/data-provider";
@@ -35,6 +36,32 @@ import { exportCSV, exportReportDeck } from "@/lib/analytics-export";
 import { useToast } from "@/components/ui/Toast";
 import { useAnalyticsStore } from "@/stores/use-analytics-store";
 import { DrillDownPanel } from "@/components/analytics/DrillDownPanel";
+
+function getChartColors(isLight: boolean) {
+  return {
+    grid: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.04)",
+    tickFill: isLight ? "#475569" : "#64748b",
+  };
+}
+
+function getTooltipStyle(isLight: boolean): React.CSSProperties {
+  return {
+    backgroundColor: isLight ? "#ffffff" : "#1a1d2e",
+    border: isLight ? "1px solid #e2e8f0" : "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 8,
+    fontSize: 11,
+    color: isLight ? "#1e293b" : "#e2e8f0",
+    boxShadow: isLight ? "0 4px 12px rgba(0,0,0,0.1)" : "none",
+  };
+}
+
+function getTooltipLabelStyle(isLight: boolean): React.CSSProperties {
+  return {
+    color: isLight ? "#1e293b" : "#e2e8f0",
+    fontWeight: 600,
+    marginBottom: 4,
+  };
+}
 
 const STUDY_NAMES: Record<string, string> = {
   "study-1": "KEYNOTE-789",
@@ -321,7 +348,7 @@ export function PerformancePage() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors ${
-                tab === t.id ? "bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-500/25" : "text-dim hover:bg-surface-2 hover:text-body"
+                tab === t.id ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 ring-1 ring-indigo-500/25" : "text-dim hover:bg-surface-2 hover:text-body"
               }`}
             >
               {t.icon} {t.label}
@@ -355,6 +382,9 @@ export function PerformancePage() {
 }
 
 function OverviewTab({ metrics, patients }: { metrics: StudyMetrics[]; patients: ParsedPatient[] }) {
+  const theme = useAppStore((s) => s.theme);
+  const isLight = theme === "light";
+  const cc = getChartColors(isLight);
   const openDrillDown = useAnalyticsStore((s) => s.openDrillDown);
 
   const chartData = metrics.map((m) => ({
@@ -431,12 +461,12 @@ function OverviewTab({ metrics, patients }: { metrics: StudyMetrics[]; patients:
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} barGap={2}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#64748b" }} />
-              <YAxis tick={{ fontSize: 10, fill: "#64748b" }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={cc.grid} />
+              <XAxis dataKey="name" tick={{ fontSize: 10, fill: cc.tickFill }} />
+              <YAxis tick={{ fontSize: 10, fill: cc.tickFill }} />
               <Tooltip
-                contentStyle={{ backgroundColor: "#1a1d2e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 11 }}
-                labelStyle={{ color: "#e2e8f0", fontWeight: 600, marginBottom: 4 }}
+                contentStyle={getTooltipStyle(isLight)}
+                labelStyle={getTooltipLabelStyle(isLight)}
               />
               <Bar dataKey="eligible" fill="#10b981" name="Eligible" radius={[2, 2, 0, 0]} />
               <Bar dataKey="potential" fill="#8b5cf6" name="Potentially Eligible" radius={[2, 2, 0, 0]} />
@@ -503,11 +533,11 @@ function OverviewTab({ metrics, patients }: { metrics: StudyMetrics[]; patients:
         <div className="h-56">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={revenueData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#64748b" }} />
-              <YAxis tick={{ fontSize: 10, fill: "#64748b" }} tickFormatter={(v) => `$${v}K`} />
+              <CartesianGrid strokeDasharray="3 3" stroke={cc.grid} />
+              <XAxis dataKey="name" tick={{ fontSize: 10, fill: cc.tickFill }} />
+              <YAxis tick={{ fontSize: 10, fill: cc.tickFill }} tickFormatter={(v) => `$${v}K`} />
               <Tooltip
-                contentStyle={{ backgroundColor: "#1a1d2e", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 11 }}
+                contentStyle={getTooltipStyle(isLight)}
                 formatter={(value) => [`$${Number(value)}K`, "Revenue"]}
               />
               <Bar dataKey="revenue" fill="url(#revenueGradient)" radius={[4, 4, 0, 0]} />
@@ -526,6 +556,9 @@ function OverviewTab({ metrics, patients }: { metrics: StudyMetrics[]; patients:
 }
 
 function FailureIntelligenceTab({ metrics }: { metrics: StudyMetrics[] }) {
+  const theme = useAppStore((s) => s.theme);
+  const isLight = theme === "light";
+  const gaugeTrack = isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.06)";
   const failures = useMemo(() => computeFailureIntelligence(metrics), [metrics]);
   const totalFails = useMemo(() => failures.reduce((sum, f) => sum + f.count, 0), [failures]);
 
@@ -621,7 +654,7 @@ function FailureIntelligenceTab({ metrics }: { metrics: StudyMetrics[] }) {
             <div className="flex items-center gap-4 mb-3">
               <div className="relative h-16 w-16">
                 <svg viewBox="0 0 36 36" className="h-16 w-16 -rotate-90">
-                  <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" />
+                  <circle cx="18" cy="18" r="15" fill="none" stroke={gaugeTrack} strokeWidth="3" />
                   <circle
                     cx="18" cy="18" r="15" fill="none"
                     stroke={m.screenPassRate >= 30 ? "#10b981" : "#f59e0b"}

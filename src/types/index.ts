@@ -198,11 +198,13 @@ export interface FinancialOpportunity {
 
 // --- App State ---
 
-export type LlmStatus = "not_configured" | "starting" | "ready" | "error" | "disabled";
+export type LlmStatus = "not_configured" | "model_downloading" | "model_ready" | "starting" | "running" | "error" | "stopped";
+export type LlmBackend = "none" | "ollama" | "llama_server";
 
 export interface AppStatus {
   llmStatus: LlmStatus;
   llmModel: string | null;
+  llmBackend: LlmBackend;
   databaseReady: boolean;
   patientCount: number;
   studyCount: number;
@@ -210,6 +212,7 @@ export interface AppStatus {
 }
 
 export type NavigationPage =
+  | "dashboard"
   | "screening"
   | "import"
   | "trials"

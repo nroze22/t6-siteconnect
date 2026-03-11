@@ -295,6 +295,31 @@
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
   }
 
+  /* Help drawer light mode fixes */
+  .light .help-tip-card {
+    background: rgb(255 251 235); /* amber-50 */
+    --tw-ring-color: rgb(245 158 11 / 0.2); /* amber-500/20 */
+  }
+  .light .help-tip-icon {
+    color: rgb(217 119 6); /* amber-600 */
+  }
+  .light .help-tip-text {
+    color: rgb(146 64 14); /* amber-800 */
+  }
+  .light .help-security-card {
+    background: rgb(236 253 245); /* emerald-50 */
+    --tw-ring-color: rgb(16 185 129 / 0.2); /* emerald-500/20 */
+  }
+  .light .help-security-icon {
+    color: rgb(5 150 105); /* emerald-600 */
+  }
+  .light .help-security-title {
+    color: rgb(4 120 87); /* emerald-700 */
+  }
+  .light .help-security-text {
+    color: rgb(6 95 70); /* emerald-800 */
+  }
+
   /* Always-dark context (splash, setup, unlock, error boundary) */
   .dark-always {
     --color-background: #0c0f17;

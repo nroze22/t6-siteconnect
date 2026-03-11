@@ -259,7 +259,7 @@ export function SourceDataPanel() {
             >
               {tab.label}
               {hasHighlight && (
-                <span className="absolute right-1 top-1.5 h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_4px_rgba(245,158,11,0.5)]" />
+                <span className="absolute right-1 top-1.5 h-1.5 w-1.5 rounded-full bg-indigo-400 shadow-[0_0_4px_rgba(129,140,248,0.5)]" />
               )}
             </button>
           );
@@ -278,14 +278,14 @@ export function SourceDataPanel() {
 
       {/* Criterion context bar — no evidence */}
       {criterionHasNoEvidence && (
-        <div className="flex flex-col gap-2 border-b border-border bg-amber-500/5 px-3 py-3">
+        <div className="flex flex-col gap-2 border-b border-border bg-amber-100 dark:bg-amber-500/5 px-3 py-3">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-400" />
-            <p className="text-[12px] font-medium text-amber-300">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+            <p className="text-[12px] font-medium text-indigo-700 dark:text-indigo-300">
               No evidence found in patient record
             </p>
           </div>
-          <p className="text-[11px] text-amber-300/60 leading-relaxed pl-5.5">
+          <p className="text-[11px] text-amber-700/70 dark:text-amber-300/60 leading-relaxed pl-5.5">
             {selectedCriterion.reasoning ?? "This criterion could not be evaluated from the available structured data. Manual chart review may be needed."}
           </p>
         </div>
@@ -367,10 +367,10 @@ function DemographicsTab({ patientId, isHighlighted, searchTerms }: { patientId:
               <tr
                 key={label}
                 data-highlighted={isMatch ? "true" : undefined}
-                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-amber-500/10 ring-1 ring-inset ring-amber-500/20" : ""}`}
+                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-indigo-500/8 dark:bg-indigo-500/10 ring-1 ring-inset ring-indigo-400/30 dark:ring-indigo-500/25" : ""}`}
               >
-                <td className={`py-2.5 pr-3 font-medium ${isMatch ? "text-amber-300" : "text-dim"}`}>{label}</td>
-                <td className={`py-2.5 font-mono ${isMatch ? "text-amber-200 font-semibold" : "text-body"}`}>{value}</td>
+                <td className={`py-2.5 pr-3 font-medium ${isMatch ? "text-indigo-700 dark:text-indigo-300" : "text-dim"}`}>{label}</td>
+                <td className={`py-2.5 font-mono ${isMatch ? "text-indigo-800 dark:text-indigo-200 font-semibold" : "text-body"}`}>{value}</td>
               </tr>
             );
           })}
@@ -407,14 +407,14 @@ function DiagnosesTab({ diagnoses, isHighlighted, searchTerms }: { diagnoses: Di
               <tr
                 key={dx.id}
                 data-highlighted={isMatch ? "true" : undefined}
-                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-amber-500/10 ring-1 ring-inset ring-amber-500/20" : ""}`}
+                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-indigo-500/8 dark:bg-indigo-500/10 ring-1 ring-inset ring-indigo-400/30 dark:ring-indigo-500/25" : ""}`}
               >
-                <td className={`px-3 py-2 font-mono font-semibold ${isMatch ? "text-amber-300" : "text-body"}`}>{dx.icd10Code}</td>
-                <td className={`px-3 py-2 ${isMatch ? "text-amber-200 font-medium" : "text-body"}`}>{dx.description}</td>
+                <td className={`px-3 py-2 font-mono font-semibold ${isMatch ? "text-indigo-700 dark:text-indigo-300" : "text-body"}`}>{dx.icd10Code}</td>
+                <td className={`px-3 py-2 ${isMatch ? "text-indigo-800 dark:text-indigo-200 font-medium" : "text-body"}`}>{dx.description}</td>
                 <td className="px-3 py-2 text-dim">{dx.onsetDate}</td>
                 <td className="px-3 py-2">
                   <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-semibold ${
-                    dx.status === "active" ? "bg-emerald-500/10 text-emerald-400" : "bg-surface-2 text-dim"
+                    dx.status === "active" ? "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/20" : "bg-surface-2 text-dim"
                   }`}>
                     {dx.status}
                   </span>
@@ -451,14 +451,14 @@ function MedicationsTab({ medications, isHighlighted, searchTerms }: { medicatio
               <tr
                 key={med.id}
                 data-highlighted={isMatch ? "true" : undefined}
-                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-amber-500/10 ring-1 ring-inset ring-amber-500/20" : ""}`}
+                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-indigo-500/8 dark:bg-indigo-500/10 ring-1 ring-inset ring-indigo-400/30 dark:ring-indigo-500/25" : ""}`}
               >
-                <td className={`px-3 py-2 font-semibold ${isMatch ? "text-amber-300" : "text-body"}`}>{med.drugName}</td>
+                <td className={`px-3 py-2 font-semibold ${isMatch ? "text-indigo-700 dark:text-indigo-300" : "text-body"}`}>{med.drugName}</td>
                 <td className="px-3 py-2 font-mono text-body">{med.dose}</td>
                 <td className="px-3 py-2 text-dim">{med.frequency}</td>
                 <td className="px-3 py-2">
                   <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-semibold ${
-                    med.status === "active" ? "bg-emerald-500/10 text-emerald-400" : "bg-surface-2 text-dim"
+                    med.status === "active" ? "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/20" : "bg-surface-2 text-dim"
                   }`}>
                     {med.status}
                   </span>
@@ -508,10 +508,10 @@ function LabsTab({ labs, isHighlighted, searchTerms }: { labs: LabResult[]; isHi
               <tr
                 key={lab.id}
                 data-highlighted={isMatch ? "true" : undefined}
-                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-amber-500/10 ring-1 ring-inset ring-amber-500/20" : ""}`}
+                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-indigo-500/8 dark:bg-indigo-500/10 ring-1 ring-inset ring-indigo-400/30 dark:ring-indigo-500/25" : ""}`}
               >
-                <td className={`px-3 py-2 font-semibold ${isMatch ? "text-amber-300" : "text-body"}`}>{lab.testName}</td>
-                <td className={`px-3 py-2 text-right font-mono font-bold ${isMatch ? "text-amber-200" : "text-body"}`}>
+                <td className={`px-3 py-2 font-semibold ${isMatch ? "text-indigo-700 dark:text-indigo-300" : "text-body"}`}>{lab.testName}</td>
+                <td className={`px-3 py-2 text-right font-mono font-bold ${isMatch ? "text-indigo-800 dark:text-indigo-200" : "text-body"}`}>
                   {lab.value != null ? lab.value.toLocaleString() : "\u2014"}
                 </td>
                 <td className="px-3 py-2 text-dim">{lab.unit}</td>
@@ -558,12 +558,12 @@ function VitalsTab({ vitals, isHighlighted, searchTerms }: { vitals: VitalSign[]
               <tr
                 key={v.id}
                 data-highlighted={isMatch ? "true" : undefined}
-                className={`border-b border-edge-1 ${isMatch ? "bg-amber-500/10 ring-1 ring-inset ring-amber-500/20" : ""}`}
+                className={`border-b border-edge-1 ${isMatch ? "bg-indigo-500/8 dark:bg-indigo-500/10 ring-1 ring-inset ring-indigo-400/30 dark:ring-indigo-500/25" : ""}`}
               >
-                <td className={`px-3 py-2 font-semibold ${isMatch ? "text-amber-300" : "text-body"}`}>
+                <td className={`px-3 py-2 font-semibold ${isMatch ? "text-indigo-700 dark:text-indigo-300" : "text-body"}`}>
                   {label}
                 </td>
-                <td className={`px-3 py-2 text-right font-mono font-bold ${isMatch ? "text-amber-200" : "text-body"}`}>{v.value}</td>
+                <td className={`px-3 py-2 text-right font-mono font-bold ${isMatch ? "text-indigo-800 dark:text-indigo-200" : "text-body"}`}>{v.value}</td>
                 <td className="px-3 py-2 text-dim">{v.unit}</td>
                 <td className="px-3 py-2 text-dim">{v.measurementDate}</td>
               </tr>

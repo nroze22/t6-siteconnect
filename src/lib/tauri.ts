@@ -56,6 +56,7 @@ export async function getAppStatus(): Promise<AppStatus> {
     return {
       llmStatus: "not_configured",
       llmModel: null,
+      llmBackend: "none",
       databaseReady: false,
       patientCount: 0,
       studyCount: 0,

@@ -596,7 +596,7 @@ function InlineFilterEditor({
         </button>
         <button
           onClick={onCancel}
-          className="h-8 px-2 rounded-md text-dim hover:text-body hover:bg-white/5 transition-colors"
+          className="h-8 px-2 rounded-md text-dim hover:text-body hover:bg-surface-3 transition-colors"
         >
           <X className="h-3.5 w-3.5" />
         </button>
@@ -1104,21 +1104,21 @@ export function CohortBuilderPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSaveQuery}
-                className="flex items-center gap-1.5 h-7 px-2.5 rounded-md text-xs text-dim hover:text-body hover:bg-white/5 transition-colors"
+                className="flex items-center gap-1.5 h-7 px-2.5 rounded-md text-xs text-dim hover:text-body hover:bg-surface-3 transition-colors"
               >
                 <Bookmark className="h-3.5 w-3.5" />
                 Save Query
               </button>
               <button
                 onClick={handleExportCSV}
-                className="flex items-center gap-1.5 h-7 px-2.5 rounded-md text-xs text-dim hover:text-body hover:bg-white/5 transition-colors"
+                className="flex items-center gap-1.5 h-7 px-2.5 rounded-md text-xs text-dim hover:text-body hover:bg-surface-3 transition-colors"
               >
                 <Download className="h-3.5 w-3.5" />
                 Export CSV
               </button>
               <button
                 onClick={handleGenerateReport}
-                className="flex items-center gap-1.5 h-7 px-2.5 rounded-md text-xs bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 transition-colors"
+                className="flex items-center gap-1.5 h-7 px-2.5 rounded-md text-xs bg-primary/15 text-primary hover:bg-primary/25 transition-colors"
               >
                 <FileText className="h-3.5 w-3.5" />
                 Feasibility Report
@@ -1174,7 +1174,7 @@ export function CohortBuilderPage() {
               {queryText && (
                 <button
                   onClick={() => setQueryText("")}
-                  className="mr-2 p-1 rounded-md text-dim hover:text-body hover:bg-white/5 transition-colors"
+                  className="mr-2 p-1 rounded-md text-dim hover:text-body hover:bg-surface-3 transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -1182,7 +1182,7 @@ export function CohortBuilderPage() {
               <button
                 onClick={() => handleSearchSubmit(queryText)}
                 disabled={!queryText.trim()}
-                className="h-9 px-4 rounded-lg bg-indigo-600 text-sm font-medium text-heading hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
+                className="h-9 px-4 rounded-lg bg-indigo-600 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5"
               >
                 <Search className="h-3.5 w-3.5" />
                 Search
@@ -1652,7 +1652,7 @@ export function CohortBuilderPage() {
               onClick={() => loadPresetQuery(q)}
               className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors ${
                 activeSavedId === q.id
-                  ? "bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-500/30"
+                  ? "bg-primary/10 text-primary ring-1 ring-primary/30"
                   : "text-dim hover:bg-surface-2 hover:text-body"
               }`}
             >
@@ -1675,7 +1675,7 @@ export function CohortBuilderPage() {
                 key={q.id}
                 className={`flex items-center rounded-lg transition-colors ${
                   activeSavedId === q.id
-                    ? "bg-indigo-500/15 ring-1 ring-indigo-500/30"
+                    ? "bg-primary/10 ring-1 ring-primary/30"
                     : "hover:bg-surface-2"
                 }`}
               >
@@ -1685,7 +1685,7 @@ export function CohortBuilderPage() {
                 >
                   <div
                     className={`font-medium text-[12px] leading-tight mb-0.5 ${
-                      activeSavedId === q.id ? "text-indigo-300" : "text-dim"
+                      activeSavedId === q.id ? "text-primary" : "text-dim"
                     }`}
                   >
                     {q.name}

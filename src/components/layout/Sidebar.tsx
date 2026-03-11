@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import {
+  LayoutDashboard,
   Search,
   FileUp,
   FlaskConical,
@@ -17,6 +18,13 @@ import { Tooltip } from "@/components/ui/Tooltip";
 import type { NavigationPage } from "@/types";
 
 const navItems: { id: NavigationPage; label: string; hint: string; icon: React.ReactNode; shortcut: string }[] = [
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    hint: "Site overview & status",
+    icon: <LayoutDashboard className="h-4.5 w-4.5" />,
+    shortcut: "`",
+  },
   {
     id: "screening",
     label: "Screening",

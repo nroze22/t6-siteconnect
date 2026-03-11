@@ -82,6 +82,38 @@ export interface LlmStatus {
   model_path: string | null;
   port: number;
   model_size_bytes: number | null;
+  backend: string;
+  ollama_model: string | null;
+}
+
+// Ollama types
+export interface OllamaStatus {
+  installed: boolean;
+  running: boolean;
+  models: OllamaModel[];
+}
+
+export interface OllamaModel {
+  name: string;
+  size: number;
+  modified_at: string;
+}
+
+export interface PullProgress {
+  model: string;
+  status: string;
+  total: number;
+  completed: number;
+  percent: number;
+}
+
+export interface SystemHardware {
+  total_ram_bytes: number;
+  total_ram_gb: number;
+  free_disk_bytes: number;
+  free_disk_gb: number;
+  recommended_tier: string;
+  recommended_model: string;
 }
 
 // --- Tauri invoke helpers ---
@@ -208,6 +240,10 @@ export async function screenPatientsViaRust(studyId: string): Promise<ScreeningR
     screening_id: r.summary.id,
     patient_id: r.summary.sitePatientId,
     study_id: studyId,
+    site_patient_id: r.summary.sitePatientId,
+    age: r.summary.age,
+    gender: r.summary.gender,
+    primary_diagnosis: r.summary.primaryDiagnosis,
     overall_status: r.summary.overallStatus,
     score: r.summary.score,
     inclusion_met: r.summary.inclusionMet,
@@ -232,12 +268,12 @@ export async function screenPatientsViaRust(studyId: string): Promise<ScreeningR
 
 export async function getLlmStatus(): Promise<LlmStatus> {
   if (!isTauri) {
-    return { status: "not_configured", model_name: null, model_path: null, port: 8384, model_size_bytes: null };
+    return { status: "not_configured", model_name: null, model_path: null, port: 8384, model_size_bytes: null, backend: "none", ollama_model: null };
   }
   try {
     return await tauriInvoke<LlmStatus>("get_llm_status");
   } catch {
-    return { status: "not_configured", model_name: null, model_path: null, port: 8384, model_size_bytes: null };
+    return { status: "not_configured", model_name: null, model_path: null, port: 8384, model_size_bytes: null, backend: "none", ollama_model: null };
   }
 }
 
@@ -260,6 +296,169 @@ export async function checkLlmHealth(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+export async function chatWithLlm(message: string): Promise<string> {
+  if (!isTauri) return "Demo mode — AI chat requires the desktop app with a model configured.";
+  return tauriInvoke<string>("chat_with_llm", { message });
+}
+
+// --- Clinical Notes Extraction ---
+
+export interface ExtractedPatient {
+  patient_id: string | null;
+  name: string | null;
+  date_of_birth: string | null;
+  age: number | null;
+  gender: string | null;
+  race: string | null;
+  diagnoses: { description: string; icd10_code: string | null; status: string | null; onset_date: string | null }[];
+  medications: { drug_name: string; dose: string | null; frequency: string | null; status: string | null }[];
+  labs: { test_name: string; value: number | null; unit: string | null; result_date: string | null; abnormal: boolean | null }[];
+  vitals: { measurement_type: string; value: number; unit: string }[];
+}
+
+export interface ExtractedPatientData {
+  patients: ExtractedPatient[];
+  raw_llm_response: string;
+  parse_warnings: string[];
+}
+
+export async function parseClinicalNotes(notesText: string): Promise<ExtractedPatientData> {
+  if (!isTauri) {
+    // Demo mode — return mock extracted data
+    return {
+      patients: [{
+        patient_id: "DEMO-001",
+        name: "John Doe",
+        date_of_birth: "1963-04-12",
+        age: 62,
+        gender: "Male",
+        race: "White",
+        diagnoses: [
+          { description: "Type 2 Diabetes Mellitus", icd10_code: "E11.9", status: "active", onset_date: "2019-03-15" },
+          { description: "Essential Hypertension", icd10_code: "I10", status: "active", onset_date: "2018-06-01" },
+        ],
+        medications: [
+          { drug_name: "Metformin", dose: "1000mg", frequency: "twice daily", status: "active" },
+          { drug_name: "Lisinopril", dose: "20mg", frequency: "once daily", status: "active" },
+        ],
+        labs: [
+          { test_name: "HbA1c", value: 8.4, unit: "%", result_date: "2025-11-15", abnormal: true },
+          { test_name: "Fasting Glucose", value: 186, unit: "mg/dL", result_date: "2025-11-15", abnormal: true },
+          { test_name: "eGFR", value: 72, unit: "mL/min/1.73m²", result_date: "2025-11-15", abnormal: false },
+        ],
+        vitals: [
+          { measurement_type: "bp_systolic", value: 142, unit: "mmHg" },
+          { measurement_type: "bp_diastolic", value: 88, unit: "mmHg" },
+          { measurement_type: "bmi", value: 31.2, unit: "kg/m²" },
+        ],
+      }],
+      raw_llm_response: "(demo mode)",
+      parse_warnings: [],
+    };
+  }
+  return tauriInvoke<ExtractedPatientData>("parse_clinical_notes", { notesText });
+}
+
+// --- AI Insight Generation ---
+
+export interface LlmInsight {
+  type: "positive" | "warning" | "opportunity" | "neutral";
+  title: string;
+  body: string;
+  actionable?: string;
+}
+
+export async function generateAiInsight(context: string, insightType: string): Promise<LlmInsight[]> {
+  if (!isTauri) return [];
+  try {
+    const raw = await tauriInvoke<Record<string, unknown>[]>("generate_ai_insight", { context, insightType });
+    return raw.map((r) => ({
+      type: (r.type as LlmInsight["type"]) || "neutral",
+      title: (r.title as string) || "AI Insight",
+      body: (r.body as string) || "",
+      actionable: r.actionable as string | undefined,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+// --- Ollama commands ---
+
+export async function checkOllamaStatus(): Promise<OllamaStatus> {
+  if (!isTauri) {
+    return { installed: false, running: false, models: [] };
+  }
+  try {
+    return await tauriInvoke<OllamaStatus>("check_ollama_status");
+  } catch {
+    return { installed: false, running: false, models: [] };
+  }
+}
+
+export async function getOllamaModels(): Promise<OllamaModel[]> {
+  if (!isTauri) return [];
+  try {
+    return await tauriInvoke<OllamaModel[]>("get_ollama_models");
+  } catch {
+    return [];
+  }
+}
+
+export async function installOllama(): Promise<string> {
+  return tauriInvoke<string>("install_ollama");
+}
+
+export async function startOllama(): Promise<string> {
+  return tauriInvoke<string>("start_ollama");
+}
+
+export async function pullOllamaModel(model: string): Promise<void> {
+  return tauriInvoke<void>("pull_ollama_model", { model });
+}
+
+export async function detectSystemHardware(): Promise<SystemHardware> {
+  if (!isTauri) {
+    return { total_ram_bytes: 16_000_000_000, total_ram_gb: 16, free_disk_bytes: 100_000_000_000, free_disk_gb: 100, recommended_tier: "standard", recommended_model: "gemma3:4b" };
+  }
+  try {
+    return await tauriInvoke<SystemHardware>("detect_system_hardware");
+  } catch {
+    return { total_ram_bytes: 0, total_ram_gb: 0, free_disk_bytes: 0, free_disk_gb: 0, recommended_tier: "none", recommended_model: "none" };
+  }
+}
+
+export async function configureOllamaBackend(model: string): Promise<LlmStatus> {
+  return tauriInvoke<LlmStatus>("configure_ollama_backend", { model });
+}
+
+export async function testOllamaInference(): Promise<{ success: boolean; latency_ms: number; error: string | null }> {
+  if (!isTauri) return { success: true, latency_ms: 150, error: null };
+  return tauriInvoke<{ success: boolean; latency_ms: number; error: string | null }>("test_ollama_inference");
+}
+
+export async function listenForPullProgress(
+  callback: (progress: PullProgress) => void
+): Promise<(() => void) | null> {
+  if (!isTauri) return null;
+  const { listen } = await import("@tauri-apps/api/event");
+  const unlisten = await listen<PullProgress>("ollama://pull-progress", (event) => {
+    callback(event.payload);
+  });
+  return unlisten;
+}
+
+export async function listenForPullComplete(
+  callback: (result: { model: string; success: boolean; error: string | null }) => void
+): Promise<(() => void) | null> {
+  if (!isTauri) return null;
+  const { listen } = await import("@tauri-apps/api/event");
+  const unlisten = await listen<{ model: string; success: boolean; error: string | null }>("ollama://pull-complete", (event) => {
+    callback(event.payload);
+  });
+  return unlisten;
 }
 
 // --- Audit Trail ---

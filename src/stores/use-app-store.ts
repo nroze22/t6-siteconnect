@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { AppStatus, LlmStatus, NavigationPage } from "@/types";
+import type { AppStatus, LlmStatus, LlmBackend, NavigationPage } from "@/types";
 
 type Theme = "dark" | "light";
 
@@ -11,7 +11,7 @@ interface AppStore {
   // App status
   status: AppStatus;
   setStatus: (status: Partial<AppStatus>) => void;
-  setLlmStatus: (status: LlmStatus, model?: string | null) => void;
+  setLlmStatus: (status: LlmStatus, model?: string | null, backend?: LlmBackend) => void;
 
   // Session
   isLocked: boolean;
@@ -33,12 +33,13 @@ function applyThemeClass(theme: Theme) {
 }
 
 export const useAppStore = create<AppStore>((set, get) => ({
-  currentPage: "screening",
+  currentPage: "dashboard",
   setCurrentPage: (page) => set({ currentPage: page }),
 
   status: {
     llmStatus: "not_configured",
     llmModel: null,
+    llmBackend: "none",
     databaseReady: false,
     patientCount: 0,
     studyCount: 0,
@@ -46,9 +47,14 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
   setStatus: (partial) =>
     set((state) => ({ status: { ...state.status, ...partial } })),
-  setLlmStatus: (llmStatus, llmModel) =>
+  setLlmStatus: (llmStatus, llmModel, llmBackend) =>
     set((state) => ({
-      status: { ...state.status, llmStatus, llmModel: llmModel ?? state.status.llmModel },
+      status: {
+        ...state.status,
+        llmStatus,
+        llmModel: llmModel ?? state.status.llmModel,
+        llmBackend: llmBackend ?? state.status.llmBackend,
+      },
     })),
 
   isLocked: false,

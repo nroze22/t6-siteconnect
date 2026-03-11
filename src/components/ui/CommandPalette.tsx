@@ -49,6 +49,7 @@ export function CommandPalette() {
   const commands: CommandItem[] = useMemo(
     () => [
       // Navigation
+      { id: "nav-dashboard", label: "Dashboard", hint: "Site overview & status", icon: <Search className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("dashboard"), keywords: ["home", "overview", "dashboard", "status"] },
       { id: "nav-screening", label: "Subject Screening", hint: "Review eligibility", icon: <Search className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("screening"), keywords: ["subjects", "screen", "eligibility", "criteria"] },
       { id: "nav-import", label: "Import Data", hint: "CSV, FHIR, HL7", icon: <FileUp className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("import"), keywords: ["upload", "csv", "fhir", "hl7", "file"] },
       { id: "nav-trials", label: "Trial Discovery", hint: "Browse & match trials", icon: <FlaskConical className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("trials"), keywords: ["study", "clinical", "nct", "sponsor"] },

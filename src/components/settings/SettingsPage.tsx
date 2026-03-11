@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   Brain,
   HardDrive,
@@ -61,15 +61,28 @@ import {
   startLlmServer,
   stopLlmServer,
   checkLlmHealth,
+  checkOllamaStatus,
+  installOllama,
+  startOllama,
+  detectSystemHardware,
+  pullOllamaModel,
+  configureOllamaBackend,
+  testOllamaInference,
+  listenForPullProgress,
+  listenForPullComplete,
   getAuditTrail,
   exportAuditTrail,
   verifyAuditChain,
   getSummary,
   type LlmStatus,
+  type OllamaStatus,
+  type SystemHardware,
+  type PullProgress,
   type AuditEntry,
 } from "@/lib/data-provider";
 import { useToast } from "@/components/ui/Toast";
 import { useAppStore } from "@/stores/use-app-store";
+import { AiChatTest } from "./AiChatTest";
 
 // ─── Tab Definition ──────────────────────────────────────────
 
@@ -128,7 +141,7 @@ export function SettingsPage() {
           {activeTab === "data" && (
             <>
               <DatabasePanel />
-              <LlmPanel />
+              <AiSetupPanel />
               <WatcherPanel />
             </>
           )}
@@ -330,144 +343,633 @@ function WatcherPanel() {
 // LLM Model Panel
 // ---------------------------------------------------------------------------
 
-function LlmPanel() {
-  const [status, setStatus] = useState<LlmStatus>({
-    status: "not_configured", model_name: null, model_path: null, port: 8384, model_size_bytes: null,
+// ─── Ollama model tier definitions ─────────────────────────────────
+
+const AI_MODELS = [
+  { id: "gemma3:1b", label: "Lightweight", size: "~815 MB", sizeGb: 1.0, ramReq: "8 GB+", description: "Fast inference, lower accuracy. Good for constrained hardware." },
+  { id: "gemma3:4b", label: "Standard", size: "~3.3 GB", sizeGb: 3.5, ramReq: "16 GB+", description: "Best balance of speed and quality. Recommended for most sites." },
+] as const;
+
+type SetupPhase = "idle" | "installing_ollama" | "starting_ollama" | "downloading_model" | "activating" | "testing" | "done" | "error";
+
+function AiSetupPanel() {
+  const setGlobalLlmStatus = useAppStore((s) => s.setLlmStatus);
+  const toast = useToast();
+
+  // Core state
+  const [llmStatus, setLlmStatusLocal] = useState<LlmStatus>({
+    status: "not_configured", model_name: null, model_path: null, port: 8384, model_size_bytes: null, backend: "none", ollama_model: null,
   });
-  const [loading, setLoading] = useState(false);
+  const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus>({ installed: false, running: false, models: [] });
+  const [hardware, setHardware] = useState<SystemHardware | null>(null);
+  const [selectedModel, setSelectedModel] = useState<string>("gemma3:4b");
+
+  // One-click setup state
+  const [phase, setPhase] = useState<SetupPhase>("idle");
+  const [phaseMessage, setPhaseMessage] = useState("");
+  const [pullProgress, setPullProgress] = useState<PullProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [modelPath, setModelPath] = useState("");
   const [healthy, setHealthy] = useState(false);
 
-  useEffect(() => { getLlmStatus().then(setStatus); }, []);
+  // Download speed tracking
+  const [downloadSpeed, setDownloadSpeed] = useState<string>("");
+  const lastProgressRef = useRef<{ completed: number; time: number } | null>(null);
 
+  // Advanced (llama-server) state
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [modelPath, setModelPath] = useState("");
+  const [manualLoading, setManualLoading] = useState(false);
+
+  // Sync local + global LLM state
+  const setStatus = useCallback((update: LlmStatus | ((prev: LlmStatus) => LlmStatus)) => {
+    setLlmStatusLocal((prev) => {
+      const next = typeof update === "function" ? update(prev) : update;
+      const backend = next.backend === "ollama" ? "ollama" as const : next.backend === "llama_server" ? "llama_server" as const : "none" as const;
+      setGlobalLlmStatus(next.status, next.model_name ?? next.ollama_model, backend);
+      return next;
+    });
+  }, [setGlobalLlmStatus]);
+
+  // Initial load — skip heavy Ollama/hardware checks if LLM is already running
   useEffect(() => {
-    if (status.status !== "running") { setHealthy(false); return; }
+    const globalLlm = useAppStore.getState().status.llmStatus;
+    getLlmStatus().then((status) => {
+      setStatus(status);
+      // If LLM is already running (from global state or fresh check), just sync state
+      // and skip expensive Ollama re-detection + hardware checks
+      if (status.status === "running" || globalLlm === "running") {
+        // Still populate ollamaStatus minimally so the UI renders correctly
+        checkOllamaStatus().then(setOllamaStatus);
+        return;
+      }
+      checkOllamaStatus().then(setOllamaStatus);
+      detectSystemHardware().then((hw) => {
+        setHardware(hw);
+        if (hw.recommended_model && hw.recommended_model !== "none") setSelectedModel(hw.recommended_model);
+      });
+    });
+  }, [setStatus]);
+
+  // Health check for running server
+  useEffect(() => {
+    if (llmStatus.status !== "running") { setHealthy(false); return; }
     const interval = setInterval(() => { checkLlmHealth().then(setHealthy); }, 5000);
     checkLlmHealth().then(setHealthy);
     return () => clearInterval(interval);
-  }, [status.status]);
+  }, [llmStatus.status]);
 
-  const handlePickModel = useCallback(async () => {
-    if (!isTauri) {
-      setModelPath("~/models/BioMistral-7B-DARE-Q4_K_M.gguf");
+  const isModelInstalled = useCallback((modelId: string) => {
+    return ollamaStatus.models.some((m) => m.name === modelId || m.name.startsWith(modelId + ":"));
+  }, [ollamaStatus.models]);
+
+  // ── ONE-CLICK SETUP: install Ollama → start → pull model → activate ──
+  const handleOneClickSetup = useCallback(async (modelId: string) => {
+    setError(null);
+    setSelectedModel(modelId);
+
+    const modelDef = AI_MODELS.find((m) => m.id === modelId);
+    const requiredGb = modelDef?.sizeGb ?? 4.0;
+
+    // Pre-flight: disk space
+    if (hardware && hardware.free_disk_gb < requiredGb + 1) {
+      setError(`Not enough disk space. ${modelId} needs ~${requiredGb} GB but you only have ${hardware.free_disk_gb.toFixed(1)} GB free.`);
+      toast.error("Insufficient disk space", `Need ~${requiredGb + 1} GB free`);
       return;
     }
+
+    // Step 1: Ensure Ollama is installed
+    let currentStatus = await checkOllamaStatus();
+    setOllamaStatus(currentStatus);
+
+    if (!currentStatus.installed && !currentStatus.running) {
+      setPhase("installing_ollama");
+      setPhaseMessage("Step 1: Installing AI engine");
+      try {
+        await installOllama();
+        currentStatus = await checkOllamaStatus();
+        setOllamaStatus(currentStatus);
+        if (!currentStatus.installed && !currentStatus.running) {
+          throw new Error("Installation completed but Ollama was not detected. Please try again.");
+        }
+      } catch (e) {
+        const errMsg = e instanceof Error ? e.message : String(e);
+        if (errMsg.includes("https://ollama.com/download")) {
+          try { const { open } = await import("@tauri-apps/plugin-shell"); await open("https://ollama.com/download"); } catch { window.open("https://ollama.com/download", "_blank"); }
+          setPhase("error");
+          setError("Windows requires manual install. Download page has been opened — install Ollama, then try again.");
+          return;
+        }
+        setPhase("error");
+        setError(errMsg);
+        toast.error("Setup failed", errMsg);
+        return;
+      }
+    }
+
+    // Step 2: Ensure Ollama is running
+    if (!currentStatus.running) {
+      setPhase("starting_ollama");
+      setPhaseMessage("Step 2: Starting AI engine");
+      try {
+        await startOllama();
+        currentStatus = await checkOllamaStatus();
+        setOllamaStatus(currentStatus);
+        if (!currentStatus.running) {
+          throw new Error("Ollama started but is not responding. It may need a moment — try again.");
+        }
+      } catch (e) {
+        setPhase("error");
+        setError(e instanceof Error ? e.message : String(e));
+        toast.error("Setup failed", "Could not start AI engine");
+        return;
+      }
+    }
+
+    // Step 3: Pull the model if not already installed
+    const alreadyInstalled = currentStatus.models.some((m) => m.name === modelId || m.name.startsWith(modelId + ":"));
+    if (!alreadyInstalled) {
+      setPhase("downloading_model");
+      setPhaseMessage("Step 3: Downloading AI model");
+      setPullProgress(null);
+      setDownloadSpeed("");
+      lastProgressRef.current = null;
+
+      try {
+        await new Promise<void>(async (resolve, reject) => {
+          const unlistenProgress = await listenForPullProgress((progress) => {
+            setPullProgress(progress);
+            // Compute download speed and ETA
+            const now = Date.now();
+            const last = lastProgressRef.current;
+            if (last && progress.completed > last.completed) {
+              const elapsed = (now - last.time) / 1000; // seconds
+              if (elapsed > 0.5) {
+                const bytesPerSec = (progress.completed - last.completed) / elapsed;
+                const remaining = progress.total - progress.completed;
+                const etaSec = remaining / bytesPerSec;
+                const speed = bytesPerSec > 1_000_000
+                  ? `${(bytesPerSec / 1_000_000).toFixed(1)} MB/s`
+                  : `${(bytesPerSec / 1_000).toFixed(0)} KB/s`;
+                const eta = etaSec > 60
+                  ? `~${Math.ceil(etaSec / 60)} min left`
+                  : `~${Math.ceil(etaSec)}s left`;
+                setDownloadSpeed(`${speed} · ${eta}`);
+                lastProgressRef.current = { completed: progress.completed, time: now };
+              }
+            } else if (!last) {
+              lastProgressRef.current = { completed: progress.completed, time: now };
+            }
+            const pct = progress.percent > 0 ? ` (${Math.round(progress.percent)}%)` : "";
+            setPhaseMessage(`Downloading AI model${pct}`);
+          });
+          const unlistenComplete = await listenForPullComplete((result) => {
+            unlistenProgress?.();
+            unlistenComplete?.();
+            if (result.success) resolve();
+            else reject(new Error(result.error ?? "Download failed"));
+          });
+
+          try {
+            await pullOllamaModel(modelId);
+            // In web/demo mode, simulate completion
+            if (!isTauri) {
+              setTimeout(() => {
+                setOllamaStatus((prev) => ({
+                  ...prev,
+                  models: [...prev.models, { name: modelId, size: 3_300_000_000, modified_at: new Date().toISOString() }],
+                }));
+                resolve();
+              }, 2000);
+            }
+          } catch (e) {
+            unlistenProgress?.();
+            unlistenComplete?.();
+            reject(e);
+          }
+        });
+
+        setPullProgress(null);
+        currentStatus = await checkOllamaStatus();
+        setOllamaStatus(currentStatus);
+      } catch (e) {
+        setPhase("error");
+        setPullProgress(null);
+        setError(e instanceof Error ? e.message : String(e));
+        toast.error("Download failed", e instanceof Error ? e.message : "Unknown error");
+        return;
+      }
+    }
+
+    // Step 4: Configure & activate
+    setPhase("activating");
+    setPhaseMessage("Step 4: Configuring screening engine");
+    try {
+      const result = await configureOllamaBackend(modelId);
+      setStatus(result);
+    } catch (e) {
+      setPhase("error");
+      setError(e instanceof Error ? e.message : String(e));
+      toast.error("Activation failed", e instanceof Error ? e.message : "Unknown error");
+      return;
+    }
+
+    // Step 5: Quick smoke test
+    setPhase("testing");
+    setPhaseMessage("Step 5: Verifying AI is working");
+    try {
+      const testResult = await testOllamaInference();
+      if (!testResult.success) {
+        // Non-fatal — AI is configured but test failed
+        toast.info("AI activated", `Model ready, but test returned: ${testResult.error ?? "slow response"}`);
+      } else {
+        toast.success("AI screening ready", `${modelId} responding in ${testResult.latency_ms}ms`);
+      }
+    } catch {
+      // Non-fatal
+      toast.info("AI activated", "Model configured. Inference test was inconclusive.");
+    }
+
+    setPhase("done");
+    setPhaseMessage("");
+  }, [hardware, setStatus, toast]);
+
+  // Disable AI
+  const handleDisableAi = useCallback(async () => {
+    try {
+      if (isTauri) { setStatus(await stopLlmServer()); }
+      else { setStatus((prev) => ({ ...prev, status: "not_configured", backend: "none", ollama_model: null })); }
+      setPhase("idle");
+      toast.info("AI screening disabled", "Screening will use rule-based mode only");
+    } catch {
+      // ignore
+    }
+  }, [setStatus, toast]);
+
+  // --- Advanced: llama-server handlers ---
+  async function handlePickModel() {
+    if (!isTauri) { setModelPath("~/models/BioMistral-7B-DARE-Q4_K_M.gguf"); return; }
     const { open } = await import("@tauri-apps/plugin-dialog");
     const result = await open({ title: "Select GGUF Model File", filters: [{ name: "GGUF Models", extensions: ["gguf"] }] });
     if (typeof result === "string") { setModelPath(result); setError(null); }
-  }, []);
+  }
 
-  const handleSetModel = useCallback(async () => {
+  async function handleSetModel() {
     if (!modelPath.trim()) { setError("Please select a model file first"); return; }
-    setLoading(true); setError(null);
+    setManualLoading(true); setError(null);
     try {
       if (isTauri) { setStatus(await setLlmModel(modelPath)); }
-      else { setStatus((prev) => ({ ...prev, status: "model_ready", model_name: "BioMistral-7B-DARE-Q4_K_M.gguf", model_path: modelPath, model_size_bytes: 4_400_000_000 })); }
+      else { setStatus((prev) => ({ ...prev, status: "model_ready", model_name: "BioMistral-7B-DARE-Q4_K_M.gguf", model_path: modelPath, model_size_bytes: 4_400_000_000, backend: "llama_server", ollama_model: null })); }
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
-    finally { setLoading(false); }
-  }, [modelPath]);
+    finally { setManualLoading(false); }
+  }
 
-  const handleStart = useCallback(async () => {
-    setLoading(true); setError(null);
+  async function handleStartServer() {
+    setManualLoading(true); setError(null);
     try {
       if (isTauri) { setStatus(await startLlmServer()); }
-      else {
-        setStatus((prev) => ({ ...prev, status: "starting" }));
-        setTimeout(() => { setStatus((prev) => ({ ...prev, status: "running" })); setHealthy(true); }, 1500);
-      }
+      else { setStatus((prev) => ({ ...prev, status: "starting" })); setTimeout(() => { setStatus((prev) => ({ ...prev, status: "running" })); setHealthy(true); }, 1500); }
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
-    finally { setLoading(false); }
-  }, []);
+    finally { setManualLoading(false); }
+  }
 
-  const handleStop = useCallback(async () => {
-    setLoading(true);
+  async function handleStopServer() {
+    setManualLoading(true);
     try {
       if (isTauri) { setStatus(await stopLlmServer()); }
       else { setStatus((prev) => ({ ...prev, status: "model_ready" })); setHealthy(false); }
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
-    finally { setLoading(false); }
-  }, []);
+    finally { setManualLoading(false); }
+  }
+
+  // Status badge
+  const isActive = llmStatus.status === "running" && llmStatus.backend === "ollama";
+  const isSettingUp = phase !== "idle" && phase !== "done" && phase !== "error";
 
   const badge = (() => {
-    switch (status.status) {
-      case "running": return { label: "Running", cls: "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20", dot: true };
-      case "model_ready": return { label: "Model Ready", cls: "text-blue-400 bg-blue-500/10 ring-1 ring-blue-500/20", dot: false };
-      case "starting": return { label: "Starting...", cls: "text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20", dot: false };
-      case "error": return { label: "Error", cls: "text-red-400 bg-red-500/10 ring-1 ring-red-500/20", dot: false };
-      default: return { label: "Not Configured", cls: "text-dim bg-surface-2 ring-1 ring-edge-2", dot: false };
-    }
+    if (isActive) return { label: "Active", cls: "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20", dot: true };
+    if (isSettingUp) return { label: "Setting up...", cls: "text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20", dot: false };
+    if (llmStatus.status === "running" && llmStatus.backend === "llama_server") return { label: "Running (Manual)", cls: "text-blue-400 bg-blue-500/10 ring-1 ring-blue-500/20", dot: true };
+    return { label: "Not Active", cls: "text-dim bg-surface-2 ring-1 ring-edge-2", dot: false };
   })();
 
   return (
     <div className="rounded-xl border border-edge-2 bg-card overflow-hidden">
+      {/* Header */}
       <div className="flex items-center gap-4 p-4 border-b border-edge-2">
         <div className="rounded-lg p-2.5 bg-purple-500/10 ring-1 ring-purple-500/20">
           <Brain className="h-5 w-5 text-purple-400" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-[13px] font-semibold text-body">Local AI Model</h3>
+            <h3 className="text-[13px] font-semibold text-body">AI Screening</h3>
             <span className={`flex items-center gap-1 rounded-md px-2 py-0.5 text-[9px] font-semibold ${badge.cls}`}>
               {badge.dot && <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />}
               {badge.label}
             </span>
-            {status.status === "running" && healthy && (
+            {isActive && healthy && (
               <span className="flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold text-emerald-400 ring-1 ring-emerald-500/20">
                 <Check className="h-2.5 w-2.5" /> Healthy
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[12px] text-dim">Local LLM for AI-powered criterion evaluation. 100% on-device.</p>
+          <p className="mt-0.5 text-[12px] text-dim">
+            {isActive
+              ? `Using ${llmStatus.ollama_model ?? selectedModel} · 100% local inference · no PHI leaves this device`
+              : "Enable local AI to evaluate complex eligibility criteria. One click — we handle everything."}
+          </p>
         </div>
       </div>
 
-      <div className="p-4 space-y-3">
-        <div>
-          <label className="text-[12px] font-semibold uppercase tracking-wider text-dim">Model File (GGUF)</label>
-          <div className="mt-1.5 flex gap-2">
-            <input type="text" value={modelPath || status.model_path || ""} onChange={(e) => setModelPath(e.target.value)} placeholder="path/to/BioMistral-7B-DARE-Q4_K_M.gguf" className="flex-1 rounded-lg border border-edge-2 bg-surface-2 px-3 py-2 font-mono text-[12px] text-body placeholder-dim focus:border-purple-500/40 focus:outline-none focus:ring-1 focus:ring-purple-500/20" />
-            <button onClick={handlePickModel} className="flex items-center gap-1.5 rounded-lg border border-edge-3 bg-surface-2 px-3 py-2 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body">
-              <FolderOpen className="h-3.5 w-3.5" /> Browse
-            </button>
-          </div>
-        </div>
+      <div className="p-4 space-y-4">
+        {/* ── Active state ── */}
+        {isActive && !isSettingUp && (
+          <div>
+            <div className="rounded-lg bg-emerald-500/5 px-4 py-3 ring-1 ring-emerald-500/15">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/15">
+                  <Sparkles className="h-4.5 w-4.5 text-emerald-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[13px] font-semibold text-emerald-400">AI screening is active</p>
+                  <p className="text-[12px] text-dim">
+                    Model: <span className="font-semibold text-body">{llmStatus.ollama_model ?? selectedModel}</span>
+                    {healthy && <span className="ml-2 text-emerald-400">· Healthy</span>}
+                  </p>
+                </div>
+                <button
+                  onClick={handleDisableAi}
+                  className="rounded-lg border border-edge-3 bg-surface-2 px-3 py-1.5 text-[11px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body"
+                >
+                  Disable
+                </button>
+              </div>
+            </div>
 
-        {status.model_name && (
-          <div className="flex items-center gap-3 rounded-lg bg-surface-1 px-3 py-2 ring-1 ring-edge-1">
-            <Server className="h-4 w-4 text-purple-400" />
-            <div className="flex-1">
-              <p className="text-[12px] font-medium text-body">{status.model_name}</p>
-              <p className="text-[12px] text-dim">
-                {status.model_size_bytes ? formatBytes(status.model_size_bytes) : "Size unknown"} · Port {status.port}
-              </p>
+            {/* Chat test */}
+            <div className="mt-3">
+              <AiChatTest />
+            </div>
+
+            {/* System info (compact, in active state) */}
+            {hardware && (
+              <div className="mt-3 flex items-center gap-2 flex-wrap text-[11px] text-dim">
+                <span className="flex items-center gap-1"><MemoryStick className="h-3 w-3" />{hardware.total_ram_gb.toFixed(0)} GB RAM</span>
+                <span className="text-faint">·</span>
+                <span className="flex items-center gap-1"><HardDrive className="h-3 w-3" />{hardware.free_disk_gb.toFixed(0)} GB free</span>
+                <span className="text-faint">·</span>
+                <span>100% on-device inference</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Setup in progress ── */}
+        {isSettingUp && (
+          <div className="rounded-lg bg-purple-500/5 px-4 py-4 ring-1 ring-purple-500/15">
+            <div className="flex items-center gap-3 mb-3">
+              <Loader2 className="h-5 w-5 text-purple-400 animate-spin shrink-0" />
+              <div className="flex-1">
+                <p className="text-[13px] font-semibold text-purple-400">{phaseMessage}</p>
+                <p className="text-[12px] text-dim">
+                  {phase === "installing_ollama" && "Downloading the AI runtime (~150 MB). This only happens once."}
+                  {phase === "starting_ollama" && "Launching the AI engine on your machine. Almost there..."}
+                  {phase === "downloading_model" && (
+                    pullProgress && pullProgress.percent > 0
+                      ? `Downloading AI model — ${Math.round(pullProgress.percent)}% complete. Please keep this window open.`
+                      : "Preparing to download the AI model. This may take a few minutes depending on your connection."
+                  )}
+                  {phase === "activating" && "Connecting the AI model to the screening engine..."}
+                  {phase === "testing" && "Verifying the AI model can process clinical criteria..."}
+                </p>
+              </div>
+            </div>
+
+            {/* Progress bar for model download */}
+            {phase === "downloading_model" && (
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[11px] font-medium text-body">
+                    {pullProgress?.status === "pulling manifest" ? "Fetching model info..." :
+                     pullProgress?.status?.startsWith("pulling") ? "Downloading..." :
+                     pullProgress?.status === "verifying sha256 digest" ? "Verifying download..." :
+                     pullProgress?.status === "writing manifest" ? "Finalizing..." :
+                     pullProgress?.status ?? "Preparing..."}
+                  </span>
+                  <span className="text-[11px] font-mono font-semibold text-purple-400">
+                    {pullProgress && pullProgress.percent > 0 ? `${Math.round(pullProgress.percent)}%` : "—"}
+                  </span>
+                </div>
+                <div className="h-2.5 rounded-full bg-surface-2 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-purple-600 to-purple-400 transition-all duration-500 ease-out"
+                    style={{ width: `${pullProgress?.percent ?? 0}%` }}
+                  />
+                </div>
+                {pullProgress && pullProgress.total > 0 && (
+                  <div className="mt-1 flex items-center justify-between">
+                    <span className="text-[10px] text-purple-400 font-medium">
+                      {downloadSpeed || "Calculating speed..."}
+                    </span>
+                    <span className="text-[10px] text-dim">
+                      {(pullProgress.completed / 1_000_000_000).toFixed(2)} / {(pullProgress.total / 1_000_000_000).toFixed(1)} GB
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Named step indicators */}
+            <div className="mt-4 flex items-center gap-0.5">
+              {([
+                { key: "installing_ollama", label: "Install" },
+                { key: "starting_ollama", label: "Start" },
+                { key: "downloading_model", label: "Download" },
+                { key: "activating", label: "Configure" },
+                { key: "testing", label: "Verify" },
+              ] as const).map(({ key, label }, i) => {
+                const steps: SetupPhase[] = ["installing_ollama", "starting_ollama", "downloading_model", "activating", "testing"];
+                const currentIdx = steps.indexOf(phase);
+                const isDone = i < currentIdx;
+                const isCurrent = i === currentIdx;
+                return (
+                  <div key={key} className="flex-1 flex flex-col items-center gap-1">
+                    <div className={`h-1.5 w-full rounded-full transition-colors ${isDone ? "bg-purple-500" : isCurrent ? "bg-purple-400 animate-pulse" : "bg-surface-2"}`} />
+                    <span className={`text-[9px] font-medium ${isDone ? "text-purple-400" : isCurrent ? "text-purple-400" : "text-faint"}`}>{label}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
 
-        {error && (
-          <div className="flex items-center gap-2 rounded-lg bg-red-500/5 px-3 py-2 ring-1 ring-red-500/15">
-            <AlertCircle className="h-3.5 w-3.5 text-red-400" />
-            <span className="text-[12px] text-red-400">{error}</span>
+        {/* ── Model selection (when not active and not setting up) ── */}
+        {!isActive && !isSettingUp && (
+          <div>
+            {/* System info */}
+            {hardware && (
+              <div className="mb-4">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-2 rounded-lg bg-surface-1 px-3 py-2 ring-1 ring-edge-1">
+                    <MemoryStick className="h-3.5 w-3.5 text-indigo-400" />
+                    <p className="text-[12px] font-semibold text-body">{hardware.total_ram_gb.toFixed(1)} GB RAM</p>
+                  </div>
+                  <div className="flex items-center gap-2 rounded-lg bg-surface-1 px-3 py-2 ring-1 ring-edge-1">
+                    <HardDrive className={`h-3.5 w-3.5 ${hardware.free_disk_gb < 5 ? "text-red-400" : "text-indigo-400"}`} />
+                    <p className={`text-[12px] font-semibold ${hardware.free_disk_gb < 5 ? "text-red-400" : "text-body"}`}>{hardware.free_disk_gb.toFixed(1)} GB free</p>
+                  </div>
+                </div>
+                {hardware.free_disk_gb < 5 && (
+                  <div className="mt-2 flex items-center gap-2 rounded-lg bg-red-500/5 px-3 py-2 ring-1 ring-red-500/15">
+                    <AlertCircle className="h-3.5 w-3.5 text-red-400 shrink-0" />
+                    <span className="text-[12px] text-red-400">Low disk space. At least 5 GB free is needed.</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">Choose a model</p>
+            <div className="grid grid-cols-2 gap-3">
+              {AI_MODELS.map((model) => {
+                const installed = isModelInstalled(model.id);
+                const isRecommended = hardware?.recommended_model === model.id;
+                return (
+                  <button
+                    key={model.id}
+                    onClick={() => handleOneClickSetup(model.id)}
+                    disabled={isSettingUp || (hardware?.recommended_tier === "none")}
+                    className="group relative rounded-xl p-4 text-left transition-all bg-surface-1 ring-1 ring-edge-1 hover:ring-purple-500/30 hover:bg-purple-500/[0.03] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isRecommended && (
+                      <span className="absolute -top-1.5 right-2 rounded-full bg-purple-500 px-2 py-0.5 text-[8px] font-bold text-white">
+                        RECOMMENDED
+                      </span>
+                    )}
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <Sparkles className="h-4 w-4 text-purple-400" />
+                      <span className="text-[13px] font-bold text-heading">{model.label}</span>
+                      {installed && (
+                        <span className="flex items-center gap-0.5 rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[8px] font-semibold text-emerald-400 ring-1 ring-emerald-500/20">
+                          <Check className="h-2 w-2" /> Downloaded
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[12px] text-dim mb-3">{model.description}</p>
+                    <div className="flex items-center gap-3 text-[11px] text-dim">
+                      <span>{model.size}</span>
+                      <span className="text-faint">·</span>
+                      <span>{model.ramReq} RAM</span>
+                    </div>
+                    <div className="mt-3 flex items-center justify-center gap-1.5 rounded-lg bg-purple-600/90 py-2 text-[12px] font-semibold text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Sparkles className="h-3 w-3" />
+                      {installed ? "Activate AI Screening" : "Set Up AI Screening"}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {hardware?.recommended_tier === "none" && (
+              <div className="mt-3 flex items-center gap-2 rounded-lg bg-amber-500/5 px-3 py-2 ring-1 ring-amber-500/15">
+                <AlertCircle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                <span className="text-[12px] text-amber-400">Your system has less than 8 GB RAM. AI screening requires at least 8 GB. Rule-based screening is still available.</span>
+              </div>
+            )}
           </div>
         )}
 
-        <div className="flex items-center gap-2">
-          {status.status === "not_configured" || (!status.model_path && !modelPath) ? (
-            <button onClick={handleSetModel} disabled={loading || !modelPath.trim()} className="flex items-center gap-1.5 rounded-lg bg-purple-600 px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-purple-500 disabled:opacity-50">
-              {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />} Configure Model
-            </button>
-          ) : status.status === "running" ? (
-            <button onClick={handleStop} disabled={loading} className="flex items-center gap-1.5 rounded-lg bg-red-600/80 px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-red-500 disabled:opacity-50">
-              <Square className="h-3 w-3" /> Stop Server
-            </button>
-          ) : (
-            <>
-              <button onClick={handleStart} disabled={loading} className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-emerald-500 disabled:opacity-50">
-                {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />} Start Server
-              </button>
-              <button onClick={handleSetModel} disabled={loading} className="flex items-center gap-1 rounded-lg border border-edge-3 bg-surface-2 px-3 py-2 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3">Change Model</button>
-            </>
+        {/* ── Done state (just completed setup) ── */}
+        {phase === "done" && isActive && (
+          <div className="rounded-lg bg-emerald-500/5 px-4 py-3 ring-1 ring-emerald-500/15">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+              <span className="text-[13px] font-semibold text-emerald-400">Setup complete</span>
+            </div>
+            <p className="mt-1 text-[12px] text-dim">
+              AI screening is now active. When you screen patients, complex eligibility criteria will be evaluated by the local AI model in addition to rule-based checks. Go to <button onClick={() => useAppStore.getState().setCurrentPage("screening")} className="text-indigo-400 underline underline-offset-2 hover:text-indigo-300">Screening</button> to try it out.
+            </p>
+          </div>
+        )}
+
+        {/* Error display */}
+        {error && (
+          <div className="flex items-start gap-2 rounded-lg bg-red-500/5 px-3 py-2 ring-1 ring-red-500/15">
+            <AlertCircle className="h-3.5 w-3.5 text-red-400 shrink-0 mt-0.5" />
+            <div>
+              <span className="text-[12px] text-red-400">{error}</span>
+              {phase === "error" && (
+                <button
+                  onClick={() => { setPhase("idle"); setError(null); }}
+                  className="mt-1 block text-[11px] font-semibold text-red-400 underline underline-offset-2 hover:text-red-300"
+                >
+                  Try again
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── Advanced (llama.cpp) — collapsed ── */}
+        <div>
+          <button
+            onClick={() => setAdvancedOpen(!advancedOpen)}
+            className="flex w-full items-center justify-between rounded-lg bg-surface-1 px-3 py-2 text-[11px] font-medium text-dim ring-1 ring-edge-1 transition-colors hover:text-body"
+          >
+            <span className="flex items-center gap-1.5">
+              <Server className="h-3 w-3" />
+              Advanced: Manual GGUF Model
+            </span>
+            {advancedOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          </button>
+
+          {advancedOpen && (
+            <div className="mt-2 space-y-3 rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
+              <div>
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-dim">Model File (GGUF)</label>
+                <div className="mt-1.5 flex gap-2">
+                  <input
+                    type="text"
+                    value={modelPath || llmStatus.model_path || ""}
+                    onChange={(e) => setModelPath(e.target.value)}
+                    placeholder="path/to/model.gguf"
+                    className="flex-1 rounded-lg border border-edge-2 bg-surface-2 px-3 py-2 font-mono text-[11px] text-body placeholder-dim focus:border-purple-500/40 focus:outline-none focus:ring-1 focus:ring-purple-500/20"
+                  />
+                  <button onClick={handlePickModel} className="flex items-center gap-1.5 rounded-lg border border-edge-3 bg-surface-2 px-3 py-2 text-[11px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body">
+                    <FolderOpen className="h-3.5 w-3.5" /> Browse
+                  </button>
+                </div>
+              </div>
+
+              {llmStatus.model_name && llmStatus.backend !== "ollama" && (
+                <div className="flex items-center gap-3 rounded-lg bg-surface-2 px-3 py-2 ring-1 ring-edge-1">
+                  <Server className="h-4 w-4 text-purple-400" />
+                  <div className="flex-1">
+                    <p className="text-[11px] font-medium text-body">{llmStatus.model_name}</p>
+                    <p className="text-[11px] text-dim">
+                      {llmStatus.model_size_bytes ? formatBytes(llmStatus.model_size_bytes) : "Size unknown"} · Port {llmStatus.port}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                {llmStatus.status === "not_configured" || llmStatus.backend === "ollama" || (!llmStatus.model_path && !modelPath) ? (
+                  <button onClick={handleSetModel} disabled={manualLoading || !modelPath.trim()} className="flex items-center gap-1.5 rounded-lg bg-purple-600 px-4 py-2 text-[11px] font-semibold text-white transition-colors hover:bg-purple-500 disabled:opacity-50">
+                    {manualLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />} Configure Model
+                  </button>
+                ) : llmStatus.status === "running" && llmStatus.backend !== "ollama" ? (
+                  <button onClick={handleStopServer} disabled={manualLoading} className="flex items-center gap-1.5 rounded-lg bg-red-600/80 px-4 py-2 text-[11px] font-semibold text-white transition-colors hover:bg-red-500 disabled:opacity-50">
+                    <Square className="h-3 w-3" /> Stop Server
+                  </button>
+                ) : (
+                  <>
+                    <button onClick={handleStartServer} disabled={manualLoading} className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-[11px] font-semibold text-white transition-colors hover:bg-emerald-500 disabled:opacity-50">
+                      {manualLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />} Start Server
+                    </button>
+                    <button onClick={handleSetModel} disabled={manualLoading} className="flex items-center gap-1 rounded-lg border border-edge-3 bg-surface-2 px-3 py-2 text-[11px] font-medium text-dim transition-colors hover:bg-surface-3">Change Model</button>
+                  </>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </div>

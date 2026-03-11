@@ -62,16 +62,28 @@ import { useToast } from "@/components/ui/Toast";
 import { FeasibilityInsights, DiversityInsights } from "@/components/analytics/InsightsPanel";
 import { ActiveFiltersBar } from "@/components/analytics/ActiveFiltersBar";
 import { DrillDownPanel } from "@/components/analytics/DrillDownPanel";
+import { useAppStore } from "@/stores/use-app-store";
 
 type AnalyticsTab = "feasibility" | "trajectory" | "diversity";
 
-const tooltipStyle = {
-  backgroundColor: "#1a1f2e",
-  border: "1px solid rgba(255,255,255,0.08)",
-  borderRadius: "8px",
-  fontSize: 11,
-  color: "#e2e8f0",
-};
+function getTooltipStyle(isLight: boolean) {
+  return {
+    backgroundColor: isLight ? "#ffffff" : "#1a1f2e",
+    border: isLight ? "1px solid #e2e8f0" : "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "8px",
+    fontSize: 11,
+    color: isLight ? "#1e293b" : "#e2e8f0",
+    boxShadow: isLight ? "0 4px 12px rgba(0,0,0,0.1)" : "none",
+  };
+}
+
+function getChartColors(isLight: boolean) {
+  return {
+    grid: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.04)",
+    tickFill: isLight ? "#475569" : "#64748b",
+    tickFillLight: isLight ? "#64748b" : "#94a3b8",
+  };
+}
 
 export function AnalyticsPage() {
   const [activeTab, setActiveTab] = useState<AnalyticsTab>("feasibility");
@@ -117,13 +129,13 @@ export function AnalyticsPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 rounded-lg px-4 py-2 text-[12px] font-medium transition-all ${
                 activeTab === tab.id
-                  ? "bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-500/25"
+                  ? "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-500/25"
                   : "text-dim hover:bg-surface-2 hover:text-body"
               }`}
             >
-              <span className={activeTab === tab.id ? "text-indigo-400" : ""}>{tab.icon}</span>
+              <span className={activeTab === tab.id ? "text-indigo-600 dark:text-indigo-400" : ""}>{tab.icon}</span>
               {tab.label}
-              <span className={`text-[12px] ${activeTab === tab.id ? "text-indigo-400/60" : "text-dim"}`}>
+              <span className={`text-[12px] ${activeTab === tab.id ? "text-indigo-600/60 dark:text-indigo-400/60" : "text-dim"}`}>
                 {tab.desc}
               </span>
             </button>
@@ -165,6 +177,9 @@ export function AnalyticsPage() {
 
 function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
   const toast = useToast();
+  const theme = useAppStore((s) => s.theme);
+  const isLight = theme === "light";
+  const cc = getChartColors(isLight);
   const [selectedQueryId, setSelectedQueryId] = useState(PRESET_QUERIES[0]!.id);
   const [forecast, setForecast] = useState<EnrollmentForecast | null>(null);
   const [monteCarlo, setMonteCarlo] = useState<MonteCarloResult | null>(null);
@@ -283,7 +298,7 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
                 : "border-edge-2 bg-card hover:border-edge-4"
             }`}
           >
-            <p className={`text-[12px] font-semibold ${selectedQueryId === q.id ? "text-indigo-300" : "text-body"}`}>
+            <p className={`text-[12px] font-semibold ${selectedQueryId === q.id ? "text-indigo-700 dark:text-indigo-300" : "text-body"}`}>
               {q.name}
             </p>
             <p className="mt-0.5 text-[12px] text-dim">
@@ -328,7 +343,7 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
       <div className="flex items-center gap-2">
         <button
           onClick={() => handleDrillDown("All criteria", result.matchingPatients)}
-          className="flex items-center gap-1.5 rounded-lg bg-indigo-500/10 px-3 py-1.5 text-[12px] font-medium text-indigo-300 ring-1 ring-indigo-500/20 transition-colors hover:bg-indigo-500/20"
+          className="flex items-center gap-1.5 rounded-lg bg-indigo-500/10 px-3 py-1.5 text-[12px] font-medium text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-500/20 transition-colors hover:bg-indigo-500/20"
         >
           <Eye className="h-3.5 w-3.5" />
           View {result.matchingPatients} Matched Subjects
@@ -431,7 +446,7 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
             {monteCarlo && (
               <div className="grid grid-cols-3 gap-3">
                 <div className="rounded-lg bg-indigo-500/8 px-3 py-2 ring-1 ring-indigo-500/15">
-                  <p className="text-[12px] font-medium text-indigo-400/60">P(Success)</p>
+                  <p className="text-[12px] font-medium text-indigo-600/70 dark:text-indigo-400/60">P(Success)</p>
                   <p className={`text-lg font-bold tabular-nums ${monteCarlo.probabilityOfSuccess >= 70 ? "text-emerald-400" : monteCarlo.probabilityOfSuccess >= 40 ? "text-amber-400" : "text-red-400"}`}>
                     {monteCarlo.probabilityOfSuccess.toFixed(0)}%
                   </p>
@@ -457,14 +472,14 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
               <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={monteCarlo.timeline}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#94a3b8" }} />
-                    <YAxis tick={{ fontSize: 10, fill: "#64748b" }} />
-                    <Tooltip contentStyle={tooltipStyle} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={cc.grid} />
+                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: cc.tickFillLight }} />
+                    <YAxis tick={{ fontSize: 10, fill: cc.tickFill }} />
+                    <Tooltip contentStyle={getTooltipStyle(isLight)} />
                     <Area type="monotone" dataKey="p90" stroke="none" fill="rgba(99,102,241,0.08)" name="P90" />
-                    <Area type="monotone" dataKey="p10" stroke="none" fill="#0c0f17" name="P10" />
+                    <Area type="monotone" dataKey="p10" stroke="none" fill={isLight ? "#ffffff" : "#0c0f17"} name="P10" />
                     <Area type="monotone" dataKey="p75" stroke="none" fill="rgba(99,102,241,0.15)" name="P75" />
-                    <Area type="monotone" dataKey="p25" stroke="none" fill="#0c0f17" name="P25" />
+                    <Area type="monotone" dataKey="p25" stroke="none" fill={isLight ? "#ffffff" : "#0c0f17"} name="P25" />
                     <Area type="monotone" dataKey="p50" stroke="#6366f1" fill="rgba(99,102,241,0.2)" strokeWidth={2} name="Median (P50)" />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -473,10 +488,10 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
               <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={forecast.projectedTimeline}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#94a3b8" }} />
-                    <YAxis tick={{ fontSize: 10, fill: "#64748b" }} />
-                    <Tooltip contentStyle={tooltipStyle} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={cc.grid} />
+                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: cc.tickFillLight }} />
+                    <YAxis tick={{ fontSize: 10, fill: cc.tickFill }} />
+                    <Tooltip contentStyle={getTooltipStyle(isLight)} />
                     <Area type="monotone" dataKey="target" stroke="rgba(239,68,68,0.3)" fill="rgba(239,68,68,0.05)" strokeDasharray="4 4" name="Target" />
                     <Area type="monotone" dataKey="cumulative" stroke="#10b981" fill="rgba(16,185,129,0.15)" name="Projected" />
                   </AreaChart>
@@ -536,7 +551,7 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
                 : "border-edge-2 bg-card hover:border-edge-4"
             }`}
           >
-            <p className={`text-[12px] font-semibold ${selectedPreset === p.id ? "text-amber-300" : "text-body"}`}>
+            <p className={`text-[12px] font-semibold ${selectedPreset === p.id ? "text-amber-700 dark:text-amber-300" : "text-body"}`}>
               {p.name}
             </p>
             <p className="mt-0.5 text-[12px] text-dim">{p.trialContext}</p>
@@ -646,8 +661,8 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
       {/* Insight */}
       <div className="rounded-xl border border-indigo-500/15 bg-indigo-500/5 p-4">
         <div className="flex items-center gap-2">
-          <Brain className="h-4 w-4 text-indigo-400" />
-          <span className="text-[12px] font-bold text-indigo-300">Why this matters</span>
+          <Brain className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+          <span className="text-[12px] font-bold text-indigo-700 dark:text-indigo-300">Why this matters</span>
         </div>
         <p className="mt-2 text-[12px] leading-relaxed text-body">
           Subjects near eligibility thresholds represent your future pipeline. By monitoring lab trajectories,
@@ -666,6 +681,9 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
 
 function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
   const toast = useToast();
+  const theme = useAppStore((s) => s.theme);
+  const isLight = theme === "light";
+  const cc = getChartColors(isLight);
   const profile = useMemo(() => computeDiversityProfile(patients), [patients]);
   const [showInfo, setShowInfo] = useState(false);
 
@@ -777,11 +795,11 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
           <div className="mt-3 h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={profile.raceBreakdown} layout="vertical" margin={{ left: 120 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                <XAxis type="number" tick={{ fontSize: 10, fill: "#64748b" }} />
-                <YAxis dataKey="label" type="category" tick={{ fontSize: 10, fill: "#94a3b8" }} width={115} />
+                <CartesianGrid strokeDasharray="3 3" stroke={cc.grid} />
+                <XAxis type="number" tick={{ fontSize: 10, fill: cc.tickFill }} />
+                <YAxis dataKey="label" type="category" tick={{ fontSize: 10, fill: cc.tickFillLight }} width={115} />
                 <Tooltip
-                  contentStyle={tooltipStyle}
+                  contentStyle={getTooltipStyle(isLight)}
                   formatter={(value) => [`${value} (${((Number(value) / profile.totalPatients) * 100).toFixed(1)}%)`, "Subjects"]}
                 />
                 <Bar dataKey="count" radius={[0, 4, 4, 0]}>
@@ -815,7 +833,7 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
                     <Cell key={entry.label} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={tooltipStyle} />
+                <Tooltip contentStyle={getTooltipStyle(isLight)} />
               </RePieChart>
             </ResponsiveContainer>
           </div>
@@ -830,11 +848,11 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
           <div className="mt-3 h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={profile.ageBreakdown}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                <XAxis dataKey="range" tick={{ fontSize: 10, fill: "#94a3b8" }} />
-                <YAxis tick={{ fontSize: 10, fill: "#64748b" }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={cc.grid} />
+                <XAxis dataKey="range" tick={{ fontSize: 10, fill: cc.tickFillLight }} />
+                <YAxis tick={{ fontSize: 10, fill: cc.tickFill }} />
                 <Tooltip
-                  contentStyle={tooltipStyle}
+                  contentStyle={getTooltipStyle(isLight)}
                   formatter={(value) => [`${value} subjects (${((Number(value) / profile.totalPatients) * 100).toFixed(1)}%)`, ""]}
                 />
                 <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
@@ -864,7 +882,7 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
                     <Cell key={entry.label} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={tooltipStyle} />
+                <Tooltip contentStyle={getTooltipStyle(isLight)} />
               </RePieChart>
             </ResponsiveContainer>
           </div>
@@ -899,8 +917,8 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
       {/* Sponsor-ready insight */}
       <div className="rounded-xl border border-indigo-500/15 bg-indigo-500/5 p-4">
         <div className="flex items-center gap-2">
-          <Brain className="h-4 w-4 text-indigo-400" />
-          <span className="text-[12px] font-bold text-indigo-300">Sponsor Site Selection Advantage</span>
+          <Brain className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+          <span className="text-[12px] font-bold text-indigo-700 dark:text-indigo-300">Sponsor Site Selection Advantage</span>
         </div>
         <p className="mt-2 text-[12px] leading-relaxed text-body">
           This diversity profile demonstrates your site's ability to meet FDA diversity action plan requirements.
@@ -1029,7 +1047,7 @@ function InfoModal({ open, onClose, icon, iconColor, title, subtitle, highlights
 
           {/* Bottom note */}
           <div className="rounded-lg bg-indigo-500/5 px-4 py-3 ring-1 ring-indigo-500/10">
-            <p className="text-[12px] leading-relaxed text-indigo-300/80">{bottomNote}</p>
+            <p className="text-[12px] leading-relaxed text-indigo-700/80 dark:text-indigo-300/80">{bottomNote}</p>
           </div>
         </div>
       </div>

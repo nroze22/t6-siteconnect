@@ -306,7 +306,7 @@ impl ScreeningEngine {
         (status, score)
     }
 
-    fn load_patient_data(conn: &Connection, patient_id: &str) -> Result<PatientData, rusqlite::Error> {
+    pub fn load_patient_data(conn: &Connection, patient_id: &str) -> Result<PatientData, rusqlite::Error> {
         // Load basic patient info
         let (age, gender): (Option<u32>, Option<String>) = conn.query_row(
             "SELECT date_of_birth, gender FROM patients WHERE id = ?1",

@@ -11,6 +11,7 @@ describe("useAppStore", () => {
       status: {
         llmStatus: "not_configured",
         llmModel: null,
+        llmBackend: "none",
         databaseReady: false,
         patientCount: 0,
         studyCount: 0,
@@ -130,14 +131,14 @@ describe("useAppStore", () => {
     });
 
     it("sets LLM status with model", () => {
-      useAppStore.getState().setLlmStatus("ready", "BioMistral-7B");
+      useAppStore.getState().setLlmStatus("running", "BioMistral-7B");
       const status = useAppStore.getState().status;
-      expect(status.llmStatus).toBe("ready");
+      expect(status.llmStatus).toBe("running");
       expect(status.llmModel).toBe("BioMistral-7B");
     });
 
     it("preserves existing model when not provided", () => {
-      useAppStore.getState().setLlmStatus("ready", "BioMistral-7B");
+      useAppStore.getState().setLlmStatus("running", "BioMistral-7B");
       useAppStore.getState().setLlmStatus("error");
       expect(useAppStore.getState().status.llmModel).toBe("BioMistral-7B");
     });
