@@ -121,35 +121,31 @@ export function Sidebar() {
             <button
               key={item.id}
               onClick={() => setCurrentPage(item.id)}
-              className="group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors duration-150"
+              className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors duration-150 ${!isActive ? "hover:bg-surface-3" : ""}`}
             >
               {isActive && (
                 <motion.div
                   layoutId="sidebar-active"
-                  className="absolute inset-0 rounded-lg bg-indigo-100 dark:bg-indigo-500/30 ring-1 ring-indigo-400/40 dark:ring-indigo-400/40"
+                  className="absolute inset-0 rounded-lg bg-indigo-500/15 ring-1 ring-indigo-400/30"
                   transition={{ type: "spring", damping: 28, stiffness: 350 }}
                 />
               )}
-              <span className={`relative z-10 ${isActive ? "text-indigo-600 dark:text-indigo-200" : "text-dim group-hover:text-dim"}`}>
+              <span className={`relative z-10 ${isActive ? "text-indigo-400" : "text-dim group-hover:text-body"}`}>
                 {item.icon}
               </span>
               <div className="relative z-10 flex-1 min-w-0">
-                <span className={`block text-[13px] font-semibold leading-tight ${isActive ? "text-indigo-700 dark:text-white" : "text-dim group-hover:text-body"}`}>
+                <span className={`block text-[13px] font-semibold leading-tight ${isActive ? "text-heading" : "text-dim group-hover:text-body"}`}>
                   {item.label}
                 </span>
-                <span className={`block text-[12px] leading-tight ${isActive ? "text-indigo-600 dark:text-indigo-200" : "text-dim"}`}>
+                <span className={`block text-[12px] leading-tight ${isActive ? "text-indigo-400" : "text-dim group-hover:text-dim"}`}>
                   {item.hint}
                 </span>
               </div>
-              <span className="relative z-10 flex h-[18px] w-5 items-center justify-center">
-                {isActive ? (
+              {isActive && (
+                <span className="relative z-10 flex h-[18px] w-5 items-center justify-center">
                   <ChevronRight className="h-3 w-3 text-indigo-500/50" />
-                ) : (
-                  <kbd className="flex h-[18px] items-center rounded bg-surface-3 px-1.5 text-[9px] font-medium text-dim ring-1 ring-edge-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {item.shortcut}
-                  </kbd>
-                )}
-              </span>
+                </span>
+              )}
             </button>
           );
         })}

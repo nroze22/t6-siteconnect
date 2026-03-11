@@ -42,6 +42,8 @@ import {
   WifiOff,
   Sun,
   Moon,
+  Settings,
+  Database,
 } from "lucide-react";
 import {
   isTauri,
@@ -69,53 +71,73 @@ import {
 import { useToast } from "@/components/ui/Toast";
 import { useAppStore } from "@/stores/use-app-store";
 
+// ─── Tab Definition ──────────────────────────────────────────
+
+type SettingsTab = "general" | "data" | "security" | "support";
+
+const TABS: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
+  { id: "general", label: "General", icon: <Settings className="h-3.5 w-3.5" /> },
+  { id: "data", label: "Data & AI", icon: <Brain className="h-3.5 w-3.5" /> },
+  { id: "security", label: "Security", icon: <Shield className="h-3.5 w-3.5" /> },
+  { id: "support", label: "Support", icon: <HeadphonesIcon className="h-3.5 w-3.5" /> },
+];
+
+// ─── Main Component ──────────────────────────────────────────
+
 export function SettingsPage() {
+  const [activeTab, setActiveTab] = useState<SettingsTab>("general");
+
   return (
     <div className="flex h-full flex-col bg-background">
-      <div className="border-b border-border bg-card/50 px-6 py-4">
-        <h2 className="text-[15px] font-bold text-heading">Settings</h2>
-        <p className="text-[12px] text-body">
-          Configure your SiteConnect installation. All settings are stored locally.
-        </p>
+      {/* Header with tabs */}
+      <div className="shrink-0 border-b border-border bg-card/50">
+        <div className="px-6 pt-4 pb-0">
+          <h2 className="text-[15px] font-bold text-heading">Settings</h2>
+          <p className="text-[12px] text-dim">
+            Configure your SiteConnect installation. All settings are stored locally.
+          </p>
+        </div>
+        <div className="mt-3 flex items-center gap-1 px-6">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 rounded-t-lg px-4 py-2 text-[12px] font-medium transition-colors ${
+                activeTab === tab.id
+                  ? "bg-background text-heading border-t border-l border-r border-border -mb-px"
+                  : "text-dim hover:text-body hover:bg-surface-2"
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
+      {/* Tab content */}
       <div className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-2xl space-y-3">
-          <SystemProfilePanel />
-          <UpdatePanel />
-          <WatcherPanel />
-          <LlmPanel />
-          <AuditTrailPanel />
-          <DatabasePanel />
-          <PreferencesPanel />
-          <SupportPanel />
-
-          {/* Quick start guide */}
-          <div className="mt-6 rounded-xl border border-indigo-500/15 bg-indigo-500/5 p-5">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-indigo-400" />
-              <h3 className="text-[13px] font-bold text-indigo-300">Getting Started</h3>
-            </div>
-            <div className="mt-3 space-y-2.5">
-              {[
-                { step: 1, text: "Import subject data from your EMR (CSV, FHIR, or HL7)", done: false },
-                { step: 2, text: "Configure the AI model for enhanced screening (optional)", done: false },
-                { step: 3, text: "Screen subjects against active clinical trials", done: false },
-                { step: 4, text: "Review eligibility results and accept/reject candidates", done: false },
-              ].map((item) => (
-                <div key={item.step} className="flex items-center gap-3">
-                  <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-bold ${
-                    item.done
-                      ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/20"
-                      : "bg-surface-2 text-dim ring-1 ring-edge-3"
-                  }`}>
-                    {item.step}
-                  </span>
-                  <span className="text-[12px] text-dim">{item.text}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          {activeTab === "general" && (
+            <>
+              <SystemProfilePanel />
+              <PreferencesPanel />
+              <UpdatePanel />
+            </>
+          )}
+          {activeTab === "data" && (
+            <>
+              <DatabasePanel />
+              <LlmPanel />
+              <WatcherPanel />
+            </>
+          )}
+          {activeTab === "security" && (
+            <AuditTrailPanel />
+          )}
+          {activeTab === "support" && (
+            <SupportPanel />
+          )}
         </div>
       </div>
     </div>
@@ -173,7 +195,6 @@ function WatcherPanel() {
       } else {
         setStatus({ active: true, path: watchPath });
         toast.success("Watcher started", `Monitoring ${watchPath}`);
-        // Simulate file detection in demo mode
         setTimeout(() => {
           setRecentFiles([
             { path: `${watchPath}/patient_export_2026-03-07.csv`, file_name: "patient_export_2026-03-07.csv", size_bytes: 245760 },
@@ -187,7 +208,7 @@ function WatcherPanel() {
     } finally {
       setLoading(false);
     }
-  }, [watchPath]);
+  }, [watchPath, toast]);
 
   const handleStop = useCallback(async () => {
     setLoading(true);
@@ -204,7 +225,7 @@ function WatcherPanel() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   return (
     <div className="rounded-xl border border-edge-2 bg-card overflow-hidden">
@@ -226,8 +247,8 @@ function WatcherPanel() {
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[12px] text-body">
-            Watch a local folder for new data files (CSV, TSV, Excel). Files are auto-imported and screened.
+          <p className="mt-0.5 text-[12px] text-dim">
+            Watch a local folder for new data files. Files are auto-imported and screened.
           </p>
         </div>
       </div>
@@ -267,18 +288,8 @@ function WatcherPanel() {
             </button>
           )}
           <p className="text-[12px] text-dim">
-            {status.active ? "Monitoring for new CSV, TSV, and Excel files using OS file events." : "Select a folder and click Start to begin."}
+            {status.active ? "Monitoring for new CSV, TSV, and Excel files." : "Select a folder and click Start."}
           </p>
-        </div>
-
-        <div className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
-          <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">How it works</p>
-          <div className="space-y-1.5 text-[12px] text-body">
-            <p>1. Point to your EMR export folder (e.g., where Epic Clarity drops CSVs)</p>
-            <p>2. OS-level file events — no polling, instant detection</p>
-            <p>3. New .csv, .tsv, .xlsx, and .xls files are detected automatically</p>
-            <p>4. Preview and import files, then subjects are screened against active studies</p>
-          </div>
         </div>
 
         {recentFiles.length > 0 && (
@@ -294,7 +305,6 @@ function WatcherPanel() {
                   </div>
                   <button
                     onClick={() => {
-                      // Store the file path so the import page can pick it up
                       sessionStorage.setItem("siteconnect-import-file", JSON.stringify({
                         path: f.path,
                         name: f.file_name,
@@ -408,7 +418,7 @@ function LlmPanel() {
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[12px] text-body">Local LLM for AI-powered criterion evaluation. 100% on-device.</p>
+          <p className="mt-0.5 text-[12px] text-dim">Local LLM for AI-powered criterion evaluation. 100% on-device.</p>
         </div>
       </div>
 
@@ -460,16 +470,6 @@ function LlmPanel() {
             </>
           )}
         </div>
-
-        <div className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
-          <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">How it works</p>
-          <div className="space-y-1.5 text-[12px] text-body">
-            <p>1. Your deployment profile selects the model automatically (or choose manually)</p>
-            <p>2. SiteConnect runs inference locally via sidecar — no internet or cloud needed</p>
-            <p>3. Criteria that can&apos;t be evaluated by rules go to the LLM for assessment</p>
-            <p>4. Results include confidence scores and evidence citations</p>
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -514,14 +514,13 @@ function AuditTrailPanel() {
     } else {
       toast.error("Chain integrity check failed", result.error);
     }
-  }, []);
+  }, [toast]);
 
   const handleExport = useCallback(async () => {
     setExporting(true);
     try {
       const data = await exportAuditTrail();
 
-      // Build CSV content — 21 CFR Part 11 compliant format
       const csvHeader = "Entry #,Timestamp (UTC),Action,Details,Integrity Hash (SHA-256)\n";
       const csvRows = data.entries.map((e, i) =>
         `${i + 1},"${e.timestamp}","${e.action}","${(e.details ?? "").replace(/"/g, '""')}","${e.checksum}"`
@@ -545,11 +544,7 @@ function AuditTrailPanel() {
         "# checksum, forming a tamper-evident chain. Any modification to",
         "# historical entries will break the chain verification.",
         "#",
-        "# This audit trail satisfies 21 CFR Part 11 §11.10(e):",
-        "#   - Computer-generated, time-stamped audit trails",
-        "#   - Records operator entries and actions",
-        "#   - Document changes do not obscure previously recorded data",
-        "#   - Audit trail data retained for required period",
+        "# This audit trail satisfies 21 CFR Part 11 §11.10(e).",
         "# ═══════════════════════════════════════════════════════════════",
       ].join("\n");
 
@@ -564,7 +559,7 @@ function AuditTrailPanel() {
     } finally {
       setExporting(false);
     }
-  }, []);
+  }, [toast]);
 
   const formatTimestamp = (ts: string) => {
     try {
@@ -591,14 +586,13 @@ function AuditTrailPanel() {
               {entries.length} entries
             </span>
           </div>
-          <p className="mt-0.5 text-[12px] text-body">
+          <p className="mt-0.5 text-[12px] text-dim">
             Immutable, HMAC-chained log of every data action. Tamper-evident and export-ready.
           </p>
         </div>
       </div>
 
       <div className="p-4 space-y-3">
-        {/* Chain verification status */}
         {chainStatus && (
           <div className={`flex items-center gap-2 rounded-lg px-3 py-2 ring-1 ${
             chainStatus.valid
@@ -623,7 +617,6 @@ function AuditTrailPanel() {
           </div>
         )}
 
-        {/* Actions */}
         <div className="flex items-center gap-2">
           <button
             onClick={handleVerify}
@@ -641,12 +634,8 @@ function AuditTrailPanel() {
             {exporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
             Export CSV
           </button>
-          <p className="text-[12px] text-dim">
-            Export includes SHA-256 checksums and chain verification status.
-          </p>
         </div>
 
-        {/* Recent entries */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <p className="text-[12px] font-semibold uppercase tracking-wider text-dim">
@@ -695,13 +684,12 @@ function AuditTrailPanel() {
           </div>
         </div>
 
-        {/* Compliance note */}
         <div className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
           <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">Compliance</p>
           <div className="space-y-1.5 text-[12px] text-body">
             <p>Every data mutation creates an immutable, timestamped audit entry per 21 CFR Part 11 §11.10(e).</p>
-            <p>Entries are SHA-256 chained — modifying any historical entry breaks the chain and is immediately detectable.</p>
-            <p>Export includes full checksums for independent verification by QA, auditors, or sponsors.</p>
+            <p>Entries are SHA-256 chained — modifying any historical entry breaks the chain.</p>
+            <p>Export includes full checksums for independent verification.</p>
           </div>
         </div>
       </div>
@@ -724,7 +712,7 @@ function DatabasePanel() {
     <div className="rounded-xl border border-edge-2 bg-card overflow-hidden">
       <div className="flex items-center gap-4 p-4">
         <div className="rounded-lg p-2.5 bg-emerald-500/10 ring-1 ring-emerald-500/20">
-          <HardDrive className="h-5 w-5 text-emerald-400" />
+          <Database className="h-5 w-5 text-emerald-400" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
@@ -733,7 +721,7 @@ function DatabasePanel() {
               AES-256 Active
             </span>
           </div>
-          <p className="mt-0.5 text-[12px] text-body">
+          <p className="mt-0.5 text-[12px] text-dim">
             SQLCipher-encrypted local database. All PHI encrypted at rest.
           </p>
         </div>
@@ -780,7 +768,7 @@ function PreferencesPanel() {
         </div>
         <div className="flex-1">
           <h3 className="text-[13px] font-semibold text-body">Preferences</h3>
-          <p className="mt-0.5 text-[12px] text-body">Application behavior and notification settings.</p>
+          <p className="mt-0.5 text-[12px] text-dim">Appearance, behavior, and notification settings.</p>
         </div>
       </div>
       <div className="p-4 space-y-3">
@@ -802,7 +790,7 @@ function PreferencesPanel() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[12px] font-medium text-body">Auto-screen on import</p>
-            <p className="text-[12px] text-body">Automatically screen subjects when new data is imported</p>
+            <p className="text-[12px] text-dim">Automatically screen subjects when new data is imported</p>
           </div>
           <button
             onClick={() => setAutoScreen(!autoScreen)}
@@ -814,7 +802,7 @@ function PreferencesPanel() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[12px] font-medium text-body">Desktop notifications</p>
-            <p className="text-[12px] text-body">Show alerts when new files are detected or screening completes</p>
+            <p className="text-[12px] text-dim">Show alerts when new files are detected or screening completes</p>
           </div>
           <button
             onClick={() => setNotifications(!notifications)}
@@ -826,7 +814,7 @@ function PreferencesPanel() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[12px] font-medium text-body">Session timeout</p>
-            <p className="text-[12px] text-body">Lock screen after inactivity (minutes)</p>
+            <p className="text-[12px] text-dim">Lock screen after inactivity (minutes)</p>
           </div>
           <select
             value={sessionTimeout}
@@ -846,7 +834,7 @@ function PreferencesPanel() {
 }
 
 // ---------------------------------------------------------------------------
-// System Profile & Deployment Panel — Hardware probe + AI profile selection
+// System Profile & Deployment Panel
 // ---------------------------------------------------------------------------
 
 interface HardwareProfile {
@@ -982,7 +970,6 @@ function SystemProfilePanel() {
 
   const handleScan = useCallback(() => {
     setScanning(true);
-    // Simulate a brief hardware analysis
     setTimeout(() => {
       const hw = probeHardware();
       setHardware(hw);
@@ -990,14 +977,14 @@ function SystemProfilePanel() {
       setScanning(false);
       toast.success("Hardware analysis complete", `Recommended profile: ${DEPLOYMENT_PROFILES[recommendProfile(hw)].label}`);
     }, 1800);
-  }, []);
+  }, [toast]);
 
-  useEffect(() => { handleScan(); }, []);
+  useEffect(() => { handleScan(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleApplyProfile = useCallback(() => {
     setProfileLocked(true);
     toast.success(`${DEPLOYMENT_PROFILES[selectedProfile].label} profile activated`, `AI model: ${DEPLOYMENT_PROFILES[selectedProfile].model}`);
-  }, [selectedProfile]);
+  }, [selectedProfile, toast]);
 
   const profileColors: Record<string, { bg: string; ring: string; text: string; fill: string }> = {
     blue: { bg: "bg-blue-500/8", ring: "ring-blue-500/20", text: "text-blue-400", fill: "bg-blue-500" },
@@ -1020,8 +1007,8 @@ function SystemProfilePanel() {
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[12px] text-body">
-            SiteConnect analyzes your hardware and selects the optimal AI configuration automatically.
+          <p className="mt-0.5 text-[12px] text-dim">
+            Hardware analysis and optimal AI configuration.
           </p>
         </div>
         <button
@@ -1035,7 +1022,6 @@ function SystemProfilePanel() {
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Hardware summary */}
         {scanning ? (
           <div className="flex flex-col items-center gap-3 py-8">
             <div className="relative">
@@ -1046,7 +1032,7 @@ function SystemProfilePanel() {
             </div>
             <div className="text-center">
               <p className="text-[12px] font-semibold text-body">Analyzing system hardware...</p>
-              <p className="text-[12px] text-dim">Detecting CPU, memory, GPU, and storage capabilities</p>
+              <p className="text-[12px] text-dim">Detecting CPU, memory, GPU, and storage</p>
             </div>
           </div>
         ) : hardware ? (
@@ -1081,12 +1067,11 @@ function SystemProfilePanel() {
                 <div>
                   <p className="text-[12px] text-dim">System</p>
                   <p className="text-[12px] font-semibold text-body">{hardware.os}</p>
-                  <p className="text-[12px] text-dim">{hardware.screenResolution} · {hardware.avx2 ? "AVX2 supported" : "No AVX2"}</p>
+                  <p className="text-[12px] text-dim">{hardware.screenResolution} · {hardware.avx2 ? "AVX2" : "No AVX2"}</p>
                 </div>
               </div>
             </div>
 
-            {/* Deployment profile selector */}
             <div>
               <div className="flex items-center justify-between mb-2.5">
                 <p className="text-[12px] font-semibold uppercase tracking-wider text-dim">AI Deployment Profile</p>
@@ -1150,7 +1135,6 @@ function SystemProfilePanel() {
                 )}
               </div>
 
-              {/* Selected profile features */}
               <div className="mt-3 rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
                 <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">
                   {DEPLOYMENT_PROFILES[selectedProfile].label} Profile Capabilities
@@ -1199,7 +1183,7 @@ function SystemProfilePanel() {
 }
 
 // ---------------------------------------------------------------------------
-// Update Panel — Check for updates, version info, rollback
+// Update Panel
 // ---------------------------------------------------------------------------
 
 interface VersionInfo {
@@ -1231,7 +1215,6 @@ function UpdatePanel() {
 
   const handleCheckForUpdates = useCallback(() => {
     setChecking(true);
-    // Simulate update check
     setTimeout(() => {
       setVersions((prev) => ({
         ...prev,
@@ -1242,7 +1225,7 @@ function UpdatePanel() {
       setChecking(false);
       toast.info("Update available", "SiteConnect v1.1.0 is ready to download");
     }, 2200);
-  }, []);
+  }, [toast]);
 
   const handleDownloadUpdate = useCallback(() => {
     setDownloading(true);
@@ -1259,7 +1242,7 @@ function UpdatePanel() {
         return prev + Math.random() * 15 + 5;
       });
     }, 400);
-  }, []);
+  }, [toast]);
 
   const channelColors: Record<string, string> = {
     stable: "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20",
@@ -1285,14 +1268,13 @@ function UpdatePanel() {
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[12px] text-body">
+          <p className="mt-0.5 text-[12px] text-dim">
             App updates, model packs, and rule templates ship independently.
           </p>
         </div>
       </div>
 
       <div className="p-4 space-y-3">
-        {/* Version grid */}
         <div className="grid grid-cols-2 gap-2">
           {[
             { label: "Application", version: versions.app, icon: Package, hasUpdate: versions.updateAvailable },
@@ -1316,7 +1298,6 @@ function UpdatePanel() {
           ))}
         </div>
 
-        {/* Update actions */}
         <div className="flex items-center gap-2">
           {versions.updateAvailable && !downloading ? (
             <button
@@ -1357,7 +1338,6 @@ function UpdatePanel() {
           </p>
         )}
 
-        {/* Expandable details */}
         <button
           onClick={() => setExpanded(!expanded)}
           className="flex w-full items-center justify-between rounded-lg bg-surface-1 px-3 py-2 text-[12px] font-medium text-dim ring-1 ring-edge-1 transition-colors hover:text-body"
@@ -1376,20 +1356,13 @@ function UpdatePanel() {
                   { ch: "hotfix", desc: "Emergency security and critical bug fixes only.", current: versions.channel === "hotfix" },
                 ].map((c) => (
                   <div key={c.ch} className="flex items-center gap-2">
-                    <span className={`h-2 w-2 rounded-full ${c.current ? "bg-emerald-400" : "bg-slate-600"}`} />
+                    <span className={`h-2 w-2 rounded-full ${c.current ? "bg-emerald-400" : "bg-faint"}`} />
                     <span className={`text-[12px] font-semibold capitalize ${c.current ? "text-body" : "text-dim"}`}>
                       {c.ch}
                     </span>
                     <span className="text-[12px] text-dim">— {c.desc}</span>
                   </div>
                 ))}
-              </div>
-            </div>
-            <div className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
-              <div className="space-y-1.5 text-[12px] text-body">
-                <p>App binaries, model packs, rule engines, and mapping templates update independently.</p>
-                <p>All updates are cryptographically signed. Rollback to the previous version is always available.</p>
-                <p>Emergency fixes can be applied without re-downloading AI models.</p>
               </div>
             </div>
           </div>
@@ -1437,7 +1410,7 @@ function SupportPanel() {
       setBundleReady(true);
       toast.success("Diagnostics bundle ready", "No PHI included — safe to share with support");
     }, 1500);
-  }, []);
+  }, [toast]);
 
   const handleCopyDiagnostics = useCallback(() => {
     const text = Object.entries(diagnostics)
@@ -1449,7 +1422,7 @@ function SupportPanel() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
     toast.success("Copied to clipboard", "Paste into support email or chat");
-  }, [diagnostics]);
+  }, [diagnostics, toast]);
 
   const handleDownloadBundle = useCallback(() => {
     const bundle = {
@@ -1471,145 +1444,142 @@ function SupportPanel() {
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Bundle downloaded", "Attach to your support request");
-  }, [diagnostics]);
+  }, [diagnostics, toast]);
 
   return (
-    <div className="rounded-xl border border-edge-2 bg-card overflow-hidden">
-      <div className="flex items-center gap-4 p-4 border-b border-edge-2">
-        <div className="rounded-lg p-2.5 bg-rose-500/10 ring-1 ring-rose-500/20">
-          <HeadphonesIcon className="h-5 w-5 text-rose-400" />
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
+    <div className="space-y-3">
+      {/* System snapshot */}
+      <div className="rounded-xl border border-edge-2 bg-card overflow-hidden">
+        <div className="flex items-center gap-4 p-4 border-b border-edge-2">
+          <div className="rounded-lg p-2.5 bg-rose-500/10 ring-1 ring-rose-500/20">
+            <HeadphonesIcon className="h-5 w-5 text-rose-400" />
+          </div>
+          <div className="flex-1">
             <h3 className="text-[13px] font-semibold text-body">Support & Diagnostics</h3>
-          </div>
-          <p className="mt-0.5 text-[12px] text-body">
-            Get help, generate diagnostics bundles, and contact the Talosix team.
-          </p>
-        </div>
-      </div>
-
-      <div className="p-4 space-y-3">
-        {/* Quick diagnostics grid */}
-        <div>
-          <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">System Snapshot</p>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { label: "App", value: `v${diagnostics.appVersion}`, icon: Package, ok: true },
-              { label: "Runtime", value: diagnostics.runtime, icon: Server, ok: true },
-              { label: "Database", value: diagnostics.dbEncryption, icon: Shield, ok: true },
-              { label: "AI Model", value: diagnostics.llmStatus === "running" ? "Active" : "Inactive", icon: Brain, ok: diagnostics.llmStatus === "running" },
-              { label: "Network", value: navigator.onLine ? "Online" : "Offline", icon: navigator.onLine ? Wifi : WifiOff, ok: true },
-              { label: "Session", value: diagnostics.uptime, icon: Clock, ok: true },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center gap-2 rounded-lg bg-surface-1 px-2.5 py-2 ring-1 ring-edge-1">
-                <item.icon className={`h-3 w-3 shrink-0 ${item.ok ? "text-dim" : "text-amber-400"}`} />
-                <div className="min-w-0">
-                  <p className="text-[9px] text-dim">{item.label}</p>
-                  <p className="text-[12px] font-semibold text-dim truncate">{item.value}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Diagnostics bundle */}
-        <div className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
-          <div className="flex items-start gap-2 mb-3">
-            <Info className="h-3.5 w-3.5 text-blue-400 shrink-0 mt-0.5" />
-            <p className="text-[12px] text-body leading-relaxed">
-              Diagnostics bundles include app version, hardware profile, error logs, and health status.
-              <span className="font-semibold text-emerald-400"> No patient data or PHI is ever included.</span>
+            <p className="mt-0.5 text-[12px] text-dim">
+              Get help, generate diagnostics bundles, and contact the Talosix team.
             </p>
           </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleGenerateBundle}
-              disabled={generating}
-              className="flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-2 text-[12px] font-semibold text-body transition-colors hover:bg-surface-3 disabled:opacity-50 ring-1 ring-edge-2"
-            >
-              {generating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Bug className="h-3 w-3" />}
-              Generate Bundle
-            </button>
-
-            {bundleReady && (
-              <>
-                <button
-                  onClick={handleDownloadBundle}
-                  className="flex items-center gap-1.5 rounded-lg bg-blue-600/80 px-3 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-blue-500"
-                >
-                  <Download className="h-3 w-3" /> Download .json
-                </button>
-                <button
-                  onClick={handleCopyDiagnostics}
-                  className="flex items-center gap-1.5 rounded-lg border border-edge-3 bg-surface-2 px-3 py-2 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3"
-                >
-                  {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
-                  {copied ? "Copied" : "Copy"}
-                </button>
-              </>
-            )}
-          </div>
         </div>
 
-        {/* Contact support */}
-        <div>
-          <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">Contact Talosix</p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => {
-                const subject = encodeURIComponent(`SiteConnect Support — v${diagnostics.appVersion}`);
-                const body = encodeURIComponent(
-                  `Hi Talosix Support,\n\nI need help with:\n[Describe your issue here]\n\n--- System Info ---\nApp: v${diagnostics.appVersion}\nOS: ${diagnostics.os}\nRuntime: ${diagnostics.runtime}\n`,
-                );
-                window.open(`mailto:support@talosix.com?subject=${subject}&body=${body}`, "_blank");
-              }}
-              className="flex items-center gap-2 rounded-lg bg-surface-1 px-3 py-3 ring-1 ring-edge-1 transition-all hover:bg-surface-2 hover:ring-edge-3 group"
-            >
-              <Mail className="h-4 w-4 text-blue-400 group-hover:text-blue-300" />
-              <div className="text-left">
-                <p className="text-[12px] font-semibold text-body group-hover:text-body">Email Support</p>
-                <p className="text-[9px] text-dim">support@talosix.com</p>
-              </div>
-            </button>
-            <button
-              onClick={() => toast.info("Support chat", "Live chat coming soon — use email for now")}
-              className="flex items-center gap-2 rounded-lg bg-surface-1 px-3 py-3 ring-1 ring-edge-1 transition-all hover:bg-surface-2 hover:ring-edge-3 group"
-            >
-              <MessageSquare className="h-4 w-4 text-purple-400 group-hover:text-purple-300" />
-              <div className="text-left">
-                <p className="text-[12px] font-semibold text-body group-hover:text-body">Live Chat</p>
-                <p className="text-[9px] text-dim">Coming soon</p>
-              </div>
-            </button>
+        <div className="p-4 space-y-3">
+          <div>
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">System Snapshot</p>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: "App", value: `v${diagnostics.appVersion}`, icon: Package, ok: true },
+                { label: "Runtime", value: diagnostics.runtime, icon: Server, ok: true },
+                { label: "Database", value: diagnostics.dbEncryption, icon: Shield, ok: true },
+                { label: "AI Model", value: diagnostics.llmStatus === "running" ? "Active" : "Inactive", icon: Brain, ok: diagnostics.llmStatus === "running" },
+                { label: "Network", value: navigator.onLine ? "Online" : "Offline", icon: navigator.onLine ? Wifi : WifiOff, ok: true },
+                { label: "Session", value: diagnostics.uptime, icon: Clock, ok: true },
+              ].map((item) => (
+                <div key={item.label} className="flex items-center gap-2 rounded-lg bg-surface-1 px-2.5 py-2 ring-1 ring-edge-1">
+                  <item.icon className={`h-3 w-3 shrink-0 ${item.ok ? "text-dim" : "text-amber-400"}`} />
+                  <div className="min-w-0">
+                    <p className="text-[9px] text-dim">{item.label}</p>
+                    <p className="text-[12px] font-semibold text-dim truncate">{item.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Emergency actions */}
-        <div className="rounded-lg border border-amber-500/10 bg-amber-500/5 p-3">
-          <p className="text-[12px] font-semibold uppercase tracking-wider text-amber-400/70 mb-2">Troubleshooting</p>
-          <div className="space-y-1.5">
-            <button
-              onClick={() => toast.info("Safe mode", "Restart the app with --safe-mode flag to disable AI and run deterministic-only screening")}
-              className="flex w-full items-center gap-2 rounded-lg bg-surface-1 px-3 py-2 text-left ring-1 ring-edge-1 transition-colors hover:bg-surface-2"
-            >
-              <Shield className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-              <div>
-                <p className="text-[12px] font-medium text-body">Start in Safe Mode</p>
-                <p className="text-[9px] text-dim">Disable AI, keep deterministic screening active</p>
-              </div>
-            </button>
-            <button
-              onClick={() => toast.info("Model cache cleared", "AI model will be reloaded on next start")}
-              className="flex w-full items-center gap-2 rounded-lg bg-surface-1 px-3 py-2 text-left ring-1 ring-edge-1 transition-colors hover:bg-surface-2"
-            >
-              <RefreshCw className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-              <div>
-                <p className="text-[12px] font-medium text-body">Clear Model Cache</p>
-                <p className="text-[9px] text-dim">Reset AI model state without affecting data</p>
-              </div>
-            </button>
+          <div className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
+            <div className="flex items-start gap-2 mb-3">
+              <Info className="h-3.5 w-3.5 text-blue-400 shrink-0 mt-0.5" />
+              <p className="text-[12px] text-body leading-relaxed">
+                Diagnostics bundles include app version, hardware profile, error logs, and health status.
+                <span className="font-semibold text-emerald-400"> No patient data or PHI is ever included.</span>
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleGenerateBundle}
+                disabled={generating}
+                className="flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-2 text-[12px] font-semibold text-body transition-colors hover:bg-surface-3 disabled:opacity-50 ring-1 ring-edge-2"
+              >
+                {generating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Bug className="h-3 w-3" />}
+                Generate Bundle
+              </button>
+
+              {bundleReady && (
+                <>
+                  <button
+                    onClick={handleDownloadBundle}
+                    className="flex items-center gap-1.5 rounded-lg bg-blue-600/80 px-3 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-blue-500"
+                  >
+                    <Download className="h-3 w-3" /> Download .json
+                  </button>
+                  <button
+                    onClick={handleCopyDiagnostics}
+                    className="flex items-center gap-1.5 rounded-lg border border-edge-3 bg-surface-2 px-3 py-2 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3"
+                  >
+                    {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">Contact Talosix</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => {
+                  const subject = encodeURIComponent(`SiteConnect Support — v${diagnostics.appVersion}`);
+                  const body = encodeURIComponent(
+                    `Hi Talosix Support,\n\nI need help with:\n[Describe your issue here]\n\n--- System Info ---\nApp: v${diagnostics.appVersion}\nOS: ${diagnostics.os}\nRuntime: ${diagnostics.runtime}\n`,
+                  );
+                  window.open(`mailto:support@talosix.com?subject=${subject}&body=${body}`, "_blank");
+                }}
+                className="flex items-center gap-2 rounded-lg bg-surface-1 px-3 py-3 ring-1 ring-edge-1 transition-all hover:bg-surface-2 hover:ring-edge-3 group"
+              >
+                <Mail className="h-4 w-4 text-blue-400 group-hover:text-blue-300" />
+                <div className="text-left">
+                  <p className="text-[12px] font-semibold text-body">Email Support</p>
+                  <p className="text-[9px] text-dim">support@talosix.com</p>
+                </div>
+              </button>
+              <button
+                onClick={() => toast.info("Support chat", "Live chat coming soon — use email for now")}
+                className="flex items-center gap-2 rounded-lg bg-surface-1 px-3 py-3 ring-1 ring-edge-1 transition-all hover:bg-surface-2 hover:ring-edge-3 group"
+              >
+                <MessageSquare className="h-4 w-4 text-purple-400 group-hover:text-purple-300" />
+                <div className="text-left">
+                  <p className="text-[12px] font-semibold text-body">Live Chat</p>
+                  <p className="text-[9px] text-dim">Coming soon</p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-amber-500/10 bg-amber-500/5 p-3">
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-amber-400/70 mb-2">Troubleshooting</p>
+            <div className="space-y-1.5">
+              <button
+                onClick={() => toast.info("Safe mode", "Restart the app with --safe-mode flag to disable AI and run deterministic-only screening")}
+                className="flex w-full items-center gap-2 rounded-lg bg-surface-1 px-3 py-2 text-left ring-1 ring-edge-1 transition-colors hover:bg-surface-2"
+              >
+                <Shield className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                <div>
+                  <p className="text-[12px] font-medium text-body">Start in Safe Mode</p>
+                  <p className="text-[9px] text-dim">Disable AI, keep deterministic screening active</p>
+                </div>
+              </button>
+              <button
+                onClick={() => toast.info("Model cache cleared", "AI model will be reloaded on next start")}
+                className="flex w-full items-center gap-2 rounded-lg bg-surface-1 px-3 py-2 text-left ring-1 ring-edge-1 transition-colors hover:bg-surface-2"
+              >
+                <RefreshCw className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                <div>
+                  <p className="text-[12px] font-medium text-body">Clear Model Cache</p>
+                  <p className="text-[9px] text-dim">Reset AI model state without affecting data</p>
+                </div>
+              </button>
+            </div>
           </div>
         </div>
       </div>

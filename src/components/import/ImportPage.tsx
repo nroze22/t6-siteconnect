@@ -191,6 +191,16 @@ export function ImportPage() {
   // Column mapping target fields (Tauri only) — loaded on demand by ColumnMapper
   const [tauriTargetFields, setTauriTargetFields] = useState<TargetFieldInfo[]>([]);
 
+  // Web-mode validation state
+  const [webValidation, setWebValidation] = useState<{
+    totalRows: number;
+    rowsWithMrn: number;
+    rowsWithDiagnosis: number;
+    rowsWithDate: number;
+    emptyMrnCount: number;
+    hasMrnMapping: boolean;
+  } | null>(null);
+
   // Store access for loading imported patients into screening
   const setPatients = useScreeningStore((s) => s.setPatients);
   const setScreeningResult = useScreeningStore((s) => s.setScreeningResult);
@@ -488,8 +498,80 @@ export function ImportPage() {
         setIsValidating(false);
       }
     } else {
-      // Web/demo mode — skip validation, go straight to import
-      startImportExecution();
+      // Web/demo mode — run basic client-side validation
+      setStep("validate");
+
+      const browserCsv = selectedFile?.preview;
+      const hasBrowserData = browserCsv && browserCsv.allRows.length > 0;
+
+      if (hasBrowserData) {
+        const headers = browserCsv.headers;
+        const allRows = browserCsv.allRows;
+        const totalRows = allRows.length;
+
+        // Check if MRN/patient_id is mapped
+        const mrnTargets = ["patient_id", "mrn", "pat_mrn_id", "subject_id"];
+        const hasMrnMapping = mappings.some(
+          (m) => m.targetField !== "" && mrnTargets.includes(m.targetField.toLowerCase())
+        );
+
+        // Find the column index for the MRN-mapped field
+        const mrnMapping = mappings.find(
+          (m) => m.targetField !== "" && mrnTargets.includes(m.targetField.toLowerCase())
+        );
+        const mrnColIdx = mrnMapping ? headers.indexOf(mrnMapping.sourceColumn) : -1;
+
+        // Find diagnosis-mapped column
+        const dxTargets = ["diagnosis", "icd10", "icd_10", "current_icd10_list", "primary_diagnosis", "dx"];
+        const dxMapping = mappings.find(
+          (m) => m.targetField !== "" && dxTargets.includes(m.targetField.toLowerCase())
+        );
+        const dxColIdx = dxMapping ? headers.indexOf(dxMapping.sourceColumn) : -1;
+
+        // Find date-mapped columns
+        const dateTargets = ["date", "encounter_date", "visit_date", "service_date", "dob", "birth_date"];
+        const dateMapping = mappings.find(
+          (m) => m.targetField !== "" && dateTargets.includes(m.targetField.toLowerCase())
+        );
+        const dateColIdx = dateMapping ? headers.indexOf(dateMapping.sourceColumn) : -1;
+
+        let rowsWithMrn = 0;
+        let rowsWithDiagnosis = 0;
+        let rowsWithDate = 0;
+
+        for (const row of allRows) {
+          if (mrnColIdx >= 0 && row[mrnColIdx]?.trim()) rowsWithMrn++;
+          if (dxColIdx >= 0 && row[dxColIdx]?.trim()) rowsWithDiagnosis++;
+          if (dateColIdx >= 0 && row[dateColIdx]?.trim()) rowsWithDate++;
+        }
+
+        const emptyMrnCount = mrnColIdx >= 0 ? totalRows - rowsWithMrn : totalRows;
+
+        if (!hasMrnMapping) {
+          toast.warning("No patient ID column mapped", "Consider mapping a column to patient_id or MRN for proper deduplication");
+        } else if (emptyMrnCount > 0) {
+          toast.warning(`${emptyMrnCount} rows missing patient ID`, "These rows may not import correctly");
+        }
+
+        setWebValidation({
+          totalRows,
+          rowsWithMrn,
+          rowsWithDiagnosis,
+          rowsWithDate,
+          emptyMrnCount,
+          hasMrnMapping,
+        });
+      } else {
+        // Demo data — show basic validation summary
+        setWebValidation({
+          totalRows: EPIC_ROWS.length,
+          rowsWithMrn: EPIC_ROWS.length,
+          rowsWithDiagnosis: EPIC_ROWS.filter((r) => r[3]?.trim()).length,
+          rowsWithDate: EPIC_ROWS.filter((r) => r[4]?.trim()).length,
+          emptyMrnCount: 0,
+          hasMrnMapping: true,
+        });
+      }
     }
   }, [selectedFile, realMapping, startImportExecution]);
 
@@ -509,6 +591,7 @@ export function ImportPage() {
     setRecordsProcessed(0);
     setImportResult(null);
     setValidationReport(null);
+    setWebValidation(null);
     setIsValidating(false);
     setDuplicateCheck(null);
     setDuplicateDismissed(false);
@@ -1183,6 +1266,125 @@ export function ImportPage() {
                     <div className="flex items-center justify-between pt-2">
                       <button
                         onClick={() => setStep("preview")}
+                        className="inline-flex items-center gap-2 rounded-lg border border-edge-3 bg-surface-2 px-4 py-2.5 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                        Back to Preview
+                      </button>
+                      <button
+                        onClick={startImportExecution}
+                        className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-indigo-500"
+                      >
+                        Proceed with Import
+                        <ArrowRight className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </>
+                ) : webValidation ? (
+                  /* Web/demo mode validation summary */
+                  <>
+                    <div className="flex justify-center">
+                      <div className={`flex h-16 w-16 items-center justify-center rounded-2xl ${
+                        webValidation.hasMrnMapping && webValidation.emptyMrnCount === 0
+                          ? "bg-emerald-500/10 ring-1 ring-emerald-500/20"
+                          : "bg-amber-500/10 ring-1 ring-amber-500/20"
+                      }`}>
+                        {webValidation.hasMrnMapping && webValidation.emptyMrnCount === 0 ? (
+                          <ShieldCheck className="h-8 w-8 text-emerald-400" />
+                        ) : (
+                          <AlertTriangle className="h-8 w-8 text-amber-400" />
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <h3 className="text-lg font-bold text-foreground">Data Validation</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {webValidation.totalRows} rows checked against mapped columns
+                      </p>
+                    </div>
+
+                    {/* Warnings */}
+                    {!webValidation.hasMrnMapping && (
+                      <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+                        <div className="flex items-center gap-2 mb-1">
+                          <AlertTriangle className="h-4 w-4 text-amber-400" />
+                          <span className="text-xs font-semibold text-amber-400">No Patient ID Mapped</span>
+                        </div>
+                        <p className="text-[12px] text-amber-300/70">
+                          No column is mapped to patient_id or MRN. Subjects may not deduplicate correctly.
+                          Go back to Map Columns and assign a patient identifier.
+                        </p>
+                      </div>
+                    )}
+
+                    {webValidation.hasMrnMapping && webValidation.emptyMrnCount > 0 && (
+                      <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+                        <div className="flex items-center gap-2 mb-1">
+                          <AlertTriangle className="h-4 w-4 text-amber-400" />
+                          <span className="text-xs font-semibold text-amber-400">
+                            {webValidation.emptyMrnCount} Rows Missing Patient ID
+                          </span>
+                        </div>
+                        <p className="text-[12px] text-amber-300/70">
+                          These rows have an empty patient ID field and may not import correctly.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Data quality summary */}
+                    <div className="rounded-xl border border-border bg-card">
+                      <div className="border-b border-border px-4 py-3">
+                        <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-body">
+                          <BarChart3 className="h-3.5 w-3.5" />
+                          Data Quality Summary
+                        </h4>
+                      </div>
+                      <div className="p-4 space-y-3">
+                        {[
+                          { label: "Total Rows", value: webValidation.totalRows, total: webValidation.totalRows },
+                          { label: "Rows with Patient ID (MRN)", value: webValidation.rowsWithMrn, total: webValidation.totalRows },
+                          { label: "Rows with Diagnosis", value: webValidation.rowsWithDiagnosis, total: webValidation.totalRows },
+                          { label: "Rows with Date Fields", value: webValidation.rowsWithDate, total: webValidation.totalRows },
+                        ].map((item) => {
+                          const pct = item.total > 0 ? Math.round((item.value / item.total) * 100) : 0;
+                          return (
+                            <div key={item.label}>
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-[12px] font-medium text-body">{item.label}</span>
+                                <span className="text-[12px] font-mono text-dim">
+                                  {item.value}/{item.total} ({pct}%)
+                                </span>
+                              </div>
+                              <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-2">
+                                <div
+                                  className={`h-full rounded-full transition-all ${
+                                    pct >= 90 ? "bg-emerald-500" : pct >= 50 ? "bg-amber-500" : "bg-red-500"
+                                  }`}
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* All good */}
+                    {webValidation.hasMrnMapping && webValidation.emptyMrnCount === 0 && (
+                      <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                          <span className="text-xs font-semibold text-emerald-400">
+                            No issues detected — ready to import
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex items-center justify-between pt-2">
+                      <button
+                        onClick={() => { setStep("preview"); setWebValidation(null); }}
                         className="inline-flex items-center gap-2 rounded-lg border border-edge-3 bg-surface-2 px-4 py-2.5 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body"
                       >
                         <ArrowLeft className="h-4 w-4" />

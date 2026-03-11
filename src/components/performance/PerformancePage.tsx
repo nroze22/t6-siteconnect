@@ -32,6 +32,7 @@ import { SkeletonCard, SkeletonChart } from "@/components/ui/Skeleton";
 import { useAnimatedNumber } from "@/hooks/use-animated-number";
 import { PerformanceInsights } from "@/components/analytics/InsightsPanel";
 import { exportCSV, exportReportDeck } from "@/lib/analytics-export";
+import { useToast } from "@/components/ui/Toast";
 import { useAnalyticsStore } from "@/stores/use-analytics-store";
 import { DrillDownPanel } from "@/components/analytics/DrillDownPanel";
 
@@ -184,6 +185,7 @@ async function computeMultiStudyMatches(parsed: ParsedPatient[]) {
 type PerformanceTab = "overview" | "failures" | "matching";
 
 export function PerformancePage() {
+  const toast = useToast();
   const [tab, setTab] = useState<PerformanceTab>("overview");
   const [metrics, setMetrics] = useState<StudyMetrics[]>([]);
   const [patients, setPatients] = useState<ParsedPatient[]>([]);
@@ -222,7 +224,7 @@ export function PerformancePage() {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => {
+              onClick={async () => {
                 const headers = ["Study", "Screened", "Eligible", "Potentially Eligible", "Ineligible", "Needs Review", "Pass Rate (%)", "Avg Score", "Revenue/Patient ($)", "Projected Revenue ($)"];
                 const rows = metrics.map((m) => [
                   m.studyName,
@@ -236,7 +238,8 @@ export function PerformancePage() {
                   m.revenuePerPatient,
                   m.projectedRevenue,
                 ] as (string | number | null)[]);
-                exportCSV({ filename: "site-performance-metrics", headers, rows, includeTimestamp: true });
+                const filePath = await exportCSV({ filename: "site-performance-metrics", headers, rows, includeTimestamp: true });
+                toast.success("CSV saved", filePath ? "Saved to Downloads" : "Download started");
               }}
               disabled={metrics.length === 0}
               className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12px] font-medium text-dim hover:bg-surface-3 hover:text-body transition-colors disabled:opacity-40 disabled:pointer-events-none"
@@ -245,8 +248,8 @@ export function PerformancePage() {
               CSV
             </button>
             <button
-              onClick={() => {
-                exportReportDeck({
+              onClick={async () => {
+                const { fileName } = await exportReportDeck({
                   title: "Site Performance Report",
                   subtitle: `${metrics.length} Active Studies`,
                   confidential: true,
@@ -277,6 +280,7 @@ export function PerformancePage() {
                     },
                   ],
                 });
+                toast.success("Report saved", fileName ? `Saved to ~/Downloads/${fileName}` : "Saved to Downloads");
               }}
               disabled={metrics.length === 0}
               className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12px] font-medium text-dim hover:bg-surface-3 hover:text-body transition-colors disabled:opacity-40 disabled:pointer-events-none"

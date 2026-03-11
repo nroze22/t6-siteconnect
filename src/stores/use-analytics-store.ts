@@ -105,6 +105,29 @@ const DEFAULT_FILTERS: AnalyticsFilters = {
 };
 
 // ============================================================
+// Persistence (snapshots only — filters are transient)
+// ============================================================
+
+const SNAPSHOT_KEY = "siteconnect-analytics-snapshots";
+
+function persistSnapshots(snapshots: AnalyticsSnapshot[]) {
+  try {
+    localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(snapshots));
+  } catch {
+    // Storage full or unavailable
+  }
+}
+
+function loadSnapshots(): AnalyticsSnapshot[] {
+  try {
+    const raw = localStorage.getItem(SNAPSHOT_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+// ============================================================
 // Store
 // ============================================================
 
@@ -139,16 +162,20 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
   closeDrillDown: () =>
     set({ drillDown: null }),
 
-  // Snapshots
-  snapshots: [],
+  // Snapshots (persisted)
+  snapshots: loadSnapshots(),
 
   saveSnapshot: (snapshot) =>
-    set((state) => ({
-      snapshots: [...state.snapshots, snapshot],
-    })),
+    set((state) => {
+      const next = [...state.snapshots, snapshot];
+      persistSnapshots(next);
+      return { snapshots: next };
+    }),
 
-  clearSnapshots: () =>
-    set({ snapshots: [] }),
+  clearSnapshots: () => {
+    persistSnapshots([]);
+    set({ snapshots: [] });
+  },
 
   // Comparison mode
   compareMode: false,

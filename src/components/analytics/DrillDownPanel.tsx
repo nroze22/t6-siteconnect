@@ -16,6 +16,7 @@ import { useAnalyticsStore } from "@/stores/use-analytics-store";
 import { getPatients } from "@/lib/data-provider";
 import { calculateAge, formatNumber } from "@/lib/formatters";
 import { exportCSV, objectsToExportData, exportReportDeck } from "@/lib/analytics-export";
+import { useToast } from "@/components/ui/Toast";
 import type { ParsedPatient } from "@/lib/epic-demo-data";
 
 // ============================================================
@@ -93,6 +94,7 @@ function comparePrimitive(a: string | number, b: string | number, dir: SortDir):
 // ============================================================
 
 export function DrillDownPanel() {
+  const toast = useToast();
   const drillDown = useAnalyticsStore((s) => s.drillDown);
   const closeDrillDown = useAnalyticsStore((s) => s.closeDrillDown);
 
@@ -175,7 +177,7 @@ export function DrillDownPanel() {
   );
 
   // Export handlers
-  const handleExportCSV = useCallback(() => {
+  const handleExportCSV = useCallback(async () => {
     if (!drillDown) return;
     const exportData = objectsToExportData(
       sortedPatients.map((p) => ({
@@ -200,17 +202,18 @@ export function DrillDownPanel() {
       ],
     );
     const safeName = drillDown.title.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
-    exportCSV({
+    const filePath = await exportCSV({
       filename: `drilldown-${safeName}`,
       headers: exportData.headers,
       rows: exportData.rows,
       includeTimestamp: true,
     });
-  }, [drillDown, sortedPatients]);
+    toast.success("CSV saved", filePath ? "Saved to Downloads" : "Download started");
+  }, [drillDown, sortedPatients, toast]);
 
-  const handleExportPDF = useCallback(() => {
+  const handleExportPDF = useCallback(async () => {
     if (!drillDown) return;
-    exportReportDeck({
+    const { fileName } = await exportReportDeck({
       title: drillDown.title,
       subtitle: drillDown.description,
       confidential: true,
@@ -246,7 +249,8 @@ export function DrillDownPanel() {
         },
       ],
     });
-  }, [drillDown, patients.length, sortedPatients, stats]);
+    toast.success("Report saved", fileName ? `Saved to ~/Downloads/${fileName}` : "Saved to Downloads");
+  }, [drillDown, patients.length, sortedPatients, stats, toast]);
 
   // Keyboard escape
   useEffect(() => {

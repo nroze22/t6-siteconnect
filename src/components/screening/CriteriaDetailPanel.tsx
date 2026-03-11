@@ -324,6 +324,31 @@ function ReviewActionBar({ patientId, reviewStatus }: { patientId: string; revie
     return () => window.removeEventListener("keydown", handler);
   });
 
+  // Keyboard shortcuts: O=Override, N=Next pending patient
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      if (e.key === "o" || e.key === "O") {
+        e.preventDefault();
+        const store = useScreeningStore.getState();
+        const criterionId = store.selectedCriterionId;
+        if (criterionId) {
+          store.openOverrideModal(criterionId);
+        }
+      } else if (e.key === "n" || e.key === "N") {
+        e.preventDefault();
+        if (nextPendingPatient) {
+          selectPatient(nextPendingPatient.id);
+        }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  });
+
   const handleNextPatient = () => {
     if (nextPendingPatient) {
       selectPatient(nextPendingPatient.id);

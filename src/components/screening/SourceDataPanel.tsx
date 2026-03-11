@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { Table2, ArrowRight } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Table2, ArrowRight, AlertTriangle } from "lucide-react";
 import { useScreeningStore } from "@/stores/use-screening-store";
 import { getPatients } from "@/lib/data-provider";
 import type { ParsedPatient } from "@/lib/epic-demo-data";
-import type { Diagnosis, Medication, LabResult, VitalSign } from "@/types";
+import type { Diagnosis, Medication, LabResult, VitalSign, CriterionResult } from "@/types";
 
 /** Convert ParsedPatient clinical data to the typed format used by tabs */
 function parsedPatientToClinical(p: ParsedPatient): { diagnoses: Diagnosis[]; medications: Medication[]; labs: LabResult[]; vitals: VitalSign[] } {
@@ -50,7 +50,7 @@ function parsedPatientToClinical(p: ParsedPatient): { diagnoses: Diagnosis[]; me
       ...(p.vitals.pulse ? [{ id: "v-hr", patientId: p.mrn, measurementType: "hr" as const, value: p.vitals.pulse, unit: "bpm", measurementDate: null }] : []),
       ...(p.vitals.weight ? [{ id: "v-wt", patientId: p.mrn, measurementType: "weight" as const, value: p.vitals.weight, unit: "kg", measurementDate: null }] : []),
       ...(p.vitals.height ? [{ id: "v-ht", patientId: p.mrn, measurementType: "height" as const, value: p.vitals.height, unit: "cm", measurementDate: null }] : []),
-      ...(p.vitals.bmi ? [{ id: "v-bmi", patientId: p.mrn, measurementType: "bmi" as const, value: p.vitals.bmi, unit: "kg/m²", measurementDate: null }] : []),
+      ...(p.vitals.bmi ? [{ id: "v-bmi", patientId: p.mrn, measurementType: "bmi" as const, value: p.vitals.bmi, unit: "kg/m\u00B2", measurementDate: null }] : []),
     ],
   };
 }
@@ -75,6 +75,98 @@ function evidenceSourceToTab(source: string | null): TabId | null {
   return null;
 }
 
+// ============================================================
+// Improved matching: extract searchable terms from criterion
+// ============================================================
+
+/** Infer which tab to show based on criterion text + evidence when evidenceSource is null */
+function inferTabFromContent(criterion: CriterionResult): TabId | null {
+  const text = `${criterion.criterionText} ${criterion.evidence ?? ""} ${criterion.reasoning ?? ""}`.toLowerCase();
+
+  // Lab keywords
+  if (/\b(hgb|plt|anc|wbc|egfr|creatinine|bilirubin|ast|alt|a1c|hemoglobin|platelet|neutrophil|lab|g\/dl|u\/l|ml\/min|mg\/dl|\/ul|hematologic|hepatic|renal function)\b/.test(text)) return "labs";
+
+  // Medication keywords
+  if (/\b(therap|medication|drug|regimen|chemo|immunosup|systemic treatment|prior.*therapy|immunotherapy|checkpoint|pembrolizumab|nivolumab|methotrexate|chemotherapy)\b/.test(text)) return "medications";
+
+  // Diagnosis keywords (ICD codes or diagnosis terms)
+  if (/\b(icd-?10|diagnosis|diagnosed|autoimmune|hiv|hepatitis|metastas|infection|c\d{2}\.\d|e\d{2}\.\d|i\d{2}\.\d|j\d{2}\.\d|m\d{2}\.\d|nsclc|lung cancer|heart failure|alzheimer|crohn|atopic|diabetes)\b/.test(text)) return "diagnoses";
+
+  // Vitals keywords
+  if (/\b(bmi|ecog|performance status|weight|bp|heart rate|vital|blood pressure)\b/.test(text)) return "vitals";
+
+  // Age/demographics
+  if (/\b(age|gender|sex|years old|patient age|pregnant|male|female)\b/.test(text)) return "demographics";
+
+  return null;
+}
+
+/** Build a set of search terms from criterion text + evidence for row matching.
+ *  We focus on extracting *specific clinical identifiers* (ICD codes, drug names, lab test names)
+ *  rather than generic words from sentences. */
+function buildSearchTerms(criterion: CriterionResult): string[] {
+  const terms: string[] = [];
+  const combined = `${criterion.evidence ?? ""} ${criterion.criterionText} ${criterion.reasoning ?? ""}`;
+
+  // 1. Extract ICD-10 codes (e.g., C34.1, E11.9, M06.0) and also prefix codes (C34, E11)
+  const icdMatches = combined.match(/[A-Z]\d{2}(?:\.\d{1,2})?/g);
+  if (icdMatches) {
+    for (const m of icdMatches) {
+      terms.push(m.toLowerCase());
+      // Also add the prefix (e.g., "c34" for "C34.1") for broader matching
+      const prefix = m.slice(0, 3).toLowerCase();
+      terms.push(prefix);
+    }
+  }
+
+  // 2. Extract known drug names — match capitalized words that look like drug names
+  const knownDrugs = combined.match(/\b(Carboplatin|Cisplatin|Pemetrexed|Docetaxel|Paclitaxel|Pembrolizumab|Nivolumab|Atezolizumab|Durvalumab|Avelumab|Cemiplimab|Methotrexate|Azathioprine|Mycophenolate|Cyclophosphamide|Dapagliflozin|Semaglutide|Lecanemab|Trastuzumab|Letrozole|Tamoxifen|Lisinopril|Metoprolol|Atorvastatin|Amlodipine|Metformin|Donepezil|Memantine|Insulin|Aspirin|Warfarin|Omeprazole|Pantoprazole|Furosemide|Prednisone|Rituximab|Adalimumab|Infliximab|Dupilumab|Budesonide|Fluticasone|Albuterol|Montelukast|Topiramate|Phentermine|Orlistat)\b/gi);
+  if (knownDrugs) terms.push(...knownDrugs.map((d) => d.toLowerCase()));
+
+  // 3. Extract lab test names from "TestName: value unit" patterns in evidence
+  if (criterion.evidence) {
+    const labPairs = criterion.evidence.match(/(\w[\w\s]*?)\s*:\s*[\d.]+\s*\w*/g);
+    if (labPairs) {
+      for (const pair of labPairs) {
+        const name = pair.split(":")[0]?.trim();
+        if (name && name.length > 1) terms.push(name.toLowerCase());
+      }
+    }
+    // Also extract known lab abbreviations
+    const labAbbrevs = criterion.evidence.match(/\b(HgB|Plt|ANC|WBC|eGFR|ALT|AST|Creatinine|Bilirubin|A1C|HbA1c|TSH|BNP|NT-proBNP|Albumin|Platelets|Hemoglobin|Neutrophil)\b/gi);
+    if (labAbbrevs) terms.push(...labAbbrevs.map((l) => l.toLowerCase()));
+  }
+
+  // 4. Extract specific vitals terms
+  const vitalTerms = combined.match(/\b(BMI|ECOG|blood pressure|weight|heart rate|systolic|diastolic)\b/gi);
+  if (vitalTerms) terms.push(...vitalTerms.map((v) => v.toLowerCase()));
+
+  // 5. Extract demographic terms for age matching
+  const ageMatch = combined.match(/\bage[:\s]+(\d+)/i);
+  if (ageMatch) terms.push(`${ageMatch[1]} years`);
+
+  // 6. For medication-related criteria, also extract drug names from the criterion text
+  const criterionDrugs = criterion.criterionText.match(/\b(chemotherapy|immunotherapy|anti-PD-[1L]|checkpoint inhibitor|systemic therapy)\b/gi);
+  if (criterionDrugs) {
+    // When criterion mentions drug classes, we want to match those drug rows
+    // Add a flag so medication tab knows to highlight active chemo drugs
+    terms.push("__match_active_meds__");
+  }
+
+  return [...new Set(terms)];
+}
+
+/** Check if a text matches any of the search terms */
+function matchesTerms(text: string, terms: string[]): boolean {
+  if (terms.length === 0) return false;
+  const lower = text.toLowerCase();
+  return terms.some((term) => lower.includes(term));
+}
+
+// ============================================================
+// Component
+// ============================================================
+
 export function SourceDataPanel() {
   const selectedPatientId = useScreeningStore((s) => s.selectedPatientId);
   const selectedCriterionId = useScreeningStore((s) => s.selectedCriterionId);
@@ -84,6 +176,7 @@ export function SourceDataPanel() {
   const setStudyDetailOpen = useScreeningStore((s) => s.setStudyDetailOpen);
   const [activeTab, setActiveTab] = useState<TabId>("demographics");
   const [allParsedPatients, setAllParsedPatients] = useState<ParsedPatient[]>([]);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // Load actual patient data (from DB or demo) for clinical data display
   useEffect(() => {
@@ -100,12 +193,33 @@ export function SourceDataPanel() {
   const criteria = screening ? criteriaResults.get(screening.id) ?? [] : [];
   const selectedCriterion = criteria.find((c) => c.id === selectedCriterionId);
 
+  // Resolve the target tab: explicit evidenceSource, or infer from content
+  const resolvedTab = selectedCriterion
+    ? evidenceSourceToTab(selectedCriterion.evidenceSource) ?? inferTabFromContent(selectedCriterion)
+    : null;
+
+  // Build search terms for row highlighting
+  const searchTerms = selectedCriterion ? buildSearchTerms(selectedCriterion) : [];
+
+  // Auto-switch tab when a criterion is selected and we know which tab to show
   useEffect(() => {
-    if (selectedCriterion?.evidence && selectedCriterion.evidenceSource) {
-      const targetTab = evidenceSourceToTab(selectedCriterion.evidenceSource);
-      if (targetTab) setActiveTab(targetTab);
+    if (resolvedTab) {
+      setActiveTab(resolvedTab);
     }
-  }, [selectedCriterionId, selectedCriterion?.evidence, selectedCriterion?.evidenceSource]);
+  }, [selectedCriterionId, resolvedTab]);
+
+  // Scroll to first highlighted row when tab switches
+  useEffect(() => {
+    if (!resolvedTab || !selectedCriterionId) return;
+    // Small delay to let the tab content render
+    const timer = setTimeout(() => {
+      const highlighted = scrollRef.current?.querySelector("[data-highlighted='true']");
+      if (highlighted) {
+        highlighted.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [selectedCriterionId, activeTab, resolvedTab]);
 
   if (!selectedPatientId || !clinicalData) {
     return (
@@ -121,7 +235,10 @@ export function SourceDataPanel() {
     );
   }
 
-  const highlightTab = selectedCriterion ? evidenceSourceToTab(selectedCriterion.evidenceSource) : null;
+  const hasEvidence = selectedCriterion && (selectedCriterion.evidence || resolvedTab);
+
+  // Determine if the criterion has no evidence at all (null evidence + no resolved tab)
+  const criterionHasNoEvidence = selectedCriterion && !selectedCriterion.evidence && !resolvedTab;
 
   return (
     <div className="flex h-full flex-col bg-card">
@@ -129,7 +246,7 @@ export function SourceDataPanel() {
       <div className="flex border-b border-border bg-background">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
-          const hasHighlight = highlightTab === tab.id && !isActive;
+          const hasHighlight = resolvedTab === tab.id && !isActive;
           return (
             <button
               key={tab.id}
@@ -149,40 +266,67 @@ export function SourceDataPanel() {
         })}
       </div>
 
-      {/* Criterion context bar — only show when there's actual evidence tied to a data source */}
-      {selectedCriterion && selectedCriterion.evidence && highlightTab && (
+      {/* Criterion context bar — evidence found */}
+      {selectedCriterion && hasEvidence && (
         <div className="flex items-center gap-2 border-b border-border bg-indigo-500/5 px-3 py-2">
-          <ArrowRight className="h-3 w-3 text-indigo-400" />
+          <ArrowRight className="h-3 w-3 shrink-0 text-indigo-400" />
           <p className="truncate text-[12px] text-indigo-300/80">
             Evidence for: <span className="font-medium text-indigo-300">{selectedCriterion.criterionText.slice(0, 60)}{selectedCriterion.criterionText.length > 60 ? "..." : ""}</span>
           </p>
         </div>
       )}
-      {selectedCriterion && (!selectedCriterion.evidence || !highlightTab) && (
-        <div className="flex items-center gap-2 border-b border-border bg-amber-500/5 px-3 py-2">
-          <span className="h-1.5 w-1.5 rounded-full bg-amber-400/60" />
-          <p className="truncate text-[12px] text-amber-300/70">
-            No structured evidence found for: <span className="font-medium text-amber-300/80">{selectedCriterion.criterionText.slice(0, 50)}{selectedCriterion.criterionText.length > 50 ? "..." : ""}</span>
+
+      {/* Criterion context bar — no evidence */}
+      {criterionHasNoEvidence && (
+        <div className="flex flex-col gap-2 border-b border-border bg-amber-500/5 px-3 py-3">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-400" />
+            <p className="text-[12px] font-medium text-amber-300">
+              No evidence found in patient record
+            </p>
+          </div>
+          <p className="text-[11px] text-amber-300/60 leading-relaxed pl-5.5">
+            {selectedCriterion.reasoning ?? "This criterion could not be evaluated from the available structured data. Manual chart review may be needed."}
           </p>
         </div>
       )}
 
       {/* Tab content */}
-      <div className="flex-1 overflow-y-auto">
+      <div ref={scrollRef} className="relative flex-1 overflow-y-auto">
         {activeTab === "demographics" && (
-          <DemographicsTab patientId={selectedPatientId} isHighlighted={highlightTab === "demographics"} />
+          <DemographicsTab
+            patientId={selectedPatientId}
+            isHighlighted={resolvedTab === "demographics"}
+            searchTerms={searchTerms}
+          />
         )}
         {activeTab === "diagnoses" && (
-          <DiagnosesTab diagnoses={clinicalData.diagnoses} isHighlighted={highlightTab === "diagnoses"} evidence={selectedCriterion?.evidence} />
+          <DiagnosesTab
+            diagnoses={clinicalData.diagnoses}
+            isHighlighted={resolvedTab === "diagnoses"}
+            searchTerms={searchTerms}
+          />
         )}
         {activeTab === "medications" && (
-          <MedicationsTab medications={clinicalData.medications} isHighlighted={highlightTab === "medications"} evidence={selectedCriterion?.evidence} />
+          <MedicationsTab
+            medications={clinicalData.medications}
+            isHighlighted={resolvedTab === "medications"}
+            searchTerms={searchTerms}
+          />
         )}
         {activeTab === "labs" && (
-          <LabsTab labs={clinicalData.labs} isHighlighted={highlightTab === "labs"} evidence={selectedCriterion?.evidence} />
+          <LabsTab
+            labs={clinicalData.labs}
+            isHighlighted={resolvedTab === "labs"}
+            searchTerms={searchTerms}
+          />
         )}
         {activeTab === "vitals" && (
-          <VitalsTab vitals={clinicalData.vitals} isHighlighted={highlightTab === "vitals"} />
+          <VitalsTab
+            vitals={clinicalData.vitals}
+            isHighlighted={resolvedTab === "vitals"}
+            searchTerms={searchTerms}
+          />
         )}
       </div>
 
@@ -199,37 +343,44 @@ export function SourceDataPanel() {
   );
 }
 
-// --- Tab Components (dark themed) ---
+// --- Tab Components ---
 
-function DemographicsTab({ patientId, isHighlighted }: { patientId: string; isHighlighted: boolean }) {
+function DemographicsTab({ patientId, isHighlighted, searchTerms }: { patientId: string; isHighlighted: boolean; searchTerms: string[] }) {
   const patients = useScreeningStore((s) => s.patients);
   const patient = patients.find((p) => p.id === patientId);
   if (!patient) return null;
 
-  const rows = [
-    ["Subject ID", patient.sitePatientId],
-    ["Age", `${patient.age} years`],
-    ["Gender", patient.gender === "male" ? "Male" : "Female"],
-    ["Primary Diagnosis", patient.primaryDiagnosis ?? "\u2014"],
+  const rows: [string, string, string][] = [
+    ["Subject ID", patient.sitePatientId, "id"],
+    ["Age", `${patient.age} years`, "age"],
+    ["Gender", patient.gender === "male" ? "Male" : "Female", "gender"],
+    ["Primary Diagnosis", patient.primaryDiagnosis ?? "\u2014", "diagnosis"],
   ];
 
   return (
     <div className="p-3">
       <table className="w-full text-[12px]">
         <tbody>
-          {rows.map(([label, value]) => (
-            <tr key={label} className={`border-b border-edge-1 ${isHighlighted ? "bg-amber-500/5" : ""}`}>
-              <td className="py-2.5 pr-3 font-medium text-dim">{label}</td>
-              <td className="py-2.5 font-mono text-body">{value}</td>
-            </tr>
-          ))}
+          {rows.map(([label, value, key]) => {
+            const isMatch = isHighlighted && matchesTerms(`${label} ${value} ${key}`, searchTerms);
+            return (
+              <tr
+                key={label}
+                data-highlighted={isMatch ? "true" : undefined}
+                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-amber-500/10 ring-1 ring-inset ring-amber-500/20" : ""}`}
+              >
+                <td className={`py-2.5 pr-3 font-medium ${isMatch ? "text-amber-300" : "text-dim"}`}>{label}</td>
+                <td className={`py-2.5 font-mono ${isMatch ? "text-amber-200 font-semibold" : "text-body"}`}>{value}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
   );
 }
 
-function DiagnosesTab({ diagnoses, isHighlighted, evidence }: { diagnoses: Diagnosis[]; isHighlighted: boolean; evidence: string | null | undefined }) {
+function DiagnosesTab({ diagnoses, isHighlighted, searchTerms }: { diagnoses: Diagnosis[]; isHighlighted: boolean; searchTerms: string[] }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-[12px]">
@@ -243,17 +394,23 @@ function DiagnosesTab({ diagnoses, isHighlighted, evidence }: { diagnoses: Diagn
         </thead>
         <tbody>
           {diagnoses.map((dx) => {
-            const isMatch = isHighlighted && evidence && (
-              evidence.includes(dx.icd10Code ?? "") ||
-              evidence.toLowerCase().includes(dx.description.toLowerCase().slice(0, 10))
+            // Match against ICD code (exact and prefix) + description
+            const rowText = `${dx.icd10Code ?? ""} ${dx.description}`.toLowerCase();
+            const icdLower = (dx.icd10Code ?? "").toLowerCase();
+            const isMatch = isHighlighted && (
+              // Direct text match
+              searchTerms.some((term) => rowText.includes(term)) ||
+              // ICD prefix matching: "c34" matches "C34.1", "C34.9", etc.
+              (icdLower && searchTerms.some((t) => /^[a-z]\d{2}/.test(t) && icdLower.startsWith(t)))
             );
             return (
               <tr
                 key={dx.id}
+                data-highlighted={isMatch ? "true" : undefined}
                 className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-amber-500/10 ring-1 ring-inset ring-amber-500/20" : ""}`}
               >
-                <td className="px-3 py-2 font-mono font-semibold text-body">{dx.icd10Code}</td>
-                <td className="px-3 py-2 text-body">{dx.description}</td>
+                <td className={`px-3 py-2 font-mono font-semibold ${isMatch ? "text-amber-300" : "text-body"}`}>{dx.icd10Code}</td>
+                <td className={`px-3 py-2 ${isMatch ? "text-amber-200 font-medium" : "text-body"}`}>{dx.description}</td>
                 <td className="px-3 py-2 text-dim">{dx.onsetDate}</td>
                 <td className="px-3 py-2">
                   <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-semibold ${
@@ -271,7 +428,7 @@ function DiagnosesTab({ diagnoses, isHighlighted, evidence }: { diagnoses: Diagn
   );
 }
 
-function MedicationsTab({ medications, isHighlighted, evidence }: { medications: Medication[]; isHighlighted: boolean; evidence: string | null | undefined }) {
+function MedicationsTab({ medications, isHighlighted, searchTerms }: { medications: Medication[]; isHighlighted: boolean; searchTerms: string[] }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-[12px]">
@@ -285,14 +442,18 @@ function MedicationsTab({ medications, isHighlighted, evidence }: { medications:
         </thead>
         <tbody>
           {medications.map((med) => {
-            const isMatch = isHighlighted && evidence &&
-              evidence.toLowerCase().includes(med.drugName.toLowerCase());
+            const isMatch = isHighlighted && (
+              matchesTerms(med.drugName, searchTerms) ||
+              // When criterion is about drug classes (chemotherapy, immunotherapy), match active meds in those classes
+              (searchTerms.includes("__match_active_meds__") && med.status === "active")
+            );
             return (
               <tr
                 key={med.id}
+                data-highlighted={isMatch ? "true" : undefined}
                 className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-amber-500/10 ring-1 ring-inset ring-amber-500/20" : ""}`}
               >
-                <td className="px-3 py-2 font-semibold text-body">{med.drugName}</td>
+                <td className={`px-3 py-2 font-semibold ${isMatch ? "text-amber-300" : "text-body"}`}>{med.drugName}</td>
                 <td className="px-3 py-2 font-mono text-body">{med.dose}</td>
                 <td className="px-3 py-2 text-dim">{med.frequency}</td>
                 <td className="px-3 py-2">
@@ -311,7 +472,7 @@ function MedicationsTab({ medications, isHighlighted, evidence }: { medications:
   );
 }
 
-function LabsTab({ labs, isHighlighted, evidence }: { labs: LabResult[]; isHighlighted: boolean; evidence: string | null | undefined }) {
+function LabsTab({ labs, isHighlighted, searchTerms }: { labs: LabResult[]; isHighlighted: boolean; searchTerms: string[] }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-[12px]">
@@ -326,15 +487,31 @@ function LabsTab({ labs, isHighlighted, evidence }: { labs: LabResult[]; isHighl
         </thead>
         <tbody>
           {labs.map((lab) => {
-            const isMatch = isHighlighted && evidence &&
-              evidence.toLowerCase().includes(lab.testName.toLowerCase());
+            // Match against test name + common aliases (e.g., "HgB" matches "Hemoglobin")
+            const labAliases: Record<string, string[]> = {
+              hemoglobin: ["hgb", "hb"],
+              platelets: ["plt", "platelet"],
+              "white blood cell": ["wbc"],
+              "absolute neutrophil count": ["anc", "neutrophil"],
+              creatinine: ["cr", "scr"],
+              "total bilirubin": ["bilirubin", "tbili"],
+              "alt": ["sgpt", "alanine"],
+              "ast": ["sgot", "aspartate"],
+              albumin: ["alb"],
+              egfr: ["gfr"],
+            };
+            const nameL = lab.testName.toLowerCase();
+            const aliases = Object.entries(labAliases).find(([key, vals]) => nameL.includes(key) || vals.some((v) => nameL.includes(v)));
+            const searchable = aliases ? `${lab.testName} ${aliases[0]} ${aliases[1].join(" ")}` : lab.testName;
+            const isMatch = isHighlighted && matchesTerms(searchable, searchTerms);
             return (
               <tr
                 key={lab.id}
+                data-highlighted={isMatch ? "true" : undefined}
                 className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-amber-500/10 ring-1 ring-inset ring-amber-500/20" : ""}`}
               >
-                <td className="px-3 py-2 font-semibold text-body">{lab.testName}</td>
-                <td className="px-3 py-2 text-right font-mono font-bold text-body">
+                <td className={`px-3 py-2 font-semibold ${isMatch ? "text-amber-300" : "text-body"}`}>{lab.testName}</td>
+                <td className={`px-3 py-2 text-right font-mono font-bold ${isMatch ? "text-amber-200" : "text-body"}`}>
                   {lab.value != null ? lab.value.toLocaleString() : "\u2014"}
                 </td>
                 <td className="px-3 py-2 text-dim">{lab.unit}</td>
@@ -349,7 +526,7 @@ function LabsTab({ labs, isHighlighted, evidence }: { labs: LabResult[]; isHighl
   );
 }
 
-function VitalsTab({ vitals, isHighlighted }: { vitals: VitalSign[]; isHighlighted: boolean }) {
+function VitalsTab({ vitals, isHighlighted, searchTerms }: { vitals: VitalSign[]; isHighlighted: boolean; searchTerms: string[] }) {
   const typeLabels: Record<string, string> = {
     bp_systolic: "BP Systolic",
     bp_diastolic: "BP Diastolic",
@@ -372,19 +549,26 @@ function VitalsTab({ vitals, isHighlighted }: { vitals: VitalSign[]; isHighlight
           </tr>
         </thead>
         <tbody>
-          {vitals.map((v) => (
-            <tr
-              key={v.id}
-              className={`border-b border-edge-1 ${isHighlighted ? "bg-amber-500/5" : ""}`}
-            >
-              <td className="px-3 py-2 font-semibold text-body">
-                {typeLabels[v.measurementType] ?? v.measurementType}
-              </td>
-              <td className="px-3 py-2 text-right font-mono font-bold text-body">{v.value}</td>
-              <td className="px-3 py-2 text-dim">{v.unit}</td>
-              <td className="px-3 py-2 text-dim">{v.measurementDate}</td>
-            </tr>
-          ))}
+          {vitals.map((v) => {
+            const label = typeLabels[v.measurementType] ?? v.measurementType;
+            // Build searchable text including aliases (e.g., "bmi" matches "BMI" row, "ecog" matches via "performance status")
+            const searchable = `${label} ${v.measurementType} ${v.value}`;
+            const isMatch = isHighlighted && matchesTerms(searchable, searchTerms);
+            return (
+              <tr
+                key={v.id}
+                data-highlighted={isMatch ? "true" : undefined}
+                className={`border-b border-edge-1 ${isMatch ? "bg-amber-500/10 ring-1 ring-inset ring-amber-500/20" : ""}`}
+              >
+                <td className={`px-3 py-2 font-semibold ${isMatch ? "text-amber-300" : "text-body"}`}>
+                  {label}
+                </td>
+                <td className={`px-3 py-2 text-right font-mono font-bold ${isMatch ? "text-amber-200" : "text-body"}`}>{v.value}</td>
+                <td className="px-3 py-2 text-dim">{v.unit}</td>
+                <td className="px-3 py-2 text-dim">{v.measurementDate}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

@@ -65,7 +65,7 @@ function escapeCSVValue(val: string | number | null): string {
   return str;
 }
 
-export function exportCSV(options: CSVExportOptions): void {
+export async function exportCSV(options: CSVExportOptions): Promise<string | undefined> {
   const { filename, headers, rows, includeTimestamp } = options;
 
   const lines: string[] = [];
@@ -85,7 +85,7 @@ export function exportCSV(options: CSVExportOptions): void {
   const bom = "\uFEFF";
   const blob = new Blob([bom + csvContent], { type: "text/csv;charset=utf-8;" });
 
-  triggerDownload(blob, `${filename}.csv`);
+  return triggerDownload(blob, `${filename}.csv`);
 }
 
 // ============================================================
@@ -110,7 +110,7 @@ function escapeHTML(val: string | number | null): string {
     .replace(/"/g, "&quot;");
 }
 
-export function exportExcel(options: ExcelExportOptions): void {
+export async function exportExcel(options: ExcelExportOptions): Promise<string | undefined> {
   const { filename, sheets } = options;
 
   let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office"
@@ -168,7 +168,7 @@ export function exportExcel(options: ExcelExportOptions): void {
 </html>`;
 
   const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8;" });
-  triggerDownload(blob, `${filename}.xls`);
+  return triggerDownload(blob, `${filename}.xls`);
 }
 
 // ============================================================
@@ -252,7 +252,7 @@ function renderSection(section: ReportSection): string {
   }
 }
 
-export function exportReportDeck(options: ReportDeckOptions): void {
+export async function exportReportDeck(options: ReportDeckOptions): Promise<{ filePath?: string; fileName?: string }> {
   const { title, subtitle, confidential, sections } = options;
 
   const today = new Date().toLocaleDateString("en-US", {
@@ -301,7 +301,8 @@ export function exportReportDeck(options: ReportDeckOptions): void {
 </html>`;
 
   const safeFilename = title.replace(/[^a-zA-Z0-9-_ ]/g, "").replace(/\s+/g, "-").toLowerCase();
-  void exportPrintableHTML(html, safeFilename);
+  const result = await exportPrintableHTML(html, safeFilename);
+  return { filePath: result.filePath, fileName: result.fileName };
 }
 
 // ============================================================
@@ -614,7 +615,32 @@ export const EXPORT_PRESETS = {
 // INTERNAL HELPERS
 // ============================================================
 
-function triggerDownload(blob: Blob, filename: string): void {
+const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+
+async function triggerDownload(blob: Blob, filename: string): Promise<string | undefined> {
+  if (isTauri) {
+    try {
+      const { writeTextFile, writeFile } = await import("@tauri-apps/plugin-fs");
+      const { downloadDir, join } = await import("@tauri-apps/api/path");
+
+      const downloadsPath = await downloadDir();
+      const filePath = await join(downloadsPath, filename);
+
+      if (blob.type.includes("text") || blob.type.includes("csv")) {
+        const text = await blob.text();
+        await writeTextFile(filePath, text);
+      } else {
+        const buffer = await blob.arrayBuffer();
+        await writeFile(filePath, new Uint8Array(buffer));
+      }
+
+      return filePath;
+    } catch {
+      // Fall through to web approach if Tauri APIs fail
+    }
+  }
+
+  // Web fallback: blob URL + anchor click
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
@@ -622,11 +648,11 @@ function triggerDownload(blob: Blob, filename: string): void {
   anchor.style.display = "none";
   document.body.appendChild(anchor);
   anchor.click();
-  // Clean up after a short delay to ensure download starts
   setTimeout(() => {
     URL.revokeObjectURL(url);
     document.body.removeChild(anchor);
   }, 100);
+  return undefined;
 }
 
 function calcAge(dob: string): number {

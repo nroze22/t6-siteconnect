@@ -23,16 +23,12 @@ export async function exportPrintableHTML(html: string, filename: string): Promi
     try {
       const { writeTextFile } = await import("@tauri-apps/plugin-fs");
       const { downloadDir, join } = await import("@tauri-apps/api/path");
-      const { open } = await import("@tauri-apps/plugin-shell");
 
       const downloadsPath = await downloadDir();
       const fileName = `${filename}.html`;
       const filePath = await join(downloadsPath, fileName);
 
       await writeTextFile(filePath, html);
-
-      // Open in default browser for printing
-      await open(filePath);
 
       return { success: true, filePath, fileName };
     } catch {

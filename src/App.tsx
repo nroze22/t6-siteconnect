@@ -20,6 +20,7 @@ import { CommandPalette } from "@/components/ui/CommandPalette";
 import { KeyboardShortcutsOverlay } from "@/components/ui/KeyboardShortcuts";
 import { HelpDrawer } from "@/components/ui/HelpDrawer";
 import { PageTransition } from "@/components/ui/PageTransition";
+import { WelcomeOverview } from "@/components/welcome/WelcomeOverview";
 import { useAppStore } from "@/stores/use-app-store";
 import { useSiteProfileStore } from "@/stores/use-site-profile-store";
 import { useDemoData } from "@/hooks/use-demo-data";
@@ -184,7 +185,6 @@ function MainApp() {
   const currentPage = useAppStore((s) => s.currentPage);
   const theme = useAppStore((s) => s.theme);
   const loadProfile = useSiteProfileStore((s) => s.loadFromStorage);
-
   // Apply theme class on mount and when theme changes
   useEffect(() => {
     if (theme === "light") {
@@ -194,7 +194,7 @@ function MainApp() {
     }
   }, [theme]);
 
-  // Load site profile on mount
+  // Load site profile on mount (pipeline + screening stores self-hydrate eagerly)
   useEffect(() => {
     loadProfile();
   }, [loadProfile]);
@@ -228,6 +228,7 @@ function MainApp() {
           <StatusBar />
         </div>
         {showOnboarding && <SiteOnboarding onComplete={handleOnboardingComplete} />}
+        {!showOnboarding && <WelcomeOverview />}
         <CommandPalette />
         <KeyboardShortcutsOverlay />
         <HelpDrawer currentPage={currentPage} />

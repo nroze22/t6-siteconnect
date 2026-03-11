@@ -15,6 +15,8 @@ import {
   Briefcase,
   Building2,
   Info,
+  Save,
+  RotateCcw,
 } from "lucide-react";
 import {
   type StudyFinancialModel,
@@ -28,12 +30,39 @@ import {
   getArchetype,
 } from "@/lib/financial-engine";
 import { formatCurrency } from "@/lib/formatters";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import type { Study } from "@/types";
+
+/* ─── Persistence helpers ─────────────────────────── */
+
+const BUDGET_STORAGE_PREFIX = "siteconnect-budget-";
+
+function loadSavedAssumptions(studyId: string): SiteAssumptions | null {
+  try {
+    const raw = localStorage.getItem(`${BUDGET_STORAGE_PREFIX}${studyId}`);
+    return raw ? (JSON.parse(raw) as SiteAssumptions) : null;
+  } catch {
+    return null;
+  }
+}
+
+function persistAssumptions(studyId: string, assumptions: SiteAssumptions) {
+  localStorage.setItem(
+    `${BUDGET_STORAGE_PREFIX}${studyId}`,
+    JSON.stringify(assumptions),
+  );
+}
+
+function clearSavedAssumptions(studyId: string) {
+  localStorage.removeItem(`${BUDGET_STORAGE_PREFIX}${studyId}`);
+}
+
+/* ─── Types ──────────────────────────────────────── */
 
 interface BudgetWizardProps {
   study: Study & { eligibleCount: number };
   model: StudyFinancialModel;
-  onClose: () => void;
+  onClose: (savedAssumptions?: SiteAssumptions) => void;
 }
 
 const STEPS = [
@@ -47,14 +76,23 @@ type StepId = (typeof STEPS)[number]["id"];
 
 export function BudgetWizard({ study, model: initialModel, onClose }: BudgetWizardProps) {
   const [step, setStep] = useState<StepId>("overview");
-  const [assumptions, setAssumptions] = useState<SiteAssumptions>({
-    ...DEFAULT_SITE_ASSUMPTIONS,
-    enrollmentTarget: study.eligibleCount,
-    screenFailRatePercent: Math.round(
-      (getArchetype(initialModel.archetype).screenFailRangePercent[0]! +
-        getArchetype(initialModel.archetype).screenFailRangePercent[1]!) / 2
-    ),
-  });
+
+  const defaultAssumptions = useMemo<SiteAssumptions>(
+    () => ({
+      ...DEFAULT_SITE_ASSUMPTIONS,
+      enrollmentTarget: study.eligibleCount,
+      screenFailRatePercent: Math.round(
+        (getArchetype(initialModel.archetype).screenFailRangePercent[0]! +
+          getArchetype(initialModel.archetype).screenFailRangePercent[1]!) / 2
+      ),
+    }),
+    [study.eligibleCount, initialModel.archetype],
+  );
+
+  const saved = useMemo(() => loadSavedAssumptions(study.id), [study.id]);
+  const [assumptions, setAssumptions] = useState<SiteAssumptions>(saved ?? defaultAssumptions);
+  const [isSaved, setIsSaved] = useState(saved !== null);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const model = useMemo(
     () => recalculateWithAssumptions(initialModel, study, assumptions),
@@ -68,9 +106,28 @@ export function BudgetWizard({ study, model: initialModel, onClose }: BudgetWiza
   const updateAssumption = useCallback(
     <K extends keyof SiteAssumptions>(key: K, value: SiteAssumptions[K]) => {
       setAssumptions((prev) => ({ ...prev, [key]: value }));
+      setIsSaved(false);
     },
     []
   );
+
+  const handleSave = useCallback(() => {
+    persistAssumptions(study.id, assumptions);
+    setIsSaved(true);
+  }, [study.id, assumptions]);
+
+  const handleReset = useCallback(() => {
+    clearSavedAssumptions(study.id);
+    setAssumptions(defaultAssumptions);
+    setIsSaved(false);
+  }, [study.id, defaultAssumptions]);
+
+  const handleDone = useCallback(() => {
+    if (!isSaved) {
+      persistAssumptions(study.id, assumptions);
+    }
+    onClose(assumptions);
+  }, [study.id, assumptions, isSaved, onClose]);
 
   return (
     <>
@@ -80,7 +137,7 @@ export function BudgetWizard({ study, model: initialModel, onClose }: BudgetWiza
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[9994] bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={() => onClose()}
       />
 
       {/* Modal */}
@@ -103,7 +160,7 @@ export function BudgetWizard({ study, model: initialModel, onClose }: BudgetWiza
             <span className={`rounded-md px-2 py-0.5 text-[12px] font-bold ring-1 ${confidenceColor(model.confidence)}`}>
               {model.confidence.toUpperCase()} CONFIDENCE
             </span>
-            <button onClick={onClose} className="rounded-lg p-1.5 text-dim hover:bg-white/5 hover:text-heading">
+            <button onClick={() => onClose()} className="rounded-lg p-1.5 text-dim hover:bg-white/5 hover:text-heading">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -172,13 +229,36 @@ export function BudgetWizard({ study, model: initialModel, onClose }: BudgetWiza
 
         {/* Footer nav */}
         <div className="flex items-center justify-between border-t border-edge-2 px-6 py-3">
-          <button
-            onClick={() => canPrev && setStep(STEPS[stepIndex - 1]!.id)}
-            disabled={!canPrev}
-            className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-[12px] font-medium text-dim transition-colors hover:bg-surface-2 hover:text-heading disabled:opacity-30 disabled:pointer-events-none"
-          >
-            <ChevronLeft className="h-3.5 w-3.5" /> Back
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => canPrev && setStep(STEPS[stepIndex - 1]!.id)}
+              disabled={!canPrev}
+              className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-[12px] font-medium text-dim transition-colors hover:bg-surface-2 hover:text-heading disabled:opacity-30 disabled:pointer-events-none"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" /> Back
+            </button>
+
+            {isSaved ? (
+              <span className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-[12px] font-semibold text-emerald-600 dark:text-emerald-300 ring-1 ring-emerald-500/20">
+                <CheckCircle2 className="h-3.5 w-3.5" /> Saved
+              </span>
+            ) : (
+              <button
+                onClick={handleSave}
+                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-medium text-dim transition-colors hover:bg-surface-2 hover:text-heading"
+              >
+                <Save className="h-3.5 w-3.5" /> Save
+              </button>
+            )}
+
+            <button
+              onClick={() => setShowResetConfirm(true)}
+              className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[12px] font-medium text-dim transition-colors hover:bg-surface-2 hover:text-heading"
+              title="Reset to default assumptions"
+            >
+              <RotateCcw className="h-3 w-3" /> Reset
+            </button>
+          </div>
 
           <div className="flex items-center gap-2 text-[12px] text-dim">
             <Info className="h-3 w-3" />
@@ -186,7 +266,7 @@ export function BudgetWizard({ study, model: initialModel, onClose }: BudgetWiza
           </div>
 
           <button
-            onClick={() => canNext ? setStep(STEPS[stepIndex + 1]!.id) : onClose()}
+            onClick={() => canNext ? setStep(STEPS[stepIndex + 1]!.id) : handleDone()}
             className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-indigo-500"
           >
             {canNext ? (
@@ -197,6 +277,20 @@ export function BudgetWizard({ study, model: initialModel, onClose }: BudgetWiza
           </button>
         </div>
       </motion.div>
+
+      {/* Reset Confirmation */}
+      <ConfirmDialog
+        open={showResetConfirm}
+        title="Reset all budget assumptions to defaults?"
+        description="This will discard your custom staffing rates, overhead, enrollment targets, and any line-item overrides. Saved assumptions for this study will be cleared."
+        confirmLabel="Reset"
+        variant="warning"
+        onConfirm={() => {
+          handleReset();
+          setShowResetConfirm(false);
+        }}
+        onCancel={() => setShowResetConfirm(false)}
+      />
     </>
   );
 }
@@ -329,12 +423,12 @@ function StepAssumptions({
 }) {
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-amber-500/15 bg-amber-500/5 p-4">
+      <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-4">
         <div className="flex items-start gap-2">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
           <div>
-            <p className="text-[12px] font-semibold text-amber-700 dark:text-amber-200">Adjust to your site&apos;s economics</p>
-            <p className="mt-1 text-[12px] text-amber-800/80 dark:text-amber-200/80">
+            <p className="text-[13px] font-semibold text-heading">Adjust to your site&apos;s economics</p>
+            <p className="mt-1 text-[12px] leading-relaxed text-body">
               These defaults are based on industry benchmarks. Updating them with your actual rates
               will improve estimate accuracy and shift confidence from Low/Medium to High.
             </p>
@@ -470,23 +564,23 @@ function StepAssumptions({
 
       {/* Live recalculated summary */}
       <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4">
-        <h3 className="text-[12px] font-bold text-indigo-700 dark:text-indigo-200">Live Recalculated Estimate</h3>
+        <h3 className="text-[12px] font-bold text-indigo-700 dark:text-indigo-400">Live Recalculated Estimate</h3>
         <div className="mt-3 grid grid-cols-3 gap-4">
           <div>
             <p className="text-[12px] text-indigo-700/80 dark:text-indigo-300/80">Per Patient (Net)</p>
-            <p className="text-[18px] font-black text-indigo-700 dark:text-indigo-100">
+            <p className="text-[18px] font-black text-indigo-700 dark:text-indigo-300">
               {formatCurrency(model.scenarioOutputs.base.perPatientNetCents)}
             </p>
           </div>
           <div>
             <p className="text-[12px] text-indigo-700/80 dark:text-indigo-300/80">Total Net Contribution</p>
-            <p className="text-[18px] font-black text-indigo-700 dark:text-indigo-100">
+            <p className="text-[18px] font-black text-indigo-700 dark:text-indigo-300">
               {formatCurrency(model.scenarioOutputs.base.totalNetContributionCents)}
             </p>
           </div>
           <div>
             <p className="text-[12px] text-indigo-700/80 dark:text-indigo-300/80">Break-Even at</p>
-            <p className="text-[18px] font-black text-indigo-700 dark:text-indigo-100">
+            <p className="text-[18px] font-black text-indigo-700 dark:text-indigo-300">
               {model.scenarioOutputs.base.breakEvenEnrollment} patients
             </p>
           </div>
@@ -612,12 +706,12 @@ function StepTuning({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-blue-500/15 bg-blue-500/5 p-4">
+      <div className="rounded-xl border border-blue-400/30 bg-blue-400/10 p-4">
         <div className="flex items-start gap-2">
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-400" />
           <div>
-            <p className="text-[12px] font-semibold text-blue-700 dark:text-blue-200">Override individual line items</p>
-            <p className="mt-1 text-[12px] text-blue-800/80 dark:text-blue-200/80">
+            <p className="text-[13px] font-semibold text-heading">Override individual line items</p>
+            <p className="mt-1 text-[12px] leading-relaxed text-body">
               Click any unit value to enter your negotiated rate. Overrides are highlighted in blue
               and recalculate all outputs in real-time.
             </p>

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo } from "react";
 import {
   Users,
   Phone,
@@ -20,35 +20,13 @@ import {
   Timer,
   Check,
   Send,
+  Sparkles,
 } from "lucide-react";
-import { STUDY_SCREENING_DEFS } from "@/lib/epic-demo-data";
-import { getPatients, screenPatientsViaRust, screeningResultToOutput } from "@/lib/data-provider";
-import type { ParsedPatient } from "@/lib/epic-demo-data";
-import { SkeletonCard } from "@/components/ui/Skeleton";
+import { usePipelineStore, STAGES_ORDER } from "@/stores/use-pipeline-store";
+import type { PipelineStage, PipelinePatient } from "@/stores/use-pipeline-store";
+import { useAppStore } from "@/stores/use-app-store";
 import { useToast } from "@/components/ui/Toast";
-import { useScreeningStore } from "@/stores/use-screening-store";
-
-// Pipeline stages
-type PipelineStage = "identified" | "contacted" | "interested" | "consented" | "enrolled" | "screen_failed";
-
-interface PipelinePatient {
-  id: string;
-  mrn: string;
-  name: string;
-  age: number;
-  gender: string;
-  diagnosis: string;
-  stage: PipelineStage;
-  score: number;
-  studyId: string;
-  studyName: string;
-  daysInStage: number;
-  lastContact: string | null;
-  contactAttempts: number;
-  notes: string | null;
-  nextAction: string | null;
-  assignedTo: string;
-}
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 const STAGE_CONFIG: Record<PipelineStage, { label: string; color: string; bgColor: string; borderColor: string; icon: React.ReactNode }> = {
   identified: { label: "Identified", color: "text-blue-400", bgColor: "bg-blue-500/8", borderColor: "border-blue-500/20", icon: <Users className="h-4 w-4" /> },
@@ -59,8 +37,6 @@ const STAGE_CONFIG: Record<PipelineStage, { label: string; color: string; bgColo
   screen_failed: { label: "Screen Failed", color: "text-red-400", bgColor: "bg-red-500/8", borderColor: "border-red-500/20", icon: <XCircle className="h-4 w-4" /> },
 };
 
-const STAGES_ORDER: PipelineStage[] = ["identified", "contacted", "interested", "consented", "enrolled"];
-
 const STUDY_NAMES: Record<string, string> = {
   "study-1": "KEYNOTE-789",
   "study-2": "DELIVER",
@@ -70,157 +46,29 @@ const STUDY_NAMES: Record<string, string> = {
   "study-6": "Dupilumab AD",
 };
 
-const STAFF = ["Sarah Chen, CRC", "James Wright, CRC", "Maria Lopez, CRC", "Kevin Park, RN"];
-
-async function generatePipelineData(parsed: ParsedPatient[]): Promise<PipelinePatient[]> {
-  const patients: PipelinePatient[] = [];
-
-  // Screen all patients across all studies and place top candidates in pipeline
-  for (const studyDef of STUDY_SCREENING_DEFS) {
-    const rustResults = await screenPatientsViaRust(studyDef.studyId);
-    const screening = rustResults.map(screeningResultToOutput);
-    const eligible = screening
-      .filter((s) => s.summary.overallStatus === "eligible" || s.summary.overallStatus === "potentially_eligible")
-      .sort((a, b) => b.summary.score - a.summary.score);
-
-    for (let i = 0; i < eligible.length; i++) {
-      const s = eligible[i]!;
-      const p = parsed.find((pp) => pp.mrn === s.summary.sitePatientId);
-      if (!p) continue;
-
-      // Distribute across pipeline stages based on score and index
-      let stage: PipelineStage;
-      if (i === 0 && s.summary.score >= 70) stage = "enrolled";
-      else if (i === 1 && s.summary.score >= 60) stage = "consented";
-      else if (i <= 3 && s.summary.score >= 50) stage = "interested";
-      else if (i <= 6) stage = "contacted";
-      else stage = "identified";
-
-      const daysMap: Record<PipelineStage, number> = { identified: Math.floor(Math.random() * 5) + 1, contacted: Math.floor(Math.random() * 3) + 1, interested: Math.floor(Math.random() * 7) + 2, consented: Math.floor(Math.random() * 4) + 1, enrolled: 0, screen_failed: Math.floor(Math.random() * 3) + 1 };
-
-      const nextActions: Record<PipelineStage, string> = {
-        identified: "Schedule initial outreach call",
-        contacted: "Follow up on interest level",
-        interested: "Schedule consent visit",
-        consented: "Complete screening assessments",
-        enrolled: "Schedule baseline visit",
-        screen_failed: "Archive",
-      };
-
-      patients.push({
-        id: `pipe-${s.summary.id}-${studyDef.studyId}`,
-        mrn: p.mrn,
-        name: `${p.firstName} ${p.lastName}`,
-        age: s.summary.age,
-        gender: p.sex,
-        diagnosis: s.summary.primaryDiagnosis ?? p.diagnoses[0]?.name ?? "Unknown",
-        stage,
-        score: s.summary.score,
-        studyId: studyDef.studyId,
-        studyName: STUDY_NAMES[studyDef.studyId] ?? studyDef.studyId,
-        daysInStage: daysMap[stage],
-        lastContact: stage !== "identified" ? `2026-03-0${Math.floor(Math.random() * 7) + 1}` : null,
-        contactAttempts: stage === "identified" ? 0 : stage === "contacted" ? Math.floor(Math.random() * 3) + 1 : Math.floor(Math.random() * 2) + 2,
-        notes: stage === "interested" ? "Patient expressed interest, checking schedule" : stage === "consented" ? "Consent signed, awaiting labs" : null,
-        nextAction: nextActions[stage],
-        assignedTo: STAFF[Math.floor(Math.random() * STAFF.length)]!,
-      });
-    }
-  }
-
-  return patients;
-}
-
 export function PipelinePage() {
-  const [pipelineData, setPipelineData] = useState<PipelinePatient[]>([]);
-  const [loading, setLoading] = useState(true);
-  const screeningPatients = useScreeningStore((s) => s.patients);
-  const selectedStudyId = useScreeningStore((s) => s.selectedStudyId);
+  const pipelinePatients = usePipelineStore((s) => s.patients);
+  const advancePatient = usePipelineStore((s) => s.advancePatient);
+  const logCall = usePipelineStore((s) => s.logCall);
+  const addNote = usePipelineStore((s) => s.addNote);
+  const setCurrentPage = useAppStore((s) => s.setCurrentPage);
 
-  useEffect(() => {
-    getPatients().then(async (parsed) => {
-      const data = await generatePipelineData(parsed);
-      setPipelineData(data);
-      setLoading(false);
-    });
-  }, []);
-
-  // Merge accepted patients from screening into the pipeline as "identified"
-  const mergedPipelineData = useMemo(() => {
-    const acceptedPatients = screeningPatients.filter((p) => p.reviewStatus === "accepted");
-    if (acceptedPatients.length === 0) return pipelineData;
-
-    const existingMrns = new Set(pipelineData.map((p) => p.mrn));
-    const newEntries: PipelinePatient[] = [];
-
-    for (const patient of acceptedPatients) {
-      // Skip if already in pipeline (matched by MRN)
-      if (existingMrns.has(patient.sitePatientId)) continue;
-
-      const studyId = selectedStudyId ?? "study-1";
-      newEntries.push({
-        id: `pipe-accepted-${patient.id}`,
-        mrn: patient.sitePatientId,
-        name: patient.sitePatientId, // MRN as name fallback
-        age: patient.age,
-        gender: patient.gender,
-        diagnosis: patient.primaryDiagnosis ?? "Unknown",
-        stage: "identified",
-        score: patient.score,
-        studyId,
-        studyName: STUDY_NAMES[studyId] ?? studyId,
-        daysInStage: 0,
-        lastContact: null,
-        contactAttempts: 0,
-        notes: "Accepted from screening review",
-        nextAction: "Schedule initial outreach call",
-        assignedTo: STAFF[Math.floor(Math.random() * STAFF.length)]!,
-      });
-    }
-
-    return [...newEntries, ...pipelineData];
-  }, [pipelineData, screeningPatients, selectedStudyId]);
   const [selectedStudy, setSelectedStudy] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
+  const [confirmAdvance, setConfirmAdvance] = useState<PipelinePatient | null>(null);
   const toast = useToast();
 
-  const advancePatient = useCallback((patientId: string) => {
-    setPipelineData((prev) => prev.map((p) => {
-      if (p.id !== patientId) return p;
-      const idx = STAGES_ORDER.indexOf(p.stage);
-      if (idx < 0 || idx >= STAGES_ORDER.length - 1) return p;
-      const nextStage = STAGES_ORDER[idx + 1]!;
-      return { ...p, stage: nextStage, daysInStage: 0 };
-    }));
-  }, []);
-
-  const logCall = useCallback((patientId: string) => {
-    const today = new Date().toISOString().split("T")[0] ?? "";
-    setPipelineData((prev) => prev.map((p) => {
-      if (p.id !== patientId) return p;
-      return { ...p, contactAttempts: p.contactAttempts + 1, lastContact: today };
-    }));
-  }, []);
-
-  const addNote = useCallback((patientId: string, note: string) => {
-    setPipelineData((prev) => prev.map((p) => {
-      if (p.id !== patientId) return p;
-      const existing = p.notes ? `${p.notes}\n${note}` : note;
-      return { ...p, notes: existing };
-    }));
-  }, []);
-
   const filteredData = useMemo(() => {
-    let data = mergedPipelineData;
+    let data = pipelinePatients.filter((p) => p.stage !== "screen_failed");
     if (selectedStudy !== "all") data = data.filter((p) => p.studyId === selectedStudy);
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       data = data.filter((p) => p.name.toLowerCase().includes(q) || p.mrn.toLowerCase().includes(q));
     }
     return data;
-  }, [mergedPipelineData, selectedStudy, searchQuery]);
+  }, [pipelinePatients, selectedStudy, searchQuery]);
 
   const stageCounts = useMemo(() => {
     const counts: Record<PipelineStage, number> = { identified: 0, contacted: 0, interested: 0, consented: 0, enrolled: 0, screen_failed: 0 };
@@ -244,9 +92,57 @@ export function PipelinePage() {
   }, [filteredData]);
 
   const studyIds = useMemo(() => {
-    const ids = new Set(mergedPipelineData.map((p) => p.studyId));
+    const ids = new Set(pipelinePatients.map((p) => p.studyId));
     return Array.from(ids);
-  }, [mergedPipelineData]);
+  }, [pipelinePatients]);
+
+  // Empty state — no pipeline data at all
+  if (pipelinePatients.length === 0) {
+    return (
+      <div className="flex h-full flex-col bg-background">
+        <div className="flex flex-1 items-center justify-center">
+          <div className="w-full max-w-md text-center px-6">
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10 ring-1 ring-indigo-500/20">
+              <Target className="h-7 w-7 text-indigo-400" />
+            </div>
+            <h2 className="text-[17px] font-bold text-heading">No Subjects in Pipeline</h2>
+            <p className="mt-2 text-[13px] text-dim leading-relaxed">
+              Your enrollment pipeline is empty. Screen patients against a trial and accept candidates to start tracking them through enrollment.
+            </p>
+            <div className="mt-6 flex flex-col items-center gap-3">
+              <button
+                onClick={() => setCurrentPage("screening")}
+                className="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-indigo-500"
+              >
+                <Sparkles className="h-4 w-4" />
+                Go to Screening
+              </button>
+              <p className="text-[11px] text-faint">
+                Screen patients → Review results → Accept candidates → They appear here
+              </p>
+            </div>
+
+            {/* How it works */}
+            <div className="mt-8 grid grid-cols-3 gap-3 text-left">
+              {[
+                { step: "1", label: "Screen", desc: "Run screening against a trial" },
+                { step: "2", label: "Review", desc: "Accept eligible candidates" },
+                { step: "3", label: "Track", desc: "Pipeline tracks enrollment" },
+              ].map((item) => (
+                <div key={item.step} className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-2">
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500/15 text-[10px] font-bold text-indigo-400">
+                    {item.step}
+                  </span>
+                  <p className="mt-1.5 text-[12px] font-semibold text-body">{item.label}</p>
+                  <p className="text-[11px] text-dim">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col bg-background">
@@ -315,16 +211,6 @@ export function PipelinePage() {
 
       {/* Kanban Board */}
       <div className="flex-1 overflow-x-auto overflow-y-hidden p-4">
-        {loading ? (
-          <div className="flex h-full gap-3">
-            {Array.from({ length: 6 }, (_, i) => (
-              <div key={i} className="flex w-[260px] shrink-0 flex-col rounded-xl bg-surface-1 p-3 ring-1 ring-edge-1">
-                <SkeletonCard />
-                <div className="mt-2"><SkeletonCard /></div>
-              </div>
-            ))}
-          </div>
-        ) : (
         <div className="flex h-full gap-3" style={{ minWidth: STAGES_ORDER.length * 280 }}>
           {STAGES_ORDER.map((stage) => {
             const config = STAGE_CONFIG[stage];
@@ -350,12 +236,7 @@ export function PipelinePage() {
                       patient={patient}
                       expanded={expandedCard === patient.id}
                       onToggle={() => setExpandedCard(expandedCard === patient.id ? null : patient.id)}
-                      onAdvance={() => {
-                        advancePatient(patient.id);
-                        const idx = STAGES_ORDER.indexOf(patient.stage);
-                        const nextStage = idx >= 0 && idx < STAGES_ORDER.length - 1 ? STAGE_CONFIG[STAGES_ORDER[idx + 1]!]?.label : null;
-                        if (nextStage) toast.success(`Moved to ${nextStage}`, `${patient.name} advanced in pipeline`);
-                      }}
+                      onAdvance={() => setConfirmAdvance(patient)}
                       onLogCall={() => {
                         logCall(patient.id);
                         toast.info("Call logged", `${patient.name} — ${patient.contactAttempts + 1} total attempts`);
@@ -382,11 +263,33 @@ export function PipelinePage() {
             );
           })}
         </div>
-        )}
       </div>
 
       {/* Info Modal */}
       {showInfoModal && <PipelineInfoModal onClose={() => setShowInfoModal(false)} />}
+
+      {/* Advance Confirmation */}
+      <ConfirmDialog
+        open={confirmAdvance !== null}
+        title={`Move ${confirmAdvance?.name ?? ""} to ${
+          confirmAdvance
+            ? STAGE_CONFIG[STAGES_ORDER[STAGES_ORDER.indexOf(confirmAdvance.stage) + 1] ?? confirmAdvance.stage]?.label ?? ""
+            : ""
+        }?`}
+        description={`This will advance the subject to the next pipeline stage. You can continue tracking their progress from there.`}
+        confirmLabel="Advance"
+        variant="info"
+        onConfirm={() => {
+          if (confirmAdvance) {
+            advancePatient(confirmAdvance.id);
+            const idx = STAGES_ORDER.indexOf(confirmAdvance.stage);
+            const nextStage = idx >= 0 && idx < STAGES_ORDER.length - 1 ? STAGE_CONFIG[STAGES_ORDER[idx + 1]!]?.label : null;
+            if (nextStage) toast.success(`Moved to ${nextStage}`, `${confirmAdvance.name} advanced in pipeline`);
+          }
+          setConfirmAdvance(null);
+        }}
+        onCancel={() => setConfirmAdvance(null)}
+      />
     </div>
   );
 }

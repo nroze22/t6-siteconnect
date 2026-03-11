@@ -234,12 +234,12 @@ function StudyCard({
           </div>
 
           {/* Financial highlight — range-based */}
-          <div className="shrink-0 rounded-xl bg-emerald-500/8 dark:bg-emerald-500/12 p-3 text-center ring-2 ring-emerald-500/25 dark:ring-1 dark:ring-emerald-400/30">
-            <p className="text-[9px] font-semibold text-emerald-700/80 dark:text-emerald-200/80 uppercase tracking-wider">Est. Opportunity</p>
-            <p className="text-[17px] font-black text-emerald-700 dark:text-emerald-100 tracking-tight">
+          <div className="shrink-0 rounded-xl bg-emerald-500/10 p-3 text-center ring-1 ring-emerald-400/30">
+            <p className="text-[9px] font-semibold text-dim uppercase tracking-wider">Est. Opportunity</p>
+            <p className="text-[17px] font-black text-heading tracking-tight">
               {formatRangeCurrency(model.perPatientRange)}
             </p>
-            <p className="text-[9px] text-emerald-700/60 dark:text-emerald-200/60">/ enrolled patient</p>
+            <p className="text-[9px] text-dim">/ enrolled patient</p>
           </div>
         </div>
 
@@ -632,9 +632,9 @@ export function TrialsPage() {
     async (study: StudyView) => {
       const result = await generatePitchPDF(study);
       if (result.fileName) {
-        toast.success("Pitch document saved", `Downloaded to ~/Downloads/${result.fileName}`);
+        toast.success("Pitch document saved", `Saved to ~/Downloads/${result.fileName}`);
       } else {
-        toast.success("Pitch document generated", "Use Print > Save as PDF to save");
+        toast.success("Pitch document generated", "Opened in a new tab");
       }
     },
     [toast]
@@ -793,25 +793,25 @@ export function TrialsPage() {
 
         {/* Revenue summary bar */}
         <div className="mt-3 flex items-center gap-3">
-          <div className="flex items-center gap-2.5 rounded-lg bg-emerald-500/8 dark:bg-emerald-500/12 px-4 py-2.5 ring-2 ring-emerald-500/25 dark:ring-1 dark:ring-emerald-400/30">
-            <DollarSign className="h-5 w-5 text-emerald-600 dark:text-emerald-200" />
+          <div className="flex items-center gap-2.5 rounded-lg bg-emerald-500/10 px-4 py-2.5 ring-1 ring-emerald-400/30">
+            <DollarSign className="h-5 w-5 text-emerald-400" />
             <div>
-              <p className="text-[12px] font-semibold text-emerald-700/80 dark:text-emerald-200/80">Total Net Opportunity</p>
-              <p className="text-xl font-black tabular-nums text-emerald-700 dark:text-emerald-100">{animatedRevenue}</p>
+              <p className="text-[12px] font-semibold text-dim">Total Net Opportunity</p>
+              <p className="text-xl font-black tabular-nums text-heading">{animatedRevenue}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2.5 rounded-lg bg-blue-500/8 dark:bg-blue-500/12 px-4 py-2.5 ring-2 ring-blue-500/25 dark:ring-1 dark:ring-blue-400/30">
-            <Users className="h-5 w-5 text-blue-600 dark:text-blue-200" />
+          <div className="flex items-center gap-2.5 rounded-lg bg-blue-500/10 px-4 py-2.5 ring-1 ring-blue-400/30">
+            <Users className="h-5 w-5 text-blue-400" />
             <div>
-              <p className="text-[12px] font-semibold text-blue-700/80 dark:text-blue-200/80">Eligible Subjects</p>
-              <p className="text-xl font-black tabular-nums text-blue-700 dark:text-blue-100">{formatNumber(totalEligible)}</p>
+              <p className="text-[12px] font-semibold text-dim">Eligible Subjects</p>
+              <p className="text-xl font-black tabular-nums text-heading">{formatNumber(totalEligible)}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2.5 rounded-lg bg-purple-500/8 dark:bg-purple-500/12 px-4 py-2.5 ring-2 ring-purple-500/25 dark:ring-1 dark:ring-purple-400/30">
-            <FlaskConical className="h-5 w-5 text-purple-600 dark:text-purple-200" />
+          <div className="flex items-center gap-2.5 rounded-lg bg-purple-500/10 px-4 py-2.5 ring-1 ring-purple-400/30">
+            <FlaskConical className="h-5 w-5 text-purple-400" />
             <div>
-              <p className="text-[12px] font-semibold text-purple-700/80 dark:text-purple-200/80">Active Studies</p>
-              <p className="text-xl font-black tabular-nums text-purple-700 dark:text-purple-100">{studies.length}</p>
+              <p className="text-[12px] font-semibold text-dim">Active Studies</p>
+              <p className="text-xl font-black tabular-nums text-heading">{studies.length}</p>
             </div>
           </div>
           <div className="ml-auto flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-2 ring-1 ring-edge-2">

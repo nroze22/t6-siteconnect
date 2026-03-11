@@ -58,6 +58,7 @@ import { useFilteredPatients } from "@/stores/use-analytics-store";
 import { runMonteCarloForecast } from "@/lib/statistical-engine";
 import type { MonteCarloResult } from "@/lib/statistical-engine";
 import { exportCSV, exportReportDeck } from "@/lib/analytics-export";
+import { useToast } from "@/components/ui/Toast";
 import { FeasibilityInsights, DiversityInsights } from "@/components/analytics/InsightsPanel";
 import { ActiveFiltersBar } from "@/components/analytics/ActiveFiltersBar";
 import { DrillDownPanel } from "@/components/analytics/DrillDownPanel";
@@ -163,6 +164,7 @@ export function AnalyticsPage() {
 // ============================================================
 
 function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
+  const toast = useToast();
   const [selectedQueryId, setSelectedQueryId] = useState(PRESET_QUERIES[0]!.id);
   const [forecast, setForecast] = useState<EnrollmentForecast | null>(null);
   const [monteCarlo, setMonteCarlo] = useState<MonteCarloResult | null>(null);
@@ -208,7 +210,7 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
     });
   }, [openDrillDown, matchedMRNs, selectedQuery.name]);
 
-  const handleExportCSV = useCallback(() => {
+  const handleExportCSV = useCallback(async () => {
     const headers = ["Criterion", "Passing", "Total", "Rate"];
     const rows = result.criterionBreakdown.map((cb) => [
       cb.criterion,
@@ -216,11 +218,12 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
       result.totalPatients,
       `${(cb.matchRate * 100).toFixed(1)}%`,
     ]);
-    exportCSV({ filename: `feasibility-${selectedQuery.id}`, headers, rows });
-  }, [result, selectedQuery.id]);
+    const filePath = await exportCSV({ filename: `feasibility-${selectedQuery.id}`, headers, rows });
+    toast.success("CSV saved", filePath ? "Saved to Downloads" : "Download started");
+  }, [result, selectedQuery.id, toast]);
 
-  const handleExportReport = useCallback(() => {
-    exportReportDeck({
+  const handleExportReport = useCallback(async () => {
+    const { fileName } = await exportReportDeck({
       title: `Protocol Feasibility: ${selectedQuery.name}`,
       subtitle: "Population Intelligence Report",
       confidential: true,
@@ -256,7 +259,8 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
         }] : []),
       ],
     });
-  }, [result, selectedQuery.name, monteCarlo]);
+    toast.success("Report saved", fileName ? `Saved to ~/Downloads/${fileName}` : "Saved to Downloads");
+  }, [result, selectedQuery.name, monteCarlo, toast]);
 
   return (
     <div className="space-y-6">
@@ -661,16 +665,17 @@ function TrajectoryTab({ patients }: { patients: ParsedPatient[] }) {
 // ============================================================
 
 function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
+  const toast = useToast();
   const profile = useMemo(() => computeDiversityProfile(patients), [patients]);
   const [showInfo, setShowInfo] = useState(false);
 
-  const handleExportDiversity = useCallback(() => {
+  const handleExportDiversity = useCallback(async () => {
     const raceRows: (string | number)[][] = profile.raceBreakdown.map((r) => [
       r.label, r.count, `${r.percent.toFixed(1)}%`,
     ]);
     const maleCount = profile.genderBreakdown.find((g) => g.label === "Male")?.count ?? 0;
     const femaleCount = profile.genderBreakdown.find((g) => g.label === "Female")?.count ?? 0;
-    exportReportDeck({
+    const { fileName } = await exportReportDeck({
       title: "Site Diversity Profile",
       subtitle: "FDA Diversity Action Plan Compliance",
       confidential: true,
@@ -689,7 +694,8 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
         { type: "text", text: profile.fdaComplianceNotes.join(" • ") },
       ],
     });
-  }, [profile, patients.length]);
+    toast.success("Report saved", fileName ? `Saved to ~/Downloads/${fileName}` : "Saved to Downloads");
+  }, [profile, patients.length, toast]);
 
   return (
     <div className="space-y-6">

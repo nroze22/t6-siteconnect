@@ -46,6 +46,7 @@ import { formatNumber } from "@/lib/formatters";
 import { useAnimatedNumber } from "@/hooks/use-animated-number";
 import { ReadinessInsights } from "@/components/analytics/InsightsPanel";
 import { exportReportDeck } from "@/lib/analytics-export";
+import { useToast } from "@/components/ui/Toast";
 import { DrillDownPanel } from "@/components/analytics/DrillDownPanel";
 import { runMonteCarloForecast } from "@/lib/statistical-engine";
 import type { MonteCarloResult } from "@/lib/statistical-engine";
@@ -582,7 +583,7 @@ function RadialGauge({ score, size = 160 }: { score: number; size?: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-4xl font-bold text-slate-100" style={{ color }}>
+        <span className="text-4xl font-bold text-heading" style={{ color }}>
           {animatedScore}
         </span>
         <span className="text-xs font-medium text-dim mt-0.5">
@@ -1367,6 +1368,7 @@ function ROICalculatorSection({ defaultEligible }: { defaultEligible: number }) 
 // ---------------------------------------------------------------------------
 
 export function IntelligencePage() {
+  const toast = useToast();
   const [patients, setPatients] = useState<ParsedPatient[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -1412,7 +1414,7 @@ export function IntelligencePage() {
               {PRESET_QUERIES.length} study models
             </span>
             <button
-              onClick={() => {
+              onClick={async () => {
                 const diversity = computeDiversityProfile(patients);
                 const dataCompleteness = computeDataCompleteness(patients);
                 const cohortRichness = computeCohortRichness(patients);
@@ -1427,7 +1429,7 @@ export function IntelligencePage() {
                   studyFit * 0.20,
                 );
 
-                exportReportDeck({
+                const { fileName } = await exportReportDeck({
                   title: "Research Intelligence Report",
                   subtitle: `Site Population Analysis — ${patients.length} Subjects`,
                   confidential: true,
@@ -1496,6 +1498,7 @@ export function IntelligencePage() {
                     },
                   ],
                 });
+                toast.success("Report saved", fileName ? `Saved to ~/Downloads/${fileName}` : "Saved to Downloads");
               }}
               className="ml-auto flex items-center gap-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors px-3 py-1.5 rounded-md bg-indigo-500/10 hover:bg-indigo-500/15"
             >

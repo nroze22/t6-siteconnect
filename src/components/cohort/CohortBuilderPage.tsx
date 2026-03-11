@@ -609,11 +609,11 @@ function InlineFilterEditor({
 // GENERATE FEASIBILITY REPORT PDF
 // ============================================================
 
-function generateFeasibilityReportPDF(
+async function generateFeasibilityReportPDF(
   result: FeasibilityResult,
   criteria: FeasibilityCriterion[],
   _matchedPatients: ParsedPatient[],
-): void {
+): Promise<{ filePath?: string; fileName?: string } | undefined> {
   const today = new Date().toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -788,14 +788,16 @@ function generateFeasibilityReportPDF(
 </body>
 </html>`;
 
-  void exportPrintableHTML(html, `feasibility-report-${Date.now()}`);
+  return exportPrintableHTML(html, `feasibility-report-${Date.now()}`);
 }
 
 // ============================================================
 // CSV EXPORT
 // ============================================================
 
-function exportCohortCSV(patients: ParsedPatient[]): void {
+const isTauriEnv = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+
+async function exportCohortCSV(patients: ParsedPatient[]): Promise<string | undefined> {
   const headers = ["MRN", "Last Name", "First Name", "Age", "Sex", "Race", "Primary Diagnosis", "BMI", "Department"];
   const rows = patients.map((p) => {
     const primaryDx = p.diagnoses[0];
@@ -813,13 +815,29 @@ function exportCohortCSV(patients: ParsedPatient[]): void {
   });
 
   const csv = [headers, ...rows].map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n");
+  const filename = `cohort-export-${new Date().toISOString().slice(0, 10)}.csv`;
+
+  if (isTauriEnv) {
+    try {
+      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+      const { downloadDir, join } = await import("@tauri-apps/api/path");
+      const downloadsPath = await downloadDir();
+      const filePath = await join(downloadsPath, filename);
+      await writeTextFile(filePath, csv);
+      return filePath;
+    } catch {
+      // Fall through to web approach
+    }
+  }
+
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `cohort-export-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+  return undefined;
 }
 
 // ============================================================
@@ -1008,22 +1026,30 @@ export function CohortBuilderPage() {
     [activeSavedId],
   );
 
-  const handleExportCSV = useCallback(() => {
+  const handleExportCSV = useCallback(async () => {
     if (matchedPatientsList.length === 0) {
       toast.warning("No subjects to export");
       return;
     }
-    exportCohortCSV(matchedPatientsList);
-    toast.success("CSV exported", `${matchedPatientsList.length} subjects exported`);
+    const filePath = await exportCohortCSV(matchedPatientsList);
+    if (filePath) {
+      toast.success("CSV saved to Downloads", `${matchedPatientsList.length} subjects exported`);
+    } else {
+      toast.success("CSV exported", `${matchedPatientsList.length} subjects exported`);
+    }
   }, [matchedPatientsList, toast]);
 
-  const handleGenerateReport = useCallback(() => {
+  const handleGenerateReport = useCallback(async () => {
     if (!result || matchedPatientsList.length === 0) {
       toast.warning("No results to report");
       return;
     }
-    generateFeasibilityReportPDF(result, criteria, matchedPatientsList);
-    toast.success("Report generated", "Saved to Downloads — use Print > Save as PDF for a PDF copy");
+    const exportResult = await generateFeasibilityReportPDF(result, criteria, matchedPatientsList);
+    if (exportResult?.fileName) {
+      toast.success("Report saved to Downloads", exportResult.fileName);
+    } else {
+      toast.success("Report generated", "Saved to Downloads");
+    }
   }, [result, criteria, matchedPatientsList, toast]);
 
   // Icon lookup for criterion type
