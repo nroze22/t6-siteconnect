@@ -664,78 +664,143 @@ fn extraction_json_schema() -> serde_json::Value {
 }
 
 /// Build a concise few-shot extraction prompt optimized for small models.
+/// Uses two examples to show how to extract ALL fields including demographics.
 fn build_extraction_prompt(notes: &str) -> String {
-    format!(r#"Extract ALL patient data from clinical notes. Include name, DOB, MRN, age, gender, race, diagnoses, medications, labs, and vitals.
+    format!(r#"Extract ALL patient data from these clinical notes into JSON. You MUST extract every field: name, patient_id (MRN), date_of_birth (DOB), age (integer), gender (Male/Female), race, plus all diagnoses, medications, labs, and vitals.
 
-INPUT:
-"PATIENT: Sarah Chen, MRN 4421, DOB 1967-03-22, 58yo female, Asian. Dx: HTN (I10), T2DM (E11.9). Meds: Metformin 500mg BID, Lisinopril 10mg daily. Labs 2025-01-10: HbA1c 7.2%, BP 138/82."
+EXAMPLE 1:
+Input: "PATIENT: Sarah Chen, MRN 4421, DOB 1967-03-22, Age: 58, Female, Asian. Dx: HTN (I10), T2DM (E11.9). Meds: Metformin 500mg BID. Labs: HbA1c 7.2%. BP 138/82."
+Output: {{"patients":[{{"patient_id":"4421","name":"Sarah Chen","date_of_birth":"1967-03-22","age":58,"gender":"Female","race":"Asian","diagnoses":[{{"description":"Hypertension","icd10_code":"I10","status":"active"}},{{"description":"Type 2 Diabetes Mellitus","icd10_code":"E11.9","status":"active"}}],"medications":[{{"drug_name":"Metformin","dose":"500mg","frequency":"BID","status":"active"}}],"labs":[{{"test_name":"HbA1c","value":7.2,"unit":"%","abnormal":true}}],"vitals":[{{"measurement_type":"bp_systolic","value":138,"unit":"mmHg"}},{{"measurement_type":"bp_diastolic","value":82,"unit":"mmHg"}}]}}]}}
 
-OUTPUT:
-{{"patients":[{{"patient_id":"4421","name":"Sarah Chen","date_of_birth":"1967-03-22","age":58,"gender":"Female","race":"Asian","diagnoses":[{{"description":"Hypertension","icd10_code":"I10","status":"active"}},{{"description":"Type 2 Diabetes Mellitus","icd10_code":"E11.9","status":"active"}}],"medications":[{{"drug_name":"Metformin","dose":"500mg","frequency":"BID","status":"active"}},{{"drug_name":"Lisinopril","dose":"10mg","frequency":"daily","status":"active"}}],"labs":[{{"test_name":"HbA1c","value":7.2,"unit":"%","result_date":"2025-01-10","abnormal":true}}],"vitals":[{{"measurement_type":"bp_systolic","value":138,"unit":"mmHg"}},{{"measurement_type":"bp_diastolic","value":82,"unit":"mmHg"}}]}}]}}
+EXAMPLE 2:
+Input: "John Doe, MRN: SC-2847\nAge: 62, Male, White\nDOB: 1963-04-12\nDx: Type 2 Diabetes (E11.9)\nMeds: Lisinopril 20mg daily\nHbA1c: 8.4%, eGFR: 72"
+Output: {{"patients":[{{"patient_id":"SC-2847","name":"John Doe","date_of_birth":"1963-04-12","age":62,"gender":"Male","race":"White","diagnoses":[{{"description":"Type 2 Diabetes","icd10_code":"E11.9","status":"active"}}],"medications":[{{"drug_name":"Lisinopril","dose":"20mg","frequency":"daily","status":"active"}}],"labs":[{{"test_name":"HbA1c","value":8.4,"unit":"%","abnormal":true}},{{"test_name":"eGFR","value":72,"unit":"mL/min/1.73m2","abnormal":true}}],"vitals":[]}}]}}
 
-INPUT:
-"{notes}"
+Now extract from this text. Include ALL demographics (name, patient_id, date_of_birth, age, gender, race):
 
-OUTPUT:
-"#)
+{notes}"#)
 }
 
-/// Parse unstructured clinical notes using the local LLM to extract structured patient data.
-/// Uses Ollama's native structured output (JSON schema constraint) for reliable extraction.
-#[tauri::command]
-pub async fn parse_clinical_notes(
-    app: AppHandle,
-    notes_text: String,
-) -> Result<ExtractedPatientData, String> {
-    let (port, backend, ollama_model) = {
-        let llm_state = app.state::<LlmState>();
-        let lock = llm_state.0.lock().map_err(|e| format!("Lock poisoned: {}", e))?;
-        if lock.status != LlmStatus::Running {
-            return Err("AI model is not running. Set up a model in Settings first.".to_string());
+/// Max characters per chunk sent to the LLM. Small models (4B params) perform best
+/// with focused input. 3000 chars leaves room for the prompt template + few-shot example.
+const CHUNK_MAX_CHARS: usize = 3000;
+
+/// Split clinical notes into chunks at natural boundaries.
+/// Tries to split at patient boundaries first, then section boundaries, then paragraph breaks.
+fn chunk_clinical_notes(text: &str) -> Vec<String> {
+    if text.len() <= CHUNK_MAX_CHARS {
+        return vec![text.to_string()];
+    }
+
+    // Strategy 1: Split by patient markers (common in multi-patient documents)
+    let patient_markers = ["PATIENT:", "Patient:", "patient:", "Subject:", "SUBJECT:",
+                           "MRN:", "--- Patient", "=== Patient", "Record #"];
+    let mut patient_splits: Vec<usize> = Vec::new();
+    for marker in &patient_markers {
+        for (i, _) in text.match_indices(marker) {
+            if i > 0 { patient_splits.push(i); }
         }
-        (lock.port, lock.backend.clone(), lock.ollama_model.clone())
-    };
+    }
+    patient_splits.sort();
+    patient_splits.dedup();
 
-    let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(180)) // 3 min for extraction
-        .build()
-        .map_err(|e| format!("HTTP client error: {}", e))?;
+    if patient_splits.len() >= 2 {
+        // We have multiple patient sections — split there
+        let mut chunks = Vec::new();
+        let mut start = 0;
+        for &split_pos in &patient_splits {
+            if split_pos > start {
+                let segment = text[start..split_pos].trim();
+                if !segment.is_empty() {
+                    // If segment is still too long, sub-chunk it
+                    if segment.len() > CHUNK_MAX_CHARS {
+                        chunks.extend(chunk_by_sections(segment));
+                    } else {
+                        chunks.push(segment.to_string());
+                    }
+                }
+            }
+            start = split_pos;
+        }
+        // Final segment
+        let remaining = text[start..].trim();
+        if !remaining.is_empty() {
+            if remaining.len() > CHUNK_MAX_CHARS {
+                chunks.extend(chunk_by_sections(remaining));
+            } else {
+                chunks.push(remaining.to_string());
+            }
+        }
+        if !chunks.is_empty() {
+            return chunks;
+        }
+    }
 
-    // Truncate notes to ~3500 chars to leave room for prompt + output
-    let truncated_notes = if notes_text.len() > 3500 {
-        format!("{}... [truncated]", &notes_text[..3500])
-    } else {
-        notes_text.clone()
-    };
+    // Strategy 2: No clear patient boundaries — split by sections
+    chunk_by_sections(text)
+}
 
-    let raw_response = match backend {
+/// Split text at section boundaries (double newlines, section headers).
+fn chunk_by_sections(text: &str) -> Vec<String> {
+    let mut chunks = Vec::new();
+    let mut current = String::new();
+
+    // Split on double-newlines (paragraph breaks)
+    for paragraph in text.split("\n\n") {
+        let trimmed = paragraph.trim();
+        if trimmed.is_empty() { continue; }
+
+        // Would adding this paragraph exceed the limit?
+        if !current.is_empty() && current.len() + trimmed.len() + 2 > CHUNK_MAX_CHARS {
+            chunks.push(current.clone());
+            current.clear();
+        }
+
+        if !current.is_empty() {
+            current.push_str("\n\n");
+        }
+        current.push_str(trimmed);
+
+        // If a single paragraph exceeds the limit, just push it (will be truncated by prompt)
+        if current.len() > CHUNK_MAX_CHARS {
+            chunks.push(current.clone());
+            current.clear();
+        }
+    }
+
+    if !current.is_empty() {
+        chunks.push(current);
+    }
+
+    if chunks.is_empty() {
+        chunks.push(text[..text.len().min(CHUNK_MAX_CHARS)].to_string());
+    }
+
+    chunks
+}
+
+/// Send a single chunk to the LLM for extraction.
+async fn extract_single_chunk(
+    client: &reqwest::Client,
+    chunk: &str,
+    port: u16,
+    backend: &LlmBackend,
+    ollama_model: &Option<String>,
+) -> Result<String, String> {
+    match backend {
         LlmBackend::Ollama => {
-            let model = ollama_model.ok_or("No Ollama model configured")?;
-
-            // Use Ollama native /api/chat with JSON schema format constraint.
-            // This uses grammar-guided decoding — the model CAN ONLY output
-            // tokens that produce valid JSON matching this schema.
+            let model = ollama_model.as_ref().ok_or("No Ollama model configured")?;
             let url = format!("http://127.0.0.1:{}/api/chat", port);
-            let prompt = build_extraction_prompt(&truncated_notes);
+            let prompt = build_extraction_prompt(chunk);
             let schema = extraction_json_schema();
-
-            tracing::info!("Sending extraction request to Ollama /api/chat with schema constraint");
 
             let response = client.post(&url)
                 .json(&serde_json::json!({
                     "model": model,
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": prompt
-                        }
-                    ],
+                    "messages": [{ "role": "user", "content": prompt }],
                     "format": schema,
                     "stream": false,
-                    "options": {
-                        "temperature": 0.1,
-                        "num_predict": 4096
-                    }
+                    "options": { "temperature": 0.1, "num_predict": 4096 }
                 }))
                 .send()
                 .await
@@ -744,25 +809,16 @@ pub async fn parse_clinical_notes(
             let body: serde_json::Value = response.json().await
                 .map_err(|e| format!("Failed to parse LLM response: {}", e))?;
 
-            tracing::info!("Ollama /api/chat response keys: {:?}",
-                body.as_object().map(|o| o.keys().collect::<Vec<_>>()));
-
-            // Ollama native format: { "message": { "content": "..." }, ... }
-            let content = body
+            Ok(body
                 .get("message")
                 .and_then(|msg| msg.get("content"))
                 .and_then(|c| c.as_str())
-                .unwrap_or("{}");
-
-            tracing::info!("Ollama extraction response (first 500): {}",
-                &content[..content.len().min(500)]);
-
-            content.to_string()
+                .unwrap_or("{}")
+                .to_string())
         }
         _ => {
-            // llama-server: use /completion with GBNF grammar
             let url = format!("http://127.0.0.1:{}/completion", port);
-            let prompt = build_extraction_prompt(&truncated_notes);
+            let prompt = build_extraction_prompt(chunk);
 
             let response = client.post(&url)
                 .json(&serde_json::json!({
@@ -778,14 +834,318 @@ pub async fn parse_clinical_notes(
             let body: serde_json::Value = response.json().await
                 .map_err(|e| format!("Failed to parse response: {}", e))?;
 
-            body.get("content")
+            Ok(body.get("content")
                 .and_then(|c| c.as_str())
                 .unwrap_or("{}")
-                .to_string()
+                .to_string())
         }
+    }
+}
+
+/// Merge patients from multiple chunk extraction results.
+/// Deduplicates by matching patient_id or name.
+fn merge_extracted_patients(chunk_results: Vec<ExtractedPatientData>) -> ExtractedPatientData {
+    let mut all_patients: Vec<ExtractedPatient> = Vec::new();
+    let mut all_warnings: Vec<String> = Vec::new();
+    let mut raw_responses: Vec<String> = Vec::new();
+
+    for result in chunk_results {
+        raw_responses.push(result.raw_llm_response);
+        all_warnings.extend(result.parse_warnings);
+
+        for patient in result.patients {
+            // Try to find an existing patient to merge with (by patient_id or name)
+            let existing_idx = all_patients.iter().position(|existing| {
+                // Match by patient_id if both have one
+                if let (Some(ref a), Some(ref b)) = (&existing.patient_id, &patient.patient_id) {
+                    if !a.is_empty() && !b.is_empty() && a.to_lowercase() == b.to_lowercase() {
+                        return true;
+                    }
+                }
+                // Match by name if both have one
+                if let (Some(ref a), Some(ref b)) = (&existing.name, &patient.name) {
+                    if !a.is_empty() && !b.is_empty() && a.to_lowercase() == b.to_lowercase() {
+                        return true;
+                    }
+                }
+                false
+            });
+
+            if let Some(idx) = existing_idx {
+                // Merge: add new data to existing patient
+                let existing = &mut all_patients[idx];
+                // Fill in missing demographics
+                if existing.name.is_none() && patient.name.is_some() { existing.name = patient.name; }
+                if existing.date_of_birth.is_none() && patient.date_of_birth.is_some() { existing.date_of_birth = patient.date_of_birth; }
+                if existing.age.is_none() && patient.age.is_some() { existing.age = patient.age; }
+                if existing.gender.is_none() && patient.gender.is_some() { existing.gender = patient.gender; }
+                if existing.race.is_none() && patient.race.is_some() { existing.race = patient.race; }
+                if existing.patient_id.is_none() && patient.patient_id.is_some() { existing.patient_id = patient.patient_id; }
+                // Append clinical data (deduplicate diagnoses by description)
+                for dx in patient.diagnoses {
+                    if !existing.diagnoses.iter().any(|d| d.description.to_lowercase() == dx.description.to_lowercase()) {
+                        existing.diagnoses.push(dx);
+                    }
+                }
+                for med in patient.medications {
+                    if !existing.medications.iter().any(|m| m.drug_name.to_lowercase() == med.drug_name.to_lowercase()) {
+                        existing.medications.push(med);
+                    }
+                }
+                for lab in patient.labs {
+                    if !existing.labs.iter().any(|l| l.test_name.to_lowercase() == lab.test_name.to_lowercase()) {
+                        existing.labs.push(lab);
+                    }
+                }
+                for vital in patient.vitals {
+                    if !existing.vitals.iter().any(|v| v.measurement_type == vital.measurement_type) {
+                        existing.vitals.push(vital);
+                    }
+                }
+            } else {
+                all_patients.push(patient);
+            }
+        }
+    }
+
+    ExtractedPatientData {
+        patients: all_patients,
+        raw_llm_response: raw_responses.join("\n---CHUNK---\n"),
+        parse_warnings: all_warnings,
+    }
+}
+
+/// Parse unstructured clinical notes using the local LLM to extract structured patient data.
+/// Automatically chunks large documents and merges results.
+#[tauri::command]
+pub async fn parse_clinical_notes(
+    app: AppHandle,
+    notes_text: String,
+) -> Result<ExtractedPatientData, String> {
+    let (port, backend, ollama_model) = {
+        let llm_state = app.state::<LlmState>();
+        let lock = llm_state.0.lock().map_err(|e| format!("Lock poisoned: {}", e))?;
+        if lock.status != LlmStatus::Running {
+            return Err("AI model is not running. Set up a model in Settings first.".to_string());
+        }
+        (lock.port, lock.backend.clone(), lock.ollama_model.clone())
     };
 
-    parse_extraction_response(&raw_response)
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(300)) // 5 min for large docs with multiple chunks
+        .build()
+        .map_err(|e| format!("HTTP client error: {}", e))?;
+
+    // Smart chunking — split large documents at natural boundaries
+    let chunks = chunk_clinical_notes(&notes_text);
+    let num_chunks = chunks.len();
+
+    tracing::info!("Splitting {} chars into {} chunk(s) for extraction", notes_text.len(), num_chunks);
+
+    let mut chunk_results: Vec<ExtractedPatientData> = Vec::new();
+
+    for (i, chunk) in chunks.iter().enumerate() {
+        tracing::info!("Processing chunk {}/{} ({} chars)", i + 1, num_chunks, chunk.len());
+
+        let raw_response = extract_single_chunk(&client, chunk, port, &backend, &ollama_model).await?;
+        let result = parse_extraction_response(&raw_response)?;
+
+        tracing::info!("Chunk {}/{}: extracted {} patients", i + 1, num_chunks, result.patients.len());
+        chunk_results.push(result);
+    }
+
+    // Merge all chunk results, deduplicating patients
+    let merged = if chunk_results.len() == 1 {
+        chunk_results.into_iter().next().unwrap()
+    } else {
+        let mut merged = merge_extracted_patients(chunk_results);
+        merged.parse_warnings.insert(0, format!("Document processed in {} chunks", num_chunks));
+        merged
+    };
+
+    tracing::info!("Final extraction: {} patients from {} chunks", merged.patients.len(), num_chunks);
+
+    Ok(merged)
+}
+
+/// Import extracted patients from AI-assisted import into the database.
+/// Converts ExtractedPatient structs to PatientRecords and persists them.
+#[tauri::command]
+pub fn import_extracted_patients(
+    app: AppHandle,
+    patients: Vec<ExtractedPatient>,
+) -> Result<serde_json::Value, String> {
+    use crate::db::DbState;
+
+    let db_state = app.state::<DbState>();
+    let lock = db_state.0.lock().map_err(|e| format!("Lock poisoned: {}", e))?;
+
+    let conn = lock.as_ref().ok_or("Database not initialized. Please set up encryption first.")?
+        .get().map_err(|e| format!("Failed to get connection: {}", e))?;
+
+    let import_log_id = uuid::Uuid::new_v4().to_string();
+    let mut imported = 0u32;
+    let mut updated = 0u32;
+
+    conn.execute_batch("BEGIN TRANSACTION")
+        .map_err(|e| format!("Failed to begin transaction: {}", e))?;
+
+    let result = (|| -> Result<(), String> {
+        for patient in &patients {
+            // Generate a site_patient_id: use patient_id if available, otherwise name-based, otherwise UUID
+            let site_id = patient.patient_id.clone()
+                .or_else(|| patient.name.as_ref().map(|n| format!("AI-{}", n.replace(' ', "-"))))
+                .unwrap_or_else(|| format!("AI-{}", uuid::Uuid::new_v4().to_string()[..8].to_string()));
+
+            // Check if patient already exists
+            let existing: Option<String> = conn.query_row(
+                "SELECT id FROM patients WHERE site_patient_id = ?1",
+                [&site_id],
+                |row| row.get(0),
+            ).ok();
+
+            let patient_id = if let Some(existing_id) = existing {
+                conn.execute(
+                    "UPDATE patients SET
+                        date_of_birth = COALESCE(?2, date_of_birth),
+                        gender = COALESCE(?3, gender),
+                        race = COALESCE(?4, race),
+                        last_updated = datetime('now'),
+                        import_source = 'ai-extraction'
+                     WHERE id = ?1",
+                    rusqlite::params![
+                        existing_id,
+                        patient.date_of_birth,
+                        patient.gender,
+                        patient.race,
+                    ],
+                ).map_err(|e| format!("Failed to update patient: {}", e))?;
+                updated += 1;
+                existing_id
+            } else {
+                let new_id = uuid::Uuid::new_v4().to_string();
+                conn.execute(
+                    "INSERT INTO patients (id, site_patient_id, date_of_birth, gender, race, imported_at, import_source, last_updated)
+                     VALUES (?1, ?2, ?3, ?4, ?5, datetime('now'), 'ai-extraction', datetime('now'))",
+                    rusqlite::params![
+                        new_id,
+                        site_id,
+                        patient.date_of_birth,
+                        patient.gender,
+                        patient.race,
+                    ],
+                ).map_err(|e| format!("Failed to insert patient: {}", e))?;
+                imported += 1;
+                new_id
+            };
+
+            // Insert diagnoses
+            for dx in &patient.diagnoses {
+                let exists: bool = conn.query_row(
+                    "SELECT COUNT(*) > 0 FROM diagnoses WHERE patient_id = ?1 AND description = ?2",
+                    rusqlite::params![patient_id, dx.description],
+                    |row| row.get(0),
+                ).unwrap_or(false);
+                if !exists {
+                    let dx_id = uuid::Uuid::new_v4().to_string();
+                    let _ = conn.execute(
+                        "INSERT INTO diagnoses (id, patient_id, icd10_code, description, onset_date, status)
+                         VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                        rusqlite::params![dx_id, patient_id, dx.icd10_code, dx.description, dx.onset_date,
+                            dx.status.as_deref().unwrap_or("active")],
+                    );
+                }
+            }
+
+            // Insert medications
+            for med in &patient.medications {
+                let exists: bool = conn.query_row(
+                    "SELECT COUNT(*) > 0 FROM medications WHERE patient_id = ?1 AND drug_name = ?2",
+                    rusqlite::params![patient_id, med.drug_name],
+                    |row| row.get(0),
+                ).unwrap_or(false);
+                if !exists {
+                    let med_id = uuid::Uuid::new_v4().to_string();
+                    let _ = conn.execute(
+                        "INSERT INTO medications (id, patient_id, drug_name, dose, status)
+                         VALUES (?1, ?2, ?3, ?4, ?5)",
+                        rusqlite::params![med_id, patient_id, med.drug_name, med.dose,
+                            med.status.as_deref().unwrap_or("active")],
+                    );
+                }
+            }
+
+            // Insert lab results
+            for lab in &patient.labs {
+                let exists: bool = conn.query_row(
+                    "SELECT COUNT(*) > 0 FROM lab_results WHERE patient_id = ?1 AND test_name = ?2 AND value IS ?3",
+                    rusqlite::params![patient_id, lab.test_name, lab.value],
+                    |row| row.get(0),
+                ).unwrap_or(false);
+                if !exists {
+                    let lab_id = uuid::Uuid::new_v4().to_string();
+                    let abnormal_flag = lab.abnormal.map(|a| if a { "H".to_string() } else { "N".to_string() });
+                    let _ = conn.execute(
+                        "INSERT INTO lab_results (id, patient_id, test_name, value, unit, result_date, abnormal_flag)
+                         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                        rusqlite::params![lab_id, patient_id, lab.test_name, lab.value, lab.unit, lab.result_date, abnormal_flag],
+                    );
+                }
+            }
+
+            // Insert vitals
+            for vital in &patient.vitals {
+                let exists: bool = conn.query_row(
+                    "SELECT COUNT(*) > 0 FROM vitals WHERE patient_id = ?1 AND vital_type = ?2 AND value IS ?3",
+                    rusqlite::params![patient_id, vital.measurement_type, vital.value],
+                    |row| row.get(0),
+                ).unwrap_or(false);
+                if !exists {
+                    let vital_id = uuid::Uuid::new_v4().to_string();
+                    let _ = conn.execute(
+                        "INSERT INTO vitals (id, patient_id, vital_type, value, unit)
+                         VALUES (?1, ?2, ?3, ?4, ?5)",
+                        rusqlite::params![vital_id, patient_id, vital.measurement_type, vital.value, vital.unit],
+                    );
+                }
+            }
+
+            // Write audit entry
+            let _ = conn.execute(
+                "INSERT INTO audit_log (id, action, details, timestamp) VALUES (?1, 'data_imported', ?2, datetime('now'))",
+                rusqlite::params![
+                    uuid::Uuid::new_v4().to_string(),
+                    format!("AI-extracted patient imported: {} ({})", site_id, patient.name.as_deref().unwrap_or("unknown")),
+                ],
+            );
+        }
+        Ok(())
+    })();
+
+    match result {
+        Ok(()) => {
+            conn.execute_batch("COMMIT").map_err(|e| format!("Failed to commit: {}", e))?;
+        }
+        Err(e) => {
+            let _ = conn.execute_batch("ROLLBACK");
+            return Err(e);
+        }
+    }
+
+    // Log the import
+    let _ = conn.execute(
+        "INSERT INTO import_log (id, file_name, file_format, records_imported, records_updated, records_skipped, imported_at)
+         VALUES (?1, 'ai-extraction', 'clinical-notes', ?2, ?3, 0, datetime('now'))",
+        rusqlite::params![import_log_id, imported, updated],
+    );
+
+    tracing::info!("AI extraction import complete: {} new, {} updated", imported, updated);
+
+    Ok(serde_json::json!({
+        "imported": imported,
+        "updated": updated,
+        "total": patients.len(),
+    }))
 }
 
 /// Generate an AI-enhanced insight from the local LLM given a context summary.

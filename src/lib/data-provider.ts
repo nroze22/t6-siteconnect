@@ -361,6 +361,22 @@ export async function parseClinicalNotes(notesText: string): Promise<ExtractedPa
   return tauriInvoke<ExtractedPatientData>("parse_clinical_notes", { notesText });
 }
 
+// --- AI Extraction Import ---
+
+export interface ImportExtractedResult {
+  imported: number;
+  updated: number;
+  total: number;
+}
+
+export async function importExtractedPatients(patients: ExtractedPatient[]): Promise<ImportExtractedResult> {
+  if (!isTauri) {
+    // Demo mode — just return a mock result
+    return { imported: patients.length, updated: 0, total: patients.length };
+  }
+  return tauriInvoke<ImportExtractedResult>("import_extracted_patients", { patients });
+}
+
 // --- AI Insight Generation ---
 
 export interface LlmInsight {

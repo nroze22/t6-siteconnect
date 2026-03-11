@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import {
   Brain,
   FileText,
@@ -19,17 +19,113 @@ import {
   ChevronRight,
   Files,
   X,
+  Clock,
+  FileType,
+  Pencil,
+  Save,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { parseClinicalNotes, type ExtractedPatient, type ExtractedPatientData } from "@/lib/data-provider";
+import { parseClinicalNotes, importExtractedPatients, type ExtractedPatient, type ExtractedPatientData } from "@/lib/data-provider";
 import { useAppStore } from "@/stores/use-app-store";
+
+// ---------------------------------------------------------------------------
+// File parsing utilities
+// ---------------------------------------------------------------------------
+
+/** Read text from a File object — handles .txt, .pdf, .docx */
+async function readFileAsText(file: File): Promise<string> {
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+
+  if (ext === "pdf") {
+    return readPdfFile(file);
+  }
+
+  if (ext === "docx" || ext === "doc") {
+    return readDocxFile(file);
+  }
+
+  // Plain text fallback (.txt, .text, .md, .csv, .rtf, etc.)
+  return file.text();
+}
+
+/** Extract text from a PDF using pdfjs-dist */
+async function readPdfFile(file: File): Promise<string> {
+  try {
+    const pdfjsLib = await import("pdfjs-dist");
+    // Use the bundled worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+      "pdfjs-dist/build/pdf.worker.mjs",
+      import.meta.url
+    ).toString();
+
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pages: string[] = [];
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: Record<string, unknown>) => (item as { str: string }).str)
+        .join(" ");
+      pages.push(pageText);
+    }
+
+    return pages.join("\n\n");
+  } catch (err) {
+    console.warn("PDF parsing failed, trying as text:", err);
+    return file.text();
+  }
+}
+
+/** Extract text from a DOCX using mammoth */
+async function readDocxFile(file: File): Promise<string> {
+  try {
+    const mammoth = await import("mammoth");
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    return result.value;
+  } catch (err) {
+    console.warn("DOCX parsing failed, trying as text:", err);
+    return file.text();
+  }
+}
+
+/** Estimate processing time based on character count */
+function estimateProcessingTime(charCount: number): string {
+  // ~3000 chars per chunk, ~30-60s per chunk for a 4B model
+  const chunks = Math.max(1, Math.ceil(charCount / 3000));
+  const secsPerChunk = 40; // conservative estimate
+  const totalSecs = chunks * secsPerChunk;
+
+  if (totalSecs < 60) return `~${totalSecs}s`;
+  const mins = Math.ceil(totalSecs / 60);
+  return `~${mins} min`;
+}
+
+/** Get a human-readable file size */
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/** Get the file type label */
+function getFileTypeLabel(name: string): string {
+  const ext = name.split(".").pop()?.toLowerCase() ?? "";
+  const labels: Record<string, string> = {
+    pdf: "PDF", docx: "Word", doc: "Word", txt: "Text",
+    text: "Text", md: "Markdown", csv: "CSV", rtf: "RTF",
+  };
+  return labels[ext] ?? "Text";
+}
 
 // ---------------------------------------------------------------------------
 // Sample clinical notes for demo
 // ---------------------------------------------------------------------------
 
 const SAMPLE_NOTES = `PATIENT: John Doe, MRN: SC-2847
-Age: 62, Male, White
+Age: 62 years old, Male, White
 DOB: 1963-04-12
 
 ACTIVE DIAGNOSES:
@@ -65,7 +161,7 @@ Hypertension not at goal. Consider adding amlodipine.
 Dyslipidemia — LDL above target on statin. May benefit from clinical trial enrollment.`;
 
 const SAMPLE_NOTES_2 = `PATIENT: Maria Garcia, MRN: SC-4192
-Age: 48, Female, Hispanic
+Age: 48 years old, Female, Hispanic
 DOB: 1977-09-03
 
 ACTIVE DIAGNOSES:
@@ -93,7 +189,6 @@ BP: 118/72 mmHg, HR: 82 bpm, Weight: 61 kg, BMI: 23.4 kg/m²`;
 // Source text highlighting utilities
 // ---------------------------------------------------------------------------
 
-/** Collect all extractable string values from a patient for highlighting */
 function collectHighlightTerms(patient: ExtractedPatient): string[] {
   const terms: string[] = [];
   if (patient.name) terms.push(patient.name);
@@ -120,7 +215,6 @@ function collectHighlightTerms(patient: ExtractedPatient): string[] {
   return terms.filter((t) => t.length >= 2);
 }
 
-/** Category color for highlight badges */
 type HighlightCategory = "demographic" | "diagnosis" | "medication" | "lab" | "vital";
 
 function getTermCategory(term: string, patient: ExtractedPatient): HighlightCategory {
@@ -149,15 +243,18 @@ interface SmartImportPanelProps {
   onImportComplete?: (patients: ExtractedPatient[]) => void;
 }
 
-/** A single document in the batch queue */
 interface QueuedDocument {
   id: string;
   name: string;
+  fileType: string;
+  fileSize: number;
   sourceText: string;
   extractedData: ExtractedPatientData | null;
   extracting: boolean;
   error: string | null;
   imported: boolean;
+  startTime: number | null;
+  endTime: number | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -165,15 +262,15 @@ interface QueuedDocument {
 // ---------------------------------------------------------------------------
 
 export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
-  // Queue of documents to process
   const [documents, setDocuments] = useState<QueuedDocument[]>([]);
   const [activeDocIdx, setActiveDocIdx] = useState(0);
-  // Input mode state
   const [notesText, setNotesText] = useState("");
   const [inputError, setInputError] = useState<string | null>(null);
   const [editingPatientIdx, setEditingPatientIdx] = useState<number>(0);
   const [showSource, setShowSource] = useState(true);
   const [hoveredTerm, setHoveredTerm] = useState<string | null>(null);
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [elapsedSecs, setElapsedSecs] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const llmStatus = useAppStore((s) => s.status.llmStatus);
@@ -182,45 +279,58 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
   const activeDoc = documents[activeDocIdx] ?? null;
   const hasQueue = documents.length > 0;
 
-  // Currently selected patient for source highlighting
   const activePatient = activeDoc?.extractedData?.patients[editingPatientIdx] ?? null;
 
-  // Terms to highlight in source view
   const highlightTerms = useMemo(() => {
     if (!activePatient) return [];
     return collectHighlightTerms(activePatient);
   }, [activePatient]);
 
+  // Elapsed time timer for active extraction
+  useEffect(() => {
+    const extractingDoc = documents.find((d) => d.extracting);
+    if (!extractingDoc?.startTime) {
+      setElapsedSecs(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setElapsedSecs(Math.floor((Date.now() - extractingDoc.startTime!) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [documents]);
+
   // ---- Document queue management ----
 
-  function addDocumentsToQueue(texts: { name: string; content: string }[]) {
+  function addDocumentsToQueue(texts: { name: string; content: string; fileType: string; fileSize: number }[]) {
     const newDocs: QueuedDocument[] = texts.map((t, i) => ({
       id: `doc-${Date.now()}-${i}`,
       name: t.name,
+      fileType: t.fileType,
+      fileSize: t.fileSize,
       sourceText: t.content,
       extractedData: null,
       extracting: false,
       error: null,
       imported: false,
+      startTime: null,
+      endTime: null,
     }));
     setDocuments((prev) => [...prev, ...newDocs]);
-    // Auto-navigate to first new doc
     if (documents.length === 0) setActiveDocIdx(0);
-    // Start extracting the first one
     if (newDocs[0]) processDocument(newDocs[0], documents.length);
   }
 
   async function processDocument(doc: QueuedDocument, idx: number) {
-    updateDoc(idx, { extracting: true, error: null });
+    updateDoc(idx, { extracting: true, error: null, startTime: Date.now(), endTime: null });
     try {
       const result = await parseClinicalNotes(doc.sourceText);
-      updateDoc(idx, { extractedData: result, extracting: false });
+      updateDoc(idx, { extractedData: result, extracting: false, endTime: Date.now() });
       if (result.patients.length === 0) {
         updateDoc(idx, { error: "No patient data could be extracted." });
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      updateDoc(idx, { error: msg, extracting: false });
+      updateDoc(idx, { error: msg, extracting: false, endTime: Date.now() });
     }
   }
 
@@ -237,15 +347,20 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
 
   async function handleExtractSingle() {
     if (!notesText.trim()) return;
-    addDocumentsToQueue([{ name: "Pasted Notes", content: notesText }]);
+    addDocumentsToQueue([{
+      name: "Pasted Notes",
+      content: notesText,
+      fileType: "Text",
+      fileSize: new Blob([notesText]).size,
+    }]);
     setNotesText("");
     setInputError(null);
   }
 
   function handleLoadSample() {
     addDocumentsToQueue([
-      { name: "John Doe — Progress Notes", content: SAMPLE_NOTES },
-      { name: "Maria Garcia — Oncology Notes", content: SAMPLE_NOTES_2 },
+      { name: "John Doe — Progress Notes", content: SAMPLE_NOTES, fileType: "Text", fileSize: SAMPLE_NOTES.length },
+      { name: "Maria Garcia — Oncology Notes", content: SAMPLE_NOTES_2, fileType: "Text", fileSize: SAMPLE_NOTES_2.length },
     ]);
   }
 
@@ -258,59 +373,69 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
     }).catch(() => {});
   }
 
-  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    const readPromises = Array.from(files).map((file) =>
-      file.text().then((content) => ({ name: file.name, content }))
-    );
-    Promise.all(readPromises).then((texts) => {
-      addDocumentsToQueue(texts);
-    });
-    // Reset input
+
+    const texts: { name: string; content: string; fileType: string; fileSize: number }[] = [];
+    for (const file of Array.from(files)) {
+      try {
+        const content = await readFileAsText(file);
+        texts.push({
+          name: file.name,
+          content,
+          fileType: getFileTypeLabel(file.name),
+          fileSize: file.size,
+        });
+      } catch (err) {
+        console.error(`Failed to read ${file.name}:`, err);
+      }
+    }
+
+    if (texts.length > 0) addDocumentsToQueue(texts);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
-  function handleImportPatient(patient: ExtractedPatient) {
+  async function handleImportPatient(patient: ExtractedPatient) {
+    try {
+      await importExtractedPatients([patient]);
+    } catch (err) {
+      console.error("Failed to persist patient:", err);
+    }
     onImportComplete?.([patient]);
-    // Mark this doc as partially imported by flagging the patient
     if (activeDoc) {
       const remaining = activeDoc.extractedData?.patients.filter((p) => p !== patient) ?? [];
       if (remaining.length === 0) {
         updateDoc(activeDocIdx, { imported: true });
-        // Auto-advance to next unprocessed doc
         const nextIdx = documents.findIndex((d, i) => i > activeDocIdx && !d.imported);
         if (nextIdx >= 0) {
           setActiveDocIdx(nextIdx);
           setEditingPatientIdx(0);
-          // Extract if needed
           const nextDoc = documents[nextIdx];
-          if (nextDoc && !nextDoc.extractedData && !nextDoc.extracting) {
-            processDocument(nextDoc, nextIdx);
-          }
+          if (nextDoc && !nextDoc.extractedData && !nextDoc.extracting) processDocument(nextDoc, nextIdx);
         }
       } else {
-        updateDoc(activeDocIdx, {
-          extractedData: { ...activeDoc.extractedData!, patients: remaining },
-        });
+        updateDoc(activeDocIdx, { extractedData: { ...activeDoc.extractedData!, patients: remaining } });
         setEditingPatientIdx(0);
       }
     }
   }
 
-  function handleImportAllFromDoc() {
+  async function handleImportAllFromDoc() {
     if (!activeDoc?.extractedData?.patients.length) return;
+    try {
+      await importExtractedPatients(activeDoc.extractedData.patients);
+    } catch (err) {
+      console.error("Failed to persist patients:", err);
+    }
     onImportComplete?.(activeDoc.extractedData.patients);
     updateDoc(activeDocIdx, { imported: true });
-    // Auto-advance
     const nextIdx = documents.findIndex((d, i) => i > activeDocIdx && !d.imported);
     if (nextIdx >= 0) {
       setActiveDocIdx(nextIdx);
       setEditingPatientIdx(0);
       const nextDoc = documents[nextIdx];
-      if (nextDoc && !nextDoc.extractedData && !nextDoc.extracting) {
-        processDocument(nextDoc, nextIdx);
-      }
+      if (nextDoc && !nextDoc.extractedData && !nextDoc.extracting) processDocument(nextDoc, nextIdx);
     }
   }
 
@@ -328,13 +453,33 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
     if (editingPatientIdx >= updated.patients.length) setEditingPatientIdx(Math.max(0, updated.patients.length - 1));
   }
 
+  // ---- Patient field editing ----
+  function updatePatientField(field: string, value: string) {
+    if (!activeDoc?.extractedData || editingPatientIdx < 0) return;
+    const patients = activeDoc.extractedData.patients.map((p, i) => {
+      if (i !== editingPatientIdx) return p;
+      const updated = { ...p } as ExtractedPatient;
+      switch (field) {
+        case "name": updated.name = value || null; break;
+        case "patient_id": updated.patient_id = value || null; break;
+        case "date_of_birth": updated.date_of_birth = value || null; break;
+        case "age": updated.age = value ? parseInt(value) || null : null; break;
+        case "gender": updated.gender = value || null; break;
+        case "race": updated.race = value || null; break;
+      }
+      return updated;
+    });
+    updateDoc(activeDocIdx, { extractedData: { ...activeDoc.extractedData, patients } });
+    setEditingField(null);
+  }
+
   // ---- Summary stats ----
   const totalDocs = documents.length;
   const processedDocs = documents.filter((d) => d.extractedData && !d.extracting).length;
   const importedDocs = documents.filter((d) => d.imported).length;
   const totalPatients = documents.reduce((sum, d) => sum + (d.extractedData?.patients.length ?? 0), 0);
 
-  // ---- Input Phase (no documents queued yet) ----
+  // ---- Input Phase ----
   if (!hasQueue) {
     return (
       <div className="space-y-4">
@@ -358,8 +503,38 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
             </div>
             <div className="flex-1">
               <h3 className="text-sm font-semibold text-heading">AI-Powered Unstructured Data Import</h3>
-              <p className="text-xs text-dim mt-0.5">Paste clinical notes or upload text files. The AI model extracts structured patient data (demographics, diagnoses, medications, labs, vitals) for screening.</p>
+              <p className="text-xs text-dim mt-0.5">Paste clinical notes or upload files (PDF, Word, text). The AI model extracts structured patient data for screening.</p>
             </div>
+          </div>
+
+          {/* Upload zone */}
+          <div className="mb-3">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".txt,.text,.md,.csv,.rtf,.pdf,.docx,.doc"
+              multiple
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full rounded-lg border-2 border-dashed border-edge-2 bg-surface-1/50 p-6 text-center hover:border-purple-500/30 hover:bg-purple-500/5 transition-all group"
+            >
+              <Upload className="h-6 w-6 text-dim group-hover:text-purple-400 mx-auto mb-2 transition-colors" />
+              <p className="text-[13px] font-medium text-body group-hover:text-heading transition-colors">
+                Drop files or click to upload
+              </p>
+              <p className="text-[11px] text-dim mt-1">
+                Supports <span className="text-body font-medium">PDF</span>, <span className="text-body font-medium">Word (.docx)</span>, <span className="text-body font-medium">Text</span>, and <span className="text-body font-medium">CSV</span> files — upload multiple at once
+              </p>
+            </button>
+          </div>
+
+          <div className="relative flex items-center gap-3 my-3">
+            <div className="flex-1 h-px bg-edge-2" />
+            <span className="text-[10px] text-faint uppercase tracking-widest">or paste text</span>
+            <div className="flex-1 h-px bg-edge-2" />
           </div>
 
           <div className="relative">
@@ -368,12 +543,13 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
               value={notesText}
               onChange={(e) => { setNotesText(e.target.value); setInputError(null); }}
               placeholder={"Paste clinical notes here...\n\nExample:\nPATIENT: Jane Smith, MRN: 12345\nAge: 55, Female, DOB: 1970-05-22\nDx: Type 2 Diabetes (E11.9), Hypertension (I10)\nMeds: Metformin 500mg BID, Lisinopril 10mg daily\nLabs: HbA1c 7.8%, eGFR 68 mL/min"}
-              rows={12}
+              rows={8}
               className="w-full rounded-lg border border-edge-2 bg-surface-1 px-4 py-3 text-[13px] text-body placeholder-faint font-mono leading-relaxed focus:border-purple-500/40 focus:outline-none focus:ring-1 focus:ring-purple-500/20 resize-none"
             />
             {notesText && (
-              <div className="absolute top-2 right-2">
+              <div className="absolute top-2 right-2 flex items-center gap-2">
                 <span className="text-[10px] text-faint tabular-nums">{notesText.length.toLocaleString()} chars</span>
+                <span className="text-[10px] text-purple-400 font-medium">{estimateProcessingTime(notesText.length)}</span>
               </div>
             )}
           </div>
@@ -386,17 +562,11 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
               <button onClick={handlePaste} className="flex items-center gap-1.5 rounded-lg border border-edge-2 bg-surface-2 px-3 py-1.5 text-xs font-medium text-body hover:bg-surface-3 transition-colors">
                 <ClipboardPaste className="h-3 w-3 text-dim" /> Paste
               </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".txt,.text,.md,.csv,.doc,.rtf"
-                multiple
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-              <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 rounded-lg border border-edge-2 bg-surface-2 px-3 py-1.5 text-xs font-medium text-body hover:bg-surface-3 transition-colors">
-                <Upload className="h-3 w-3 text-dim" /> Upload Files
-              </button>
+              {notesText && (
+                <button onClick={() => setNotesText("")} className="flex items-center gap-1.5 rounded-lg border border-edge-2 bg-surface-2 px-3 py-1.5 text-xs font-medium text-body hover:bg-surface-3 transition-colors">
+                  <Trash2 className="h-3 w-3 text-dim" /> Clear
+                </button>
+              )}
             </div>
             <button
               onClick={handleExtractSingle}
@@ -415,25 +585,31 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
           )}
         </div>
 
+        {/* Processing info */}
         <div className="rounded-xl border border-edge-2 bg-card/50 p-4">
-          <p className="text-xs font-medium text-heading mb-2">Supported Input</p>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-lg border border-edge-2 bg-surface-1 p-3">
-              <p className="text-[11px] font-semibold text-heading mb-1.5">Single Note</p>
-              <p className="text-[10px] text-dim">Paste or type one clinical note and extract patients from it</p>
-            </div>
-            <div className="rounded-lg border border-edge-2 bg-surface-1 p-3">
-              <p className="text-[11px] font-semibold text-heading mb-1.5">Batch Upload</p>
-              <p className="text-[10px] text-dim">Upload multiple text files to build a review queue — process one at a time</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-2 mt-2">
-            {["Progress Notes", "Discharge Summaries", "Lab Reports", "Referral Letters", "H&P Notes", "Medication Lists"].map((f) => (
-              <div key={f} className="flex items-center gap-2 rounded-md bg-surface-1 px-2.5 py-1.5">
-                <FileText className="h-3 w-3 text-purple-400 flex-shrink-0" />
-                <p className="text-[11px] font-medium text-body">{f}</p>
+          <p className="text-xs font-medium text-heading mb-2">How it works</p>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="flex items-start gap-2">
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-500/15 text-[10px] font-bold text-purple-400 shrink-0 mt-0.5">1</div>
+              <div>
+                <p className="text-[11px] font-medium text-body">Upload or paste</p>
+                <p className="text-[10px] text-dim">PDF, Word, or plain text clinical notes</p>
               </div>
-            ))}
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-500/15 text-[10px] font-bold text-purple-400 shrink-0 mt-0.5">2</div>
+              <div>
+                <p className="text-[11px] font-medium text-body">AI extracts data</p>
+                <p className="text-[10px] text-dim">~30-60s per page. Large files auto-chunked.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-500/15 text-[10px] font-bold text-purple-400 shrink-0 mt-0.5">3</div>
+              <div>
+                <p className="text-[11px] font-medium text-body">Review & import</p>
+                <p className="text-[10px] text-dim">Verify extracted data, edit fields, then import</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -468,13 +644,11 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
   // ---- Review Queue Phase ----
   return (
     <div className="space-y-3">
-      {/* Queue header bar */}
+      {/* Queue header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Files className="h-4 w-4 text-purple-400" />
-          <span className="text-sm font-semibold text-heading">
-            Review Queue
-          </span>
+          <span className="text-sm font-semibold text-heading">Review Queue</span>
           <span className="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-medium text-dim">
             {processedDocs}/{totalDocs} processed
           </span>
@@ -488,7 +662,7 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".txt,.text,.md,.csv,.doc,.rtf"
+            accept=".txt,.text,.md,.csv,.rtf,.pdf,.docx,.doc"
             multiple
             onChange={handleFileUpload}
             className="hidden"
@@ -525,9 +699,10 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
             ) : doc.error ? (
               <AlertTriangle className="h-3 w-3 text-red-400" />
             ) : (
-              <FileText className="h-3 w-3" />
+              <FileType className="h-3 w-3" />
             )}
             <span className="max-w-[140px] truncate">{doc.name}</span>
+            <span className="text-[9px] text-faint">{doc.fileType}</span>
             {doc.extractedData && !doc.imported && (
               <span className="rounded-full bg-purple-500/15 px-1.5 py-px text-[9px] text-purple-400">
                 {doc.extractedData.patients.length}
@@ -559,16 +734,39 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
             {activeDoc.extracting && (
               <div className="rounded-xl border border-purple-500/20 bg-purple-500/5 p-8">
                 <div className="flex flex-col items-center text-center">
-                  <div className="relative flex h-12 w-12 items-center justify-center mb-4">
+                  <div className="relative flex h-14 w-14 items-center justify-center mb-4">
                     <motion.div
                       className="absolute inset-0 rounded-full border-2 border-purple-500/30"
                       animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] }}
                       transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                     />
+                    <motion.div
+                      className="absolute inset-0 rounded-full border border-purple-500/20"
+                      animate={{ scale: [1, 1.8, 1], opacity: [0.3, 0, 0.3] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+                    />
                     <Loader2 className="h-6 w-6 animate-spin text-purple-400" />
                   </div>
                   <p className="text-sm font-semibold text-heading">Extracting patient data...</p>
                   <p className="text-xs text-dim mt-1">AI is parsing clinical notes from "{activeDoc.name}"</p>
+                  <div className="flex items-center gap-3 mt-3">
+                    <div className="flex items-center gap-1.5 rounded-full bg-surface-1 px-3 py-1">
+                      <Clock className="h-3 w-3 text-dim" />
+                      <span className="text-[11px] text-body tabular-nums">{elapsedSecs}s elapsed</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 rounded-full bg-surface-1 px-3 py-1">
+                      <FileText className="h-3 w-3 text-dim" />
+                      <span className="text-[11px] text-body">{formatFileSize(activeDoc.fileSize)}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 rounded-full bg-purple-500/10 px-3 py-1">
+                      <span className="text-[11px] text-purple-400">Est. {estimateProcessingTime(activeDoc.sourceText.length)}</span>
+                    </div>
+                  </div>
+                  {activeDoc.sourceText.length > 3000 && (
+                    <p className="text-[10px] text-dim mt-2">
+                      Large document — processing in {Math.ceil(activeDoc.sourceText.length / 3000)} chunks for best accuracy
+                    </p>
+                  )}
                 </div>
               </div>
             )}
@@ -600,12 +798,17 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
                   <div>
                     <p className="text-sm font-semibold text-heading">Imported</p>
                     <p className="text-xs text-dim mt-0.5">All patients from this document have been added to screening.</p>
+                    {activeDoc.startTime && activeDoc.endTime && (
+                      <p className="text-[10px] text-faint mt-1">
+                        Processed in {Math.round((activeDoc.endTime - activeDoc.startTime) / 1000)}s
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Review state — has extracted data, not yet imported */}
+            {/* Review state */}
             {activeDoc.extractedData && !activeDoc.imported && !activeDoc.extracting && (
               <div className="space-y-3">
                 {/* Review header */}
@@ -616,6 +819,11 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
                       {activeDoc.extractedData.patients.length} Patient{activeDoc.extractedData.patients.length !== 1 ? "s" : ""} Found
                     </span>
                     <span className="rounded-full bg-purple-500/15 px-2 py-0.5 text-[10px] font-medium text-purple-400 uppercase tracking-wider">AI-extracted</span>
+                    {activeDoc.startTime && activeDoc.endTime && (
+                      <span className="text-[10px] text-faint">
+                        {Math.round((activeDoc.endTime - activeDoc.startTime) / 1000)}s
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <button onClick={() => setShowSource((v) => !v)} className="flex items-center gap-1.5 rounded-lg border border-edge-2 bg-surface-2 px-2.5 py-1.5 text-[11px] font-medium text-body hover:bg-surface-3 transition-colors">
@@ -627,7 +835,7 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
                       className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-500 transition-colors shadow-sm"
                     >
                       <Upload className="h-3 w-3" />
-                      Import All ({activeDoc.extractedData.patients.length})
+                      Import All {activeDoc.extractedData.patients.length} Patient{activeDoc.extractedData.patients.length !== 1 ? "s" : ""}
                     </button>
                   </div>
                 </div>
@@ -640,7 +848,7 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
                   </div>
                 )}
 
-                {/* Highlight legend */}
+                {/* Legend */}
                 <div className="flex items-center gap-3 px-1">
                   <span className="text-[10px] text-faint uppercase tracking-wider">Legend:</span>
                   {(["demographic", "diagnosis", "medication", "lab", "vital"] as HighlightCategory[]).map((cat) => (
@@ -650,7 +858,7 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
                   ))}
                 </div>
 
-                {/* Patient tabs + navigation */}
+                {/* Patient tabs */}
                 {activeDoc.extractedData.patients.length > 1 && (
                   <div className="flex items-center gap-2">
                     <button
@@ -691,6 +899,7 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
                       <div className="flex items-center gap-2">
                         <Sparkles className="h-3.5 w-3.5 text-purple-400" />
                         <span className="text-[11px] font-semibold text-heading">Extracted Data</span>
+                        <span className="text-[10px] text-dim italic">Click any field to edit</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         {activePatient && (
@@ -714,15 +923,15 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
                     <div className="flex-1 overflow-y-auto p-4 space-y-3">
                       {activePatient && (
                         <>
-                          {/* Demographics */}
+                          {/* Demographics — editable */}
                           <DataSection title="Demographics" icon={<Edit3 className="h-3 w-3" />}>
                             <div className="grid grid-cols-3 gap-2">
-                              <DataField label="Name" value={activePatient.name} category="demographic" hoveredTerm={hoveredTerm} onHover={setHoveredTerm} />
-                              <DataField label="MRN" value={activePatient.patient_id} category="demographic" hoveredTerm={hoveredTerm} onHover={setHoveredTerm} />
-                              <DataField label="DOB" value={activePatient.date_of_birth} category="demographic" hoveredTerm={hoveredTerm} onHover={setHoveredTerm} />
-                              <DataField label="Age" value={activePatient.age?.toString()} category="demographic" hoveredTerm={hoveredTerm} onHover={setHoveredTerm} />
-                              <DataField label="Gender" value={activePatient.gender} category="demographic" hoveredTerm={hoveredTerm} onHover={setHoveredTerm} />
-                              <DataField label="Race" value={activePatient.race} category="demographic" hoveredTerm={hoveredTerm} onHover={setHoveredTerm} />
+                              <EditableDataField label="Name" value={activePatient.name} field="name" category="demographic" hoveredTerm={hoveredTerm} onHover={setHoveredTerm} editingField={editingField} setEditingField={setEditingField} onSave={updatePatientField} />
+                              <EditableDataField label="MRN" value={activePatient.patient_id} field="patient_id" category="demographic" hoveredTerm={hoveredTerm} onHover={setHoveredTerm} editingField={editingField} setEditingField={setEditingField} onSave={updatePatientField} />
+                              <EditableDataField label="DOB" value={activePatient.date_of_birth} field="date_of_birth" category="demographic" hoveredTerm={hoveredTerm} onHover={setHoveredTerm} editingField={editingField} setEditingField={setEditingField} onSave={updatePatientField} />
+                              <EditableDataField label="Age" value={activePatient.age?.toString() ?? null} field="age" category="demographic" hoveredTerm={hoveredTerm} onHover={setHoveredTerm} editingField={editingField} setEditingField={setEditingField} onSave={updatePatientField} />
+                              <EditableDataField label="Gender" value={activePatient.gender} field="gender" category="demographic" hoveredTerm={hoveredTerm} onHover={setHoveredTerm} editingField={editingField} setEditingField={setEditingField} onSave={updatePatientField} />
+                              <EditableDataField label="Race" value={activePatient.race} field="race" category="demographic" hoveredTerm={hoveredTerm} onHover={setHoveredTerm} editingField={editingField} setEditingField={setEditingField} onSave={updatePatientField} />
                             </div>
                           </DataSection>
 
@@ -838,7 +1047,7 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
                     </div>
                   </div>
 
-                  {/* RIGHT: Source document with highlights */}
+                  {/* RIGHT: Source document */}
                   {showSource && (
                     <div className="rounded-xl border border-edge-2 bg-card overflow-hidden flex flex-col">
                       <div className="flex items-center justify-between px-4 py-2.5 border-b border-edge-2 bg-surface-1/50">
@@ -846,7 +1055,7 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
                           <FileText className="h-3.5 w-3.5 text-dim" />
                           <span className="text-[11px] font-semibold text-heading">Source Document</span>
                         </div>
-                        <span className="text-[10px] text-faint">Hover extracted fields to highlight source</span>
+                        <span className="text-[10px] text-faint">Hover fields to highlight source</span>
                       </div>
                       <div className="flex-1 overflow-y-auto p-4">
                         <HighlightedSource
@@ -860,14 +1069,14 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
                   )}
                 </div>
 
-                {/* Queue navigation footer */}
+                {/* Queue navigation */}
                 <div className="flex items-center justify-between pt-2 border-t border-edge-2">
                   <button
                     onClick={() => { const prev = activeDocIdx - 1; if (prev >= 0) { setActiveDocIdx(prev); setEditingPatientIdx(0); } }}
                     disabled={activeDocIdx === 0}
                     className="flex items-center gap-1.5 rounded-lg border border-edge-2 bg-surface-2 px-3 py-1.5 text-xs font-medium text-body hover:bg-surface-3 disabled:opacity-30 transition-colors"
                   >
-                    <ArrowLeft className="h-3 w-3" /> Previous Document
+                    <ArrowLeft className="h-3 w-3" /> Previous
                   </button>
                   <span className="text-[11px] text-dim">
                     Document {activeDocIdx + 1} of {totalDocs}
@@ -877,7 +1086,7 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
                     disabled={activeDocIdx === totalDocs - 1}
                     className="flex items-center gap-1.5 rounded-lg border border-edge-2 bg-surface-2 px-3 py-1.5 text-xs font-medium text-body hover:bg-surface-3 disabled:opacity-30 transition-colors"
                   >
-                    Next Document <ArrowRight className="h-3 w-3" />
+                    Next <ArrowRight className="h-3 w-3" />
                   </button>
                 </div>
               </div>
@@ -962,31 +1171,79 @@ function DataSection({ title, icon, children }: { title: string; icon?: React.Re
   );
 }
 
-function DataField({
+function EditableDataField({
   label,
   value,
+  field,
   category,
   hoveredTerm,
   onHover,
+  editingField,
+  setEditingField,
+  onSave,
 }: {
   label: string;
   value?: string | null;
+  field: string;
   category?: HighlightCategory;
   hoveredTerm?: string | null;
   onHover?: (term: string | null) => void;
+  editingField: string | null;
+  setEditingField: (field: string | null) => void;
+  onSave: (field: string, value: string) => void;
 }) {
+  const [editValue, setEditValue] = useState(value ?? "");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isEditing = editingField === field;
   const isHighlighted = category && hoveredTerm && value && value.toLowerCase().includes(hoveredTerm.toLowerCase());
   const colors = category ? CATEGORY_COLORS[category] : null;
 
+  useEffect(() => {
+    if (isEditing) {
+      setEditValue(value ?? "");
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [isEditing, value]);
+
+  if (isEditing) {
+    return (
+      <div className="rounded-md px-2.5 py-1.5 bg-surface-1 ring-1 ring-purple-500/30">
+        <p className="text-[10px] text-faint">{label}</p>
+        <div className="flex items-center gap-1 mt-0.5">
+          <input
+            ref={inputRef}
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") onSave(field, editValue);
+              if (e.key === "Escape") setEditingField(null);
+            }}
+            className="flex-1 bg-transparent text-xs font-medium text-body outline-none"
+          />
+          <button onClick={() => onSave(field, editValue)} className="rounded p-0.5 text-emerald-400 hover:bg-emerald-500/15 transition-colors">
+            <Save className="h-3 w-3" />
+          </button>
+          <button onClick={() => setEditingField(null)} className="rounded p-0.5 text-dim hover:bg-surface-3 transition-colors">
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
-      className={`rounded-md px-2.5 py-1.5 transition-colors cursor-default ${
-        isHighlighted && colors ? `${colors.bg} ring-1 ${colors.border}` : "bg-surface-1"
+      className={`group rounded-md px-2.5 py-1.5 transition-colors cursor-pointer ${
+        isHighlighted && colors ? `${colors.bg} ring-1 ${colors.border}` : "bg-surface-1 hover:bg-surface-2"
       }`}
       onMouseEnter={() => value && onHover?.(value)}
       onMouseLeave={() => onHover?.(null)}
+      onClick={() => setEditingField(field)}
     >
-      <p className="text-[10px] text-faint">{label}</p>
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] text-faint">{label}</p>
+        <Pencil className="h-2.5 w-2.5 text-faint opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
       <p className={`text-xs font-medium mt-0.5 ${value ? "text-body" : "text-faint"}`}>{value || "—"}</p>
     </div>
   );

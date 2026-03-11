@@ -278,21 +278,21 @@ export function SourceDataPanel() {
 
       {/* Criterion context bar — no evidence */}
       {criterionHasNoEvidence && (
-        <div className="flex flex-col gap-2 border-b border-border bg-amber-100 dark:bg-amber-500/5 px-3 py-3">
+        <div className="flex flex-col gap-2 border-b border-edge-2 bg-surface-1 px-3 py-3">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
-            <p className="text-[12px] font-medium text-indigo-700 dark:text-indigo-300">
-              No evidence found in patient record
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-dim" />
+            <p className="text-[12px] font-medium text-body">
+              No matching evidence in patient record
             </p>
           </div>
-          <p className="text-[11px] text-amber-700/70 dark:text-amber-300/60 leading-relaxed pl-5.5">
+          <p className="text-[11px] text-dim leading-relaxed pl-5.5">
             {selectedCriterion.reasoning ?? "This criterion could not be evaluated from the available structured data. Manual chart review may be needed."}
           </p>
         </div>
       )}
 
       {/* Tab content */}
-      <div ref={scrollRef} className="relative flex-1 overflow-y-auto">
+      <div ref={scrollRef} className="relative flex-1 overflow-y-auto pl-1">
         {activeTab === "demographics" && (
           <DemographicsTab
             patientId={selectedPatientId}

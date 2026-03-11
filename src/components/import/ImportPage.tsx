@@ -630,29 +630,43 @@ export function ImportPage() {
           {importMode === "structured" && <StepIndicator current={step} />}
         </div>
 
-        {/* Mode toggle */}
-        <div className="mt-3 flex items-center gap-1 rounded-lg bg-surface-1 p-1 w-fit">
+        {/* Mode toggle — prominent card-style */}
+        <div className="mt-3 grid grid-cols-2 gap-3 max-w-lg">
           <button
             onClick={() => setImportMode("structured")}
-            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            className={`flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all ${
               importMode === "structured"
-                ? "bg-card text-heading shadow-sm ring-1 ring-edge-2"
-                : "text-dim hover:text-body"
+                ? "bg-card ring-2 ring-indigo-500/40 shadow-sm"
+                : "bg-surface-1 ring-1 ring-edge-2 hover:ring-edge-3 hover:bg-surface-2"
             }`}
           >
-            <FileSpreadsheet className="h-3 w-3" />
-            Import Structured Data (CSV/Excel)
+            <div className={`flex h-9 w-9 items-center justify-center rounded-lg shrink-0 ${
+              importMode === "structured" ? "bg-indigo-500/15 ring-1 ring-indigo-500/25" : "bg-surface-2"
+            }`}>
+              <FileSpreadsheet className={`h-4 w-4 ${importMode === "structured" ? "text-indigo-400" : "text-dim"}`} />
+            </div>
+            <div>
+              <p className={`text-[12px] font-semibold ${importMode === "structured" ? "text-heading" : "text-body"}`}>Structured Data</p>
+              <p className="text-[10px] text-dim">CSV, Excel, EMR exports</p>
+            </div>
           </button>
           <button
             onClick={() => setImportMode("ai-assisted")}
-            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            className={`flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all ${
               importMode === "ai-assisted"
-                ? "bg-card text-heading shadow-sm ring-1 ring-edge-2"
-                : "text-dim hover:text-body"
+                ? "bg-card ring-2 ring-purple-500/40 shadow-sm"
+                : "bg-surface-1 ring-1 ring-edge-2 hover:ring-edge-3 hover:bg-surface-2"
             }`}
           >
-            <Sparkles className="h-3 w-3" />
-            Import Unstructured Notes (AI)
+            <div className={`flex h-9 w-9 items-center justify-center rounded-lg shrink-0 ${
+              importMode === "ai-assisted" ? "bg-purple-500/15 ring-1 ring-purple-500/25" : "bg-surface-2"
+            }`}>
+              <Sparkles className={`h-4 w-4 ${importMode === "ai-assisted" ? "text-purple-400" : "text-dim"}`} />
+            </div>
+            <div>
+              <p className={`text-[12px] font-semibold ${importMode === "ai-assisted" ? "text-heading" : "text-body"}`}>Unstructured Notes</p>
+              <p className="text-[10px] text-dim">PDF, Word, clinical notes (AI)</p>
+            </div>
           </button>
         </div>
       </div>
