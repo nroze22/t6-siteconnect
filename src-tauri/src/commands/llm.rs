@@ -596,7 +596,7 @@ fn extraction_json_schema() -> serde_json::Value {
                 "type": "array",
                 "items": {
                     "type": "object",
-                    "required": ["diagnoses"],
+                    "required": ["patient_id", "name", "date_of_birth", "age", "gender", "race", "diagnoses", "medications", "labs", "vitals"],
                     "properties": {
                         "patient_id": { "type": "string" },
                         "name": { "type": "string" },
