@@ -129,13 +129,13 @@ export function AnalyticsPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 rounded-lg px-4 py-2 text-[12px] font-medium transition-all ${
                 activeTab === tab.id
-                  ? "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 ring-1 ring-indigo-500/25"
+                  ? "bg-surface-2 text-heading ring-1 ring-edge-2 shadow-sm"
                   : "text-dim hover:bg-surface-2 hover:text-body"
               }`}
             >
-              <span className={activeTab === tab.id ? "text-indigo-600 dark:text-indigo-400" : ""}>{tab.icon}</span>
+              <span className={activeTab === tab.id ? "text-indigo-400" : ""}>{tab.icon}</span>
               {tab.label}
-              <span className={`text-[12px] ${activeTab === tab.id ? "text-indigo-600/60 dark:text-indigo-400/60" : "text-dim"}`}>
+              <span className={`text-[12px] ${activeTab === tab.id ? "text-body" : "text-dim"}`}>
                 {tab.desc}
               </span>
             </button>

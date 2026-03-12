@@ -348,7 +348,7 @@ export function PerformancePage() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors ${
-                tab === t.id ? "bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 ring-1 ring-indigo-500/25" : "text-dim hover:bg-surface-2 hover:text-body"
+                tab === t.id ? "bg-surface-2 text-heading ring-1 ring-edge-2 shadow-sm" : "text-dim hover:bg-surface-2 hover:text-body"
               }`}
             >
               {t.icon} {t.label}

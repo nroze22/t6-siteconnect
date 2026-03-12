@@ -27,9 +27,7 @@ import {
   Monitor,
   Gauge,
   RefreshCw,
-  CircleCheck,
   Layers,
-  Zap,
   HeadphonesIcon,
   Bug,
   Copy,
@@ -90,7 +88,7 @@ type SettingsTab = "general" | "data" | "security" | "support";
 
 const TABS: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
   { id: "general", label: "General", icon: <Settings className="h-3.5 w-3.5" /> },
-  { id: "data", label: "Data & AI", icon: <Brain className="h-3.5 w-3.5" /> },
+  { id: "data", label: "Data", icon: <Database className="h-3.5 w-3.5" /> },
   { id: "security", label: "Security", icon: <Shield className="h-3.5 w-3.5" /> },
   { id: "support", label: "Support", icon: <HeadphonesIcon className="h-3.5 w-3.5" /> },
 ];
@@ -134,6 +132,7 @@ export function SettingsPage() {
           {activeTab === "general" && (
             <>
               <SystemProfilePanel />
+              <AiSetupPanel />
               <PreferencesPanel />
               <UpdatePanel />
             </>
@@ -141,7 +140,6 @@ export function SettingsPage() {
           {activeTab === "data" && (
             <>
               <DatabasePanel />
-              <AiSetupPanel />
               <WatcherPanel />
             </>
           )}
@@ -1353,63 +1351,6 @@ interface HardwareProfile {
   screenResolution: string;
 }
 
-type DeploymentProfile = "lite" | "standard" | "medical";
-
-const DEPLOYMENT_PROFILES: Record<DeploymentProfile, {
-  label: string;
-  desc: string;
-  model: string;
-  modelSize: string;
-  ramReq: string;
-  color: string;
-  features: string[];
-}> = {
-  lite: {
-    label: "Lite",
-    desc: "Optimized for older hardware. Deterministic screening with lightweight AI assist.",
-    model: "Phi-4-mini-instruct",
-    modelSize: "~2.4 GB",
-    ramReq: "8 GB+",
-    color: "blue",
-    features: [
-      "Deterministic rule-based screening",
-      "Column auto-mapping assist",
-      "Short note summarization",
-      "Low memory footprint",
-    ],
-  },
-  standard: {
-    label: "Standard",
-    desc: "Best balance of quality and speed. Recommended for most research sites.",
-    model: "Qwen3.5-4B",
-    modelSize: "~3.6 GB",
-    ramReq: "16 GB+",
-    color: "indigo",
-    features: [
-      "Everything in Lite",
-      "Full note extraction with evidence spans",
-      "Criterion explanation drafts",
-      "Protocol-aware next-best-action",
-      "Feasibility summaries",
-    ],
-  },
-  medical: {
-    label: "Medical",
-    desc: "Enhanced medical language understanding. Requires admin approval.",
-    model: "MedGemma 1.5 4B",
-    modelSize: "~3.8 GB",
-    ramReq: "16 GB+",
-    color: "emerald",
-    features: [
-      "Everything in Standard",
-      "Medical abbreviation & shorthand",
-      "Clinical note interpretation",
-      "Image-adjacent workflow support",
-      "Domain-tuned terminology",
-    ],
-  },
-};
-
 function probeHardware(): HardwareProfile {
   const nav = typeof navigator !== "undefined" ? navigator : null;
   const cores = nav?.hardwareConcurrency ?? 4;
@@ -1456,43 +1397,22 @@ function detectGPU(): string | null {
   }
 }
 
-function recommendProfile(hw: HardwareProfile): DeploymentProfile {
-  if (hw.ramGB < 12 || hw.cpuCores < 4) return "lite";
-  return "standard";
-}
-
 function SystemProfilePanel() {
   const [hardware, setHardware] = useState<HardwareProfile | null>(null);
   const [scanning, setScanning] = useState(false);
-  const [selectedProfile, setSelectedProfile] = useState<DeploymentProfile>("standard");
-  const [profileLocked, setProfileLocked] = useState(false);
   const toast = useToast();
-
-  const recommended = useMemo(() => hardware ? recommendProfile(hardware) : "standard", [hardware]);
 
   const handleScan = useCallback(() => {
     setScanning(true);
     setTimeout(() => {
       const hw = probeHardware();
       setHardware(hw);
-      setSelectedProfile(recommendProfile(hw));
       setScanning(false);
-      toast.success("Hardware analysis complete", `Recommended profile: ${DEPLOYMENT_PROFILES[recommendProfile(hw)].label}`);
+      toast.success("Hardware analysis complete", `${hw.cpuCores} cores · ${hw.ramGB} GB RAM`);
     }, 1800);
   }, [toast]);
 
   useEffect(() => { handleScan(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleApplyProfile = useCallback(() => {
-    setProfileLocked(true);
-    toast.success(`${DEPLOYMENT_PROFILES[selectedProfile].label} profile activated`, `AI model: ${DEPLOYMENT_PROFILES[selectedProfile].model}`);
-  }, [selectedProfile, toast]);
-
-  const profileColors: Record<string, { bg: string; ring: string; text: string; fill: string }> = {
-    blue: { bg: "bg-blue-500/8", ring: "ring-blue-500/20", text: "text-blue-400", fill: "bg-blue-500" },
-    indigo: { bg: "bg-indigo-500/8", ring: "ring-indigo-500/20", text: "text-indigo-400", fill: "bg-indigo-500" },
-    emerald: { bg: "bg-emerald-500/8", ring: "ring-emerald-500/20", text: "text-emerald-400", fill: "bg-emerald-500" },
-  };
 
   return (
     <div className="rounded-xl border border-edge-2 bg-card overflow-hidden">
@@ -1502,7 +1422,7 @@ function SystemProfilePanel() {
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-[13px] font-semibold text-body">System & AI Profile</h3>
+            <h3 className="text-[13px] font-semibold text-body">System Profile</h3>
             {hardware && (
               <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[9px] font-semibold text-emerald-400 ring-1 ring-emerald-500/20">
                 Analyzed
@@ -1510,7 +1430,7 @@ function SystemProfilePanel() {
             )}
           </div>
           <p className="mt-0.5 text-[12px] text-dim">
-            Hardware analysis and optimal AI configuration.
+            Hardware detection and system capabilities.
           </p>
         </div>
         <button
@@ -1574,109 +1494,6 @@ function SystemProfilePanel() {
               </div>
             </div>
 
-            <div>
-              <div className="flex items-center justify-between mb-2.5">
-                <p className="text-[12px] font-semibold uppercase tracking-wider text-dim">AI Deployment Profile</p>
-                {recommended && (
-                  <span className="flex items-center gap-1 text-[9px] font-semibold text-indigo-400">
-                    <Sparkles className="h-2.5 w-2.5" />
-                    Recommended: {DEPLOYMENT_PROFILES[recommended].label}
-                  </span>
-                )}
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                {(Object.entries(DEPLOYMENT_PROFILES) as [DeploymentProfile, typeof DEPLOYMENT_PROFILES[DeploymentProfile]][]).map(
-                  ([key, profile]) => {
-                    const isSelected = selectedProfile === key;
-                    const isRecommended = recommended === key;
-                    const colors = profileColors[profile.color] ?? profileColors["indigo"]!;
-                    return (
-                      <button
-                        key={key}
-                        onClick={() => { if (!profileLocked) setSelectedProfile(key); }}
-                        disabled={profileLocked}
-                        className={`relative rounded-xl p-3 text-left transition-all ${
-                          isSelected
-                            ? `${colors.bg} ring-2 ${colors.ring}`
-                            : "bg-surface-1 ring-1 ring-edge-1 hover:ring-edge-3"
-                        } ${profileLocked && !isSelected ? "opacity-40" : ""}`}
-                      >
-                        {isRecommended && (
-                          <span className={`absolute -top-1.5 right-2 rounded-full ${colors.fill} px-2 py-0.5 text-[8px] font-bold text-heading`}>
-                            RECOMMENDED
-                          </span>
-                        )}
-                        {isSelected && (
-                          <CircleCheck className={`absolute top-2 right-2 h-4 w-4 ${colors.text}`} />
-                        )}
-                        <div className="flex items-center gap-1.5 mb-1.5">
-                          <Layers className={`h-3.5 w-3.5 ${isSelected ? colors.text : "text-dim"}`} />
-                          <span className={`text-[12px] font-bold ${isSelected ? colors.text : "text-dim"}`}>
-                            {profile.label}
-                          </span>
-                        </div>
-                        <p className="text-[12px] text-body leading-relaxed mb-2">{profile.desc}</p>
-                        <div className="space-y-1 border-t border-edge-1 pt-2">
-                          <div className="flex items-center justify-between text-[9px]">
-                            <span className="text-dim">Model</span>
-                            <span className={`font-semibold ${isSelected ? colors.text : "text-dim"}`}>{profile.model}</span>
-                          </div>
-                          <div className="flex items-center justify-between text-[9px]">
-                            <span className="text-dim">Size</span>
-                            <span className="text-dim">{profile.modelSize}</span>
-                          </div>
-                          <div className="flex items-center justify-between text-[9px]">
-                            <span className="text-dim">RAM</span>
-                            <span className="text-dim">{profile.ramReq}</span>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  },
-                )}
-              </div>
-
-              <div className="mt-3 rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
-                <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">
-                  {DEPLOYMENT_PROFILES[selectedProfile].label} Profile Capabilities
-                </p>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {DEPLOYMENT_PROFILES[selectedProfile].features.map((f) => (
-                    <div key={f} className="flex items-center gap-1.5 text-[12px] text-dim">
-                      <Check className="h-2.5 w-2.5 text-emerald-400 shrink-0" />
-                      {f}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {!profileLocked && (
-                <button
-                  onClick={handleApplyProfile}
-                  className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-indigo-500"
-                >
-                  <Zap className="h-3.5 w-3.5" />
-                  Apply {DEPLOYMENT_PROFILES[selectedProfile].label} Profile
-                </button>
-              )}
-              {profileLocked && (
-                <div className="mt-3 flex items-center justify-between rounded-lg bg-emerald-500/5 px-3 py-2 ring-1 ring-emerald-500/15">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                    <span className="text-[12px] font-semibold text-emerald-400">
-                      {DEPLOYMENT_PROFILES[selectedProfile].label} profile active
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => setProfileLocked(false)}
-                    className="text-[12px] text-dim hover:text-body transition-colors"
-                  >
-                    Change
-                  </button>
-                </div>
-              )}
-            </div>
           </>
         ) : null}
       </div>

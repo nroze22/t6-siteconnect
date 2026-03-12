@@ -367,10 +367,10 @@ function DemographicsTab({ patientId, isHighlighted, searchTerms }: { patientId:
               <tr
                 key={label}
                 data-highlighted={isMatch ? "true" : undefined}
-                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-amber-400/10 dark:bg-amber-400/[0.07] ring-1 ring-inset ring-amber-400/25 dark:ring-amber-400/20" : ""}`}
+                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-white/[0.04] dark:bg-white/[0.04] border-l-2 border-l-emerald-400 pl-1.5" : ""}`}
               >
-                <td className={`py-2.5 pr-3 font-medium ${isMatch ? "text-amber-700 dark:text-amber-200" : "text-dim"}`}>{label}</td>
-                <td className={`py-2.5 font-mono ${isMatch ? "text-amber-800 dark:text-amber-100 font-semibold" : "text-body"}`}>{value}</td>
+                <td className={`py-2.5 pr-3 font-medium ${isMatch ? "text-emerald-700 dark:text-emerald-300" : "text-dim"}`}>{label}</td>
+                <td className={`py-2.5 font-mono ${isMatch ? "text-heading font-semibold" : "text-body"}`}>{value}</td>
               </tr>
             );
           })}
@@ -407,10 +407,10 @@ function DiagnosesTab({ diagnoses, isHighlighted, searchTerms }: { diagnoses: Di
               <tr
                 key={dx.id}
                 data-highlighted={isMatch ? "true" : undefined}
-                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-amber-400/10 dark:bg-amber-400/[0.07] ring-1 ring-inset ring-amber-400/25 dark:ring-amber-400/20" : ""}`}
+                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-white/[0.04] dark:bg-white/[0.04] border-l-2 border-l-emerald-400 pl-1.5" : ""}`}
               >
-                <td className={`px-3 py-2 font-mono font-semibold ${isMatch ? "text-amber-700 dark:text-amber-200" : "text-body"}`}>{dx.icd10Code}</td>
-                <td className={`px-3 py-2 ${isMatch ? "text-amber-800 dark:text-amber-100 font-medium" : "text-body"}`}>{dx.description}</td>
+                <td className={`px-3 py-2 font-mono font-semibold ${isMatch ? "text-emerald-700 dark:text-emerald-300" : "text-body"}`}>{dx.icd10Code}</td>
+                <td className={`px-3 py-2 ${isMatch ? "text-heading font-medium" : "text-body"}`}>{dx.description}</td>
                 <td className="px-3 py-2 text-dim">{dx.onsetDate}</td>
                 <td className="px-3 py-2">
                   <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-semibold ${
@@ -451,9 +451,9 @@ function MedicationsTab({ medications, isHighlighted, searchTerms }: { medicatio
               <tr
                 key={med.id}
                 data-highlighted={isMatch ? "true" : undefined}
-                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-amber-400/10 dark:bg-amber-400/[0.07] ring-1 ring-inset ring-amber-400/25 dark:ring-amber-400/20" : ""}`}
+                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-white/[0.04] dark:bg-white/[0.04] border-l-2 border-l-emerald-400 pl-1.5" : ""}`}
               >
-                <td className={`px-3 py-2 font-semibold ${isMatch ? "text-amber-700 dark:text-amber-200" : "text-body"}`}>{med.drugName}</td>
+                <td className={`px-3 py-2 font-semibold ${isMatch ? "text-emerald-700 dark:text-emerald-300" : "text-body"}`}>{med.drugName}</td>
                 <td className="px-3 py-2 font-mono text-body">{med.dose}</td>
                 <td className="px-3 py-2 text-dim">{med.frequency}</td>
                 <td className="px-3 py-2">
@@ -508,10 +508,10 @@ function LabsTab({ labs, isHighlighted, searchTerms }: { labs: LabResult[]; isHi
               <tr
                 key={lab.id}
                 data-highlighted={isMatch ? "true" : undefined}
-                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-amber-400/10 dark:bg-amber-400/[0.07] ring-1 ring-inset ring-amber-400/25 dark:ring-amber-400/20" : ""}`}
+                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-white/[0.04] dark:bg-white/[0.04] border-l-2 border-l-emerald-400 pl-1.5" : ""}`}
               >
-                <td className={`px-3 py-2 font-semibold ${isMatch ? "text-amber-700 dark:text-amber-200" : "text-body"}`}>{lab.testName}</td>
-                <td className={`px-3 py-2 text-right font-mono font-bold ${isMatch ? "text-amber-800 dark:text-amber-100" : "text-body"}`}>
+                <td className={`px-3 py-2 font-semibold ${isMatch ? "text-emerald-700 dark:text-emerald-300" : "text-body"}`}>{lab.testName}</td>
+                <td className={`px-3 py-2 text-right font-mono font-bold ${isMatch ? "text-heading" : "text-body"}`}>
                   {lab.value != null ? lab.value.toLocaleString() : "\u2014"}
                 </td>
                 <td className="px-3 py-2 text-dim">{lab.unit}</td>
@@ -558,12 +558,12 @@ function VitalsTab({ vitals, isHighlighted, searchTerms }: { vitals: VitalSign[]
               <tr
                 key={v.id}
                 data-highlighted={isMatch ? "true" : undefined}
-                className={`border-b border-edge-1 ${isMatch ? "bg-amber-400/10 dark:bg-amber-400/[0.07] ring-1 ring-inset ring-amber-400/25 dark:ring-amber-400/20" : ""}`}
+                className={`border-b border-edge-1 ${isMatch ? "bg-white/[0.04] dark:bg-white/[0.04] border-l-2 border-l-emerald-400 pl-1.5" : ""}`}
               >
-                <td className={`px-3 py-2 font-semibold ${isMatch ? "text-amber-700 dark:text-amber-200" : "text-body"}`}>
+                <td className={`px-3 py-2 font-semibold ${isMatch ? "text-emerald-700 dark:text-emerald-300" : "text-body"}`}>
                   {label}
                 </td>
-                <td className={`px-3 py-2 text-right font-mono font-bold ${isMatch ? "text-amber-800 dark:text-amber-100" : "text-body"}`}>{v.value}</td>
+                <td className={`px-3 py-2 text-right font-mono font-bold ${isMatch ? "text-heading" : "text-body"}`}>{v.value}</td>
                 <td className="px-3 py-2 text-dim">{v.unit}</td>
                 <td className="px-3 py-2 text-dim">{v.measurementDate}</td>
               </tr>
