@@ -4,12 +4,18 @@ import { CheckCircle2, XCircle, AlertTriangle, Info, X } from "lucide-react";
 
 type ToastType = "success" | "error" | "warning" | "info";
 
+interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
 interface Toast {
   id: string;
   type: ToastType;
   title: string;
   description?: string;
   duration?: number;
+  action?: ToastAction;
 }
 
 interface ToastContextValue {
@@ -102,6 +108,17 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
         <p className="text-[13px] font-medium text-body leading-tight">{toast.title}</p>
         {toast.description && (
           <p className="mt-0.5 text-[12px] text-dim leading-snug">{toast.description}</p>
+        )}
+        {toast.action && (
+          <button
+            onClick={() => {
+              toast.action?.onClick();
+              onDismiss(toast.id);
+            }}
+            className="mt-1.5 rounded-md bg-indigo-500/15 px-2.5 py-1 text-[11px] font-semibold text-indigo-400 ring-1 ring-indigo-500/25 transition-colors hover:bg-indigo-500/25"
+          >
+            {toast.action.label}
+          </button>
         )}
       </div>
       <button

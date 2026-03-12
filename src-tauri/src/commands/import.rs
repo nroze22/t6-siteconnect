@@ -35,6 +35,8 @@ impl From<import::ImportError> for ImportCommandError {
             import::ImportError::MissingRequiredMapping(_) => ("MISSING_MAPPING", err.to_string()),
             import::ImportError::InvalidData { row, message } => ("INVALID_DATA", format!("Invalid data at row {}: {}", row, message)),
             import::ImportError::DatabaseError(_) => ("DATABASE_ERROR", "A database error occurred during import.".to_string()),
+            import::ImportError::FhirError(_) => ("FHIR_PARSE_ERROR", err.to_string()),
+            import::ImportError::Hl7Error(_) => ("HL7_PARSE_ERROR", err.to_string()),
         };
         ImportCommandError {
             code: code.to_string(),
@@ -111,6 +113,10 @@ pub fn execute_import(
         // Log the import
         let file_format = if path.ends_with(".xlsx") || path.ends_with(".xls") {
             "xlsx"
+        } else if path.ends_with(".json") || path.ends_with(".ndjson") {
+            "fhir_json"
+        } else if path.ends_with(".hl7") || path.contains("MSH|") {
+            "hl7v2"
         } else {
             "csv"
         };
@@ -143,6 +149,20 @@ fn parse_patients_from_file(file_path: &Path, mapping: &ColumnMapping) -> Result
         let cmd_err = ImportCommandError::from(e);
         serde_json::to_string(&cmd_err).unwrap_or_else(|_| cmd_err.message)
     })?;
+
+    if format_info.format == FileFormat::FhirJson {
+        return import::fhir::parse_fhir_bundle(file_path).map_err(|e| {
+            let cmd_err = ImportCommandError::from(e);
+            serde_json::to_string(&cmd_err).unwrap_or_else(|_| cmd_err.message)
+        });
+    }
+
+    if format_info.format == FileFormat::Hl7v2 {
+        return import::hl7::parse_hl7_file(file_path).map_err(|e| {
+            let cmd_err = ImportCommandError::from(e);
+            serde_json::to_string(&cmd_err).unwrap_or_else(|_| cmd_err.message)
+        });
+    }
 
     if format_info.format == FileFormat::Xlsx {
         // Check if this is a multi-sheet workbook with multiple data sheets

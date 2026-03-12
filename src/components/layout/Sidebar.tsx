@@ -14,6 +14,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { useAppStore } from "@/stores/use-app-store";
+import { useWatcherStore } from "@/stores/use-watcher-store";
 import { Tooltip } from "@/components/ui/Tooltip";
 import type { NavigationPage } from "@/types";
 
@@ -100,6 +101,8 @@ const navItems: { id: NavigationPage; label: string; hint: string; icon: React.R
 export function Sidebar() {
   const currentPage = useAppStore((s) => s.currentPage);
   const setCurrentPage = useAppStore((s) => s.setCurrentPage);
+  const unreadCount = useWatcherStore((s) => s.unreadCount);
+  const markAllRead = useWatcherStore((s) => s.markAllRead);
 
   return (
     <aside className="no-select flex w-[240px] flex-col border-r border-border bg-background">
@@ -128,7 +131,10 @@ export function Sidebar() {
           return (
             <button
               key={item.id}
-              onClick={() => setCurrentPage(item.id)}
+              onClick={() => {
+                setCurrentPage(item.id);
+                if (item.id === "import" && unreadCount > 0) markAllRead();
+              }}
               className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors duration-150 ${!isActive ? "hover:bg-surface-3" : ""}`}
             >
               {isActive && (
@@ -140,6 +146,11 @@ export function Sidebar() {
               )}
               <span className={`relative z-10 ${isActive ? "text-indigo-400" : "text-dim group-hover:text-body"}`}>
                 {item.icon}
+                {item.id === "import" && unreadCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-indigo-500 px-1 text-[9px] font-bold text-white shadow-lg shadow-indigo-500/40">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
               </span>
               <div className="relative z-10 flex-1 min-w-0">
                 <span className={`block text-[13px] font-semibold leading-tight ${isActive ? "text-heading" : "text-dim group-hover:text-body"}`}>

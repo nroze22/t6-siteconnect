@@ -142,14 +142,11 @@
     }
 
     .nav-logo-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 9px;
-      background: linear-gradient(135deg, #4f46e5, #2563eb);
+      width: 36px;
+      height: 36px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 20px rgba(79,70,229,0.3);
     }
 
     .nav-logo-icon svg { width: 18px; height: 18px; }
@@ -300,11 +297,12 @@
     .hero h1 {
       font-size: clamp(48px, 7vw, 80px);
       font-weight: 700;
-      line-height: 1.05;
+      line-height: 1.12;
       letter-spacing: -2.5px;
       max-width: 900px;
       margin-bottom: 24px;
       position: relative;
+      overflow: visible;
     }
 
     .hero h1 .gradient-text {
@@ -2161,6 +2159,640 @@
       .watch-flow { grid-template-columns: repeat(2, 1fr); }
       .watch-step::after { display: none; }
     }
+
+    /* ═══════════════════════════════════════
+       DEMO SLIDESHOW MODAL
+       ═══════════════════════════════════════ */
+    .demo-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .demo-overlay.open {
+      display: flex;
+      opacity: 1;
+    }
+    .demo-overlay.closing {
+      opacity: 0;
+    }
+
+    /* Backdrop with animated blur */
+    .demo-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(4, 6, 12, 0.88);
+      backdrop-filter: blur(24px) saturate(0.8);
+      -webkit-backdrop-filter: blur(24px) saturate(0.8);
+    }
+
+    /* Modal container */
+    .demo-modal {
+      position: relative;
+      width: 92vw;
+      max-width: 1100px;
+      max-height: 88vh;
+      border-radius: 20px;
+      overflow: hidden;
+      background: linear-gradient(165deg, #0f1322 0%, #0a0d16 100%);
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.03),
+        0 40px 100px -20px rgba(0,0,0,0.8),
+        0 0 80px -20px rgba(99,102,241,0.15);
+      transform: scale(0.92) translateY(20px);
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .demo-overlay.open .demo-modal {
+      transform: scale(1) translateY(0);
+    }
+    .demo-overlay.closing .demo-modal {
+      transform: scale(0.95) translateY(10px);
+    }
+
+    /* Top bar with slide counter + close */
+    .demo-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.015);
+    }
+    .demo-topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .demo-topbar-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent-indigo-light);
+    }
+    .demo-topbar-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-indigo);
+      box-shadow: 0 0 8px rgba(99,102,241,0.6);
+      animation: demoPulse 2s ease-in-out infinite;
+    }
+    @keyframes demoPulse {
+      0%, 100% { box-shadow: 0 0 8px rgba(99,102,241,0.6); }
+      50% { box-shadow: 0 0 16px rgba(99,102,241,0.9); }
+    }
+    .demo-slide-counter {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .demo-slide-counter span { color: var(--text-primary); }
+    .demo-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .demo-close:hover {
+      background: rgba(255,255,255,0.06);
+      color: var(--text-primary);
+      border-color: var(--border-light);
+    }
+
+    /* Progress bar */
+    .demo-progress-track {
+      height: 2px;
+      background: rgba(255,255,255,0.04);
+      position: relative;
+      overflow: hidden;
+    }
+    .demo-progress-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-indigo), #a78bfa);
+      border-radius: 0 2px 2px 0;
+      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 0 12px rgba(99,102,241,0.4);
+    }
+
+    /* Slide area */
+    .demo-slides-viewport {
+      position: relative;
+      overflow: hidden;
+      min-height: 480px;
+    }
+    .demo-slide {
+      position: absolute;
+      inset: 0;
+      padding: 48px 56px;
+      display: flex;
+      gap: 48px;
+      align-items: center;
+      opacity: 0;
+      transform: translateX(60px);
+      transition: all 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+    .demo-slide.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+    .demo-slide.exiting-left {
+      opacity: 0;
+      transform: translateX(-60px);
+    }
+    .demo-slide.exiting-right {
+      opacity: 0;
+      transform: translateX(60px);
+    }
+
+    /* Slide content layout */
+    .demo-slide-text {
+      flex: 1;
+      min-width: 0;
+    }
+    .demo-slide-visual {
+      flex: 1.2;
+      min-width: 0;
+    }
+    .demo-slide-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 16px;
+    }
+    .demo-slide-title {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 28px;
+      font-weight: 400;
+      font-style: italic;
+      line-height: 1.2;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+    }
+    .demo-slide-desc {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+    .demo-slide-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .demo-slide-tag {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.3px;
+      background: rgba(255,255,255,0.04);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    /* Slide visual — mock window */
+    .demo-mock-window {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      box-shadow: 0 20px 60px -15px rgba(0,0,0,0.5);
+    }
+    .demo-mock-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid var(--border);
+    }
+    .demo-mock-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .demo-mock-body {
+      padding: 16px;
+    }
+
+    /* Nav arrows */
+    .demo-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px 20px;
+      border-top: 1px solid var(--border);
+      background: rgba(255,255,255,0.01);
+    }
+    .demo-nav-dots {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .demo-nav-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      cursor: pointer;
+      transition: all 0.3s;
+      border: none;
+      padding: 0;
+    }
+    .demo-nav-dot:hover { background: rgba(255,255,255,0.2); }
+    .demo-nav-dot.active {
+      width: 24px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--accent-indigo), #a78bfa);
+      box-shadow: 0 0 10px rgba(99,102,241,0.4);
+    }
+    .demo-nav-arrows {
+      display: flex;
+      gap: 8px;
+    }
+    .demo-arrow {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      border: 1px solid rgba(99,102,241,0.3);
+      background: rgba(99,102,241,0.1);
+      color: #a5b4fc;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .demo-arrow:hover:not(:disabled) {
+      background: rgba(99,102,241,0.2);
+      border-color: rgba(99,102,241,0.5);
+      color: #c7d2fe;
+      box-shadow: 0 0 24px rgba(99,102,241,0.2);
+    }
+    .demo-arrow:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    .demo-arrow-hint {
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.5px;
+    }
+
+    /* Slide-specific visual helpers */
+    .demo-stat-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .demo-stat-box {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+    .demo-stat-box .label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+    .demo-stat-box .value { font-size: 18px; font-weight: 800; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+    .demo-hl-line {
+      padding: 5px 10px;
+      border-radius: 5px;
+      margin-bottom: 4px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      border-left: 3px solid;
+    }
+    .demo-bar-track {
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.04);
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .demo-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @media (max-width: 768px) {
+      .demo-slide {
+        flex-direction: column;
+        padding: 28px 24px;
+        gap: 24px;
+      }
+      .demo-slide-title { font-size: 22px; }
+      .demo-slides-viewport { min-height: 600px; }
+      .demo-modal { max-width: 96vw; }
+    }
+
+    /* ═══════════════════════════════════════
+       SCHEDULE DEMO MODAL
+       ═══════════════════════════════════════ */
+    .sched-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100001;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sched-overlay.open { display: flex; opacity: 1; }
+    .sched-overlay.closing { opacity: 0; }
+
+    .sched-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(4, 6, 12, 0.9);
+      backdrop-filter: blur(20px) saturate(0.8);
+      -webkit-backdrop-filter: blur(20px) saturate(0.8);
+    }
+
+    .sched-modal {
+      position: relative;
+      width: 520px;
+      max-width: 94vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      border-radius: 20px;
+      background: linear-gradient(170deg, #111827 0%, #0a0d16 100%);
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.03),
+        0 40px 100px -20px rgba(0,0,0,0.8),
+        0 0 60px -20px rgba(99,102,241,0.12);
+      transform: scale(0.93) translateY(16px);
+      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sched-overlay.open .sched-modal { transform: scale(1) translateY(0); }
+    .sched-overlay.closing .sched-modal { transform: scale(0.96) translateY(8px); }
+
+    .sched-header {
+      padding: 28px 32px 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+    .sched-header-text h3 {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 24px;
+      font-weight: 400;
+      font-style: italic;
+      color: var(--text-primary);
+      margin: 0;
+    }
+    .sched-header-text p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+    .sched-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .sched-close:hover { background: rgba(255,255,255,0.06); color: var(--text-primary); }
+
+    .sched-form {
+      padding: 24px 32px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .sched-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sched-field label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+    }
+    .sched-field label .req {
+      color: rgba(239,68,68,0.7);
+      margin-left: 2px;
+    }
+    .sched-input {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text-primary);
+      font-family: 'Instrument Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .sched-input::placeholder { color: var(--text-muted); }
+    .sched-input:focus {
+      border-color: rgba(99,102,241,0.5);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+      background: rgba(255,255,255,0.04);
+    }
+    .sched-input.error {
+      border-color: rgba(239,68,68,0.5);
+      box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
+    }
+    textarea.sched-input {
+      resize: vertical;
+      min-height: 80px;
+    }
+    select.sched-input {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234a5568' stroke-width='2.5' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+    .sched-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .sched-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0;
+    }
+
+    .sched-submit {
+      width: 100%;
+      padding: 13px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent-indigo), #7c3aed);
+      color: white;
+      font-family: 'Instrument Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+    .sched-submit:hover {
+      box-shadow: 0 0 30px rgba(99,102,241,0.3);
+      transform: translateY(-1px);
+    }
+    .sched-submit:active { transform: translateY(0); }
+    .sched-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .sched-submit .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .sched-footer-note {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* Confirmation state */
+    .sched-confirm {
+      padding: 48px 32px;
+      text-align: center;
+      display: none;
+    }
+    .sched-confirm.visible { display: block; }
+    .sched-confirm-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(16,185,129,0.1);
+      border: 1px solid rgba(16,185,129,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      animation: confirmPop 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes confirmPop {
+      0% { transform: scale(0.5); opacity: 0; }
+      60% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .sched-confirm h3 {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 22px;
+      font-style: italic;
+      font-weight: 400;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+    .sched-confirm p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+    .sched-confirm-details {
+      margin: 24px auto;
+      max-width: 320px;
+      padding: 16px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      text-align: left;
+      font-size: 12px;
+    }
+    .sched-confirm-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+    }
+    .sched-confirm-row .label { color: var(--text-muted); }
+    .sched-confirm-row .value { color: var(--text-primary); font-weight: 600; }
+    .sched-confirm-close {
+      margin-top: 24px;
+      padding: 11px 32px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text-primary);
+      font-family: 'Instrument Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sched-confirm-close:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: var(--border-light);
+    }
+
+    @media (max-width: 520px) {
+      .sched-row { grid-template-columns: 1fr; }
+      .sched-header, .sched-form { padding-left: 20px; padding-right: 20px; }
+    }
   </style>
 </head>
 <body>
@@ -2197,9 +2829,9 @@
 <nav>
   <div class="nav-logo">
     <div class="nav-logo-icon">
-      <img src="t6logo.png" alt="TalOS" style="width:20px;height:20px;object-fit:contain">
+      <img src="t6logo.png" alt="TalOS" style="width:34px;height:34px;object-fit:contain">
     </div>
-    <span>TalOS SiteConnect</span>
+    <span style="display:inline-flex;align-items:baseline;gap:0"><span style="font-weight:800;letter-spacing:-0.5px;background:linear-gradient(135deg,#c7d2fe,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">TalOS</span><span style="font-weight:400;color:var(--text-secondary);margin-left:6px;letter-spacing:0">SiteConnect</span></span>
   </div>
 
   <div class="nav-links">
@@ -2212,7 +2844,6 @@
   </div>
 
   <div class="nav-cta">
-    <button class="btn-ghost">Log in</button>
     <button class="btn-primary">Request Access</button>
   </div>
 </nav>
@@ -2802,7 +3433,7 @@
         </div>
         <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:7px;background:rgba(255,255,255,0.02);border:1px solid var(--border)">
           <div style="width:5px;height:5px;border-radius:50%;background:#10b981;box-shadow:0 0 6px rgba(16,185,129,0.5)"></div>
-          <span style="font-size:10px;color:var(--text-secondary)">BioMistral-7B runs 100% on your device via llama.cpp — zero API calls</span>
+          <span style="font-size:10px;color:var(--text-secondary)">Runs 100% on your device via Ollama — Gemma 3 1B, BioMistral-7B, Llama 3, or any GGUF model. Zero API calls.</span>
         </div>
       </div>
     </div>
@@ -3164,7 +3795,7 @@
     <div class="security-card">
       <div class="security-card-icon">🧬</div>
       <h4>On-Device AI</h4>
-      <p>BioMistral-7B runs locally via llama.cpp. No patient data is ever sent to an API. Clinical reasoning stays on your device.</p>
+      <p>Powered by Ollama with your choice of model — Gemma 3 1B, BioMistral-7B, Llama 3, Mistral, or any compatible model. All inference runs locally. Zero API calls.</p>
     </div>
     <div class="security-card">
       <div class="security-card-icon">🏥</div>
@@ -3411,8 +4042,8 @@
     </div>
     <div style="padding:20px;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);text-align:center">
       <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">AI Engine</div>
-      <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:4px">BioMistral-7B</div>
-      <div style="font-size:11px;color:var(--text-secondary)">via llama.cpp sidecar</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:4px">Ollama</div>
+      <div style="font-size:11px;color:var(--text-secondary)">Gemma 3, BioMistral, Llama 3</div>
     </div>
     <div style="padding:20px;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);text-align:center">
       <div style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Database</div>
@@ -3605,7 +4236,7 @@
       const rect = btn.getBoundingClientRect();
       const x = e.clientX - rect.left - rect.width / 2;
       const y = e.clientY - rect.top - rect.height / 2;
-      btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
+      btn.style.transform = `translate(${x * 0.04}px, ${y * 0.04}px)`;
     });
     btn.addEventListener('mouseleave', () => {
       btn.style.transform = '';
@@ -3717,6 +4348,745 @@
       }
     });
   })();
+</script>
+
+<!-- ══════════════════════════════════════════════
+     DEMO SLIDESHOW MODAL
+     ══════════════════════════════════════════════ -->
+<div class="demo-overlay" id="demoOverlay">
+  <div class="demo-backdrop" id="demoBackdrop"></div>
+  <div class="demo-modal">
+    <!-- Top bar -->
+    <div class="demo-topbar">
+      <div class="demo-topbar-left">
+        <div class="demo-topbar-badge">Product Tour</div>
+        <div class="demo-slide-counter"><span id="demoCurrent">1</span> / <span id="demoTotal">6</span></div>
+      </div>
+      <button class="demo-close" id="demoClose" aria-label="Close demo">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="demo-progress-track">
+      <div class="demo-progress-fill" id="demoProgress" style="width:16.66%"></div>
+    </div>
+
+    <!-- Slides viewport -->
+    <div class="demo-slides-viewport" id="demoViewport">
+
+      <!-- SLIDE 1: Import Any Format -->
+      <div class="demo-slide active" data-slide="0">
+        <div class="demo-slide-text">
+          <div class="demo-slide-number" style="background:rgba(59,130,246,0.1);color:#60a5fa;border:1px solid rgba(59,130,246,0.15)">01</div>
+          <div class="demo-slide-title">Import from any EMR<br>in seconds</div>
+          <div class="demo-slide-desc">Drop a file — CSV, Excel, FHIR R4 Bundle, or HL7 v2 messages — and SiteConnect auto-detects the format, maps columns to clinical fields, and previews everything before import.</div>
+          <div class="demo-slide-tags">
+            <span class="demo-slide-tag" style="background:rgba(59,130,246,0.08);color:#60a5fa;border-color:rgba(59,130,246,0.15)">CSV / TSV</span>
+            <span class="demo-slide-tag" style="background:rgba(16,185,129,0.08);color:#34d399;border-color:rgba(16,185,129,0.15)">Excel</span>
+            <span class="demo-slide-tag" style="background:rgba(139,92,246,0.08);color:#a78bfa;border-color:rgba(139,92,246,0.15)">FHIR R4</span>
+            <span class="demo-slide-tag" style="background:rgba(245,158,11,0.08);color:#fbbf24;border-color:rgba(245,158,11,0.15)">HL7 v2</span>
+            <span class="demo-slide-tag" style="background:rgba(236,72,153,0.08);color:#f472b6;border-color:rgba(236,72,153,0.15)">Clinical Notes</span>
+          </div>
+        </div>
+        <div class="demo-slide-visual">
+          <div class="demo-mock-window">
+            <div class="demo-mock-titlebar">
+              <div class="demo-mock-dot" style="background:#ef4444"></div>
+              <div class="demo-mock-dot" style="background:#f59e0b"></div>
+              <div class="demo-mock-dot" style="background:#22c55e"></div>
+              <span style="margin-left:8px;font-size:10px;color:var(--text-muted)">Import Data</span>
+            </div>
+            <div class="demo-mock-body" style="padding:20px">
+              <div style="text-align:center;padding:24px;border:2px dashed rgba(99,102,241,0.25);border-radius:12px;background:rgba(99,102,241,0.03)">
+                <div style="width:40px;height:40px;margin:0 auto 12px;border-radius:12px;background:rgba(99,102,241,0.1);display:flex;align-items:center;justify-content:center">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <div style="font-size:12px;font-weight:700;color:var(--text-primary)">Drop your EMR export file here</div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Auto-detects format, maps columns, deduplicates records</div>
+              </div>
+              <div style="margin-top:14px;display:flex;gap:8px">
+                <div style="flex:1;padding:8px 10px;border-radius:8px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.1);text-align:center">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" style="margin:0 auto 4px;display:block"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  <div style="font-size:9px;font-weight:700;color:#60a5fa">CSV / TSV</div>
+                </div>
+                <div style="flex:1;padding:8px 10px;border-radius:8px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.1);text-align:center">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" style="margin:0 auto 4px;display:block"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  <div style="font-size:9px;font-weight:700;color:#34d399">Excel</div>
+                </div>
+                <div style="flex:1;padding:8px 10px;border-radius:8px;background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.1);text-align:center">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" style="margin:0 auto 4px;display:block"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  <div style="font-size:9px;font-weight:700;color:#a78bfa">FHIR R4</div>
+                </div>
+                <div style="flex:1;padding:8px 10px;border-radius:8px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.1);text-align:center">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" style="margin:0 auto 4px;display:block"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                  <div style="font-size:9px;font-weight:700;color:#fbbf24">HL7 v2</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 2: AI Note Extraction -->
+      <div class="demo-slide" data-slide="1">
+        <div class="demo-slide-text">
+          <div class="demo-slide-number" style="background:rgba(236,72,153,0.1);color:#f472b6;border:1px solid rgba(236,72,153,0.15)">02</div>
+          <div class="demo-slide-title">AI reads clinical notes<br>like a coordinator</div>
+          <div class="demo-slide-desc">Paste a progress note, drop a PDF, or import a Word doc. The on-device AI extracts diagnoses, medications, labs, and demographics — with color-coded evidence linking back to the source text.</div>
+          <div class="demo-slide-tags">
+            <span class="demo-slide-tag" style="background:rgba(236,72,153,0.08);color:#f472b6;border-color:rgba(236,72,153,0.15)">PDF / DOCX</span>
+            <span class="demo-slide-tag" style="background:rgba(236,72,153,0.08);color:#f472b6;border-color:rgba(236,72,153,0.15)">Clinical Notes</span>
+            <span class="demo-slide-tag" style="background:rgba(139,92,246,0.08);color:#a78bfa;border-color:rgba(139,92,246,0.15)">On-Device AI</span>
+            <span class="demo-slide-tag" style="background:rgba(16,185,129,0.08);color:#34d399;border-color:rgba(16,185,129,0.15)">Evidence Highlighting</span>
+          </div>
+        </div>
+        <div class="demo-slide-visual">
+          <div class="demo-mock-window">
+            <div class="demo-mock-titlebar">
+              <div class="demo-mock-dot" style="background:#ef4444"></div>
+              <div class="demo-mock-dot" style="background:#f59e0b"></div>
+              <div class="demo-mock-dot" style="background:#22c55e"></div>
+              <span style="margin-left:8px;font-size:10px;color:var(--text-muted)">AI Extraction</span>
+            </div>
+            <div class="demo-mock-body" style="padding:14px;font-size:11px;line-height:1.7;color:var(--text-secondary)">
+              <div style="margin-bottom:10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-muted)">Source Note</div>
+              <span>Pt is a </span><span style="background:rgba(59,130,246,0.15);color:#93c5fd;padding:1px 4px;border-radius:3px;border-bottom:2px solid rgba(59,130,246,0.4)">62-year-old female</span><span> with hx of </span><span style="background:rgba(239,68,68,0.15);color:#fca5a5;padding:1px 4px;border-radius:3px;border-bottom:2px solid rgba(239,68,68,0.4)">stage IIIA NSCLC</span><span> dx </span><span style="background:rgba(245,158,11,0.15);color:#fcd34d;padding:1px 4px;border-radius:3px;border-bottom:2px solid rgba(245,158,11,0.4)">2024-01-15</span><span>. On </span><span style="background:rgba(16,185,129,0.15);color:#6ee7b7;padding:1px 4px;border-radius:3px;border-bottom:2px solid rgba(16,185,129,0.4)">pembrolizumab 200mg</span><span> + </span><span style="background:rgba(16,185,129,0.15);color:#6ee7b7;padding:1px 4px;border-radius:3px;border-bottom:2px solid rgba(16,185,129,0.4)">carboplatin AUC 5</span><span>. Labs: </span><span style="background:rgba(139,92,246,0.15);color:#c4b5fd;padding:1px 4px;border-radius:3px;border-bottom:2px solid rgba(139,92,246,0.4)">eGFR 72</span><span>, </span><span style="background:rgba(139,92,246,0.15);color:#c4b5fd;padding:1px 4px;border-radius:3px;border-bottom:2px solid rgba(139,92,246,0.4)">ANC 3.2</span><span>.</span>
+              <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#34d399;margin-bottom:8px">Extracted Fields</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:10px">
+                  <div style="padding:4px 8px;border-radius:4px;background:rgba(59,130,246,0.06)"><span style="color:var(--text-muted)">Age/Sex:</span> <span style="color:#93c5fd">62F</span></div>
+                  <div style="padding:4px 8px;border-radius:4px;background:rgba(239,68,68,0.06)"><span style="color:var(--text-muted)">Dx:</span> <span style="color:#fca5a5">C34.90 NSCLC</span></div>
+                  <div style="padding:4px 8px;border-radius:4px;background:rgba(16,185,129,0.06)"><span style="color:var(--text-muted)">Meds:</span> <span style="color:#6ee7b7">Pembro, Carbo</span></div>
+                  <div style="padding:4px 8px;border-radius:4px;background:rgba(139,92,246,0.06)"><span style="color:var(--text-muted)">Labs:</span> <span style="color:#c4b5fd">eGFR 72, ANC 3.2</span></div>
+                </div>
+                <div style="margin-top:8px;display:flex;align-items:center;gap:6px;font-size:9px;color:#34d399;font-weight:600">
+                  <div style="width:5px;height:5px;border-radius:50%;background:#10b981;box-shadow:0 0 6px rgba(16,185,129,0.5)"></div>
+                  Completeness: 94% · 6 fields · 0 conflicts
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 3: Three-Panel Screening -->
+      <div class="demo-slide" data-slide="2">
+        <div class="demo-slide-text">
+          <div class="demo-slide-number" style="background:rgba(99,102,241,0.1);color:#818cf8;border:1px solid rgba(99,102,241,0.15)">03</div>
+          <div class="demo-slide-title">Three-panel screening<br>with evidence links</div>
+          <div class="demo-slide-desc">Patient rank list on the left. Criterion-by-criterion breakdown in the center. Source data on the right with interactive highlighting — click any criterion to see exactly which data point matched.</div>
+          <div class="demo-slide-tags">
+            <span class="demo-slide-tag" style="background:rgba(99,102,241,0.08);color:#818cf8;border-color:rgba(99,102,241,0.15)">Rule-Based + LLM</span>
+            <span class="demo-slide-tag" style="background:rgba(16,185,129,0.08);color:#34d399;border-color:rgba(16,185,129,0.15)">Evidence Linking</span>
+            <span class="demo-slide-tag" style="background:rgba(245,158,11,0.08);color:#fbbf24;border-color:rgba(245,158,11,0.15)">Confidence Scores</span>
+          </div>
+        </div>
+        <div class="demo-slide-visual">
+          <div class="demo-mock-window">
+            <div class="demo-mock-titlebar">
+              <div class="demo-mock-dot" style="background:#ef4444"></div>
+              <div class="demo-mock-dot" style="background:#f59e0b"></div>
+              <div class="demo-mock-dot" style="background:#22c55e"></div>
+              <span style="margin-left:8px;font-size:10px;color:var(--text-muted)">Patient Screening — KEYNOTE-789</span>
+            </div>
+            <div class="demo-mock-body" style="padding:0;display:flex;min-height:200px">
+              <!-- Panel 1: Patient list -->
+              <div style="width:28%;border-right:1px solid var(--border);padding:10px;font-size:9px">
+                <div style="font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;font-size:8px">Subjects</div>
+                <div style="padding:6px 8px;border-radius:6px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.15);margin-bottom:4px;display:flex;align-items:center;gap:6px">
+                  <div style="width:5px;height:5px;border-radius:50%;background:#10b981"></div>
+                  <div><div style="font-weight:700;color:var(--text-primary)">PAT-001</div><div style="color:var(--text-muted);font-size:8px">62F · NSCLC</div></div>
+                  <span style="margin-left:auto;font-weight:800;color:#34d399;font-family:'JetBrains Mono',monospace">92</span>
+                </div>
+                <div style="padding:6px 8px;border-radius:6px;margin-bottom:4px;display:flex;align-items:center;gap:6px">
+                  <div style="width:5px;height:5px;border-radius:50%;background:#10b981"></div>
+                  <div><div style="font-weight:700;color:var(--text-primary)">PAT-004</div><div style="color:var(--text-muted);font-size:8px">58M · NSCLC</div></div>
+                  <span style="margin-left:auto;font-weight:800;color:#34d399;font-family:'JetBrains Mono',monospace">88</span>
+                </div>
+                <div style="padding:6px 8px;border-radius:6px;margin-bottom:4px;display:flex;align-items:center;gap:6px">
+                  <div style="width:5px;height:5px;border-radius:50%;background:#f59e0b"></div>
+                  <div><div style="font-weight:700;color:var(--text-primary)">PAT-015</div><div style="color:var(--text-muted);font-size:8px">71M · NSCLC</div></div>
+                  <span style="margin-left:auto;font-weight:800;color:#fbbf24;font-family:'JetBrains Mono',monospace">74</span>
+                </div>
+              </div>
+              <!-- Panel 2: Criteria -->
+              <div style="flex:1;padding:10px;font-size:9px">
+                <div style="font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;font-size:8px">Criteria Match</div>
+                <div class="demo-hl-line" style="background:rgba(16,185,129,0.06);border-color:#10b981;color:#6ee7b7">Confirmed NSCLC diagnosis</div>
+                <div class="demo-hl-line" style="background:rgba(16,185,129,0.06);border-color:#10b981;color:#6ee7b7">Age ≥ 18 years</div>
+                <div class="demo-hl-line" style="background:rgba(16,185,129,0.06);border-color:#10b981;color:#6ee7b7">ECOG PS 0-1</div>
+                <div class="demo-hl-line" style="background:rgba(245,158,11,0.06);border-color:#f59e0b;color:#fcd34d">eGFR ≥ 60 mL/min — 72 ✓</div>
+                <div class="demo-hl-line" style="background:rgba(16,185,129,0.06);border-color:#10b981;color:#6ee7b7">No autoimmune disease</div>
+              </div>
+              <!-- Panel 3: Source -->
+              <div style="width:30%;border-left:1px solid var(--border);padding:10px;font-size:9px">
+                <div style="font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;font-size:8px">Source Data</div>
+                <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03)"><span style="color:var(--text-muted)">ICD-10</span><span style="color:#6ee7b7;font-family:'JetBrains Mono',monospace">C34.90</span></div>
+                <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03)"><span style="color:var(--text-muted)">Age</span><span style="color:var(--text-primary);font-family:'JetBrains Mono',monospace">62</span></div>
+                <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03)"><span style="color:var(--text-muted)">ECOG</span><span style="color:var(--text-primary);font-family:'JetBrains Mono',monospace">1</span></div>
+                <div style="display:flex;justify-content:space-between;padding:3px 0;background:rgba(245,158,11,0.06);border-radius:3px;padding:3px 6px"><span style="color:#fcd34d">eGFR</span><span style="color:#fcd34d;font-family:'JetBrains Mono',monospace">72 mL/min</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 4: Watch Folder -->
+      <div class="demo-slide" data-slide="3">
+        <div class="demo-slide-text">
+          <div class="demo-slide-number" style="background:rgba(16,185,129,0.1);color:#34d399;border:1px solid rgba(16,185,129,0.15)">04</div>
+          <div class="demo-slide-title">Watch folder<br>auto-imports new files</div>
+          <div class="demo-slide-desc">Point SiteConnect at your EMR export directory. New files are detected instantly, format is identified automatically, and you get a toast notification with a one-click import button. Duplicate files are caught by SHA-256 hash.</div>
+          <div class="demo-slide-tags">
+            <span class="demo-slide-tag" style="background:rgba(16,185,129,0.08);color:#34d399;border-color:rgba(16,185,129,0.15)">Auto-Detection</span>
+            <span class="demo-slide-tag" style="background:rgba(245,158,11,0.08);color:#fbbf24;border-color:rgba(245,158,11,0.15)">Toast Actions</span>
+            <span class="demo-slide-tag" style="background:rgba(99,102,241,0.08);color:#818cf8;border-color:rgba(99,102,241,0.15)">Deduplication</span>
+          </div>
+        </div>
+        <div class="demo-slide-visual">
+          <div class="demo-mock-window">
+            <div class="demo-mock-titlebar">
+              <div class="demo-mock-dot" style="background:#ef4444"></div>
+              <div class="demo-mock-dot" style="background:#f59e0b"></div>
+              <div class="demo-mock-dot" style="background:#22c55e"></div>
+              <span style="margin-left:8px;font-size:10px;color:var(--text-muted)">Settings — Watch Folder</span>
+            </div>
+            <div class="demo-mock-body" style="padding:16px">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+                <div style="width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,0.1);display:flex;align-items:center;justify-content:center">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <div>
+                  <div style="font-size:11px;font-weight:700;color:var(--text-primary)">/Users/site/emr-exports</div>
+                  <div style="font-size:9px;color:#34d399;font-weight:600;display:flex;align-items:center;gap:4px"><div style="width:5px;height:5px;border-radius:50%;background:#10b981;box-shadow:0 0 6px rgba(16,185,129,0.5)"></div> Watching · 3 files imported today</div>
+                </div>
+              </div>
+              <!-- Toast mockup -->
+              <div style="margin-top:12px;padding:12px 16px;border-radius:10px;background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.15);display:flex;align-items:center;gap:12px;animation:slideInToast 0.4s ease-out">
+                <div style="width:28px;height:28px;border-radius:8px;background:rgba(59,130,246,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:11px;font-weight:700;color:var(--text-primary)">patient_export_03-12.csv</div>
+                  <div style="font-size:9px;color:var(--text-muted)">245 KB · CSV detected · Just now</div>
+                </div>
+                <div style="padding:5px 12px;border-radius:6px;background:var(--accent-indigo);color:white;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">Import</div>
+              </div>
+              <div style="margin-top:8px;padding:12px 16px;border-radius:10px;background:rgba(245,158,11,0.04);border:1px solid rgba(245,158,11,0.12);display:flex;align-items:center;gap:12px;opacity:0.6">
+                <div style="width:28px;height:28px;border-radius:8px;background:rgba(245,158,11,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:11px;font-weight:700;color:#fbbf24">Duplicate detected</div>
+                  <div style="font-size:9px;color:var(--text-muted)">labs_feb.csv · Imported on Feb 28</div>
+                </div>
+                <div style="padding:5px 12px;border-radius:6px;background:rgba(245,158,11,0.15);color:#fbbf24;font-size:10px;font-weight:700;white-space:nowrap">Skip</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 5: Analytics & Financial -->
+      <div class="demo-slide" data-slide="4">
+        <div class="demo-slide-text">
+          <div class="demo-slide-number" style="background:rgba(245,158,11,0.1);color:#fbbf24;border:1px solid rgba(245,158,11,0.15)">05</div>
+          <div class="demo-slide-title">Financial intelligence<br>nobody else shows</div>
+          <div class="demo-slide-desc">Per-patient revenue modeling with 18 therapeutic archetypes. Monte Carlo enrollment forecasting with P10–P90 bands. Know what every trial is worth before you commit a single coordinator hour.</div>
+          <div class="demo-slide-tags">
+            <span class="demo-slide-tag" style="background:rgba(245,158,11,0.08);color:#fbbf24;border-color:rgba(245,158,11,0.15)">Revenue Modeling</span>
+            <span class="demo-slide-tag" style="background:rgba(6,182,212,0.08);color:#22d3ee;border-color:rgba(6,182,212,0.15)">Monte Carlo</span>
+            <span class="demo-slide-tag" style="background:rgba(16,185,129,0.08);color:#34d399;border-color:rgba(16,185,129,0.15)">Site Fit Scoring</span>
+          </div>
+        </div>
+        <div class="demo-slide-visual">
+          <div class="demo-mock-window">
+            <div class="demo-mock-titlebar">
+              <div class="demo-mock-dot" style="background:#ef4444"></div>
+              <div class="demo-mock-dot" style="background:#f59e0b"></div>
+              <div class="demo-mock-dot" style="background:#22c55e"></div>
+              <span style="margin-left:8px;font-size:10px;color:var(--text-muted)">Financial Intelligence</span>
+            </div>
+            <div class="demo-mock-body" style="padding:14px">
+              <div class="demo-stat-row">
+                <div class="demo-stat-box">
+                  <div class="label">Per-Patient Revenue</div>
+                  <div class="value" style="color:#34d399">$47,200</div>
+                </div>
+                <div class="demo-stat-box">
+                  <div class="label">Enrollment Target</div>
+                  <div class="value" style="color:#818cf8">24 pts</div>
+                </div>
+                <div class="demo-stat-box">
+                  <div class="label">Projected Revenue</div>
+                  <div class="value" style="color:#fbbf24">$1.13M</div>
+                </div>
+              </div>
+              <div style="margin-top:10px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid var(--border)">
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:8px">Site Fit Score</div>
+                <div class="demo-bar-track"><div class="demo-bar-fill" style="width:87%;background:linear-gradient(90deg,#10b981,#34d399)"></div></div>
+                <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:9px"><span style="color:var(--text-muted)">Patient pool, capabilities, therapeutic match</span><span style="color:#34d399;font-weight:800">87%</span></div>
+              </div>
+              <div style="margin-top:10px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid var(--border)">
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:6px">P50 Enrollment Forecast</div>
+                <div style="display:flex;gap:4px;align-items:flex-end;height:40px">
+                  <div style="flex:1;background:rgba(99,102,241,0.15);border-radius:2px 2px 0 0;height:20%"></div>
+                  <div style="flex:1;background:rgba(99,102,241,0.2);border-radius:2px 2px 0 0;height:35%"></div>
+                  <div style="flex:1;background:rgba(99,102,241,0.3);border-radius:2px 2px 0 0;height:55%"></div>
+                  <div style="flex:1;background:rgba(99,102,241,0.4);border-radius:2px 2px 0 0;height:70%"></div>
+                  <div style="flex:1;background:rgba(99,102,241,0.5);border-radius:2px 2px 0 0;height:80%"></div>
+                  <div style="flex:1;background:rgba(99,102,241,0.6);border-radius:2px 2px 0 0;height:90%"></div>
+                  <div style="flex:1;background:var(--accent-indigo);border-radius:2px 2px 0 0;height:95%"></div>
+                  <div style="flex:1;background:var(--accent-indigo);border-radius:2px 2px 0 0;height:100%"></div>
+                  <div style="flex:1;background:rgba(99,102,241,0.6);border-radius:2px 2px 0 0;height:95%"></div>
+                  <div style="flex:1;background:rgba(99,102,241,0.4);border-radius:2px 2px 0 0;height:80%"></div>
+                  <div style="flex:1;background:rgba(99,102,241,0.25);border-radius:2px 2px 0 0;height:55%"></div>
+                  <div style="flex:1;background:rgba(99,102,241,0.15);border-radius:2px 2px 0 0;height:30%"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:8px;color:var(--text-muted)"><span>P10: 18 pts</span><span style="color:#818cf8;font-weight:700">P50: 24 pts</span><span>P90: 31 pts</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 6: Security & AI Setup -->
+      <div class="demo-slide" data-slide="5">
+        <div class="demo-slide-text">
+          <div class="demo-slide-number" style="background:rgba(16,185,129,0.1);color:#34d399;border:1px solid rgba(16,185,129,0.15)">06</div>
+          <div class="demo-slide-title">Enterprise security.<br>One-click AI setup.</div>
+          <div class="demo-slide-desc">AES-256 encryption, HMAC audit chains, 21 CFR Part 11 alignment — all baked in. Setting up the AI is a single click: install Ollama, pick a model, and you're screening with on-device intelligence in under 5 minutes.</div>
+          <div class="demo-slide-tags">
+            <span class="demo-slide-tag" style="background:rgba(16,185,129,0.08);color:#34d399;border-color:rgba(16,185,129,0.15)">AES-256</span>
+            <span class="demo-slide-tag" style="background:rgba(16,185,129,0.08);color:#34d399;border-color:rgba(16,185,129,0.15)">HIPAA-Ready</span>
+            <span class="demo-slide-tag" style="background:rgba(99,102,241,0.08);color:#818cf8;border-color:rgba(99,102,241,0.15)">One-Click Ollama</span>
+            <span class="demo-slide-tag" style="background:rgba(245,158,11,0.08);color:#fbbf24;border-color:rgba(245,158,11,0.15)">21 CFR Part 11</span>
+          </div>
+        </div>
+        <div class="demo-slide-visual">
+          <div class="demo-mock-window">
+            <div class="demo-mock-titlebar">
+              <div class="demo-mock-dot" style="background:#ef4444"></div>
+              <div class="demo-mock-dot" style="background:#f59e0b"></div>
+              <div class="demo-mock-dot" style="background:#22c55e"></div>
+              <span style="margin-left:8px;font-size:10px;color:var(--text-muted)">Settings — AI & Security</span>
+            </div>
+            <div class="demo-mock-body" style="padding:16px">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="padding:12px;border-radius:10px;background:rgba(16,185,129,0.04);border:1px solid rgba(16,185,129,0.12);display:flex;align-items:center;gap:12px">
+                  <div style="width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,0.12);display:flex;align-items:center;justify-content:center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  </div>
+                  <div style="flex:1">
+                    <div style="font-size:11px;font-weight:700;color:#34d399">Database Encrypted</div>
+                    <div style="font-size:9px;color:var(--text-muted)">SQLCipher AES-256 · HMAC audit chain intact</div>
+                  </div>
+                  <div style="width:5px;height:5px;border-radius:50%;background:#10b981;box-shadow:0 0 6px rgba(16,185,129,0.5)"></div>
+                </div>
+                <div style="padding:12px;border-radius:10px;background:rgba(99,102,241,0.04);border:1px solid rgba(99,102,241,0.12);display:flex;align-items:center;gap:12px">
+                  <div style="width:32px;height:32px;border-radius:8px;background:rgba(99,102,241,0.12);display:flex;align-items:center;justify-content:center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><path d="M12 2a4 4 0 0 0-4 4c0 2 2 3 2 6h4c0-3 2-4 2-6a4 4 0 0 0-4-4z"/><line x1="10" y1="22" x2="14" y2="22"/><line x1="9" y1="16" x2="15" y2="16"/><line x1="9" y1="19" x2="15" y2="19"/></svg>
+                  </div>
+                  <div style="flex:1">
+                    <div style="font-size:11px;font-weight:700;color:#818cf8">Ollama Connected</div>
+                    <div style="font-size:9px;color:var(--text-muted)">gemma3:1b · 100% on-device · 2.3s avg response</div>
+                  </div>
+                  <div style="width:5px;height:5px;border-radius:50%;background:#818cf8;box-shadow:0 0 6px rgba(99,102,241,0.5)"></div>
+                </div>
+                <div style="padding:12px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid var(--border);display:flex;align-items:center;gap:12px">
+                  <div style="width:32px;height:32px;border-radius:8px;background:rgba(245,158,11,0.1);display:flex;align-items:center;justify-content:center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  </div>
+                  <div style="flex:1">
+                    <div style="font-size:11px;font-weight:700;color:var(--text-primary)">Session Security</div>
+                    <div style="font-size:9px;color:var(--text-muted)">30min timeout · Screen lock on idle · Audit logging active</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Navigation -->
+    <div class="demo-nav">
+      <div class="demo-nav-arrows">
+        <button class="demo-arrow" id="demoPrev" disabled aria-label="Previous slide">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span class="demo-arrow-hint">← →</span>
+        <button class="demo-arrow" id="demoNext" aria-label="Next slide">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+      <div class="demo-nav-dots" id="demoDots"></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="demo-arrow-hint">ESC to close</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// DEMO SLIDESHOW CONTROLLER
+// ═══════════════════════════════════════
+(function() {
+  const overlay = document.getElementById('demoOverlay');
+  const backdrop = document.getElementById('demoBackdrop');
+  const closeBtn = document.getElementById('demoClose');
+  const prevBtn = document.getElementById('demoPrev');
+  const nextBtn = document.getElementById('demoNext');
+  const currentEl = document.getElementById('demoCurrent');
+  const progressEl = document.getElementById('demoProgress');
+  const dotsContainer = document.getElementById('demoDots');
+  const slides = overlay.querySelectorAll('.demo-slide');
+  const total = slides.length;
+  let current = 0;
+
+  // Build dot navigation
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('button');
+    dot.className = 'demo-nav-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+    dot.addEventListener('click', () => goTo(i));
+    dotsContainer.appendChild(dot);
+  }
+
+  function updateUI() {
+    currentEl.textContent = current + 1;
+    progressEl.style.width = ((current + 1) / total * 100) + '%';
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === total - 1;
+    dotsContainer.querySelectorAll('.demo-nav-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+    });
+  }
+
+  function goTo(idx, direction) {
+    if (idx === current || idx < 0 || idx >= total) return;
+    const dir = direction || (idx > current ? 'left' : 'right');
+    const outClass = dir === 'left' ? 'exiting-left' : 'exiting-right';
+    // Exit current
+    slides[current].classList.add(outClass);
+    slides[current].classList.remove('active');
+    setTimeout(() => { slides[current === idx ? 0 : current].classList.remove(outClass); }, 550);
+
+    // Store old index for cleanup
+    const old = current;
+    current = idx;
+
+    // Enter new
+    slides[current].style.transform = dir === 'left' ? 'translateX(60px)' : 'translateX(-60px)';
+    slides[current].style.opacity = '0';
+    slides[current].classList.add('active');
+    // Force reflow
+    void slides[current].offsetWidth;
+    slides[current].style.transform = '';
+    slides[current].style.opacity = '';
+
+    // Clean up old slide
+    setTimeout(() => {
+      slides[old].classList.remove('exiting-left', 'exiting-right');
+    }, 600);
+
+    updateUI();
+  }
+
+  function open() {
+    current = 0;
+    slides.forEach((s, i) => {
+      s.classList.remove('active', 'exiting-left', 'exiting-right');
+      s.style.transform = '';
+      s.style.opacity = '';
+      if (i === 0) s.classList.add('active');
+    });
+    updateUI();
+    overlay.style.display = 'flex';
+    // Force reflow before adding open class for transition
+    void overlay.offsetWidth;
+    overlay.classList.add('open');
+    overlay.classList.remove('closing');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function close() {
+    overlay.classList.add('closing');
+    overlay.classList.remove('open');
+    setTimeout(() => {
+      overlay.style.display = 'none';
+      overlay.classList.remove('closing');
+      document.body.style.overflow = '';
+    }, 400);
+  }
+
+  // Wire up buttons
+  prevBtn.addEventListener('click', () => goTo(current - 1, 'right'));
+  nextBtn.addEventListener('click', () => goTo(current + 1, 'left'));
+  closeBtn.addEventListener('click', close);
+  backdrop.addEventListener('click', close);
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (overlay.style.display !== 'flex') return;
+    if (e.key === 'Escape') close();
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); if (current < total - 1) goTo(current + 1, 'left'); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); if (current > 0) goTo(current - 1, 'right'); }
+  });
+
+  // Wire the "Watch Demo" button
+  document.querySelectorAll('.btn-hero-secondary').forEach(btn => {
+    if (btn.textContent.includes('Watch Demo')) {
+      btn.addEventListener('click', (e) => { e.preventDefault(); open(); });
+    }
+  });
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════
+     SCHEDULE DEMO MODAL
+     ══════════════════════════════════════════════ -->
+<div class="sched-overlay" id="schedOverlay">
+  <div class="sched-backdrop" id="schedBackdrop"></div>
+  <div class="sched-modal">
+    <!-- Form view -->
+    <div id="schedFormView">
+      <div class="sched-header">
+        <div class="sched-header-text">
+          <h3>Schedule a Demo</h3>
+          <p>See SiteConnect in action with your own data. We'll walk through screening, analytics, and financial modeling tailored to your site.</p>
+        </div>
+        <button class="sched-close" id="schedClose" aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+
+      <form class="sched-form" id="schedForm" novalidate>
+        <div class="sched-row">
+          <div class="sched-field">
+            <label>First Name <span class="req">*</span></label>
+            <input type="text" class="sched-input" id="schedFirst" placeholder="Jane" required autocomplete="given-name">
+          </div>
+          <div class="sched-field">
+            <label>Last Name <span class="req">*</span></label>
+            <input type="text" class="sched-input" id="schedLast" placeholder="Smith" required autocomplete="family-name">
+          </div>
+        </div>
+
+        <div class="sched-field">
+          <label>Work Email <span class="req">*</span></label>
+          <input type="email" class="sched-input" id="schedEmail" placeholder="jane@researchsite.org" required autocomplete="email">
+        </div>
+
+        <div class="sched-row">
+          <div class="sched-field">
+            <label>Organization <span class="req">*</span></label>
+            <input type="text" class="sched-input" id="schedOrg" placeholder="Acme Research Center" required autocomplete="organization">
+          </div>
+          <div class="sched-field">
+            <label>Role</label>
+            <select class="sched-input" id="schedRole">
+              <option value="" disabled selected>Select your role</option>
+              <option>Principal Investigator</option>
+              <option>Clinical Research Coordinator</option>
+              <option>Research Director</option>
+              <option>Site Manager</option>
+              <option>IT / Systems Admin</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="sched-divider"></div>
+
+        <div class="sched-row">
+          <div class="sched-field">
+            <label>Active Studies</label>
+            <select class="sched-input" id="schedStudies">
+              <option value="" disabled selected>How many?</option>
+              <option>1–5 studies</option>
+              <option>6–15 studies</option>
+              <option>16–30 studies</option>
+              <option>30+ studies</option>
+            </select>
+          </div>
+          <div class="sched-field">
+            <label>Patient Database Size</label>
+            <select class="sched-input" id="schedPatients">
+              <option value="" disabled selected>Approx. records</option>
+              <option>Under 1,000</option>
+              <option>1,000–10,000</option>
+              <option>10,000–50,000</option>
+              <option>50,000–250,000</option>
+              <option>250,000+</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="sched-field">
+          <label>Primary Therapeutic Areas</label>
+          <input type="text" class="sched-input" id="schedTherapy" placeholder="e.g., Oncology, Cardiology, Rare Disease" autocomplete="off">
+        </div>
+
+        <div class="sched-field">
+          <label>Anything specific you'd like to see?</label>
+          <textarea class="sched-input" id="schedNotes" placeholder="e.g., FHIR integration, financial modeling for a specific trial, watch folder setup..."></textarea>
+        </div>
+
+        <button type="submit" class="sched-submit" id="schedSubmitBtn">
+          Request Demo
+        </button>
+
+        <div class="sched-footer-note">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          No data is collected or stored. This is a product preview.
+        </div>
+      </form>
+    </div>
+
+    <!-- Confirmation view -->
+    <div class="sched-confirm" id="schedConfirm">
+      <div class="sched-confirm-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h3>You're all set</h3>
+      <p>We've received your request. A member of our team will reach out within 24 hours to schedule your personalized demo.</p>
+
+      <div class="sched-confirm-details" id="schedConfirmDetails"></div>
+
+      <p style="font-size:11px;color:var(--text-muted);margin-top:16px">In the meantime, download SiteConnect and start screening today — it's free.</p>
+
+      <button class="sched-confirm-close" id="schedConfirmClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// SCHEDULE DEMO CONTROLLER
+// ═══════════════════════════════════════
+(function() {
+  const overlay = document.getElementById('schedOverlay');
+  const backdrop = document.getElementById('schedBackdrop');
+  const closeBtn = document.getElementById('schedClose');
+  const form = document.getElementById('schedForm');
+  const formView = document.getElementById('schedFormView');
+  const confirmView = document.getElementById('schedConfirm');
+  const confirmDetails = document.getElementById('schedConfirmDetails');
+  const confirmClose = document.getElementById('schedConfirmClose');
+  const submitBtn = document.getElementById('schedSubmitBtn');
+
+  function openSched() {
+    // Reset to form view
+    formView.style.display = '';
+    confirmView.classList.remove('visible');
+    form.reset();
+    form.querySelectorAll('.sched-input').forEach(el => el.classList.remove('error'));
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = 'Request Demo';
+
+    overlay.style.display = 'flex';
+    void overlay.offsetWidth;
+    overlay.classList.add('open');
+    overlay.classList.remove('closing');
+    document.body.style.overflow = 'hidden';
+
+    // Focus first field
+    setTimeout(() => document.getElementById('schedFirst').focus(), 350);
+  }
+
+  function closeSched() {
+    overlay.classList.add('closing');
+    overlay.classList.remove('open');
+    setTimeout(() => {
+      overlay.style.display = 'none';
+      overlay.classList.remove('closing');
+      document.body.style.overflow = '';
+    }, 350);
+  }
+
+  // Wire open triggers — "Schedule a Demo" and "Request Access" buttons
+  document.querySelectorAll('.btn-hero-secondary, .btn-primary, .btn-ghost').forEach(btn => {
+    const text = btn.textContent.trim();
+    if (text === 'Schedule a Demo' || text === 'Schedule Demo' || text === 'Request Access') {
+      btn.addEventListener('click', (e) => { e.preventDefault(); openSched(); });
+    }
+  });
+
+  // Wire close
+  closeBtn.addEventListener('click', closeSched);
+  backdrop.addEventListener('click', closeSched);
+  confirmClose.addEventListener('click', closeSched);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay.style.display === 'flex') closeSched();
+  });
+
+  // Form validation & submit
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    // Validate required fields
+    const first = document.getElementById('schedFirst');
+    const last = document.getElementById('schedLast');
+    const email = document.getElementById('schedEmail');
+    const org = document.getElementById('schedOrg');
+    const required = [first, last, email, org];
+    let valid = true;
+
+    required.forEach(input => {
+      input.classList.remove('error');
+      if (!input.value.trim()) {
+        input.classList.add('error');
+        valid = false;
+      }
+    });
+
+    // Email format check
+    if (email.value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
+      email.classList.add('error');
+      valid = false;
+    }
+
+    if (!valid) {
+      const firstError = form.querySelector('.sched-input.error');
+      if (firstError) firstError.focus();
+      return;
+    }
+
+    // Simulate submission
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner"></span>Submitting...';
+
+    setTimeout(() => {
+      // Build confirmation details
+      const role = document.getElementById('schedRole').value || '—';
+      const studies = document.getElementById('schedStudies').value || '—';
+      const patients = document.getElementById('schedPatients').value || '—';
+
+      confirmDetails.innerHTML = `
+        <div class="sched-confirm-row"><span class="label">Name</span><span class="value">${first.value.trim()} ${last.value.trim()}</span></div>
+        <div class="sched-confirm-row"><span class="label">Email</span><span class="value">${email.value.trim()}</span></div>
+        <div class="sched-confirm-row"><span class="label">Organization</span><span class="value">${org.value.trim()}</span></div>
+        <div class="sched-confirm-row"><span class="label">Role</span><span class="value">${role}</span></div>
+        <div class="sched-confirm-row"><span class="label">Studies</span><span class="value">${studies}</span></div>
+        <div class="sched-confirm-row"><span class="label">Database Size</span><span class="value">${patients}</span></div>
+      `;
+
+      // Transition to confirmation
+      formView.style.display = 'none';
+      confirmView.classList.add('visible');
+    }, 1500);
+  });
+
+  // Clear error on input
+  form.querySelectorAll('.sched-input').forEach(input => {
+    input.addEventListener('input', () => input.classList.remove('error'));
+    input.addEventListener('change', () => input.classList.remove('error'));
+  });
+})();
 </script>
 
 </body>

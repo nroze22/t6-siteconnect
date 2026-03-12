@@ -297,7 +297,10 @@ export function ImportPage() {
       try {
         const parsed = JSON.parse(stored) as { path: string; name: string; size: number };
         const ext = parsed.name.toLowerCase();
-        const format: SelectedFile["format"] = ext.endsWith(".xlsx") || ext.endsWith(".xls") ? "excel" : "csv";
+        const format: SelectedFile["format"] = (ext.endsWith(".xlsx") || ext.endsWith(".xls")) ? "excel"
+          : (ext.endsWith(".json") || ext.endsWith(".ndjson")) ? "fhir_json"
+          : ext.endsWith(".hl7") ? "hl7v2"
+          : "csv";
         void handleFileSelected({ name: parsed.name, size: parsed.size, format, path: parsed.path });
       } catch {
         // Invalid stored data — ignore
@@ -624,7 +627,7 @@ export function ImportPage() {
           <div>
             <h2 className="text-[15px] font-bold text-heading">Import Subject Data</h2>
             <p className="mt-0.5 text-[12px] text-dim">
-              Import subject records from Epic, Cerner, or other EMR exports. All data stays encrypted on this device.
+              Import from any EMR system — CSV, Excel, FHIR R4 Bundles, or HL7 v2 messages. All data stays encrypted on this device.
             </p>
           </div>
           {importMode === "structured" && <StepIndicator current={step} />}
@@ -647,7 +650,7 @@ export function ImportPage() {
             </div>
             <div>
               <p className={`text-[12px] font-semibold ${importMode === "structured" ? "text-heading" : "text-body"}`}>Structured Data</p>
-              <p className="text-[10px] text-dim">CSV, Excel, EMR exports</p>
+              <p className="text-[10px] text-dim">CSV, Excel, FHIR, HL7</p>
             </div>
           </button>
           <button
@@ -869,7 +872,10 @@ export function ImportPage() {
                         if (path) {
                           const name = path.split("/").pop() ?? path;
                           const lower = name.toLowerCase();
-                          const format: SelectedFile["format"] = (lower.endsWith(".xlsx") || lower.endsWith(".xls")) ? "excel" : "csv";
+                          const format: SelectedFile["format"] = (lower.endsWith(".xlsx") || lower.endsWith(".xls")) ? "excel"
+                            : (lower.endsWith(".json") || lower.endsWith(".ndjson")) ? "fhir_json"
+                            : lower.endsWith(".hl7") ? "hl7v2"
+                            : "csv";
                           void handleFileSelected({ name, size: 0, format, path });
                         }
                       }}
@@ -886,6 +892,72 @@ export function ImportPage() {
                     <Zap className="h-3.5 w-3.5" />
                     Load Demo Epic Export (32 encounter rows, 20 subjects)
                   </button>
+                </div>
+              )}
+
+              {/* Supported formats reference */}
+              {!selectedFile && (
+                <div className="rounded-xl border border-edge-2 bg-card overflow-hidden">
+                  <div className="px-4 py-3 border-b border-edge-2">
+                    <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-body">
+                      <Info className="h-3.5 w-3.5 text-indigo-400" />
+                      Supported EMR Formats
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-2 gap-px bg-edge-1">
+                    {([
+                      {
+                        title: "CSV / TSV / Pipe-Delimited",
+                        badge: "Most Common",
+                        badgeColor: "text-blue-400 bg-blue-500/10 ring-1 ring-blue-500/20",
+                        desc: "Standard tabular exports from any EMR. Auto-detects delimiters, skips metadata rows, and maps columns intelligently.",
+                        systems: "Epic Clarity, Cerner, Athena, MEDITECH, NextGen, Allscripts, eClinicalWorks",
+                        ext: ".csv, .tsv, .pip, .dat",
+                      },
+                      {
+                        title: "Excel Workbooks",
+                        badge: "Multi-Sheet",
+                        badgeColor: "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20",
+                        desc: "Single or multi-sheet workbooks. Multi-sheet files are auto-merged by patient ID across demographics, diagnoses, labs, and medications.",
+                        systems: "Epic, Cerner, custom site exports",
+                        ext: ".xlsx, .xls",
+                      },
+                      {
+                        title: "FHIR R4 JSON Bundles",
+                        badge: "Interoperable",
+                        badgeColor: "text-violet-400 bg-violet-500/10 ring-1 ring-violet-500/20",
+                        desc: "HL7 FHIR R4 standard. Parses Patient, Condition, Observation, MedicationRequest, Procedure, and AllergyIntolerance resources.",
+                        systems: "Epic FHIR API, Cerner Millennium, Allscripts FHIR, any FHIR-enabled EHR",
+                        ext: ".json, .ndjson",
+                      },
+                      {
+                        title: "HL7 v2 Messages",
+                        badge: "Legacy Standard",
+                        badgeColor: "text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20",
+                        desc: "Pipe-delimited HL7 v2.x messages. Parses PID, DG1, OBX, RXA/RXE, and AL1 segments. Handles single messages and batch files.",
+                        systems: "Epic Bridges, Cerner CareAware, Mirth Connect, any HL7 interface engine",
+                        ext: ".hl7",
+                      },
+                    ] as const).map((fmt) => (
+                      <div key={fmt.title} className="bg-card p-4">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="text-[12px] font-bold text-heading">{fmt.title}</span>
+                          <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-bold ${fmt.badgeColor}`}>
+                            {fmt.badge}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-dim leading-relaxed">{fmt.desc}</p>
+                        <div className="mt-2 flex items-center gap-2">
+                          <span className="text-[10px] text-faint">EMR:</span>
+                          <span className="text-[10px] text-dim">{fmt.systems}</span>
+                        </div>
+                        <div className="mt-1 flex items-center gap-2">
+                          <span className="text-[10px] text-faint">Extensions:</span>
+                          <span className="text-[10px] font-mono text-dim">{fmt.ext}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 

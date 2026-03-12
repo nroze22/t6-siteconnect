@@ -49,9 +49,7 @@ import {
   stopFolderWatcher,
   getWatcherStatus,
   pickWatchFolder,
-  listenForFileDetected,
   type WatcherStatus,
-  type FileDetectedEvent,
 } from "@/lib/tauri";
 import {
   getLlmStatus,
@@ -80,6 +78,7 @@ import {
 } from "@/lib/data-provider";
 import { useToast } from "@/components/ui/Toast";
 import { useAppStore } from "@/stores/use-app-store";
+import { useWatcherStore } from "@/stores/use-watcher-store";
 import { AiChatTest } from "./AiChatTest";
 
 // ─── Tab Definition ──────────────────────────────────────────
@@ -162,25 +161,18 @@ export function SettingsPage() {
 function WatcherPanel() {
   const [status, setStatus] = useState<WatcherStatus>({ active: false, path: null });
   const [watchPath, setWatchPath] = useState("");
-  const [recentFiles, setRecentFiles] = useState<FileDetectedEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const toast = useToast();
   const setCurrentPage = useAppStore((s) => s.setCurrentPage);
+  const detectedFiles = useWatcherStore((s) => s.detectedFiles);
+  const addDetectedFile = useWatcherStore((s) => s.addDetectedFile);
 
   useEffect(() => {
     getWatcherStatus().then((s) => {
       setStatus(s);
       if (s.path) setWatchPath(s.path);
     });
-  }, []);
-
-  useEffect(() => {
-    let cleanup: (() => void) | null = null;
-    listenForFileDetected((event) => {
-      setRecentFiles((prev) => [event, ...prev].slice(0, 10));
-    }).then((unlisten) => { cleanup = unlisten; });
-    return () => { cleanup?.(); };
   }, []);
 
   const handlePickFolder = useCallback(async () => {
@@ -207,10 +199,8 @@ function WatcherPanel() {
         setStatus({ active: true, path: watchPath });
         toast.success("Watcher started", `Monitoring ${watchPath}`);
         setTimeout(() => {
-          setRecentFiles([
-            { path: `${watchPath}/patient_export_2026-03-07.csv`, file_name: "patient_export_2026-03-07.csv", size_bytes: 245760 },
-            { path: `${watchPath}/lab_results_batch_42.csv`, file_name: "lab_results_batch_42.csv", size_bytes: 128512 },
-          ]);
+          addDetectedFile({ path: `${watchPath}/patient_export_2026-03-07.csv`, file_name: "patient_export_2026-03-07.csv", size_bytes: 245760 });
+          addDetectedFile({ path: `${watchPath}/lab_results_batch_42.csv`, file_name: "lab_results_batch_42.csv", size_bytes: 128512 });
           toast.info("Files detected", "2 new CSV files found in watched folder");
         }, 2000);
       }
@@ -219,7 +209,7 @@ function WatcherPanel() {
     } finally {
       setLoading(false);
     }
-  }, [watchPath, toast]);
+  }, [watchPath, toast, addDetectedFile]);
 
   const handleStop = useCallback(async () => {
     setLoading(true);
@@ -303,23 +293,38 @@ function WatcherPanel() {
           </p>
         </div>
 
-        {recentFiles.length > 0 && (
+        {detectedFiles.length > 0 && (
           <div>
             <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">Recent Detections</p>
             <div className="space-y-1">
-              {recentFiles.map((f, i) => (
-                <div key={`${f.path}-${i}`} className="flex items-center gap-2.5 rounded-lg bg-surface-1 px-3 py-2 ring-1 ring-edge-1">
+              {detectedFiles.filter((f) => !f.dismissed).slice(0, 10).map((f) => (
+                <div key={f.path} className="flex items-center gap-2.5 rounded-lg bg-surface-1 px-3 py-2 ring-1 ring-edge-1">
                   <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-[12px] font-medium text-body truncate">{f.file_name}</p>
-                    <p className="text-[12px] text-dim">{formatBytes(f.size_bytes)}</p>
+                    <p className="text-[12px] font-medium text-body truncate">{f.fileName}</p>
+                    <p className="text-[12px] text-dim">{formatBytes(f.sizeBytes)}</p>
                   </div>
+                  {f.previewStatus === "loading" && (
+                    <span className="flex items-center gap-1 text-[10px] text-dim">
+                      <Loader2 className="h-3 w-3 animate-spin" /> Previewing
+                    </span>
+                  )}
+                  {f.previewStatus === "ready" && (
+                    <span className="flex items-center gap-1 text-[10px] text-emerald-400">
+                      <CheckCircle2 className="h-3 w-3" /> Ready
+                    </span>
+                  )}
+                  {f.previewStatus === "error" && (
+                    <span className="flex items-center gap-1 text-[10px] text-red-400">
+                      <XCircle className="h-3 w-3" /> Error
+                    </span>
+                  )}
                   <button
                     onClick={() => {
                       sessionStorage.setItem("siteconnect-import-file", JSON.stringify({
                         path: f.path,
-                        name: f.file_name,
-                        size: f.size_bytes,
+                        name: f.fileName,
+                        size: f.sizeBytes,
                       }));
                       setCurrentPage("import");
                     }}
@@ -443,7 +448,13 @@ function AiSetupPanel() {
       setPhase("installing_ollama");
       setPhaseMessage("Step 1: Installing AI engine");
       try {
-        await installOllama();
+        const installResult = await installOllama();
+        // Windows: installer was launched asynchronously — user needs to complete it
+        if (typeof installResult === "string" && (installResult.includes("installer launched") || installResult.includes("Check Again"))) {
+          setPhase("error");
+          setError("Ollama installer is running. Complete the installation, then click 'Try Again' to continue setup.");
+          return;
+        }
         currentStatus = await checkOllamaStatus();
         setOllamaStatus(currentStatus);
         if (!currentStatus.installed && !currentStatus.running) {
@@ -454,7 +465,7 @@ function AiSetupPanel() {
         if (errMsg.includes("https://ollama.com/download")) {
           try { const { open } = await import("@tauri-apps/plugin-shell"); await open("https://ollama.com/download"); } catch { window.open("https://ollama.com/download", "_blank"); }
           setPhase("error");
-          setError("Windows requires manual install. Download page has been opened — install Ollama, then try again.");
+          setError("Please download and install Ollama, then click 'Try Again' to continue setup.");
           return;
         }
         setPhase("error");

@@ -25,6 +25,7 @@ import { WelcomeOverview } from "@/components/welcome/WelcomeOverview";
 import { useAppStore } from "@/stores/use-app-store";
 import { useSiteProfileStore } from "@/stores/use-site-profile-store";
 import { useDemoData } from "@/hooks/use-demo-data";
+import { useWatcherListener } from "@/hooks/use-watcher-listener";
 import { checkDatabaseExists } from "@/lib/tauri";
 import { getLlmStatus } from "@/lib/data-provider";
 import type { NavigationPage } from "@/types";
@@ -184,6 +185,12 @@ function useGlobalShortcuts() {
   }, [setCurrentPage, lock]);
 }
 
+/** Must be rendered inside ToastProvider so useToast() works. */
+function WatcherInit() {
+  useWatcherListener();
+  return null;
+}
+
 function MainApp() {
   useDemoData();
   useGlobalShortcuts();
@@ -233,6 +240,7 @@ function MainApp() {
 
   return (
     <ToastProvider>
+      <WatcherInit />
       <div className="flex h-screen w-screen overflow-hidden bg-background">
         <Sidebar />
         <div className="flex flex-1 flex-col overflow-hidden">

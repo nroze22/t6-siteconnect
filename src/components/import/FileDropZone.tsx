@@ -24,7 +24,7 @@ export interface CsvPreview {
 export interface SelectedFile {
   name: string;
   size: number;
-  format: "csv" | "excel" | "fhir_json" | "ccda_xml" | "unknown";
+  format: "csv" | "excel" | "fhir_json" | "hl7v2" | "ccda_xml" | "unknown";
   /** Full file path — only available in Tauri mode */
   path?: string;
   /** Parsed CSV preview — only available when a real file is dropped/selected in the browser */
@@ -35,10 +35,11 @@ const FORMAT_META: Record<
   SelectedFile["format"],
   { label: string; color: string; bgColor: string }
 > = {
-  csv: { label: "CSV", color: "text-blue-400", bgColor: "bg-blue-500/10 ring-1 ring-blue-500/20" },
+  csv: { label: "CSV / TSV", color: "text-blue-400", bgColor: "bg-blue-500/10 ring-1 ring-blue-500/20" },
   excel: { label: "Excel", color: "text-emerald-400", bgColor: "bg-emerald-500/10 ring-1 ring-emerald-500/20" },
-  fhir_json: { label: "FHIR JSON", color: "text-violet-400", bgColor: "bg-violet-500/10 ring-1 ring-violet-500/20" },
-  ccda_xml: { label: "C-CDA XML", color: "text-amber-400", bgColor: "bg-amber-500/10 ring-1 ring-amber-500/20" },
+  fhir_json: { label: "FHIR R4 Bundle", color: "text-violet-400", bgColor: "bg-violet-500/10 ring-1 ring-violet-500/20" },
+  hl7v2: { label: "HL7 v2", color: "text-amber-400", bgColor: "bg-amber-500/10 ring-1 ring-amber-500/20" },
+  ccda_xml: { label: "C-CDA XML", color: "text-rose-400", bgColor: "bg-rose-500/10 ring-1 ring-rose-500/20" },
   unknown: { label: "Unknown", color: "text-dim", bgColor: "bg-surface-2 ring-1 ring-edge-3" },
 };
 
@@ -46,7 +47,8 @@ function detectFormat(name: string): SelectedFile["format"] {
   const lower = name.toLowerCase();
   if (lower.endsWith(".csv") || lower.endsWith(".tsv") || lower.endsWith(".pip") || lower.endsWith(".dat")) return "csv";
   if (lower.endsWith(".xlsx") || lower.endsWith(".xls")) return "excel";
-  if (lower.endsWith(".json")) return "fhir_json";
+  if (lower.endsWith(".json") || lower.endsWith(".ndjson")) return "fhir_json";
+  if (lower.endsWith(".hl7")) return "hl7v2";
   if (lower.endsWith(".xml")) return "ccda_xml";
   return "unknown";
 }
@@ -112,6 +114,7 @@ const FORMAT_ICON: Record<SelectedFile["format"], React.ReactNode> = {
   csv: <FileSpreadsheet className="h-5 w-5" />,
   excel: <FileSpreadsheet className="h-5 w-5" />,
   fhir_json: <FileJson className="h-5 w-5" />,
+  hl7v2: <FileCode className="h-5 w-5" />,
   ccda_xml: <FileCode className="h-5 w-5" />,
   unknown: <FileText className="h-5 w-5" />,
 };
@@ -327,7 +330,7 @@ export function FileDropZone({ onFileSelected, selectedFile, onClear }: FileDrop
             ref={inputRef}
             type="file"
             className="hidden"
-            accept=".csv,.tsv,.xlsx,.xls,.pip,.dat"
+            accept=".csv,.tsv,.xlsx,.xls,.pip,.dat,.json,.ndjson,.hl7"
             onChange={handleInputChange}
           />
 
@@ -355,27 +358,52 @@ export function FileDropZone({ onFileSelected, selectedFile, onClear }: FileDrop
               ? "Parsing file..."
               : isDragOver
               ? "Drop your data file here"
-              : "Drop your CSV, TSV, pipe-delimited, or Excel file here"}
+              : "Drop your EMR export file here"}
           </p>
           <p className="mt-1.5 text-[12px] text-dim">
-            {isDragOver ? "Release to load and preview" : "Supports CSV, TSV, pipe-delimited, XLSX, and XLS formats"}
+            {isDragOver ? "Release to load and preview" : "Auto-detects format, maps columns, and deduplicates records"}
           </p>
 
-          <div className="mt-6 flex items-center justify-center gap-2">
-            {(
-              [
-                { label: "CSV / TSV", color: "text-blue-400 bg-blue-500/10 ring-1 ring-blue-500/20" },
-                { label: "Excel", color: "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20" },
-                { label: "FHIR Bundle", color: "text-violet-400 bg-violet-500/10 ring-1 ring-violet-500/20" },
-                { label: "HL7 v2", color: "text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20" },
-              ] as const
-            ).map((fmt) => (
-              <span
+          {/* Supported formats grid */}
+          <div className="mt-6 grid grid-cols-4 gap-2.5 max-w-xl mx-auto">
+            {([
+              {
+                label: "CSV / TSV",
+                desc: "Epic, Cerner, Athena, MEDITECH",
+                color: "text-blue-400",
+                bg: "bg-blue-500/[0.06] ring-1 ring-blue-500/15",
+                icon: <FileSpreadsheet className="h-3.5 w-3.5" />,
+              },
+              {
+                label: "Excel",
+                desc: "XLSX, XLS, multi-sheet",
+                color: "text-emerald-400",
+                bg: "bg-emerald-500/[0.06] ring-1 ring-emerald-500/15",
+                icon: <FileSpreadsheet className="h-3.5 w-3.5" />,
+              },
+              {
+                label: "FHIR R4",
+                desc: "JSON Bundles, NDJSON",
+                color: "text-violet-400",
+                bg: "bg-violet-500/[0.06] ring-1 ring-violet-500/15",
+                icon: <FileJson className="h-3.5 w-3.5" />,
+              },
+              {
+                label: "HL7 v2",
+                desc: "ADT, ORU, SIU messages",
+                color: "text-amber-400",
+                bg: "bg-amber-500/[0.06] ring-1 ring-amber-500/15",
+                icon: <FileCode className="h-3.5 w-3.5" />,
+              },
+            ] as const).map((fmt) => (
+              <div
                 key={fmt.label}
-                className={`rounded-md px-2.5 py-1 text-[12px] font-semibold ${fmt.color}`}
+                className={`flex flex-col items-center gap-1 rounded-lg px-3 py-2.5 ${fmt.bg}`}
               >
-                {fmt.label}
-              </span>
+                <div className={`${fmt.color}`}>{fmt.icon}</div>
+                <span className={`text-[11px] font-bold ${fmt.color}`}>{fmt.label}</span>
+                <span className="text-[9px] text-dim text-center leading-tight">{fmt.desc}</span>
+              </div>
             ))}
           </div>
         </div>

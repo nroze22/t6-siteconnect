@@ -1,3 +1,5 @@
+pub mod fhir;
+pub mod hl7;
 pub mod mapping;
 
 use std::collections::HashMap;
@@ -29,6 +31,10 @@ pub enum ImportError {
     InvalidData { row: usize, message: String },
     #[error("Database error: {0}")]
     DatabaseError(String),
+    #[error("FHIR parse error: {0}")]
+    FhirError(String),
+    #[error("HL7v2 parse error: {0}")]
+    Hl7Error(String),
 }
 
 impl From<calamine::Error> for ImportError {
@@ -60,6 +66,8 @@ pub enum FileFormat {
     Pipe,
     Xlsx,
     Json,
+    FhirJson,
+    Hl7v2,
     Xml,
     Unknown,
 }
@@ -765,13 +773,28 @@ pub fn detect_file_format(path: &Path) -> Result<FileFormatInfo, ImportError> {
         "tsv" | "tab" => (FileFormat::Tsv, "text/tab-separated-values".to_string()),
         "pip" | "dat" => (FileFormat::Pipe, "text/plain".to_string()),
         "xlsx" | "xls" => (FileFormat::Xlsx, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet".to_string()),
-        "json" => (FileFormat::Json, "application/json".to_string()),
+        "json" | "ndjson" => {
+            // Sniff content to distinguish FHIR from plain JSON
+            if let Ok(content) = std::fs::read_to_string(path) {
+                let trimmed = content.trim();
+                if trimmed.contains("\"resourceType\"") {
+                    (FileFormat::FhirJson, "application/fhir+json".to_string())
+                } else {
+                    (FileFormat::Json, "application/json".to_string())
+                }
+            } else {
+                (FileFormat::Json, "application/json".to_string())
+            }
+        }
+        "hl7" => (FileFormat::Hl7v2, "application/hl7-v2".to_string()),
         "xml" => (FileFormat::Xml, "application/xml".to_string()),
         _ => {
-            // Try content sniffing for delimited files
+            // Try content sniffing for delimited files and HL7v2
             if let Ok(content) = read_file_with_encoding(path) {
-                let first_line = content.lines().next().unwrap_or("");
-                if first_line.contains('|') {
+                let first_line = content.lines().next().unwrap_or("").trim();
+                if first_line.starts_with("MSH|") {
+                    (FileFormat::Hl7v2, "application/hl7-v2".to_string())
+                } else if first_line.contains('|') {
                     (FileFormat::Pipe, "text/plain".to_string())
                 } else if first_line.contains(',') {
                     (FileFormat::Csv, "text/csv".to_string())
@@ -1685,6 +1708,38 @@ pub fn generate_preview(path: &Path) -> Result<ImportPreview, ImportError> {
         // Check for multi-sheet workbook
         let multi = preview_xlsx_multi(path, 10)?;
         return Ok(multi.merged_preview);
+    }
+
+    if format_info.format == FileFormat::FhirJson {
+        let (headers, sample_rows, total) = fhir::generate_fhir_preview(path)?;
+        let suggested_mapping = mapping::ColumnMapping {
+            field_mappings: Vec::new(),
+        };
+        return Ok(ImportPreview {
+            headers,
+            sample_rows,
+            total_rows: total,
+            suggested_mapping,
+            format_detected: DataLayoutFormat::Wide,
+            sheets: None,
+            header_row_index: 0,
+        });
+    }
+
+    if format_info.format == FileFormat::Hl7v2 {
+        let (headers, sample_rows, total) = hl7::generate_hl7_preview(path)?;
+        let suggested_mapping = mapping::ColumnMapping {
+            field_mappings: Vec::new(),
+        };
+        return Ok(ImportPreview {
+            headers,
+            sample_rows,
+            total_rows: total,
+            suggested_mapping,
+            format_detected: DataLayoutFormat::Wide,
+            sheets: None,
+            header_row_index: 0,
+        });
     }
 
     // Detect header row (skip metadata rows above actual column headers)

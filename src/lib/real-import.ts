@@ -273,9 +273,11 @@ export async function pickImportFile(): Promise<string | null> {
   const result = await open({
     title: "Select Patient Data File",
     filters: [
-      { name: "Data Files", extensions: ["csv", "tsv", "xlsx", "xls", "pip", "dat"] },
-      { name: "CSV Files", extensions: ["csv", "tsv", "pip", "dat"] },
-      { name: "Excel Files", extensions: ["xlsx", "xls"] },
+      { name: "All Supported Formats", extensions: ["csv", "tsv", "xlsx", "xls", "pip", "dat", "json", "ndjson", "hl7"] },
+      { name: "CSV / TSV", extensions: ["csv", "tsv", "pip", "dat"] },
+      { name: "Excel", extensions: ["xlsx", "xls"] },
+      { name: "FHIR R4 JSON", extensions: ["json", "ndjson"] },
+      { name: "HL7 v2 Messages", extensions: ["hl7"] },
       { name: "All Files", extensions: ["*"] },
     ],
   });

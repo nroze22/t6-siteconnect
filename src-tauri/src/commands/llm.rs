@@ -1544,21 +1544,24 @@ pub async fn pick_llm_model() -> Result<Option<String>, String> {
 // --- Internal helpers ---
 
 fn find_llama_server(app: &AppHandle) -> Result<String, String> {
+    // Platform-specific binary name
+    let binary_name = if cfg!(target_os = "windows") { "llama-server.exe" } else { "llama-server" };
+
     // Check in app resources first (bundled binary)
     if let Ok(resource_dir) = app.path().resource_dir() {
-        let bundled = resource_dir.join("llama-server");
+        let bundled = resource_dir.join(binary_name);
         if bundled.exists() {
             return Ok(bundled.to_string_lossy().to_string());
         }
-        let bundled_mac = resource_dir.join("binaries").join("llama-server");
-        if bundled_mac.exists() {
-            return Ok(bundled_mac.to_string_lossy().to_string());
+        let bundled_sub = resource_dir.join("binaries").join(binary_name);
+        if bundled_sub.exists() {
+            return Ok(bundled_sub.to_string_lossy().to_string());
         }
     }
 
     // Check in models directory next to the app
     if let Ok(data_dir) = app.path().app_data_dir() {
-        let local = data_dir.join("llama-server");
+        let local = data_dir.join(binary_name);
         if local.exists() {
             return Ok(local.to_string_lossy().to_string());
         }

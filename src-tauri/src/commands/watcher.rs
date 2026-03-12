@@ -71,7 +71,7 @@ pub fn start_folder_watcher(
                         .to_lowercase();
 
                     // Only supported import file types
-                    if !matches!(ext.as_str(), "csv" | "tsv" | "xlsx" | "xls" | "pip" | "dat") {
+                    if !matches!(ext.as_str(), "csv" | "tsv" | "xlsx" | "xls" | "pip" | "dat" | "json" | "hl7") {
                         continue;
                     }
 

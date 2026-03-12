@@ -73,6 +73,30 @@ fn ollama_binary_exists() -> bool {
         }
     }
 
+    #[cfg(target_os = "windows")]
+    {
+        // Check common Windows install locations for Ollama
+        if let Some(local_app_data) = std::env::var_os("LOCALAPPDATA") {
+            let ollama_path = std::path::Path::new(&local_app_data).join("Programs").join("Ollama").join("ollama.exe");
+            if ollama_path.exists() {
+                return true;
+            }
+        }
+        if let Some(program_files) = std::env::var_os("ProgramFiles") {
+            let ollama_path = std::path::Path::new(&program_files).join("Ollama").join("ollama.exe");
+            if ollama_path.exists() {
+                return true;
+            }
+        }
+        // Also check user profile (some installs put it here)
+        if let Some(user_profile) = std::env::var_os("USERPROFILE") {
+            let ollama_path = std::path::Path::new(&user_profile).join("AppData").join("Local").join("Programs").join("Ollama").join("ollama.exe");
+            if ollama_path.exists() {
+                return true;
+            }
+        }
+    }
+
     false
 }
 
@@ -168,7 +192,58 @@ pub async fn install_ollama(app: AppHandle) -> Result<String, String> {
 
     #[cfg(target_os = "windows")]
     {
-        return Err("On Windows, please download Ollama from https://ollama.com/download".to_string());
+        tracing::info!("Installing Ollama on Windows");
+
+        let download_url = "https://ollama.com/download/OllamaSetup.exe";
+        let tmp_dir = std::env::temp_dir();
+        let installer_path = tmp_dir.join("OllamaSetup.exe");
+
+        // Clean up any leftover installer from a previous attempt
+        let _ = tokio::fs::remove_file(&installer_path).await;
+
+        // Step 1: Download the official Windows installer using PowerShell
+        let output = tokio::process::Command::new("powershell")
+            .args([
+                "-NoProfile",
+                "-Command",
+                &format!(
+                    "Invoke-WebRequest -Uri '{}' -OutFile '{}' -UseBasicParsing",
+                    download_url,
+                    installer_path.to_string_lossy()
+                ),
+            ])
+            .output()
+            .await
+            .map_err(|e| {
+                let _ = std::fs::remove_file(&installer_path);
+                format!("Failed to download Ollama: {}", e)
+            })?;
+
+        if !output.status.success() {
+            let _ = tokio::fs::remove_file(&installer_path).await;
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            return Err(format!("Download failed: {}", stderr.lines().last().unwrap_or("Unknown error")));
+        }
+
+        // Verify the installer exists and has reasonable size (> 5 MB)
+        let meta = tokio::fs::metadata(&installer_path).await.map_err(|e| {
+            let _ = std::fs::remove_file(&installer_path);
+            format!("Downloaded file missing: {}", e)
+        })?;
+
+        if meta.len() < 5_000_000 {
+            let _ = tokio::fs::remove_file(&installer_path).await;
+            return Err("Downloaded file appears corrupt (too small). Please check your internet connection and try again.".to_string());
+        }
+
+        // Step 2: Launch the installer (user will see the install wizard)
+        let _ = tokio::process::Command::new("cmd")
+            .args(["/C", "start", "", &installer_path.to_string_lossy()])
+            .spawn()
+            .map_err(|e| format!("Failed to launch installer: {}", e))?;
+
+        tracing::info!("Ollama installer launched on Windows");
+        return Ok("Ollama installer launched. Complete the installation, then click 'Check Again'.".to_string());
     }
 
     #[cfg(target_os = "macos")]
@@ -303,7 +378,49 @@ pub async fn start_ollama() -> Result<String, String> {
 
     #[cfg(target_os = "windows")]
     {
-        return Err("On Windows, please start Ollama from the Start menu.".to_string());
+        // Try common Ollama install locations on Windows
+        let mut ollama_exe: Option<std::path::PathBuf> = None;
+
+        if let Some(local_app_data) = std::env::var_os("LOCALAPPDATA") {
+            let path = std::path::Path::new(&local_app_data).join("Programs").join("Ollama").join("ollama app.exe");
+            if path.exists() {
+                ollama_exe = Some(path);
+            } else {
+                // Some versions use ollama.exe directly
+                let path2 = std::path::Path::new(&local_app_data).join("Programs").join("Ollama").join("ollama.exe");
+                if path2.exists() {
+                    ollama_exe = Some(path2);
+                }
+            }
+        }
+
+        if ollama_exe.is_none() {
+            if let Some(program_files) = std::env::var_os("ProgramFiles") {
+                let path = std::path::Path::new(&program_files).join("Ollama").join("ollama app.exe");
+                if path.exists() {
+                    ollama_exe = Some(path);
+                }
+            }
+        }
+
+        if let Some(exe_path) = ollama_exe {
+            // Launch the Ollama app (starts the server in the background)
+            let _ = tokio::process::Command::new(&exe_path)
+                .stdin(std::process::Stdio::null())
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::null())
+                .spawn()
+                .map_err(|e| format!("Failed to launch Ollama: {}", e))?;
+        } else {
+            // Fallback: try running ollama from PATH with serve command
+            let _ = tokio::process::Command::new("ollama")
+                .arg("serve")
+                .stdin(std::process::Stdio::null())
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::null())
+                .spawn()
+                .map_err(|_| "Ollama not found. Please install Ollama from https://ollama.com/download and try again.".to_string())?;
+        }
     }
 
     // Wait for server to become reachable
