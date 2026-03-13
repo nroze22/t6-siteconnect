@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
@@ -12,6 +12,7 @@ import {
   HardDrive,
   CheckCircle2,
 } from "lucide-react";
+import { isTauri } from "@/lib/tauri";
 
 export interface CsvPreview {
   headers: string[];
@@ -129,6 +130,44 @@ export function FileDropZone({ onFileSelected, selectedFile, onClear }: FileDrop
   const [isDragOver, setIsDragOver] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // In Tauri mode, listen for native file drop events to get actual file paths
+  useEffect(() => {
+    if (!isTauri || selectedFile) return;
+    let cancelled = false;
+    let unlisten: (() => void) | null = null;
+
+    (async () => {
+      try {
+        const { getCurrentWebview } = await import("@tauri-apps/api/webview");
+        unlisten = await getCurrentWebview().onDragDropEvent((event) => {
+          if (cancelled) return;
+          if (event.payload.type === "over") {
+            setIsDragOver(true);
+          } else if (event.payload.type === "drop") {
+            setIsDragOver(false);
+            const paths: string[] = event.payload.paths;
+            const firstPath = paths[0];
+            if (firstPath) {
+              const name = firstPath.split("/").pop() ?? firstPath;
+              const format = detectFormat(name);
+              onFileSelected({ name, size: 0, format, path: firstPath });
+            }
+          } else {
+            // "cancel" — drag left the window
+            setIsDragOver(false);
+          }
+        });
+      } catch {
+        // onDragDropEvent not available — fall back to browser drop
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      unlisten?.();
+    };
+  }, [onFileSelected, selectedFile]);
 
   const handleBrowserFile = useCallback(
     async (browserFile: File) => {
@@ -318,8 +357,31 @@ export function FileDropZone({ onFileSelected, selectedFile, onClear }: FileDrop
           onDragOver={handleDragOver}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={() => inputRef.current?.click()}
+          onDrop={isTauri ? (e) => { e.preventDefault(); e.stopPropagation(); } : handleDrop}
+          onClick={async () => {
+            if (isTauri) {
+              try {
+                const { open } = await import("@tauri-apps/plugin-dialog");
+                const result = await open({
+                  title: "Select Patient Data File",
+                  filters: [
+                    { name: "All Supported Formats", extensions: ["csv", "tsv", "xlsx", "xls", "pip", "dat", "json", "ndjson", "hl7"] },
+                    { name: "CSV / TSV", extensions: ["csv", "tsv", "pip", "dat"] },
+                    { name: "Excel", extensions: ["xlsx", "xls"] },
+                    { name: "FHIR R4 JSON", extensions: ["json", "ndjson"] },
+                    { name: "HL7 v2 Messages", extensions: ["hl7"] },
+                  ],
+                });
+                if (typeof result === "string") {
+                  const name = result.split("/").pop() ?? result;
+                  const format = detectFormat(name);
+                  onFileSelected({ name, size: 0, format, path: result });
+                }
+              } catch { /* dialog cancelled */ }
+            } else {
+              inputRef.current?.click();
+            }
+          }}
           className={`group relative cursor-pointer rounded-xl border-2 border-dashed p-12 text-center transition-all duration-200 ${
             isDragOver
               ? "border-indigo-400/50 bg-indigo-500/[0.07] shadow-[0_0_40px_-8px_rgba(99,102,241,0.15)]"
@@ -410,9 +472,30 @@ export function FileDropZone({ onFileSelected, selectedFile, onClear }: FileDrop
 
         <div className="mt-4 flex justify-center">
           <button
-            onClick={(e) => {
+            onClick={async (e) => {
               e.stopPropagation();
-              inputRef.current?.click();
+              if (isTauri) {
+                try {
+                  const { open } = await import("@tauri-apps/plugin-dialog");
+                  const result = await open({
+                    title: "Select Patient Data File",
+                    filters: [
+                      { name: "All Supported Formats", extensions: ["csv", "tsv", "xlsx", "xls", "pip", "dat", "json", "ndjson", "hl7"] },
+                      { name: "CSV / TSV", extensions: ["csv", "tsv", "pip", "dat"] },
+                      { name: "Excel", extensions: ["xlsx", "xls"] },
+                      { name: "FHIR R4 JSON", extensions: ["json", "ndjson"] },
+                      { name: "HL7 v2 Messages", extensions: ["hl7"] },
+                    ],
+                  });
+                  if (typeof result === "string") {
+                    const name = result.split("/").pop() ?? result;
+                    const format = detectFormat(name);
+                    onFileSelected({ name, size: 0, format, path: result });
+                  }
+                } catch { /* dialog cancelled */ }
+              } else {
+                inputRef.current?.click();
+              }
             }}
             className="rounded-lg bg-indigo-600 px-6 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-indigo-500"
           >

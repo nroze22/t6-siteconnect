@@ -139,15 +139,15 @@ export function SiteOnboarding({ onComplete }: SiteOnboardingProps) {
         </div>
 
         {/* Content card */}
-        <div className="rounded-2xl border border-white/[0.06] bg-[#111318]/95 shadow-2xl shadow-black/40 backdrop-blur-sm overflow-hidden">
+        <div className="rounded-2xl border border-white/[0.06] bg-[#111318]/95 shadow-2xl shadow-black/40 backdrop-blur-sm overflow-hidden glass">
           <div className="max-h-[55vh] overflow-y-auto p-6">
             <AnimatePresence mode="wait">
               <motion.div
                 key={step}
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -30 }}
-                transition={{ duration: 0.2 }}
+                initial={{ opacity: 0, x: 40, scale: 0.98 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: -40, scale: 0.98 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
               >
                 {step === "research" && <StepResearch />}
                 {step === "capacity" && <StepCapacity />}
@@ -173,9 +173,28 @@ export function SiteOnboarding({ onComplete }: SiteOnboardingProps) {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-[12px] text-slate-400">
-                Step {stepIndex + 1} of {STEPS.length}
-              </span>
+              <div className="flex items-center gap-2">
+                <svg className="h-5 w-5 -rotate-90" viewBox="0 0 20 20">
+                  <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/[0.06]" />
+                  <motion.circle
+                    cx="10" cy="10" r="8" fill="none" stroke="url(#progress-grad)" strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeDasharray={2 * Math.PI * 8}
+                    initial={{ strokeDashoffset: 2 * Math.PI * 8 }}
+                    animate={{ strokeDashoffset: 2 * Math.PI * 8 * (1 - (stepIndex + 1) / STEPS.length) }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                  />
+                  <defs>
+                    <linearGradient id="progress-grad" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#6366f1" />
+                      <stop offset="100%" stopColor="#3b82f6" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <span className="text-[12px] text-slate-400">
+                  Step {stepIndex + 1} of {STEPS.length}
+                </span>
+              </div>
               <button
                 onClick={handleNext}
                 className="flex items-center gap-1.5 rounded-lg bg-white px-5 py-2.5 text-[13px] font-semibold text-[#111318] transition-all hover:bg-slate-200"

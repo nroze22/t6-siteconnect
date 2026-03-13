@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { motion } from "framer-motion";
 import {
   FileUp,
   ArrowRight,
@@ -29,7 +30,7 @@ import {
   EPIC_SAMPLE_DATA,
   parseEpicRows,
 } from "@/lib/epic-demo-data";
-import { screenPatientsViaRust, screeningResultToOutput } from "@/lib/data-provider";
+import { screenPatientsViaRust, screeningResultToOutput, getStudies } from "@/lib/data-provider";
 import {
   generateAutoMappings,
   parseCsvWithMappings,
@@ -89,6 +90,47 @@ const PROGRESS_STAGES = [
 ];
 
 type ImportStep = "select" | "preview" | "validate" | "importing" | "complete";
+
+// ---------------------------------------------------------------------------
+// Celebration particles for import success
+// ---------------------------------------------------------------------------
+
+function CelebrationParticles() {
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 24 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        delay: Math.random() * 0.4,
+        duration: 1.2 + Math.random() * 0.8,
+        size: 4 + Math.random() * 6,
+        color: [
+          "bg-emerald-400",
+          "bg-blue-400",
+          "bg-indigo-400",
+          "bg-violet-400",
+          "bg-amber-400",
+          "bg-cyan-400",
+        ][i % 6]!,
+      })),
+    [],
+  );
+
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          initial={{ opacity: 1, y: "50%", x: `${p.x}%`, scale: 1 }}
+          animate={{ opacity: 0, y: "-120%", scale: 0.3 }}
+          transition={{ duration: p.duration, delay: p.delay, ease: "easeOut" }}
+          style={{ width: p.size, height: p.size }}
+          className={`absolute rounded-full ${p.color}`}
+        />
+      ))}
+    </div>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Import history type
@@ -364,7 +406,10 @@ export function ImportPage() {
       // === REAL IMPORT (Tauri mode with actual file) ===
       if (isTauri && selectedFile?.path && realMapping) {
         try {
-          setProgressStage("Parsing CSV with Rust engine...");
+          const parseLabel = selectedFile.format === "fhir_json" ? "Parsing FHIR R4 resources..."
+            : selectedFile.format === "hl7v2" ? "Parsing HL7v2 messages..."
+            : "Parsing data with Rust engine...";
+          setProgressStage(parseLabel);
           setProgress(20);
 
           const result = await executeRealImport(selectedFile.path, realMapping);
@@ -372,25 +417,39 @@ export function ImportPage() {
           setProgress(60);
           setProgressStage("Screening subjects against active studies...");
 
-          // The Rust backend parsed and stored the patients — screen via Rust engine.
-          const rustResults = await screenPatientsViaRust("study-1");
-          const screening = rustResults.map(screeningResultToOutput);
+          // Fetch the actual study ID from the database (seeded at DB init, uses UUID)
+          const studies = await getStudies();
+          const firstStudyId = studies.length > 0 ? studies[0]!.id : null;
+          console.log("[import] studies from DB:", studies.length, "firstStudyId:", firstStudyId);
 
-          setProgress(90);
-          setProgressStage("Loading into screening queue...");
+          if (firstStudyId) {
+            // The Rust backend parsed and stored the patients — screen via Rust engine.
+            const rustResults = await screenPatientsViaRust(firstStudyId);
+            console.log("[import] screening results:", rustResults.length, "criteria per first:", rustResults[0]?.criteria_results?.length);
 
-          const summaries = screening.map((s) => s.summary);
-          setPatients(summaries);
-          for (const s of screening) {
-            setScreeningResult(s.summary.id, s.result);
-            setCriteriaResults(s.result.id, s.criteria);
+            const screening = rustResults.map(screeningResultToOutput);
+
+            setProgress(90);
+            setProgressStage("Loading into screening queue...");
+
+            const summaries = screening.map((s) => s.summary);
+            console.log("[import] setting patients:", summaries.length);
+            setPatients(summaries);
+            for (const s of screening) {
+              setScreeningResult(s.summary.id, s.result);
+              setCriteriaResults(s.result.id, s.criteria);
+            }
+            selectStudy(firstStudyId);
+          } else {
+            console.warn("[import] no study found in DB — screening queue will be empty");
+            setProgress(90);
+            setProgressStage("Loading into screening queue...");
           }
-          selectStudy("study-1");
 
           setAppStatus({
             databaseReady: true,
             patientCount: result.records_imported,
-            studyCount: 6,
+            studyCount: studies.length || 1,
             lastImport: new Date().toISOString(),
           });
 
@@ -400,7 +459,9 @@ export function ImportPage() {
 
           setImportResult({
             fileName: selectedFile.name,
-            format: realPreview?.format_detected === "long" ? "Long Format CSV" : "Wide Format CSV",
+            format: selectedFile.format === "fhir_json" ? "FHIR R4 JSON Bundle"
+              : selectedFile.format === "hl7v2" ? "HL7 v2 Messages"
+              : realPreview?.format_detected === "long" ? "Long Format CSV" : "Wide Format CSV",
             recordsImported: result.records_imported,
             recordsUpdated: result.records_updated,
             recordsSkipped: result.records_skipped,
@@ -442,7 +503,10 @@ export function ImportPage() {
       const parsed = hasBrowserData
         ? parseCsvWithMappings(browserCsv.headers, browserCsv.allRows, mappings)
         : parseEpicRows();
-      const browserRustResults = await screenPatientsViaRust("study-1");
+      // Fetch actual study ID from DB (or use fallback for demo mode)
+      const browserStudies = await getStudies();
+      const browserStudyId = browserStudies.length > 0 ? browserStudies[0]!.id : "study-1";
+      const browserRustResults = await screenPatientsViaRust(browserStudyId);
       const screening = browserRustResults.map(screeningResultToOutput);
       const summaries = screening.map((s) => s.summary);
       setPatients(summaries);
@@ -450,11 +514,11 @@ export function ImportPage() {
         setScreeningResult(s.summary.id, s.result);
         setCriteriaResults(s.result.id, s.criteria);
       }
-      selectStudy("study-1");
+      selectStudy(browserStudyId);
       setAppStatus({
         databaseReady: true,
         patientCount: parsed.length,
-        studyCount: 6,
+        studyCount: browserStudies.length || 6,
         lastImport: new Date().toISOString(),
       });
 
@@ -516,8 +580,8 @@ export function ImportPage() {
         const allRows = browserCsv.allRows;
         const totalRows = allRows.length;
 
-        // Check if MRN/patient_id is mapped
-        const mrnTargets = ["patient_id", "mrn", "pat_mrn_id", "subject_id"];
+        // Check if MRN/patient_id is mapped (Rust-aligned target name)
+        const mrnTargets = ["site_patient_id"];
         const hasMrnMapping = mappings.some(
           (m) => m.targetField !== "" && mrnTargets.includes(m.targetField.toLowerCase())
         );
@@ -528,8 +592,8 @@ export function ImportPage() {
         );
         const mrnColIdx = mrnMapping ? headers.indexOf(mrnMapping.sourceColumn) : -1;
 
-        // Find diagnosis-mapped column
-        const dxTargets = ["diagnosis", "icd10", "icd_10", "current_icd10_list", "primary_diagnosis", "dx"];
+        // Find diagnosis-mapped column (Rust-aligned target names)
+        const dxTargets = ["icd10_code", "diagnosis_description"];
         const dxMapping = mappings.find(
           (m) => m.targetField !== "" && dxTargets.includes(m.targetField.toLowerCase())
         );
@@ -555,7 +619,7 @@ export function ImportPage() {
         const emptyMrnCount = mrnColIdx >= 0 ? totalRows - rowsWithMrn : totalRows;
 
         if (!hasMrnMapping) {
-          toast.warning("No patient ID column mapped", "Consider mapping a column to patient_id or MRN for proper deduplication");
+          toast.warning("No patient ID column mapped", "Consider mapping a column to Subject ID for proper deduplication");
         } else if (emptyMrnCount > 0) {
           toast.warning(`${emptyMrnCount} rows missing patient ID`, "These rows may not import correctly");
         }
@@ -725,7 +789,7 @@ export function ImportPage() {
                             <div className="flex items-center gap-2">
                               <p className="text-sm font-medium text-foreground">{profile.name}</p>
                               {profile.emr_system && (
-                                <span className="rounded-md bg-indigo-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-400 ring-1 ring-indigo-500/20">
+                                <span className="rounded-md bg-indigo-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-300 ring-1 ring-indigo-500/25">
                                   {profile.emr_system}
                                 </span>
                               )}
@@ -1012,12 +1076,15 @@ export function ImportPage() {
             // Use real data from Rust when available, then browser CSV, then demo
             const browserPreview = selectedFile?.preview;
             const hasBrowserCsv = !realPreview && browserPreview && browserPreview.headers.length > 0;
+            const isStructuredFormat = selectedFile?.format === "fhir_json" || selectedFile?.format === "hl7v2";
             const previewHeaders = realPreview ? realPreview.headers : hasBrowserCsv ? browserPreview.headers : EPIC_COLUMNS;
             const previewRows = realPreview ? realPreview.sample_rows : hasBrowserCsv ? browserPreview.rows : PREVIEW_ROWS;
             const totalRows = realPreview ? realPreview.total_rows : hasBrowserCsv ? browserPreview.totalRows : EPIC_ROWS.length;
-            const formatLabel = realPreview
-              ? (realPreview.format_detected === "long" ? "Long Format" : "Wide Format")
-              : hasBrowserCsv ? "CSV" : "Epic Clarity CSV";
+            const formatLabel = isStructuredFormat
+              ? (selectedFile?.format === "fhir_json" ? "FHIR R4 Bundle" : "HL7 v2 Messages")
+              : realPreview
+                ? (realPreview.format_detected === "long" ? "Long Format" : "Wide Format")
+                : hasBrowserCsv ? "CSV" : "Epic Clarity CSV";
             const columnCount = previewHeaders.length;
             const displayCols = Math.min(columnCount, 12);
             const uniqueSubjects = realPreview
@@ -1033,14 +1100,20 @@ export function ImportPage() {
                 <Sparkles className="h-5 w-5 text-indigo-400" />
                 <div>
                   <p className="text-[12px] font-semibold text-indigo-300">
-                    {realPreview ? `${formatLabel} Detected` : hasBrowserCsv ? `${formatLabel} — ${columnCount} Columns Detected` : "Epic Clarity Format Detected"}
+                    {isStructuredFormat
+                      ? `${formatLabel} — ${uniqueSubjects} Patient${uniqueSubjects !== 1 ? "s" : ""} Found`
+                      : realPreview ? `${formatLabel} Detected` : hasBrowserCsv ? `${formatLabel} — ${columnCount} Columns Detected` : "Epic Clarity Format Detected"}
                   </p>
                   <p className="text-[12px] text-dim">
-                    {realPreview
-                      ? `Detected ${columnCount} columns in ${formatLabel.toLowerCase()} layout. Auto-mapped ${mappedCount} of ${columnCount} fields.`
-                      : hasBrowserCsv
-                        ? `Found ${columnCount} columns and ${totalRows.toLocaleString()} data rows. Auto-mapped ${mappedCount} of ${columnCount} fields.`
-                        : `Recognized PAT_MRN_ID, CURRENT_ICD10_LIST, and ${EPIC_COLUMNS.length - 2} other Epic Clarity columns. Auto-mapped ${mappedCount} of ${EPIC_COLUMNS.length} fields.`}
+                    {isStructuredFormat
+                      ? selectedFile?.format === "fhir_json"
+                        ? `Parsed FHIR R4 resources: Patient demographics, Conditions (ICD-10), Observations (labs & vitals), Medications, Procedures, and Allergies. No column mapping needed.`
+                        : `Parsed HL7v2 segments: PID (demographics), DG1 (diagnoses), OBX (labs & vitals), RXA/RXE (medications), and AL1 (allergies). No column mapping needed.`
+                      : realPreview
+                        ? `Detected ${columnCount} columns in ${formatLabel.toLowerCase()} layout. Auto-mapped ${mappedCount} of ${columnCount} fields.`
+                        : hasBrowserCsv
+                          ? `Found ${columnCount} columns and ${totalRows.toLocaleString()} data rows. Auto-mapped ${mappedCount} of ${columnCount} fields.`
+                          : `Recognized PAT_MRN_ID, CURRENT_ICD10_LIST, and ${EPIC_COLUMNS.length - 2} other Epic Clarity columns. Auto-mapped ${mappedCount} of ${EPIC_COLUMNS.length} fields.`}
                   </p>
                 </div>
               </div>
@@ -1181,36 +1254,38 @@ export function ImportPage() {
                 </div>
               </div>
 
-              {/* Column mapping */}
-              <div className="rounded-xl border border-border bg-card">
-                <div className="border-b border-border px-4 py-3">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Column Mapping — AI Auto-Matched
-                  </h3>
-                  {tauriTargetFields.length > 0 && (
-                    <p className="mt-0.5 text-[11px] text-dim">
-                      {tauriTargetFields.filter((f) => f.required).length} required fields,{" "}
-                      {tauriTargetFields.length} total available
-                    </p>
-                  )}
+              {/* Column mapping — not needed for FHIR/HL7 (structured formats parse directly) */}
+              {!isStructuredFormat && (
+                <div className="rounded-xl border border-border bg-card">
+                  <div className="border-b border-border px-4 py-3">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Column Mapping — AI Auto-Matched
+                    </h3>
+                    {tauriTargetFields.length > 0 && (
+                      <p className="mt-0.5 text-[11px] text-dim">
+                        {tauriTargetFields.filter((f) => f.required).length} required fields,{" "}
+                        {tauriTargetFields.length} total available
+                      </p>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <ColumnMapper
+                      mappings={mappings}
+                      sampleData={realPreview
+                        ? Object.fromEntries(
+                            realPreview.headers.map((h, idx) => [
+                              h,
+                              realPreview.sample_rows.map((row) => row[idx] ?? "").filter(Boolean).slice(0, 3),
+                            ])
+                          )
+                        : hasBrowserCsv
+                          ? generateSampleData(browserPreview.headers, browserPreview.allRows)
+                          : EPIC_SAMPLE_DATA}
+                      onMappingChange={handleMappingChange}
+                    />
+                  </div>
                 </div>
-                <div className="p-4">
-                  <ColumnMapper
-                    mappings={mappings}
-                    sampleData={realPreview
-                      ? Object.fromEntries(
-                          realPreview.headers.map((h, idx) => [
-                            h,
-                            realPreview.sample_rows.map((row) => row[idx] ?? "").filter(Boolean).slice(0, 3),
-                          ])
-                        )
-                      : hasBrowserCsv
-                        ? generateSampleData(browserPreview.headers, browserPreview.allRows)
-                        : EPIC_SAMPLE_DATA}
-                    onMappingChange={handleMappingChange}
-                  />
-                </div>
-              </div>
+              )}
 
               {/* What happens next */}
               <div className="rounded-xl border border-edge-2 bg-surface-1 p-4">
@@ -1219,10 +1294,21 @@ export function ImportPage() {
                   What happens on import
                 </h4>
                 <ul className="mt-2 space-y-1 text-[12px] text-dim">
-                  <li>1. Encounter rows are consolidated into unique subject profiles</li>
-                  <li>2. Diagnoses, medications, and labs are normalized and indexed</li>
-                  <li>3. Each subject is pre-screened against active studies (KEYNOTE-789)</li>
-                  <li>4. Subjects appear in the Screening queue ranked by eligibility score</li>
+                  {isStructuredFormat ? (
+                    <>
+                      <li>1. {selectedFile?.format === "fhir_json" ? "FHIR resources" : "HL7v2 segments"} are parsed into complete patient profiles</li>
+                      <li>2. Demographics, diagnoses, medications, labs, vitals, and allergies are extracted</li>
+                      <li>3. Each subject is pre-screened against active studies (KEYNOTE-789)</li>
+                      <li>4. Subjects appear in the Screening queue ranked by eligibility score</li>
+                    </>
+                  ) : (
+                    <>
+                      <li>1. Encounter rows are consolidated into unique subject profiles</li>
+                      <li>2. Diagnoses, medications, and labs are normalized and indexed</li>
+                      <li>3. Each subject is pre-screened against active studies (KEYNOTE-789)</li>
+                      <li>4. Subjects appear in the Screening queue ranked by eligibility score</li>
+                    </>
+                  )}
                 </ul>
               </div>
 
@@ -1607,13 +1693,27 @@ export function ImportPage() {
           {/* Step 4: Import Complete                       */}
           {/* ============================================= */}
           {step === "complete" && importResult && (
-            <div className="flex flex-col items-center py-12">
-              <div className="w-full max-w-lg space-y-6">
-                {/* Success icon */}
+            <div className="relative flex flex-col items-center py-12">
+              {/* Celebration particles */}
+              <CelebrationParticles />
+
+              <div className="relative w-full max-w-lg space-y-6">
+                {/* Success icon with checkmark animation */}
                 <div className="flex justify-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 ring-1 ring-emerald-500/20">
-                    <CheckCircle2 className="h-8 w-8 text-emerald-400" />
-                  </div>
+                  <motion.div
+                    initial={{ scale: 0, rotate: -45 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", damping: 12, stiffness: 200, delay: 0.15 }}
+                    className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 ring-1 ring-emerald-500/20"
+                  >
+                    <motion.div
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      animate={{ pathLength: 1, opacity: 1 }}
+                      transition={{ delay: 0.4, duration: 0.4 }}
+                    >
+                      <CheckCircle2 className="h-8 w-8 text-emerald-400" />
+                    </motion.div>
+                  </motion.div>
                 </div>
 
                 <div className="text-center">

@@ -350,6 +350,7 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
         </button>
         <button
           onClick={handleExportCSV}
+          title="Saves to ~/Downloads"
           className="flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-1.5 text-[12px] font-medium text-dim ring-1 ring-edge-2 transition-colors hover:bg-surface-3"
         >
           <Download className="h-3.5 w-3.5" />
@@ -357,6 +358,7 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
         </button>
         <button
           onClick={handleExportReport}
+          title="Saves HTML report to ~/Downloads"
           className="flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-1.5 text-[12px] font-medium text-dim ring-1 ring-edge-2 transition-colors hover:bg-surface-3"
         >
           <FileText className="h-3.5 w-3.5" />
@@ -374,7 +376,7 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
       />
 
       {/* Criterion breakdown — clickable for drill-down */}
-      <div className="rounded-xl border border-edge-2 bg-card p-4">
+      <div className="card-lift rounded-xl border border-edge-2 bg-card p-4">
         <h4 className="flex items-center gap-2 text-[13px] font-bold text-body">
           <BarChart3 className="h-4 w-4 text-indigo-400" />
           Criterion-by-Criterion Feasibility
@@ -410,7 +412,7 @@ function FeasibilityTab({ patients }: { patients: ParsedPatient[] }) {
       </div>
 
       {/* Enrollment Forecast */}
-      <div className="rounded-xl border border-edge-2 bg-card p-4">
+      <div className="card-lift rounded-xl border border-edge-2 bg-card p-4">
         <div className="flex items-center justify-between">
           <div>
             <h4 className="flex items-center gap-2 text-[13px] font-bold text-body">
@@ -733,10 +735,11 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
         </div>
         <button
           onClick={handleExportDiversity}
+          title="Saves HTML report to ~/Downloads"
           className="flex items-center gap-1.5 rounded-lg border border-edge-3 bg-surface-2 px-4 py-2 text-[12px] font-medium text-body hover:bg-surface-3"
         >
           <Download className="h-3.5 w-3.5" />
-          Export PDF
+          Export Report
         </button>
       </div>
 
@@ -787,7 +790,7 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
       {/* Charts Grid */}
       <div className="grid grid-cols-2 gap-6">
         {/* Race/Ethnicity */}
-        <div className="rounded-xl border border-edge-2 bg-card p-4">
+        <div className="card-lift rounded-xl border border-edge-2 bg-card p-4">
           <h4 className="flex items-center gap-2 text-[13px] font-bold text-body">
             <Users className="h-4 w-4 text-indigo-400" />
             Race Distribution
@@ -813,7 +816,7 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
         </div>
 
         {/* Gender */}
-        <div className="rounded-xl border border-edge-2 bg-card p-4">
+        <div className="card-lift rounded-xl border border-edge-2 bg-card p-4">
           <h4 className="flex items-center gap-2 text-[13px] font-bold text-body">
             <Users className="h-4 w-4 text-indigo-400" />
             Gender Distribution
@@ -840,7 +843,7 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
         </div>
 
         {/* Age Distribution */}
-        <div className="rounded-xl border border-edge-2 bg-card p-4">
+        <div className="card-lift rounded-xl border border-edge-2 bg-card p-4">
           <h4 className="flex items-center gap-2 text-[13px] font-bold text-body">
             <BarChart3 className="h-4 w-4 text-indigo-400" />
             Age Distribution
@@ -862,7 +865,7 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
         </div>
 
         {/* Insurance Mix */}
-        <div className="rounded-xl border border-edge-2 bg-card p-4">
+        <div className="card-lift rounded-xl border border-edge-2 bg-card p-4">
           <h4 className="flex items-center gap-2 text-[13px] font-bold text-body">
             <Activity className="h-4 w-4 text-indigo-400" />
             Insurance / Payor Mix
@@ -890,7 +893,7 @@ function DiversityTab({ patients }: { patients: ParsedPatient[] }) {
       </div>
 
       {/* Ethnicity detail */}
-      <div className="rounded-xl border border-edge-2 bg-card p-4">
+      <div className="card-lift rounded-xl border border-edge-2 bg-card p-4">
         <h4 className="flex items-center gap-2 text-[13px] font-bold text-body">
           <Users className="h-4 w-4 text-indigo-400" />
           Ethnicity Breakdown
@@ -943,7 +946,7 @@ function ResultCard({ icon, label, value, subtext, color }: {
   color: string;
 }) {
   return (
-    <div className="rounded-xl border border-edge-2 bg-card p-4">
+    <div className="card-lift rounded-xl border border-edge-2 bg-card p-4">
       <div className="flex items-center gap-2.5">
         <div className={`rounded-lg p-2 ${color}`}>{icon}</div>
         <div>
@@ -958,9 +961,9 @@ function ResultCard({ icon, label, value, subtext, color }: {
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-surface-2 p-3 ring-1 ring-edge-2">
+    <div className="card-lift rounded-lg bg-surface-2 p-3 ring-1 ring-edge-2">
       <p className="text-[12px] font-medium text-dim">{label}</p>
-      <p className="mt-0.5 text-[14px] font-bold text-heading">{value}</p>
+      <p className="mt-0.5 text-[14px] font-bold tabular-nums text-heading">{value}</p>
     </div>
   );
 }

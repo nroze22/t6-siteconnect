@@ -1,0 +1,576 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "pt-fhir-001",
+        "identifier": [
+          {
+            "type": {
+              "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v2-0203", "code": "MR" }]
+            },
+            "value": "FHIR-MRN-4401"
+          }
+        ],
+        "name": [{ "family": "Nakamura", "given": ["Kenji"] }],
+        "birthDate": "1960-08-12",
+        "gender": "male",
+        "extension": [
+          {
+            "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race",
+            "extension": [
+              { "url": "ombCategory", "valueCoding": { "system": "urn:oid:2.16.840.1.113883.6.238", "code": "2028-9", "display": "Asian" } },
+              { "url": "text", "valueString": "Asian" }
+            ]
+          },
+          {
+            "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity",
+            "extension": [
+              { "url": "ombCategory", "valueCoding": { "system": "urn:oid:2.16.840.1.113883.6.238", "code": "2186-5", "display": "Not Hispanic or Latino" } },
+              { "url": "text", "valueString": "Not Hispanic or Latino" }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Condition",
+        "subject": { "reference": "Patient/pt-fhir-001" },
+        "code": {
+          "coding": [
+            { "system": "http://hl7.org/fhir/sid/icd-10-cm", "code": "C34.11", "display": "Malignant neoplasm of upper lobe, right bronchus or lung" }
+          ],
+          "text": "Non-small cell lung cancer, upper lobe right"
+        },
+        "onsetDateTime": "2024-01-20",
+        "clinicalStatus": { "coding": [{ "code": "active" }] }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Condition",
+        "subject": { "reference": "Patient/pt-fhir-001" },
+        "code": {
+          "coding": [
+            { "system": "http://hl7.org/fhir/sid/icd-10-cm", "code": "E11.9", "display": "Type 2 diabetes mellitus without complications" }
+          ],
+          "text": "Type 2 diabetes mellitus"
+        },
+        "onsetDateTime": "2017-05-10",
+        "clinicalStatus": { "coding": [{ "code": "active" }] }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Condition",
+        "subject": { "reference": "Patient/pt-fhir-001" },
+        "code": {
+          "coding": [
+            { "system": "http://hl7.org/fhir/sid/icd-10-cm", "code": "I10", "display": "Essential (primary) hypertension" }
+          ],
+          "text": "Essential hypertension"
+        },
+        "onsetDateTime": "2015-11-22",
+        "clinicalStatus": { "coding": [{ "code": "active" }] }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "subject": { "reference": "Patient/pt-fhir-001" },
+        "status": "active",
+        "medicationCodeableConcept": {
+          "coding": [{ "system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1547220", "display": "Pembrolizumab" }],
+          "text": "Pembrolizumab"
+        },
+        "dosageInstruction": [{
+          "text": "200 mg IV every 3 weeks",
+          "doseAndRate": [{ "doseQuantity": { "value": 200, "unit": "mg" } }],
+          "timing": { "code": { "text": "Every 3 weeks" } }
+        }],
+        "authoredOn": "2024-02-01"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "subject": { "reference": "Patient/pt-fhir-001" },
+        "status": "active",
+        "medicationCodeableConcept": {
+          "coding": [{ "system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "6809", "display": "Metformin" }],
+          "text": "Metformin"
+        },
+        "dosageInstruction": [{
+          "doseAndRate": [{ "doseQuantity": { "value": 1000, "unit": "mg" } }],
+          "timing": { "repeat": { "frequency": 2, "period": 1, "periodUnit": "d" } }
+        }],
+        "authoredOn": "2017-06-15"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "subject": { "reference": "Patient/pt-fhir-001" },
+        "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "laboratory" }] }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "718-7", "display": "Hemoglobin [Mass/volume] in Blood" }],
+          "text": "Hemoglobin"
+        },
+        "valueQuantity": { "value": 13.5, "unit": "g/dL" },
+        "referenceRange": [{ "low": { "value": 12.0, "unit": "g/dL" }, "high": { "value": 17.5, "unit": "g/dL" } }],
+        "effectiveDateTime": "2024-06-15T10:30:00Z",
+        "interpretation": [{ "coding": [{ "code": "N" }] }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "subject": { "reference": "Patient/pt-fhir-001" },
+        "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "laboratory" }] }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "4548-4", "display": "Hemoglobin A1c/Hemoglobin.total in Blood" }],
+          "text": "HbA1c"
+        },
+        "valueQuantity": { "value": 7.1, "unit": "%" },
+        "referenceRange": [{ "low": { "value": 4.0, "unit": "%" }, "high": { "value": 5.6, "unit": "%" } }],
+        "effectiveDateTime": "2024-06-15T10:30:00Z",
+        "interpretation": [{ "coding": [{ "code": "H" }] }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "subject": { "reference": "Patient/pt-fhir-001" },
+        "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "laboratory" }] }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "2160-0", "display": "Creatinine [Mass/volume] in Serum or Plasma" }],
+          "text": "Creatinine"
+        },
+        "valueQuantity": { "value": 0.98, "unit": "mg/dL" },
+        "referenceRange": [{ "low": { "value": 0.7, "unit": "mg/dL" }, "high": { "value": 1.3, "unit": "mg/dL" } }],
+        "effectiveDateTime": "2024-06-15T10:30:00Z",
+        "interpretation": [{ "coding": [{ "code": "N" }] }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "subject": { "reference": "Patient/pt-fhir-001" },
+        "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs" }] }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "85354-9", "display": "Blood pressure panel" }]
+        },
+        "component": [
+          {
+            "code": { "coding": [{ "system": "http://loinc.org", "code": "8480-6", "display": "Systolic blood pressure" }] },
+            "valueQuantity": { "value": 136, "unit": "mmHg" }
+          },
+          {
+            "code": { "coding": [{ "system": "http://loinc.org", "code": "8462-4", "display": "Diastolic blood pressure" }] },
+            "valueQuantity": { "value": 82, "unit": "mmHg" }
+          }
+        ],
+        "effectiveDateTime": "2024-06-15T09:00:00Z"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "subject": { "reference": "Patient/pt-fhir-001" },
+        "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs" }] }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "29463-7", "display": "Body weight" }],
+          "text": "Weight"
+        },
+        "valueQuantity": { "value": 86.2, "unit": "kg" },
+        "effectiveDateTime": "2024-06-15T09:00:00Z"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "subject": { "reference": "Patient/pt-fhir-001" },
+        "code": {
+          "coding": [{ "system": "http://www.ama-assn.org/go/cpt", "code": "31622", "display": "Diagnostic bronchoscopy" }],
+          "text": "Diagnostic bronchoscopy with biopsy"
+        },
+        "performedDateTime": "2024-01-18",
+        "status": "completed"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "AllergyIntolerance",
+        "patient": { "reference": "Patient/pt-fhir-001" },
+        "code": { "text": "Sulfonamides" },
+        "reaction": [{ "manifestation": [{ "coding": [{ "display": "Rash" }] }], "severity": "moderate" }],
+        "type": "allergy",
+        "clinicalStatus": { "coding": [{ "code": "active" }] }
+      }
+    },
+
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "pt-fhir-002",
+        "identifier": [
+          {
+            "type": { "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v2-0203", "code": "MR" }] },
+            "value": "FHIR-MRN-4402"
+          }
+        ],
+        "name": [{ "family": "Rodriguez", "given": ["Maria", "Elena"] }],
+        "birthDate": "1972-04-18",
+        "gender": "female",
+        "extension": [
+          {
+            "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race",
+            "extension": [
+              { "url": "text", "valueString": "White" }
+            ]
+          },
+          {
+            "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity",
+            "extension": [
+              { "url": "text", "valueString": "Hispanic or Latino" }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Condition",
+        "subject": { "reference": "Patient/pt-fhir-002" },
+        "code": {
+          "coding": [
+            { "system": "http://hl7.org/fhir/sid/icd-10-cm", "code": "C50.411", "display": "Malignant neoplasm of upper-outer quadrant of right female breast" }
+          ],
+          "text": "Invasive ductal carcinoma, right breast"
+        },
+        "onsetDateTime": "2024-02-28",
+        "clinicalStatus": { "coding": [{ "code": "active" }] }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Condition",
+        "subject": { "reference": "Patient/pt-fhir-002" },
+        "code": {
+          "coding": [
+            { "system": "http://hl7.org/fhir/sid/icd-10-cm", "code": "E78.5", "display": "Hyperlipidemia, unspecified" }
+          ],
+          "text": "Hyperlipidemia"
+        },
+        "onsetDateTime": "2019-08-14",
+        "clinicalStatus": { "coding": [{ "code": "active" }] }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "subject": { "reference": "Patient/pt-fhir-002" },
+        "status": "active",
+        "medicationCodeableConcept": {
+          "coding": [{ "system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "1946822", "display": "Trastuzumab deruxtecan" }],
+          "text": "Trastuzumab deruxtecan (Enhertu)"
+        },
+        "dosageInstruction": [{
+          "doseAndRate": [{ "doseQuantity": { "value": 5.4, "unit": "mg/kg" } }],
+          "timing": { "code": { "text": "Every 3 weeks" } }
+        }],
+        "authoredOn": "2024-04-10"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "subject": { "reference": "Patient/pt-fhir-002" },
+        "status": "active",
+        "medicationCodeableConcept": {
+          "text": "Atorvastatin"
+        },
+        "dosageInstruction": [{
+          "doseAndRate": [{ "doseQuantity": { "value": 20, "unit": "mg" } }],
+          "timing": { "repeat": { "frequency": 1, "period": 1, "periodUnit": "d" } }
+        }],
+        "authoredOn": "2019-09-01"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "subject": { "reference": "Patient/pt-fhir-002" },
+        "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "laboratory" }] }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "718-7", "display": "Hemoglobin" }],
+          "text": "Hemoglobin"
+        },
+        "valueQuantity": { "value": 12.1, "unit": "g/dL" },
+        "referenceRange": [{ "low": { "value": 12.0, "unit": "g/dL" }, "high": { "value": 16.0, "unit": "g/dL" } }],
+        "effectiveDateTime": "2024-06-20T08:15:00Z",
+        "interpretation": [{ "coding": [{ "code": "N" }] }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "subject": { "reference": "Patient/pt-fhir-002" },
+        "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "laboratory" }] }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "6690-2", "display": "Leukocytes" }],
+          "text": "White Blood Cells"
+        },
+        "valueQuantity": { "value": 5.8, "unit": "10*3/uL" },
+        "referenceRange": [{ "low": { "value": 4.5, "unit": "10*3/uL" }, "high": { "value": 11.0, "unit": "10*3/uL" } }],
+        "effectiveDateTime": "2024-06-20T08:15:00Z",
+        "interpretation": [{ "coding": [{ "code": "N" }] }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "subject": { "reference": "Patient/pt-fhir-002" },
+        "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "laboratory" }] }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "2093-3", "display": "Cholesterol [Mass/volume] in Serum or Plasma" }],
+          "text": "Total Cholesterol"
+        },
+        "valueQuantity": { "value": 228, "unit": "mg/dL" },
+        "effectiveDateTime": "2024-06-20T08:15:00Z",
+        "interpretation": [{ "coding": [{ "code": "H" }] }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "subject": { "reference": "Patient/pt-fhir-002" },
+        "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs" }] }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "85354-9", "display": "Blood pressure panel" }]
+        },
+        "component": [
+          {
+            "code": { "coding": [{ "system": "http://loinc.org", "code": "8480-6", "display": "Systolic blood pressure" }] },
+            "valueQuantity": { "value": 124, "unit": "mmHg" }
+          },
+          {
+            "code": { "coding": [{ "system": "http://loinc.org", "code": "8462-4", "display": "Diastolic blood pressure" }] },
+            "valueQuantity": { "value": 76, "unit": "mmHg" }
+          }
+        ],
+        "effectiveDateTime": "2024-06-20T08:00:00Z"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "subject": { "reference": "Patient/pt-fhir-002" },
+        "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs" }] }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "29463-7", "display": "Body weight" }],
+          "text": "Weight"
+        },
+        "valueQuantity": { "value": 67.5, "unit": "kg" },
+        "effectiveDateTime": "2024-06-20T08:00:00Z"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "subject": { "reference": "Patient/pt-fhir-002" },
+        "code": {
+          "coding": [{ "system": "http://www.ama-assn.org/go/cpt", "code": "19081", "display": "Biopsy of breast with placement of breast localization device" }],
+          "text": "Breast biopsy with clip placement"
+        },
+        "performedDateTime": "2024-03-05",
+        "status": "completed"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "AllergyIntolerance",
+        "patient": { "reference": "Patient/pt-fhir-002" },
+        "code": { "text": "Penicillin" },
+        "reaction": [{ "manifestation": [{ "coding": [{ "display": "Hives" }] }], "severity": "mild" }],
+        "type": "allergy",
+        "clinicalStatus": { "coding": [{ "code": "active" }] }
+      }
+    },
+
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "pt-fhir-003",
+        "identifier": [
+          {
+            "type": { "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/v2-0203", "code": "MR" }] },
+            "value": "FHIR-MRN-4403"
+          }
+        ],
+        "name": [{ "family": "Washington", "given": ["Marcus", "Jerome"] }],
+        "birthDate": "1955-12-03",
+        "gender": "male",
+        "extension": [
+          {
+            "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race",
+            "extension": [{ "url": "text", "valueString": "Black or African American" }]
+          },
+          {
+            "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity",
+            "extension": [{ "url": "text", "valueString": "Not Hispanic or Latino" }]
+          }
+        ]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Condition",
+        "subject": { "reference": "Patient/pt-fhir-003" },
+        "code": {
+          "coding": [{ "system": "http://hl7.org/fhir/sid/icd-10-cm", "code": "C61", "display": "Malignant neoplasm of prostate" }],
+          "text": "Metastatic castration-resistant prostate cancer"
+        },
+        "onsetDateTime": "2023-03-15",
+        "clinicalStatus": { "coding": [{ "code": "active" }] }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Condition",
+        "subject": { "reference": "Patient/pt-fhir-003" },
+        "code": {
+          "coding": [{ "system": "http://hl7.org/fhir/sid/icd-10-cm", "code": "I10", "display": "Essential hypertension" }],
+          "text": "Essential hypertension"
+        },
+        "onsetDateTime": "2010-06-20",
+        "clinicalStatus": { "coding": [{ "code": "active" }] }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Condition",
+        "subject": { "reference": "Patient/pt-fhir-003" },
+        "code": {
+          "coding": [{ "system": "http://hl7.org/fhir/sid/icd-10-cm", "code": "E11.65", "display": "Type 2 diabetes with hyperglycemia" }],
+          "text": "Type 2 diabetes mellitus with hyperglycemia"
+        },
+        "onsetDateTime": "2014-09-08",
+        "clinicalStatus": { "coding": [{ "code": "active" }] }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "subject": { "reference": "Patient/pt-fhir-003" },
+        "status": "active",
+        "medicationCodeableConcept": { "text": "Olaparib (Lynparza)" },
+        "dosageInstruction": [{
+          "doseAndRate": [{ "doseQuantity": { "value": 300, "unit": "mg" } }],
+          "timing": { "repeat": { "frequency": 2, "period": 1, "periodUnit": "d" } }
+        }],
+        "authoredOn": "2024-01-20"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "subject": { "reference": "Patient/pt-fhir-003" },
+        "status": "active",
+        "medicationCodeableConcept": { "text": "Enzalutamide" },
+        "dosageInstruction": [{
+          "doseAndRate": [{ "doseQuantity": { "value": 160, "unit": "mg" } }],
+          "timing": { "repeat": { "frequency": 1, "period": 1, "periodUnit": "d" } }
+        }],
+        "authoredOn": "2023-04-01"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "subject": { "reference": "Patient/pt-fhir-003" },
+        "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "laboratory" }] }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "2857-1", "display": "PSA" }],
+          "text": "Prostate Specific Antigen"
+        },
+        "valueQuantity": { "value": 42.8, "unit": "ng/mL" },
+        "effectiveDateTime": "2024-06-10T14:00:00Z",
+        "interpretation": [{ "coding": [{ "code": "H" }] }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "subject": { "reference": "Patient/pt-fhir-003" },
+        "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "laboratory" }] }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "718-7", "display": "Hemoglobin" }],
+          "text": "Hemoglobin"
+        },
+        "valueQuantity": { "value": 11.8, "unit": "g/dL" },
+        "referenceRange": [{ "low": { "value": 12.0, "unit": "g/dL" }, "high": { "value": 17.5, "unit": "g/dL" } }],
+        "effectiveDateTime": "2024-06-10T14:00:00Z",
+        "interpretation": [{ "coding": [{ "code": "L" }] }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "subject": { "reference": "Patient/pt-fhir-003" },
+        "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "laboratory" }] }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "4548-4", "display": "HbA1c" }],
+          "text": "HbA1c"
+        },
+        "valueQuantity": { "value": 7.9, "unit": "%" },
+        "effectiveDateTime": "2024-06-10T14:00:00Z",
+        "interpretation": [{ "coding": [{ "code": "H" }] }]
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "subject": { "reference": "Patient/pt-fhir-003" },
+        "category": [{ "coding": [{ "system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs" }] }],
+        "code": {
+          "coding": [{ "system": "http://loinc.org", "code": "85354-9", "display": "Blood pressure panel" }]
+        },
+        "component": [
+          {
+            "code": { "coding": [{ "system": "http://loinc.org", "code": "8480-6" }] },
+            "valueQuantity": { "value": 148, "unit": "mmHg" }
+          },
+          {
+            "code": { "coding": [{ "system": "http://loinc.org", "code": "8462-4" }] },
+            "valueQuantity": { "value": 92, "unit": "mmHg" }
+          }
+        ],
+        "effectiveDateTime": "2024-06-10T13:30:00Z"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "AllergyIntolerance",
+        "patient": { "reference": "Patient/pt-fhir-003" },
+        "code": { "text": "Codeine" },
+        "reaction": [{ "manifestation": [{ "coding": [{ "display": "Nausea and vomiting" }] }], "severity": "moderate" }],
+        "type": "allergy",
+        "clinicalStatus": { "coding": [{ "code": "active" }] }
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "AllergyIntolerance",
+        "patient": { "reference": "Patient/pt-fhir-003" },
+        "code": { "text": "Iodinated contrast dye" },
+        "reaction": [{ "manifestation": [{ "coding": [{ "display": "Anaphylaxis" }] }], "severity": "severe" }],
+        "type": "allergy",
+        "clinicalStatus": { "coding": [{ "code": "active" }] }
+      }
+    }
+  ]
+}

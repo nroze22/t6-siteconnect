@@ -12,11 +12,11 @@ import { StudyDetailModal } from "./StudyDetailModal";
 import { OverrideModal } from "./OverrideModal";
 import { useScreeningStore } from "@/stores/use-screening-store";
 import { useToast } from "@/components/ui/Toast";
-import { screenPatientsViaRust, screeningResultToOutput } from "@/lib/data-provider";
+import { screenPatientsViaRust, screeningResultToOutput, getStudies, type AnalyticsStudy } from "@/lib/data-provider";
 import { FlaskConical, Info, ChevronDown, Loader2, RefreshCw } from "lucide-react";
 
-// Study lookup for display
-const STUDY_LIST: { id: string; short: string; sponsor: string; phase: string; nct: string }[] = [
+// Fallback study list for demo/web mode
+const DEMO_STUDY_LIST: { id: string; short: string; sponsor: string; phase: string; nct: string }[] = [
   { id: "study-1", short: "KEYNOTE-789: Pembro + Chemo in NSCLC", sponsor: "Merck Sharp & Dohme", phase: "Phase 3", nct: "NCT05502237" },
   { id: "study-2", short: "DELIVER: Dapagliflozin in HFpEF", sponsor: "AstraZeneca", phase: "Phase 3", nct: "NCT04564897" },
   { id: "study-3", short: "STEP-5: Semaglutide Weight Management", sponsor: "Novo Nordisk", phase: "Phase 3", nct: "NCT05252390" },
@@ -25,7 +25,15 @@ const STUDY_LIST: { id: string; short: string; sponsor: string; phase: string; n
   { id: "study-6", short: "Dupilumab in Atopic Dermatitis", sponsor: "Regeneron / Sanofi", phase: "Phase 3", nct: "NCT04516746" },
 ];
 
-const STUDY_MAP = Object.fromEntries(STUDY_LIST.map((s) => [s.id, s]));
+function analyticsStudyToDisplay(s: AnalyticsStudy): { id: string; short: string; sponsor: string; phase: string; nct: string } {
+  return {
+    id: s.id,
+    short: s.short_title ?? s.title,
+    sponsor: s.sponsor,
+    phase: s.phase ?? "",
+    nct: s.nct_number ?? "",
+  };
+}
 
 const SCREENING_STEPS = [
   "Loading patient records...",
@@ -106,12 +114,24 @@ export function ScreeningPage() {
   const setCriteriaResults = useScreeningStore((s) => s.setCriteriaResults);
   const selectStudy = useScreeningStore((s) => s.selectStudy);
   const selectPatient = useScreeningStore((s) => s.selectPatient);
+  const selectedPatientId = useScreeningStore((s) => s.selectedPatientId);
 
   const [showStudyPicker, setShowStudyPicker] = useState(false);
   const [screening, setScreening] = useState(false);
+  const [studyList, setStudyList] = useState(DEMO_STUDY_LIST);
   const toast = useToast();
 
-  const study = selectedStudyId ? STUDY_MAP[selectedStudyId] : null;
+  // Load real studies from DB on mount
+  useEffect(() => {
+    getStudies().then((studies) => {
+      if (studies.length > 0) {
+        setStudyList(studies.map(analyticsStudyToDisplay));
+      }
+    });
+  }, []);
+
+  const studyMap = Object.fromEntries(studyList.map((s) => [s.id, s]));
+  const study = selectedStudyId ? studyMap[selectedStudyId] : null;
 
   const switchStudy = useCallback(async (studyId: string) => {
     if (studyId === selectedStudyId) {
@@ -137,7 +157,7 @@ export function ScreeningPage() {
       }
       selectStudy(studyId);
       const eligible = results.filter((s) => s.summary.overallStatus === "eligible").length;
-      const studyInfo = STUDY_MAP[studyId];
+      const studyInfo = studyMap[studyId];
       toast.success(
         `Screened ${results.length} subjects`,
         `${eligible} eligible for ${studyInfo?.short.split(":")[0] ?? studyId}`
@@ -153,7 +173,7 @@ export function ScreeningPage() {
     <>
       <div className="flex h-full flex-col">
         {/* Study context bar */}
-        <div className="shrink-0 border-b border-indigo-500/15 bg-gradient-to-r from-indigo-500/[0.06] via-indigo-500/[0.03] to-transparent px-4 py-2">
+        <div className="glass shrink-0 border-b border-indigo-500/15 bg-gradient-to-r from-indigo-500/[0.06] via-indigo-500/[0.03] to-transparent px-4 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/15 ring-1 ring-indigo-500/25">
@@ -216,7 +236,7 @@ export function ScreeningPage() {
                       <p className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-widest text-dim">
                         Select study to screen against
                       </p>
-                      {STUDY_LIST.map((s, i) => {
+                      {studyList.map((s, i) => {
                         const isActive = s.id === selectedStudyId;
                         return (
                           <motion.button
@@ -289,7 +309,18 @@ export function ScreeningPage() {
             </ResizablePanel>
             <ResizableHandle />
             <ResizablePanel defaultSize="42%" minSize="30%">
-              <CriteriaDetailPanel />
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={selectedPatientId ?? "none"}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="h-full"
+                >
+                  <CriteriaDetailPanel />
+                </motion.div>
+              </AnimatePresence>
             </ResizablePanel>
             <ResizableHandle />
             <ResizablePanel defaultSize="33%" minSize="20%">

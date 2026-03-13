@@ -1,0 +1,88 @@
+MSH|^~\&|EPIC|MEMORIAL_HOSPITAL|SITECONNECT|TALOSIX|20240615120000||ADT^A08|MSG00001|P|2.5.1
+PID|1||HL7-MRN-5501^^^MEMORIAL^MR||Chen^David^Wei||19670415|M||Asian|123 Oak Lane^^Chicago^IL^60601||312-555-0142|||||||||Not Hispanic or Latino
+DG1|1||C34.12^Malignant neoplasm of middle lobe bronchus or lung^ICD-10|||A
+DG1|2||I10^Essential hypertension^ICD-10|||A
+DG1|3||E11.9^Type 2 diabetes mellitus^ICD-10|||A
+OBX|1|NM|718-7^Hemoglobin^LN||14.2|g/dL|12.0-17.5|N|||F|||20240615
+OBX|2|NM|6690-2^White Blood Cells^LN||7.8|10*3/uL|4.5-11.0|N|||F|||20240615
+OBX|3|NM|777-3^Platelets^LN||210|10*3/uL|150-400|N|||F|||20240615
+OBX|4|NM|2160-0^Creatinine^LN||1.02|mg/dL|0.7-1.3|N|||F|||20240615
+OBX|5|NM|4548-4^HbA1c^LN||6.9|%|4.0-5.6|H|||F|||20240615
+OBX|6|NM|1742-6^ALT^LN||24|U/L|7-56|N|||F|||20240615
+OBX|7|NM|1920-8^AST^LN||29|U/L|10-40|N|||F|||20240615
+OBX|8|NM|8480-6^BP Systolic^LN||142|mmHg|90-140|H|||F|||20240615
+OBX|9|NM|8462-4^BP Diastolic^LN||86|mmHg|60-90|N|||F|||20240615
+OBX|10|NM|8867-4^Heart Rate^LN||76|bpm|60-100|N|||F|||20240615
+OBX|11|NM|29463-7^Weight^LN||82.5|kg||||F|||20240615
+RXA|0|1|20240201||Pembrolizumab^Pembrolizumab^RxNorm|200|mg
+RXA|0|1|20170601||Metformin^Metformin^RxNorm|1000|mg
+RXA|0|1|20150301||Lisinopril^Lisinopril^RxNorm|20|mg
+AL1|1|DA|Sulfa drugs^Sulfa drugs|SV|Anaphylaxis|20100315
+
+MSH|^~\&|EPIC|MEMORIAL_HOSPITAL|SITECONNECT|TALOSIX|20240618140000||ADT^A08|MSG00002|P|2.5.1
+PID|1||HL7-MRN-5502^^^MEMORIAL^MR||Thompson^Sarah^Elizabeth||19780922|F||White|456 Maple Ave^^Chicago^IL^60602||312-555-0298|||||||||Not Hispanic or Latino
+DG1|1||C50.911^Malignant neoplasm of right breast^ICD-10|||A
+DG1|2||E78.5^Hyperlipidemia^ICD-10|||A
+DG1|3||F41.1^Generalized anxiety disorder^ICD-10|||A
+OBX|1|NM|718-7^Hemoglobin^LN||11.9|g/dL|12.0-16.0|L|||F|||20240618
+OBX|2|NM|6690-2^White Blood Cells^LN||4.8|10*3/uL|4.5-11.0|N|||F|||20240618
+OBX|3|NM|777-3^Platelets^LN||185|10*3/uL|150-400|N|||F|||20240618
+OBX|4|NM|2160-0^Creatinine^LN||0.74|mg/dL|0.6-1.1|N|||F|||20240618
+OBX|5|NM|2093-3^Total Cholesterol^LN||235|mg/dL|<200|H|||F|||20240618
+OBX|6|NM|8480-6^BP Systolic^LN||118|mmHg|90-140|N|||F|||20240618
+OBX|7|NM|8462-4^BP Diastolic^LN||72|mmHg|60-90|N|||F|||20240618
+OBX|8|NM|8867-4^Heart Rate^LN||74|bpm|60-100|N|||F|||20240618
+OBX|9|NM|29463-7^Weight^LN||66.8|kg||||F|||20240618
+RXA|0|1|20240401||Trastuzumab^Trastuzumab^RxNorm|440|mg
+RXA|0|1|20240401||Pertuzumab^Pertuzumab^RxNorm|840|mg
+RXA|0|1|20200115||Atorvastatin^Atorvastatin^RxNorm|40|mg
+RXA|0|1|20220801||Escitalopram^Escitalopram^RxNorm|10|mg
+AL1|1|DA|Penicillin^Penicillin|MO|Hives|20050620
+AL1|2|FA|Shellfish^Shellfish|MI|Itching|20120310
+
+MSH|^~\&|EPIC|MEMORIAL_HOSPITAL|SITECONNECT|TALOSIX|20240620100000||ADT^A08|MSG00003|P|2.5.1
+PID|1||HL7-MRN-5503^^^MEMORIAL^MR||Okafor^Chidinma^Adaeze||19520830|F||Black or African American|789 Elm St^^Chicago^IL^60603||312-555-0455|||||||||Not Hispanic or Latino
+DG1|1||C56.1^Malignant neoplasm of right ovary^ICD-10|||A
+DG1|2||I10^Essential hypertension^ICD-10|||A
+DG1|3||E11.9^Type 2 diabetes mellitus^ICD-10|||A
+DG1|4||M81.0^Age-related osteoporosis^ICD-10|||A
+OBX|1|NM|718-7^Hemoglobin^LN||10.8|g/dL|12.0-16.0|L|||F|||20240620
+OBX|2|NM|6690-2^White Blood Cells^LN||3.5|10*3/uL|4.5-11.0|L|||F|||20240620
+OBX|3|NM|777-3^Platelets^LN||142|10*3/uL|150-400|L|||F|||20240620
+OBX|4|NM|10334-1^CA-125^LN||520|U/mL|<35|H|||F|||20240620
+OBX|5|NM|2160-0^Creatinine^LN||1.15|mg/dL|0.6-1.1|H|||F|||20240620
+OBX|6|NM|4548-4^HbA1c^LN||7.5|%|4.0-5.6|H|||F|||20240620
+OBX|7|NM|8480-6^BP Systolic^LN||156|mmHg|90-140|H|||F|||20240620
+OBX|8|NM|8462-4^BP Diastolic^LN||88|mmHg|60-90|N|||F|||20240620
+OBX|9|NM|8867-4^Heart Rate^LN||82|bpm|60-100|N|||F|||20240620
+OBX|10|NM|29463-7^Weight^LN||58.2|kg||||F|||20240620
+RXA|0|1|20240315||Carboplatin^Carboplatin^RxNorm|300|mg
+RXA|0|1|20240315||Paclitaxel^Paclitaxel^RxNorm|175|mg
+RXA|0|1|20180401||Metformin^Metformin^RxNorm|500|mg
+RXA|0|1|20120915||Amlodipine^Amlodipine^RxNorm|10|mg
+RXA|0|1|20220601||Alendronate^Alendronate^RxNorm|70|mg
+AL1|1|DA|Morphine^Morphine|MO|Respiratory depression|20080215
+AL1|2|DA|Latex^Latex|MI|Contact dermatitis|20150420
+
+MSH|^~\&|EPIC|MEMORIAL_HOSPITAL|SITECONNECT|TALOSIX|20240622090000||ADT^A08|MSG00004|P|2.5.1
+PID|1||HL7-MRN-5504^^^MEMORIAL^MR||Petrov^Alexei^Nikolaevich||19630211|M||White|321 Pine Rd^^Chicago^IL^60604||312-555-0611|||||||||Not Hispanic or Latino
+DG1|1||C22.0^Liver cell carcinoma^ICD-10|||A
+DG1|2||K74.60^Unspecified cirrhosis of liver^ICD-10|||A
+DG1|3||B18.2^Chronic viral hepatitis C^ICD-10|||A
+DG1|4||I10^Essential hypertension^ICD-10|||A
+OBX|1|NM|718-7^Hemoglobin^LN||11.5|g/dL|12.0-17.5|L|||F|||20240622
+OBX|2|NM|777-3^Platelets^LN||88|10*3/uL|150-400|L|||F|||20240622
+OBX|3|NM|1834-1^AFP^LN||890|ng/mL|<10|H|||F|||20240622
+OBX|4|NM|1742-6^ALT^LN||72|U/L|7-56|H|||F|||20240622
+OBX|5|NM|1920-8^AST^LN||95|U/L|10-40|H|||F|||20240622
+OBX|6|NM|1975-2^Bilirubin Total^LN||3.1|mg/dL|0.1-1.2|H|||F|||20240622
+OBX|7|NM|6301-6^INR^LN||1.5||0.8-1.2|H|||F|||20240622
+OBX|8|NM|2160-0^Creatinine^LN||0.95|mg/dL|0.7-1.3|N|||F|||20240622
+OBX|9|NM|8480-6^BP Systolic^LN||122|mmHg|90-140|N|||F|||20240622
+OBX|10|NM|8462-4^BP Diastolic^LN||74|mmHg|60-90|N|||F|||20240622
+OBX|11|NM|8867-4^Heart Rate^LN||86|bpm|60-100|N|||F|||20240622
+OBX|12|NM|29463-7^Weight^LN||74.0|kg||||F|||20240622
+RXA|0|1|20240501||Atezolizumab^Atezolizumab^RxNorm|1200|mg
+RXA|0|1|20240501||Bevacizumab^Bevacizumab^RxNorm|15|mg/kg
+RXA|0|1|20120801||Amlodipine^Amlodipine^RxNorm|5|mg
+AL1|1|DA|Aspirin^Aspirin|MO|GI bleeding|20050918

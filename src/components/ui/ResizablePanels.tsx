@@ -48,6 +48,7 @@ export function ResizableHandle() {
       style={{ flex: "0 0 4px", cursor: "col-resize", background: "rgba(255,255,255,0.04)" }}
     >
       <div
+        className="resize-grabber"
         style={{
           display: "flex",
           alignItems: "center",

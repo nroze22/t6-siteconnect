@@ -335,6 +335,7 @@ export function DrillDownPanel() {
               <button
                 onClick={handleExportCSV}
                 disabled={patients.length === 0}
+                title="Saves to ~/Downloads"
                 className="inline-flex items-center gap-1.5 rounded-md bg-surface-3 px-3 py-1.5 text-xs font-medium text-body hover:bg-surface-5 hover:text-heading transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 <Download className="h-3.5 w-3.5" />
@@ -343,10 +344,11 @@ export function DrillDownPanel() {
               <button
                 onClick={handleExportPDF}
                 disabled={patients.length === 0}
+                title="Saves HTML report to ~/Downloads"
                 className="inline-flex items-center gap-1.5 rounded-md bg-surface-3 px-3 py-1.5 text-xs font-medium text-body hover:bg-surface-5 hover:text-heading transition-colors disabled:opacity-40 disabled:pointer-events-none"
               >
                 <FileText className="h-3.5 w-3.5" />
-                Export PDF
+                Export Report
               </button>
             </div>
 

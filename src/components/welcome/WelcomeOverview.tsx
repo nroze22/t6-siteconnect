@@ -126,7 +126,7 @@ export function WelcomeOverview() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.98 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="relative z-10 w-full max-w-[640px] mx-4 rounded-2xl bg-[#0f1219]/95 ring-1 ring-white/[0.08] shadow-2xl shadow-black/40"
+            className="relative z-10 w-full max-w-[640px] mx-4 rounded-2xl bg-[#0f1219]/95 ring-1 ring-white/[0.08] shadow-2xl shadow-black/40 glass"
           >
             {/* Close */}
             <button
@@ -171,11 +171,17 @@ export function WelcomeOverview() {
                 transition={{ duration: 0.4, delay: 0.3 }}
                 className="mt-5 flex items-center justify-center gap-4"
               >
-                {VALUE_PROPS.map((vp) => (
-                  <div key={vp.label} className="flex items-center gap-1.5">
+                {VALUE_PROPS.map((vp, i) => (
+                  <motion.div
+                    key={vp.label}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.35 + i * 0.07 }}
+                    className="flex items-center gap-1.5"
+                  >
                     <vp.icon className={`h-3 w-3 ${vp.color} opacity-60`} />
                     <span className="text-[10px] text-white/30">{vp.label}</span>
-                  </div>
+                  </motion.div>
                 ))}
               </motion.div>
             </div>
@@ -196,8 +202,11 @@ export function WelcomeOverview() {
 
               <div className="grid grid-cols-4 gap-2">
                 {WORKFLOW_STEPS.map((step, i) => (
-                  <button
+                  <motion.button
                     key={step.label}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, delay: 0.4 + i * 0.08, ease: [0.22, 1, 0.36, 1] }}
                     onClick={() => handleNavigate(step.page)}
                     className="group relative rounded-xl bg-white/[0.03] p-3 ring-1 ring-white/[0.05] text-left transition-all duration-200 hover:bg-white/[0.06] hover:ring-white/[0.1]"
                   >
@@ -210,7 +219,7 @@ export function WelcomeOverview() {
                     <p className="text-[12px] font-semibold text-white/80 group-hover:text-white">{step.label}</p>
                     <p className="text-[10px] text-white/30 mt-0.5">{step.desc}</p>
                     <ChevronRight className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-white/0 transition-all group-hover:text-white/20" />
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </motion.div>

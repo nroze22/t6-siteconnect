@@ -1,5 +1,5 @@
-import { useMemo, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useMemo, useEffect, useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2,
   XCircle,
@@ -13,12 +13,19 @@ import {
   MousePointerClick,
   ArrowRight,
   ClipboardCheck,
+  Sparkles,
+  Loader2,
+  MessageSquareText,
+  FileText,
 } from "lucide-react";
 import { useScreeningStore } from "@/stores/use-screening-store";
 import { useAppStore } from "@/stores/use-app-store";
 import { useToast } from "@/components/ui/Toast";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { scoreColorClass, formatStatus } from "@/lib/formatters";
+import { generateCriterionRationale } from "@/lib/data-provider";
+import { useLlmQueueStore } from "@/stores/use-llm-queue-store";
+import { buildPatientContext } from "@/lib/llm-queue";
 import type { CriterionResult, CriterionResultType, ReviewStatus } from "@/types";
 
 const resultConfig: Record<
@@ -49,23 +56,52 @@ const resultConfig: Record<
   needs_review: {
     icon: <Eye className="h-4 w-4 text-blue-400" />,
     label: "Needs Review",
-    bg: "bg-blue-500/10 text-blue-400",
+    bg: "bg-blue-500/15 text-blue-300",
     border: "border-l-blue-500",
     glow: "glow-blue",
   },
 };
 
-function CriterionCard({ criterion }: { criterion: CriterionResult }) {
+function CriterionCard({ criterion, patientContext }: { criterion: CriterionResult; patientContext: string }) {
   const selectedCriterionId = useScreeningStore((s) => s.selectedCriterionId);
   const selectCriterion = useScreeningStore((s) => s.selectCriterion);
   const openOverrideModal = useScreeningStore((s) => s.openOverrideModal);
+  const llmStatus = useAppStore((s) => s.status.llmStatus);
   const config = resultConfig[criterion.result];
   const isSelected = selectedCriterionId === criterion.id;
+
+  // Read from background queue store (reactive — updates when queue fills it)
+  const queueRationale = useLlmQueueStore((s) => s.rationales[criterion.id]);
+  const [localRationale, setLocalRationale] = useState<string | null>(null);
+  const [explaining, setExplaining] = useState(false);
+  const rationale = queueRationale ?? localRationale;
+
+  const handleExplain = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (rationale || explaining) return;
+    setExplaining(true);
+    try {
+      const result = await generateCriterionRationale(
+        criterion.criterionText,
+        criterion.criterionType,
+        criterion.result,
+        criterion.evidence,
+        patientContext,
+      );
+      // Store in queue store so background queue skips this criterion
+      useLlmQueueStore.getState().setRationale(criterion.id, result);
+      setLocalRationale(result);
+    } catch {
+      setLocalRationale("Unable to generate explanation.");
+    } finally {
+      setExplaining(false);
+    }
+  }, [criterion, patientContext, rationale, explaining]);
 
   return (
     <button
       onClick={() => selectCriterion(criterion.id)}
-      className={`w-full rounded-lg border border-edge-2 border-l-[3px] ${config.border} bg-card p-3 text-left transition-all duration-150 ${
+      className={`w-full rounded-lg border border-edge-2 border-l-4 ${config.border} bg-card p-3 text-left transition-all duration-150 ${
         isSelected
           ? `ring-1 ring-indigo-500/30 ${config.glow}`
           : "hover:bg-surface-1 hover:border-edge-4"
@@ -99,7 +135,7 @@ function CriterionCard({ criterion }: { criterion: CriterionResult }) {
             )}
           </div>
           {isSelected && (
-            <div className="mt-3">
+            <div className="mt-3 space-y-2">
               {criterion.evidence && (
                 <div className="rounded-md bg-surface-2 p-2.5 ring-1 ring-edge-2">
                   <p className="text-[12px] font-semibold uppercase tracking-wider text-dim">Evidence</p>
@@ -112,15 +148,62 @@ function CriterionCard({ criterion }: { criterion: CriterionResult }) {
                   )}
                 </div>
               )}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openOverrideModal(criterion.id);
-                }}
-                className="mt-2 rounded-md border border-edge-3 bg-surface-2 px-3 py-1.5 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body"
-              >
-                Override Result
-              </button>
+
+              {/* AI Rationale */}
+              <AnimatePresence mode="wait">
+                {rationale ? (
+                  <motion.div
+                    key="rationale"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="rounded-md bg-purple-500/5 p-2.5 ring-1 ring-purple-500/15"
+                  >
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Sparkles className="h-3 w-3 text-purple-400" />
+                      <p className="text-[12px] font-semibold uppercase tracking-wider text-purple-400">AI Explanation</p>
+                    </div>
+                    <p className="text-[12px] leading-relaxed text-body">{rationale}</p>
+                  </motion.div>
+                ) : explaining ? (
+                  <motion.div
+                    key="loading"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="rounded-md bg-purple-500/5 p-2.5 ring-1 ring-purple-500/15"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-3 w-3 animate-spin text-purple-400" />
+                      <span className="text-[12px] text-purple-300">Generating explanation&hellip;</span>
+                      <span className="text-[10px] text-purple-400/50">~5-15s</span>
+                    </div>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+
+              <div className="flex gap-2">
+                {!rationale && !explaining && (
+                  <Tooltip content={llmStatus === "running" ? "AI will explain this criterion evaluation" : "Uses template — enable AI in Settings for deeper analysis"} side="top">
+                    <button
+                      onClick={handleExplain}
+                      className="flex items-center gap-1.5 rounded-md border border-purple-500/20 bg-purple-500/5 px-3 py-1.5 text-[12px] font-medium text-purple-300 transition-colors hover:bg-purple-500/10 hover:text-purple-200"
+                    >
+                      <MessageSquareText className="h-3 w-3" />
+                      Explain
+                    </button>
+                  </Tooltip>
+                )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openOverrideModal(criterion.id);
+                  }}
+                  className="rounded-md border border-edge-3 bg-surface-2 px-3 py-1.5 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body"
+                >
+                  Override Result
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -135,11 +218,68 @@ export function CriteriaDetailPanel() {
   const screeningResults = useScreeningStore((s) => s.screeningResults);
   const criteriaResults = useScreeningStore((s) => s.criteriaResults);
 
+  // Read AI summary from background queue (reactive)
+  const queueSummary = useLlmQueueStore((s) => selectedPatientId ? s.summaries[selectedPatientId] : undefined);
+  const queueProcessingThis = useLlmQueueStore((s) => s.currentJobPatientId === selectedPatientId);
+
+  // Tell the queue to prioritize this patient
+  useEffect(() => {
+    if (selectedPatientId) {
+      useLlmQueueStore.getState().setPriorityPatient(selectedPatientId);
+    }
+  }, [selectedPatientId]);
+
+  // Build patient context for LLM prompts
+  const patientContext = useMemo(() => {
+    if (!selectedPatientId) return "";
+    return buildPatientContext(selectedPatientId);
+  }, [selectedPatientId, screeningResults, criteriaResults, patients]);
+
+  // Build a rich template summary from criteria evidence (instant, no LLM)
+  const templateSummary = useMemo(() => {
+    if (!selectedPatientId) return "";
+    const patient = patients.find((p) => p.id === selectedPatientId);
+    if (!patient) return "";
+    const screening = screeningResults.get(selectedPatientId);
+    if (!screening) return "";
+    const criteria = criteriaResults.get(screening.id) ?? [];
+
+    const gender = patient.gender === "male" ? "Male" : patient.gender === "female" ? "Female" : patient.gender;
+    const parts: string[] = [`${patient.age}-year-old ${gender}`];
+    if (patient.primaryDiagnosis) parts.push(`with ${patient.primaryDiagnosis}`);
+
+    const metCriteria = criteria.filter((c) => c.criterionType === "inclusion" && c.result === "met" && c.evidence);
+    const unmetCriteria = criteria.filter((c) => c.criterionType === "inclusion" && c.result === "not_met" && c.evidence);
+    const exclusions = criteria.filter((c) => c.criterionType === "exclusion" && c.result === "met" && c.evidence);
+
+    let synopsis = parts.join(" ") + ".";
+    if (metCriteria.length > 0) {
+      synopsis += ` Meets ${metCriteria.length}/${patient.inclusionTotal} inclusion criteria`;
+      const topEvidence = metCriteria.slice(0, 2).map((c) => c.evidence).filter(Boolean);
+      if (topEvidence.length > 0) synopsis += ` including: ${topEvidence.join("; ")}`;
+      synopsis += ".";
+    }
+    if (exclusions.length > 0) {
+      synopsis += ` ${exclusions.length} exclusion${exclusions.length > 1 ? "s" : ""} triggered.`;
+    } else if (unmetCriteria.length > 0) {
+      synopsis += ` ${unmetCriteria.length} inclusion criteria not met.`;
+    }
+    if (patient.missingDataCount > 0) {
+      synopsis += ` ${patient.missingDataCount} data point${patient.missingDataCount > 1 ? "s" : ""} missing.`;
+    }
+    return synopsis;
+  }, [selectedPatientId, patients, screeningResults, criteriaResults]);
+
+  // Use AI summary if available, otherwise template
+  const summary = queueSummary?.isAi ? queueSummary.text : templateSummary;
+  const summaryIsAi = !!queueSummary?.isAi;
+  const aiUpgrading = queueProcessingThis && !summaryIsAi;
+
   if (!selectedPatientId) {
     return (
       <div className="flex h-full flex-col items-center justify-center bg-background p-8 text-center">
-        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/8 ring-1 ring-indigo-500/15">
-          <MousePointerClick className="h-7 w-7 text-indigo-400/50" />
+        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/12 ring-1 ring-indigo-500/20">
+          <MousePointerClick className="h-7 w-7 text-indigo-300/60" />
         </div>
         <h3 className="text-[14px] font-semibold text-body">
           Select a subject to begin
@@ -171,6 +311,7 @@ export function CriteriaDetailPanel() {
   const criteria = criteriaResults.get(screening.id) ?? [];
   const inclusionCriteria = criteria.filter((c) => c.criterionType === "inclusion");
   const exclusionCriteria = criteria.filter((c) => c.criterionType === "exclusion");
+  const aiCriteriaCount = criteria.filter((c) => c.aiDetermined).length;
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-background">
@@ -180,7 +321,7 @@ export function CriteriaDetailPanel() {
           <div>
             <h3 className="text-[14px] font-bold font-mono text-heading">{patient.sitePatientId}</h3>
             <p className="mt-0.5 text-[12px] text-dim">
-              {patient.age} years \u00B7 {patient.gender === "male" ? "Male" : patient.gender === "female" ? "Female" : "Other"}
+              {patient.age} years &middot; {patient.gender === "male" ? "Male" : patient.gender === "female" ? "Female" : "Other"}
               {patient.primaryDiagnosis ? ` \u00B7 ${patient.primaryDiagnosis}` : ""}
             </p>
           </div>
@@ -217,6 +358,44 @@ export function CriteriaDetailPanel() {
             </span>
           )}
         </div>
+
+        {/* Patient Synopsis — shows instantly with template, upgrades to AI */}
+        {summary && (
+          <div className="mt-3">
+            <motion.div
+              key={summaryIsAi ? "ai" : "template"}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className={`rounded-lg px-3 py-2 ring-1 ${
+                summaryIsAi
+                  ? "bg-purple-500/5 ring-purple-500/10"
+                  : "bg-indigo-500/5 ring-indigo-500/10"
+              }`}
+            >
+              <div className="flex items-center gap-1.5 mb-1">
+                {summaryIsAi ? (
+                  <Sparkles className="h-3 w-3 text-purple-400" />
+                ) : (
+                  <FileText className="h-3 w-3 text-indigo-400" />
+                )}
+                <span className={`text-[10px] font-semibold uppercase tracking-wider ${summaryIsAi ? "text-purple-400" : "text-indigo-400"}`}>
+                  {summaryIsAi ? "AI Synopsis" : "Synopsis"}
+                </span>
+                {aiUpgrading && (
+                  <span className="flex items-center gap-1 ml-auto text-[10px] text-purple-400/50">
+                    <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                    AI enhancing&hellip;
+                  </span>
+                )}
+                {!aiUpgrading && aiCriteriaCount > 0 && (
+                  <span className="ml-auto text-[10px] text-purple-400/50">{aiCriteriaCount} criteria AI-evaluated</span>
+                )}
+              </div>
+              <p className="text-[12px] leading-relaxed text-body">{summary}</p>
+            </motion.div>
+          </div>
+        )}
       </div>
 
       {/* Criteria List */}
@@ -232,7 +411,7 @@ export function CriteriaDetailPanel() {
           </h4>
           <div className="flex flex-col gap-2">
             {inclusionCriteria.map((c) => (
-              <CriterionCard key={c.id} criterion={c} />
+              <CriterionCard key={c.id} criterion={c} patientContext={patientContext} />
             ))}
           </div>
         </div>
@@ -248,7 +427,7 @@ export function CriteriaDetailPanel() {
           </h4>
           <div className="flex flex-col gap-2">
             {exclusionCriteria.map((c) => (
-              <CriterionCard key={c.id} criterion={c} />
+              <CriterionCard key={c.id} criterion={c} patientContext={patientContext} />
             ))}
           </div>
         </div>
@@ -263,7 +442,7 @@ export function CriteriaDetailPanel() {
 function CoachingStep({ number, text }: { number: number; text: string }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500/10 text-[12px] font-bold text-indigo-400 ring-1 ring-indigo-500/20">
+      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500/15 text-[12px] font-bold text-indigo-300 ring-1 ring-indigo-500/25">
         {number}
       </span>
       <span className="text-[12px] text-dim">{text}</span>

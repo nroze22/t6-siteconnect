@@ -97,11 +97,11 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      initial={{ opacity: 0, y: 28, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, x: 80, scale: 0.95 }}
-      transition={{ type: "spring", damping: 25, stiffness: 350 }}
-      className={`pointer-events-auto flex items-start gap-3 rounded-xl bg-popover/95 backdrop-blur-xl px-4 py-3 ring-1 ${ringColors[toast.type]} ${glowColors[toast.type]} min-w-[300px] max-w-[420px]`}
+      transition={{ type: "spring", damping: 20, stiffness: 300 }}
+      className={`pointer-events-auto glass flex items-start gap-3 rounded-xl bg-popover/90 px-4 py-3 ring-1 ${ringColors[toast.type]} ${glowColors[toast.type]} min-w-[300px] max-w-[420px]`}
     >
       <span className="mt-0.5 shrink-0">{icons[toast.type]}</span>
       <div className="flex-1 min-w-0">

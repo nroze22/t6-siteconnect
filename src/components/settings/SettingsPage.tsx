@@ -328,7 +328,7 @@ function WatcherPanel() {
                       }));
                       setCurrentPage("import");
                     }}
-                    className="rounded-md bg-indigo-500/10 px-2.5 py-1 text-[10px] font-semibold text-indigo-400 ring-1 ring-indigo-500/20 hover:bg-indigo-500/20 transition-colors"
+                    className="rounded-md bg-indigo-500/15 px-2.5 py-1 text-[10px] font-semibold text-indigo-300 ring-1 ring-indigo-500/25 hover:bg-indigo-500/25 transition-colors"
                   >
                     Preview & Import
                   </button>
@@ -349,8 +349,8 @@ function WatcherPanel() {
 // ─── Ollama model tier definitions ─────────────────────────────────
 
 const AI_MODELS = [
-  { id: "gemma3:1b", label: "Lightweight", size: "~815 MB", sizeGb: 1.0, ramReq: "8 GB+", description: "Fast inference, lower accuracy. Good for constrained hardware." },
-  { id: "gemma3:4b", label: "Standard", size: "~3.3 GB", sizeGb: 3.5, ramReq: "16 GB+", description: "Best balance of speed and quality. Recommended for most sites." },
+  { id: "gemma3:1b", label: "Lightweight", size: "~815 MB", sizeGb: 1.0, ramReq: "8 GB+", downloadTime: "2–10 min", description: "Fast inference, lower accuracy. Good for constrained hardware." },
+  { id: "gemma3:4b", label: "Standard", size: "~3.3 GB", sizeGb: 3.5, ramReq: "16 GB+", downloadTime: "10–30 min", description: "Best balance of speed and quality. Recommended for most sites." },
 ] as const;
 
 type SetupPhase = "idle" | "installing_ollama" | "starting_ollama" | "downloading_model" | "activating" | "testing" | "done" | "error";
@@ -433,8 +433,9 @@ function AiSetupPanel() {
     const modelDef = AI_MODELS.find((m) => m.id === modelId);
     const requiredGb = modelDef?.sizeGb ?? 4.0;
 
-    // Pre-flight: disk space
-    if (hardware && hardware.free_disk_gb < requiredGb + 1) {
+    // Pre-flight: disk space (skip if model is already downloaded)
+    const modelAlreadyDownloaded = ollamaStatus.models.some((m) => m.name === modelId || m.name.startsWith(modelId + ":"));
+    if (!modelAlreadyDownloaded && hardware && hardware.free_disk_gb < requiredGb + 1) {
       setError(`Not enough disk space. ${modelId} needs ~${requiredGb} GB but you only have ${hardware.free_disk_gb.toFixed(1)} GB free.`);
       toast.error("Insufficient disk space", `Need ~${requiredGb + 1} GB free`);
       return;
@@ -498,7 +499,7 @@ function AiSetupPanel() {
     const alreadyInstalled = currentStatus.models.some((m) => m.name === modelId || m.name.startsWith(modelId + ":"));
     if (!alreadyInstalled) {
       setPhase("downloading_model");
-      setPhaseMessage("Step 3: Downloading AI model");
+      setPhaseMessage("Step 3: Downloading AI model — this will take several minutes");
       setPullProgress(null);
       setDownloadSpeed("");
       lastProgressRef.current = null;
@@ -740,12 +741,12 @@ function AiSetupPanel() {
               <div className="flex-1">
                 <p className="text-[13px] font-semibold text-purple-400">{phaseMessage}</p>
                 <p className="text-[12px] text-dim">
-                  {phase === "installing_ollama" && "Downloading the AI runtime (~150 MB). This only happens once."}
+                  {phase === "installing_ollama" && "Downloading the Ollama AI runtime (~150 MB). This only happens once."}
                   {phase === "starting_ollama" && "Launching the AI engine on your machine. Almost there..."}
                   {phase === "downloading_model" && (
                     pullProgress && pullProgress.percent > 0
-                      ? `Downloading AI model — ${Math.round(pullProgress.percent)}% complete. Please keep this window open.`
-                      : "Preparing to download the AI model. This may take a few minutes depending on your connection."
+                      ? `Downloading AI model — ${Math.round(pullProgress.percent)}% complete. This is a large file — please keep this window open and don't close the app.`
+                      : "Preparing to download the AI model. This is a multi-gigabyte download and may take 10–30 minutes depending on your internet connection. You can continue using the app while it downloads."
                   )}
                   {phase === "activating" && "Connecting the AI model to the screening engine..."}
                   {phase === "testing" && "Verifying the AI model can process clinical criteria..."}
@@ -775,14 +776,21 @@ function AiSetupPanel() {
                   />
                 </div>
                 {pullProgress && pullProgress.total > 0 && (
-                  <div className="mt-1 flex items-center justify-between">
-                    <span className="text-[10px] text-purple-400 font-medium">
-                      {downloadSpeed || "Calculating speed..."}
-                    </span>
-                    <span className="text-[10px] text-dim">
-                      {(pullProgress.completed / 1_000_000_000).toFixed(2)} / {(pullProgress.total / 1_000_000_000).toFixed(1)} GB
-                    </span>
-                  </div>
+                  <>
+                    <div className="mt-1 flex items-center justify-between">
+                      <span className="text-[10px] text-purple-400 font-medium">
+                        {downloadSpeed || "Calculating speed..."}
+                      </span>
+                      <span className="text-[10px] text-dim">
+                        {(pullProgress.completed / 1_000_000_000).toFixed(2)} / {(pullProgress.total / 1_000_000_000).toFixed(1)} GB
+                      </span>
+                    </div>
+                    {pullProgress.percent < 50 && pullProgress.percent > 0 && (
+                      <p className="mt-2 rounded-md bg-surface-2 px-2.5 py-1.5 text-[10px] text-dim leading-relaxed">
+                        <strong className="text-body">Tip:</strong> AI models are several gigabytes. This is a one-time download — once installed, everything runs locally with no internet needed. Feel free to continue working in other tabs while this completes.
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -827,16 +835,25 @@ function AiSetupPanel() {
                     <p className={`text-[12px] font-semibold ${hardware.free_disk_gb < 5 ? "text-red-400" : "text-body"}`}>{hardware.free_disk_gb.toFixed(1)} GB free</p>
                   </div>
                 </div>
-                {hardware.free_disk_gb < 5 && (
+                {hardware.free_disk_gb < 5 && ollamaStatus.models.length === 0 && (
                   <div className="mt-2 flex items-center gap-2 rounded-lg bg-red-500/5 px-3 py-2 ring-1 ring-red-500/15">
                     <AlertCircle className="h-3.5 w-3.5 text-red-400 shrink-0" />
-                    <span className="text-[12px] text-red-400">Low disk space. At least 5 GB free is needed.</span>
+                    <span className="text-[12px] text-red-400">Low disk space. At least 5 GB free is recommended for downloading a new model.</span>
+                  </div>
+                )}
+                {hardware.free_disk_gb < 5 && ollamaStatus.models.length > 0 && (
+                  <div className="mt-2 flex items-center gap-2 rounded-lg bg-amber-500/5 px-3 py-2 ring-1 ring-amber-500/15">
+                    <Info className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                    <span className="text-[12px] text-amber-400">Low disk space, but you already have a model downloaded — you can activate it below.</span>
                   </div>
                 )}
               </div>
             )}
 
-            <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-2">Choose a model</p>
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-1">Choose a model</p>
+            <p className="text-[11px] text-dim mb-3 leading-relaxed">
+              AI models are large files (1–4 GB) and require a one-time download. Depending on your internet speed, this can take <strong className="text-body">10–30 minutes</strong>. Once downloaded, all AI screening runs 100% locally — no internet needed.
+            </p>
             <div className="grid grid-cols-2 gap-3">
               {AI_MODELS.map((model) => {
                 const installed = isModelInstalled(model.id);
@@ -868,7 +885,13 @@ function AiSetupPanel() {
                       <span className="text-faint">·</span>
                       <span>{model.ramReq} RAM</span>
                     </div>
-                    <div className="mt-3 flex items-center justify-center gap-1.5 rounded-lg bg-purple-600/90 py-2 text-[12px] font-semibold text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                    {!installed && (
+                      <div className="mt-2 flex items-center gap-1.5 rounded-md bg-amber-500/8 px-2 py-1 text-[10px] text-amber-400/80">
+                        <Clock className="h-3 w-3 shrink-0" />
+                        <span>Download: {model.downloadTime} depending on connection</span>
+                      </div>
+                    )}
+                    <div className={`mt-${installed ? "3" : "2"} flex items-center justify-center gap-1.5 rounded-lg bg-purple-600/90 py-2 text-[12px] font-semibold text-white opacity-0 group-hover:opacity-100 transition-opacity`}>
                       <Sparkles className="h-3 w-3" />
                       {installed ? "Activate AI Screening" : "Set Up AI Screening"}
                     </div>
@@ -1059,14 +1082,35 @@ function AuditTrailPanel() {
         "# ═══════════════════════════════════════════════════════════════",
       ].join("\n");
 
-      const blob = new Blob([csvHeader + csvRows + footer], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `siteconnect-audit-trail-${new Date().toISOString().slice(0, 10)}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success("Audit trail exported", "21 CFR Part 11 compliant CSV downloaded");
+      const csvContent = csvHeader + csvRows + footer;
+      const filename = `siteconnect-audit-trail-${new Date().toISOString().slice(0, 10)}.csv`;
+
+      const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+      let filePath: string | undefined;
+
+      if (isTauri) {
+        try {
+          const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+          const { downloadDir, join } = await import("@tauri-apps/api/path");
+          const downloadsPath = await downloadDir();
+          filePath = await join(downloadsPath, filename);
+          await writeTextFile(filePath, csvContent);
+        } catch {
+          // Fall through to web fallback
+        }
+      }
+
+      if (!filePath) {
+        const blob = new Blob([csvContent], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      toast.success("Audit trail exported", filePath ? `Saved to ~/Downloads/${filename}` : "21 CFR Part 11 compliant CSV downloaded");
     } finally {
       setExporting(false);
     }
@@ -1140,6 +1184,7 @@ function AuditTrailPanel() {
           <button
             onClick={handleExport}
             disabled={exporting}
+            title="Saves to ~/Downloads"
             className="flex items-center gap-1.5 rounded-lg border border-edge-3 bg-surface-2 px-4 py-2 text-[12px] font-semibold text-body transition-colors hover:bg-surface-3 disabled:opacity-50"
           >
             {exporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
@@ -1593,7 +1638,7 @@ function UpdatePanel() {
               {versions.channel}
             </span>
             {versions.updateAvailable && (
-              <span className="flex items-center gap-1 rounded-md bg-blue-500/10 px-2 py-0.5 text-[9px] font-semibold text-blue-400 ring-1 ring-blue-500/20 animate-pulse">
+              <span className="flex items-center gap-1 rounded-md bg-blue-500/15 px-2 py-0.5 text-[9px] font-semibold text-blue-300 ring-1 ring-blue-500/25 animate-pulse">
                 Update Available
               </span>
             )}

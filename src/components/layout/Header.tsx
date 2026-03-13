@@ -64,9 +64,9 @@ export function Header() {
   };
 
   return (
-    <header className="no-select flex h-12 items-center justify-between border-b border-border bg-card/50 px-5">
+    <header className="no-select flex h-12 items-center justify-between border-b border-border bg-card/30 glass px-5">
       <div>
-        <h2 className="text-[13px] font-semibold text-foreground leading-tight">
+        <h2 className="text-[15px] font-semibold text-foreground leading-tight">
           {config.title}
         </h2>
         <p className="text-[12px] text-dim leading-tight">

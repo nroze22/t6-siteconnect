@@ -1,0 +1,41 @@
+patient_id,drug_name,dose,frequency,start_date,status
+MRN-2024-001,Pembrolizumab,200 mg,Every 3 weeks,2024-02-01,active
+MRN-2024-001,Carboplatin,AUC 5,Every 3 weeks,2024-02-01,active
+MRN-2024-001,Metformin,1000 mg,Twice daily,2018-07-15,active
+MRN-2024-001,Lisinopril,20 mg,Once daily,2015-04-01,active
+MRN-2024-002,Letrozole,2.5 mg,Once daily,2024-04-15,active
+MRN-2024-002,Palbociclib,125 mg,Once daily 21/28 days,2024-04-15,active
+MRN-2024-002,Atorvastatin,40 mg,Once daily,2020-01-10,active
+MRN-2024-003,Apixaban,5 mg,Twice daily,2023-12-01,active
+MRN-2024-003,Metoprolol Succinate,100 mg,Once daily,2023-09-10,active
+MRN-2024-003,Atorvastatin,80 mg,Once daily,2023-09-10,active
+MRN-2024-003,Metformin,500 mg,Twice daily,2017-05-01,active
+MRN-2024-004,Ocrelizumab,600 mg,Every 6 months,2021-04-01,active
+MRN-2024-004,Sertraline,100 mg,Once daily,2022-09-01,active
+MRN-2024-004,Sumatriptan,50 mg,As needed,2019-06-15,active
+MRN-2024-005,Enzalutamide,160 mg,Once daily,2023-08-15,active
+MRN-2024-005,Leuprolide,22.5 mg,Every 3 months,2023-08-01,active
+MRN-2024-005,Amlodipine,10 mg,Once daily,2012-10-15,active
+MRN-2024-005,Alendronate,70 mg,Once weekly,2022-04-01,active
+MRN-2024-006,FOLFOX (Oxaliplatin + 5-FU + Leucovorin),130 mg/m2,Every 2 weeks,2024-03-01,active
+MRN-2024-006,Bevacizumab,5 mg/kg,Every 2 weeks,2024-03-01,active
+MRN-2024-006,Omeprazole,40 mg,Once daily,2020-08-01,active
+MRN-2024-006,Ferrous Sulfate,325 mg,Three times daily,2024-03-15,active
+MRN-2024-007,Fluticasone/Salmeterol,250/50 mcg,Twice daily,2015-07-01,active
+MRN-2024-007,Albuterol,90 mcg,As needed,2015-07-01,active
+MRN-2024-007,Semaglutide,1 mg,Once weekly,2023-01-15,active
+MRN-2024-008,Osimertinib,80 mg,Once daily,2024-05-01,active
+MRN-2024-008,Tiotropium,18 mcg,Once daily,2019-03-15,active
+MRN-2024-008,Lisinopril,10 mg,Once daily,2016-12-01,active
+MRN-2024-009,Sunitinib,50 mg,4 weeks on 2 weeks off,2024-01-10,active
+MRN-2024-009,Insulin Glargine,24 units,Once daily at bedtime,2019-02-01,active
+MRN-2024-009,Losartan,100 mg,Once daily,2021-06-01,active
+MRN-2024-010,Donepezil,10 mg,Once daily,2024-02-01,active
+MRN-2024-010,Memantine,20 mg,Once daily,2024-02-01,active
+MRN-2024-010,Amlodipine,5 mg,Once daily,2014-07-15,active
+MRN-2024-011,Atezolizumab,1200 mg,Every 3 weeks,2024-06-01,active
+MRN-2024-011,Bevacizumab,15 mg/kg,Every 3 weeks,2024-06-01,active
+MRN-2024-011,Entecavir,0.5 mg,Once daily,2015-04-15,discontinued
+MRN-2024-012,Carboplatin,AUC 5,Every 3 weeks,2024-07-01,active
+MRN-2024-012,Paclitaxel,175 mg/m2,Every 3 weeks,2024-07-01,active
+MRN-2024-012,Warfarin,5 mg,Once daily,2022-12-01,active

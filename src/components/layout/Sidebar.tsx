@@ -108,7 +108,7 @@ export function Sidebar() {
     <aside className="no-select flex w-[240px] flex-col border-r border-border bg-background">
       {/* Logo */}
       <div className="flex h-14 items-center gap-2.5 border-b border-border px-5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-blue-700 shadow-lg shadow-indigo-500/20">
+        <div className="logo-glow flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-blue-700 shadow-lg shadow-indigo-500/20">
           <img src="/t6logo.png" alt="Talosix" className="h-6 w-6 object-contain" />
         </div>
         <div>

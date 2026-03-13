@@ -108,22 +108,24 @@ export function ReviewQueuePage() {
     ? Math.round(((counts.accepted + counts.rejected + counts.deferred) / patients.length) * 100)
     : 0;
 
-  const handleExportSummary = () => {
+  const handleExportSummary = async () => {
     const csv = buildScreeningCSV(patients, screeningResults, criteriaResults, filter !== "all" ? filter : undefined);
     if (csv) {
       const timestamp = new Date().toISOString().slice(0, 10);
-      downloadCSV(csv, `screening-summary-${timestamp}.csv`);
-      toast.success("Summary exported", "Screening summary CSV downloaded");
+      const filename = `screening-summary-${timestamp}.csv`;
+      const filePath = await downloadCSV(csv, filename);
+      toast.success("Summary exported", filePath ? `Saved to ~/Downloads/${filename}` : "Screening summary CSV downloaded");
     }
     setShowExportMenu(false);
   };
 
-  const handleExportDetailed = () => {
+  const handleExportDetailed = async () => {
     const csv = buildDetailedCSV(patients, screeningResults, criteriaResults, filter !== "all" ? filter : undefined);
     if (csv) {
       const timestamp = new Date().toISOString().slice(0, 10);
-      downloadCSV(csv, `screening-detailed-${timestamp}.csv`);
-      toast.success("Detailed export ready", "Full criteria breakdown CSV downloaded");
+      const filename = `screening-detailed-${timestamp}.csv`;
+      const filePath = await downloadCSV(csv, filename);
+      toast.success("Detailed export ready", filePath ? `Saved to ~/Downloads/${filename}` : "Full criteria breakdown CSV downloaded");
     }
     setShowExportMenu(false);
   };
@@ -261,7 +263,7 @@ export function ReviewQueuePage() {
                       <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" />
                       <div>
                         <p className="font-medium">Summary CSV</p>
-                        <p className="text-[12px] text-dim">One row per subject with scores</p>
+                        <p className="text-[12px] text-dim">One row per subject · Saves to ~/Downloads</p>
                       </div>
                     </button>
                     <button
@@ -271,7 +273,7 @@ export function ReviewQueuePage() {
                       <ClipboardList className="h-3.5 w-3.5 text-indigo-400" />
                       <div>
                         <p className="font-medium">Detailed CSV</p>
-                        <p className="text-[12px] text-dim">One row per criterion per subject</p>
+                        <p className="text-[12px] text-dim">Per-criterion breakdown · Saves to ~/Downloads</p>
                       </div>
                     </button>
                   </div>
@@ -371,7 +373,7 @@ export function ReviewQueuePage() {
               <th className="px-4 py-2.5 text-right text-[12px] font-semibold uppercase tracking-wider text-dim">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="striped-rows">
             {filteredPatients.map((p) => {
               const isSelected = selected.has(p.id);
               return (
@@ -389,7 +391,7 @@ export function ReviewQueuePage() {
                   </td>
                   <td className="px-4 py-3">
                     <p className="text-[12px] font-semibold font-mono text-body">{p.sitePatientId}</p>
-                    <p className="text-[12px] text-dim">{p.age}y {p.gender === "male" ? "M" : p.gender === "female" ? "F" : "O"}</p>
+                    <p className="text-[12px] text-dim tabular-nums">{p.age}y {p.gender === "male" ? "M" : p.gender === "female" ? "F" : "O"}</p>
                   </td>
                   <td className="px-4 py-3">
                     <p className="max-w-[200px] truncate text-[12px] text-dim">{p.primaryDiagnosis ?? "—"}</p>
@@ -599,6 +601,6 @@ function statusBadgeClass(status: string): string {
     case "eligible": return "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20";
     case "potentially_eligible": return "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20";
     case "ineligible": return "bg-red-500/10 text-red-400 ring-1 ring-red-500/20";
-    default: return "bg-blue-500/10 text-blue-400 ring-1 ring-blue-500/20";
+    default: return "bg-blue-500/15 text-blue-300 ring-1 ring-blue-500/25";
   }
 }

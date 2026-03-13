@@ -28,6 +28,7 @@ import { useDemoData } from "@/hooks/use-demo-data";
 import { useWatcherListener } from "@/hooks/use-watcher-listener";
 import { checkDatabaseExists } from "@/lib/tauri";
 import { getLlmStatus } from "@/lib/data-provider";
+import { initLlmQueue } from "@/lib/llm-queue";
 import type { NavigationPage } from "@/types";
 
 class ErrorBoundary extends React.Component<
@@ -220,6 +221,12 @@ function MainApp() {
       // Ignore — store default is "not_configured"
     });
   }, [setLlmStatus]);
+
+  // Initialize background LLM processing queue
+  useEffect(() => {
+    const cleanup = initLlmQueue();
+    return cleanup;
+  }, []);
 
   const [showOnboarding, setShowOnboarding] = useState(() => {
     try {

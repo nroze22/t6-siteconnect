@@ -269,12 +269,14 @@ export function PerformancePage() {
                 toast.success("CSV saved", filePath ? "Saved to Downloads" : "Download started");
               }}
               disabled={metrics.length === 0}
+              title="Saves to ~/Downloads"
               className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12px] font-medium text-dim hover:bg-surface-3 hover:text-body transition-colors disabled:opacity-40 disabled:pointer-events-none"
             >
               <Download className="h-3.5 w-3.5" />
               CSV
             </button>
             <button
+              title="Saves HTML report to ~/Downloads"
               onClick={async () => {
                 const { fileName } = await exportReportDeck({
                   title: "Site Performance Report",
@@ -327,11 +329,11 @@ export function PerformancePage() {
             { label: "Avg Pass Rate", value: `${avgPassRate}%`, icon: <Target className="h-3.5 w-3.5 text-amber-400" />, color: "text-amber-400" },
             { label: "Projected Revenue", value: `$${animatedRevenue}K`, icon: <DollarSign className="h-3.5 w-3.5 text-emerald-400" />, color: "text-emerald-400" },
           ].map((kpi) => (
-            <div key={kpi.label} className="flex items-center gap-2 rounded-lg bg-surface-2 px-3 py-1.5 ring-1 ring-edge-2">
+            <div key={kpi.label} className="card-lift flex items-center gap-2 rounded-lg bg-surface-2 px-3 py-1.5 ring-1 ring-edge-2">
               {kpi.icon}
               <div>
                 <span className="text-[9px] text-dim block leading-tight">{kpi.label}</span>
-                <span className={`text-[14px] font-bold ${kpi.color} leading-tight`}>{kpi.value}</span>
+                <span className={`text-[14px] font-bold tabular-nums ${kpi.color} leading-tight`}>{kpi.value}</span>
               </div>
             </div>
           ))}
@@ -456,7 +458,7 @@ function OverviewTab({ metrics, patients }: { metrics: StudyMetrics[]; patients:
       />
 
       {/* Screening Results by Study */}
-      <div className="rounded-xl border border-edge-2 bg-card p-5">
+      <div className="card-lift rounded-xl border border-edge-2 bg-card p-5">
         <h3 className="text-[13px] font-bold text-heading mb-4">Screening Results by Study</h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
@@ -482,7 +484,7 @@ function OverviewTab({ metrics, patients }: { metrics: StudyMetrics[]; patients:
         {metrics.map((m) => (
           <div
             key={m.studyId}
-            className="rounded-xl border border-edge-2 bg-card p-4 cursor-pointer hover:border-indigo-500/30 hover:bg-surface-1 transition-colors"
+            className="card-lift rounded-xl border border-edge-2 bg-card p-4 cursor-pointer hover:border-indigo-500/30 hover:bg-surface-1 transition-colors"
             onClick={() => handleStudyClick(m)}
             role="button"
             tabIndex={0}
@@ -490,7 +492,7 @@ function OverviewTab({ metrics, patients }: { metrics: StudyMetrics[]; patients:
           >
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-[13px] font-bold text-body">{m.studyName}</h4>
-              <span className="text-[12px] font-bold text-emerald-400">${Math.round(m.projectedRevenue / 1000)}K proj.</span>
+              <span className="text-[12px] font-bold tabular-nums text-emerald-400">${Math.round(m.projectedRevenue / 1000)}K proj.</span>
             </div>
             <div className="grid grid-cols-4 gap-2 mb-3">
               {[
@@ -501,7 +503,7 @@ function OverviewTab({ metrics, patients }: { metrics: StudyMetrics[]; patients:
               ].map((stat) => (
                 <div key={stat.label}>
                   <span className="text-[9px] text-dim block">{stat.label}</span>
-                  <span className={`text-[14px] font-bold ${stat.color}`}>{stat.value}</span>
+                  <span className={`text-[14px] font-bold tabular-nums ${stat.color}`}>{stat.value}</span>
                 </div>
               ))}
             </div>
@@ -528,7 +530,7 @@ function OverviewTab({ metrics, patients }: { metrics: StudyMetrics[]; patients:
       </div>
 
       {/* Revenue Projections */}
-      <div className="rounded-xl border border-edge-2 bg-card p-5">
+      <div className="card-lift rounded-xl border border-edge-2 bg-card p-5">
         <h3 className="text-[13px] font-bold text-heading mb-4">Revenue Projections by Study</h3>
         <div className="h-56">
           <ResponsiveContainer width="100%" height="100%">
@@ -588,7 +590,7 @@ function FailureIntelligenceTab({ metrics }: { metrics: StudyMetrics[] }) {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       {/* Failure Waterfall */}
-      <div className="rounded-xl border border-edge-2 bg-card p-5">
+      <div className="card-lift rounded-xl border border-edge-2 bg-card p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-[13px] font-bold text-heading">Screen Failure Waterfall</h3>
           <span className="text-[12px] text-dim">{totalFails} total failures across {metrics.length} studies</span>
@@ -600,7 +602,7 @@ function FailureIntelligenceTab({ metrics }: { metrics: StudyMetrics[] }) {
             return (
               <div key={i} className="group">
                 <div className="flex items-center gap-3">
-                  <span className="text-[12px] text-dim w-6 text-right">{f.count}</span>
+                  <span className="text-[12px] tabular-nums text-dim w-6 text-right">{f.count}</span>
                   <div className="flex-1">
                     <div className="h-7 rounded-md bg-surface-2 overflow-hidden relative">
                       <div
@@ -629,7 +631,7 @@ function FailureIntelligenceTab({ metrics }: { metrics: StudyMetrics[] }) {
         <div className="flex items-center gap-2 mb-4">
           <Brain className="h-4.5 w-4.5 text-indigo-400" />
           <h3 className="text-[13px] font-bold text-indigo-300">AI-Powered Recommendations</h3>
-          <span className="rounded-md bg-indigo-500/15 px-2 py-0.5 text-[9px] font-semibold text-indigo-400 ring-1 ring-indigo-500/25">Smart Insights</span>
+          <span className="rounded-md bg-indigo-500/15 px-2 py-0.5 text-[9px] font-semibold text-indigo-300 ring-1 ring-indigo-500/25">Smart Insights</span>
         </div>
         <div className="space-y-3">
           {recommendations.map((rec, i) => (
@@ -649,7 +651,7 @@ function FailureIntelligenceTab({ metrics }: { metrics: StudyMetrics[] }) {
       {/* Per-study failure breakdown */}
       <div className="grid grid-cols-2 gap-4">
         {metrics.map((m) => (
-          <div key={m.studyId} className="rounded-xl border border-edge-2 bg-card p-4">
+          <div key={m.studyId} className="card-lift rounded-xl border border-edge-2 bg-card p-4">
             <h4 className="text-[12px] font-bold text-body mb-3">{m.studyName} — Failure Analysis</h4>
             <div className="flex items-center gap-4 mb-3">
               <div className="relative h-16 w-16">
@@ -663,22 +665,22 @@ function FailureIntelligenceTab({ metrics }: { metrics: StudyMetrics[] }) {
                     strokeLinecap="round"
                   />
                 </svg>
-                <span className={`absolute inset-0 flex items-center justify-center text-[13px] font-bold ${m.screenPassRate >= 30 ? "text-emerald-400" : "text-amber-400"}`}>
+                <span className={`absolute inset-0 flex items-center justify-center text-[13px] font-bold tabular-nums ${m.screenPassRate >= 30 ? "text-emerald-400" : "text-amber-400"}`}>
                   {m.screenPassRate}%
                 </span>
               </div>
               <div className="flex-1 space-y-1.5">
                 <div className="flex items-center justify-between text-[12px]">
                   <span className="text-emerald-400">Eligible</span>
-                  <span className="font-bold text-emerald-400">{m.eligible}</span>
+                  <span className="font-bold tabular-nums text-emerald-400">{m.eligible}</span>
                 </div>
                 <div className="flex items-center justify-between text-[12px]">
                   <span className="text-purple-400">Potentially</span>
-                  <span className="font-bold text-purple-400">{m.potentiallyEligible}</span>
+                  <span className="font-bold tabular-nums text-purple-400">{m.potentiallyEligible}</span>
                 </div>
                 <div className="flex items-center justify-between text-[12px]">
                   <span className="text-red-400">Ineligible</span>
-                  <span className="font-bold text-red-400">{m.ineligible}</span>
+                  <span className="font-bold tabular-nums text-red-400">{m.ineligible}</span>
                 </div>
               </div>
             </div>
@@ -688,7 +690,7 @@ function FailureIntelligenceTab({ metrics }: { metrics: StudyMetrics[] }) {
                   <div key={i} className="flex items-center gap-2 text-[12px]">
                     <XIcon className="h-3 w-3 text-red-400 flex-shrink-0" />
                     <span className="text-dim truncate flex-1">{b.criterion.slice(0, 50)}...</span>
-                    <span className="text-red-400 font-medium">{b.count}x</span>
+                    <span className="text-red-400 tabular-nums font-medium">{b.count}x</span>
                   </div>
                 ))}
               </div>
@@ -723,7 +725,7 @@ function MultiStudyMatchingTab({ patients }: { patients: ParsedPatient[] }) {
       {/* Match Cards */}
       <div className="space-y-3">
         {matches.map((match) => (
-          <div key={match.mrn} className="rounded-xl border border-edge-2 bg-card p-4">
+          <div key={match.mrn} className="card-lift rounded-xl border border-edge-2 bg-card p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-500/10 ring-1 ring-purple-500/20">

@@ -1,0 +1,39 @@
+patient_id,icd10_code,description,onset_date,status
+MRN-2024-001,C34.11,Malignant neoplasm of upper lobe right bronchus or lung,2024-01-15,active
+MRN-2024-001,E11.9,Type 2 diabetes mellitus without complications,2018-06-20,active
+MRN-2024-001,I10,Essential hypertension,2015-03-10,active
+MRN-2024-002,C50.911,Malignant neoplasm of unspecified site of right female breast,2024-03-08,active
+MRN-2024-002,E78.5,Hyperlipidemia unspecified,2019-11-14,active
+MRN-2024-002,Z85.3,Personal history of malignant neoplasm of breast,2020-06-01,resolved
+MRN-2024-003,I25.10,Atherosclerotic heart disease of native coronary artery without angina pectoris,2023-09-05,active
+MRN-2024-003,I48.91,Unspecified atrial fibrillation,2023-11-20,active
+MRN-2024-003,E11.65,Type 2 diabetes mellitus with hyperglycemia,2017-04-12,active
+MRN-2024-004,G35,Multiple sclerosis,2021-02-14,active
+MRN-2024-004,F32.1,Major depressive disorder single episode moderate,2022-08-03,active
+MRN-2024-004,G43.909,Migraine unspecified not intractable without status migrainosus,2019-05-18,active
+MRN-2024-005,C61,Malignant neoplasm of prostate,2023-07-22,active
+MRN-2024-005,N40.0,Benign prostatic hyperplasia without lower urinary tract symptoms,2020-01-15,active
+MRN-2024-005,I10,Essential hypertension,2012-09-30,active
+MRN-2024-005,M81.0,Age-related osteoporosis without current pathological fracture,2022-03-18,active
+MRN-2024-006,C18.9,Malignant neoplasm of colon unspecified,2024-02-10,active
+MRN-2024-006,K21.0,Gastroesophageal reflux disease with esophagitis,2020-07-25,active
+MRN-2024-006,D64.9,Anemia unspecified,2024-03-01,active
+MRN-2024-007,J45.40,Moderate persistent asthma uncomplicated,2015-06-12,active
+MRN-2024-007,E66.01,Morbid obesity due to excess calories,2020-03-22,active
+MRN-2024-007,K21.0,Gastroesophageal reflux disease with esophagitis,2021-09-14,active
+MRN-2024-008,C34.31,Malignant neoplasm of lower lobe left bronchus or lung,2024-04-18,active
+MRN-2024-008,J44.1,Chronic obstructive pulmonary disease with acute exacerbation,2019-02-08,active
+MRN-2024-008,I10,Essential hypertension,2016-11-05,active
+MRN-2024-009,C64.1,Malignant neoplasm of right kidney,2023-11-30,active
+MRN-2024-009,N18.3,Chronic kidney disease stage 3,2021-05-14,active
+MRN-2024-009,I25.10,Atherosclerotic heart disease of native coronary artery,2018-08-22,active
+MRN-2024-009,E11.22,Type 2 diabetes mellitus with diabetic chronic kidney disease,2019-01-10,active
+MRN-2024-010,G30.9,Alzheimer disease unspecified,2024-01-05,active
+MRN-2024-010,F03.90,Unspecified dementia without behavioral disturbance,2023-10-15,active
+MRN-2024-010,I10,Essential hypertension,2014-06-20,active
+MRN-2024-011,C22.0,Liver cell carcinoma,2024-05-12,active
+MRN-2024-011,K74.60,Unspecified cirrhosis of liver,2021-09-08,active
+MRN-2024-011,B18.2,Chronic viral hepatitis C,2015-03-25,active
+MRN-2024-012,C56.1,Malignant neoplasm of right ovary,2024-06-01,active
+MRN-2024-012,D68.59,Other primary thrombophilia,2022-11-20,active
+MRN-2024-012,N83.201,Unspecified ovarian cyst right side,2023-04-10,resolved

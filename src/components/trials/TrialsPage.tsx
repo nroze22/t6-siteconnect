@@ -172,11 +172,11 @@ function StudyCard({
 
   const phaseColors: Record<string, string> = {
     "Phase 1": "bg-purple-500/15 text-purple-400 ring-1 ring-purple-500/20",
-    "Phase 2": "bg-blue-500/15 text-blue-400 ring-1 ring-blue-500/20",
-    "Phase 3": "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/20",
+    "Phase 2": "bg-blue-500/15 text-blue-300 ring-1 ring-blue-500/25",
+    "Phase 3": "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/25",
     "Phase 4": "bg-slate-500/15 text-dim ring-1 ring-slate-500/20",
-    "Phase 1/2": "bg-indigo-500/15 text-indigo-400 ring-1 ring-indigo-500/20",
-    "Phase 2/3": "bg-teal-500/15 text-teal-400 ring-1 ring-teal-500/20",
+    "Phase 1/2": "bg-indigo-500/15 text-indigo-300 ring-1 ring-indigo-500/25",
+    "Phase 2/3": "bg-teal-500/15 text-teal-300 ring-1 ring-teal-500/25",
   };
 
   const satColors: Record<string, string> = {
@@ -191,7 +191,7 @@ function StudyCard({
       layout
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group/card rounded-xl border border-edge-2 bg-card transition-all duration-200 hover:border-edge-4 hover:shadow-xl hover:shadow-black/20"
+      className="group/card card-lift rounded-xl border border-edge-2 bg-card transition-all duration-200 hover:border-edge-4 hover:shadow-xl hover:shadow-black/20"
     >
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">
@@ -225,7 +225,7 @@ function StudyCard({
               <Building2 className="h-3 w-3" />
               {ps.sponsor}
               {ps.leadSponsorType === "industry" && (
-                <span className="rounded bg-blue-500/10 px-1 py-0.5 text-[8px] font-semibold text-blue-400">INDUSTRY</span>
+                <span className="rounded bg-blue-500/15 px-1 py-0.5 text-[8px] font-semibold text-blue-300">INDUSTRY</span>
               )}
               {ps.leadSponsorType === "academic" && (
                 <span className="rounded bg-purple-500/10 px-1 py-0.5 text-[8px] font-semibold text-purple-400">ACADEMIC</span>
@@ -236,7 +236,7 @@ function StudyCard({
           {/* Financial highlight — range-based */}
           <div className="shrink-0 rounded-xl bg-emerald-500/10 p-3 text-center ring-1 ring-emerald-400/30">
             <p className="text-[9px] font-semibold text-dim uppercase tracking-wider">Est. Opportunity</p>
-            <p className="text-[17px] font-black text-heading tracking-tight">
+            <p className="text-[17px] font-black tabular-nums text-heading tracking-tight">
               {formatRangeCurrency(model.perPatientRange)}
             </p>
             <p className="text-[9px] text-dim">/ enrolled patient</p>
@@ -392,14 +392,14 @@ function StudyCard({
                         <p className={`text-[12px] font-bold uppercase tracking-wider ${isBase ? "text-indigo-400" : "text-dim"}`}>
                           {s.label}
                         </p>
-                        <p className={`mt-1 text-[16px] font-black ${isBase ? "text-indigo-300" : "text-body"}`}>
+                        <p className={`mt-1 text-[16px] font-black tabular-nums ${isBase ? "text-indigo-300" : "text-body"}`}>
                           {formatCurrency(s.perPatientGrossCents)}
                         </p>
                         <p className="text-[12px] text-dim">gross / patient</p>
                         <div className="mt-2 space-y-1 text-[12px]">
                           <div className="flex justify-between">
                             <span className="text-dim">Net / patient</span>
-                            <span className={s.perPatientNetCents >= 0 ? "text-emerald-400 font-semibold" : "text-red-400 font-semibold"}>
+                            <span className={`tabular-nums ${s.perPatientNetCents >= 0 ? "text-emerald-400 font-semibold" : "text-red-400 font-semibold"}`}>
                               {formatCurrency(s.perPatientNetCents)}
                             </span>
                           </div>
@@ -409,7 +409,7 @@ function StudyCard({
                           </div>
                           <div className="flex justify-between">
                             <span className="text-dim">Total net</span>
-                            <span className={s.totalNetContributionCents >= 0 ? "text-emerald-400 font-bold" : "text-red-400 font-bold"}>
+                            <span className={`tabular-nums ${s.totalNetContributionCents >= 0 ? "text-emerald-400 font-bold" : "text-red-400 font-bold"}`}>
                               {formatCurrencyCompact(s.totalNetContributionCents)}
                             </span>
                           </div>
@@ -468,7 +468,7 @@ function StudyCard({
                       .map((d, i) => (
                         <div key={i} className="flex items-center justify-between text-[12px]">
                           <span className="text-body">{d.label} <span className="text-dim">×{d.quantity}</span></span>
-                          <span className="font-semibold text-emerald-400">{formatCurrency(d.totalCents)}</span>
+                          <span className="font-semibold tabular-nums text-emerald-400">{formatCurrency(d.totalCents)}</span>
                         </div>
                       ))}
                   </div>
@@ -492,6 +492,7 @@ function StudyCard({
                   </button>
                   <button
                     onClick={() => onGeneratePitch(study)}
+                    title="Saves HTML pitch document to ~/Downloads"
                     className="flex items-center gap-1.5 rounded-lg border border-edge-3 bg-surface-2 px-3 py-1.5 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body"
                   >
                     <FileText className="h-3 w-3" />

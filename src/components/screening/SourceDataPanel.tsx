@@ -367,7 +367,7 @@ function DemographicsTab({ patientId, isHighlighted, searchTerms }: { patientId:
               <tr
                 key={label}
                 data-highlighted={isMatch ? "true" : undefined}
-                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-white/[0.04] dark:bg-white/[0.04] border-l-2 border-l-emerald-400 pl-1.5" : ""}`}
+                className={`border-b border-edge-1 transition-colors ${isMatch ? "animate-highlight bg-white/[0.04] dark:bg-white/[0.04] border-l-2 border-l-emerald-400 pl-1.5" : ""}`}
               >
                 <td className={`py-2.5 pr-3 font-medium ${isMatch ? "text-emerald-700 dark:text-emerald-300" : "text-dim"}`}>{label}</td>
                 <td className={`py-2.5 font-mono ${isMatch ? "text-heading font-semibold" : "text-body"}`}>{value}</td>
@@ -407,7 +407,7 @@ function DiagnosesTab({ diagnoses, isHighlighted, searchTerms }: { diagnoses: Di
               <tr
                 key={dx.id}
                 data-highlighted={isMatch ? "true" : undefined}
-                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-white/[0.04] dark:bg-white/[0.04] border-l-2 border-l-emerald-400 pl-1.5" : ""}`}
+                className={`border-b border-edge-1 transition-colors ${isMatch ? "animate-highlight bg-white/[0.04] dark:bg-white/[0.04] border-l-2 border-l-emerald-400 pl-1.5" : ""}`}
               >
                 <td className={`px-3 py-2 font-mono font-semibold ${isMatch ? "text-emerald-700 dark:text-emerald-300" : "text-body"}`}>{dx.icd10Code}</td>
                 <td className={`px-3 py-2 ${isMatch ? "text-heading font-medium" : "text-body"}`}>{dx.description}</td>
@@ -451,7 +451,7 @@ function MedicationsTab({ medications, isHighlighted, searchTerms }: { medicatio
               <tr
                 key={med.id}
                 data-highlighted={isMatch ? "true" : undefined}
-                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-white/[0.04] dark:bg-white/[0.04] border-l-2 border-l-emerald-400 pl-1.5" : ""}`}
+                className={`border-b border-edge-1 transition-colors ${isMatch ? "animate-highlight bg-white/[0.04] dark:bg-white/[0.04] border-l-2 border-l-emerald-400 pl-1.5" : ""}`}
               >
                 <td className={`px-3 py-2 font-semibold ${isMatch ? "text-emerald-700 dark:text-emerald-300" : "text-body"}`}>{med.drugName}</td>
                 <td className="px-3 py-2 font-mono text-body">{med.dose}</td>
@@ -508,7 +508,7 @@ function LabsTab({ labs, isHighlighted, searchTerms }: { labs: LabResult[]; isHi
               <tr
                 key={lab.id}
                 data-highlighted={isMatch ? "true" : undefined}
-                className={`border-b border-edge-1 transition-colors ${isMatch ? "bg-white/[0.04] dark:bg-white/[0.04] border-l-2 border-l-emerald-400 pl-1.5" : ""}`}
+                className={`border-b border-edge-1 transition-colors ${isMatch ? "animate-highlight bg-white/[0.04] dark:bg-white/[0.04] border-l-2 border-l-emerald-400 pl-1.5" : ""}`}
               >
                 <td className={`px-3 py-2 font-semibold ${isMatch ? "text-emerald-700 dark:text-emerald-300" : "text-body"}`}>{lab.testName}</td>
                 <td className={`px-3 py-2 text-right font-mono font-bold ${isMatch ? "text-heading" : "text-body"}`}>
@@ -558,7 +558,7 @@ function VitalsTab({ vitals, isHighlighted, searchTerms }: { vitals: VitalSign[]
               <tr
                 key={v.id}
                 data-highlighted={isMatch ? "true" : undefined}
-                className={`border-b border-edge-1 ${isMatch ? "bg-white/[0.04] dark:bg-white/[0.04] border-l-2 border-l-emerald-400 pl-1.5" : ""}`}
+                className={`border-b border-edge-1 ${isMatch ? "animate-highlight bg-white/[0.04] dark:bg-white/[0.04] border-l-2 border-l-emerald-400 pl-1.5" : ""}`}
               >
                 <td className={`px-3 py-2 font-semibold ${isMatch ? "text-emerald-700 dark:text-emerald-300" : "text-body"}`}>
                   {label}

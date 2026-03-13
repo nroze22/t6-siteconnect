@@ -12,15 +12,15 @@ import type { ParsedPatient } from "./epic-demo-data";
 // ---------------------------------------------------------------------------
 
 const HEADER_ALIASES: Record<string, { target: string; confidence: number }[]> = {
-  // Patient ID
-  patient_id: [{ target: "patient_id", confidence: 0.99 }],
-  pat_id: [{ target: "patient_id", confidence: 0.97 }],
-  pat_mrn_id: [{ target: "patient_id", confidence: 0.99 }],
-  mrn: [{ target: "patient_id", confidence: 0.98 }],
-  medical_record_number: [{ target: "patient_id", confidence: 0.98 }],
-  subject_id: [{ target: "patient_id", confidence: 0.96 }],
-  id: [{ target: "patient_id", confidence: 0.70 }],
-  patient_number: [{ target: "patient_id", confidence: 0.95 }],
+  // Patient ID — aligned with Rust target: site_patient_id
+  patient_id: [{ target: "site_patient_id", confidence: 0.99 }],
+  pat_id: [{ target: "site_patient_id", confidence: 0.97 }],
+  pat_mrn_id: [{ target: "site_patient_id", confidence: 0.99 }],
+  mrn: [{ target: "site_patient_id", confidence: 0.98 }],
+  medical_record_number: [{ target: "site_patient_id", confidence: 0.98 }],
+  subject_id: [{ target: "site_patient_id", confidence: 0.96 }],
+  id: [{ target: "site_patient_id", confidence: 0.70 }],
+  patient_number: [{ target: "site_patient_id", confidence: 0.95 }],
 
   // Date of birth
   date_of_birth: [{ target: "date_of_birth", confidence: 0.99 }],
@@ -48,55 +48,59 @@ const HEADER_ALIASES: Record<string, { target: string; confidence: number }[]> =
   last_name: [{ target: "last_name", confidence: 0.95 }],
   pat_last_name: [{ target: "last_name", confidence: 0.95 }],
 
-  // Diagnosis
-  icd10: [{ target: "diagnosis_icd10", confidence: 0.98 }],
-  icd_10: [{ target: "diagnosis_icd10", confidence: 0.98 }],
-  icd10_code: [{ target: "diagnosis_icd10", confidence: 0.98 }],
-  current_icd10_list: [{ target: "diagnosis_icd10", confidence: 0.99 }],
-  diagnosis_code: [{ target: "diagnosis_icd10", confidence: 0.95 }],
-  dx_code: [{ target: "diagnosis_icd10", confidence: 0.95 }],
-  dx_name: [{ target: "diagnosis_desc", confidence: 0.95 }],
-  diagnosis: [{ target: "diagnosis_desc", confidence: 0.90 }],
-  diagnosis_name: [{ target: "diagnosis_desc", confidence: 0.95 }],
-  diagnosis_description: [{ target: "diagnosis_desc", confidence: 0.95 }],
-  condition: [{ target: "diagnosis_desc", confidence: 0.85 }],
-  problem: [{ target: "diagnosis_desc", confidence: 0.80 }],
-  onset_date: [{ target: "diagnosis_date", confidence: 0.88 }],
-  diagnosis_date: [{ target: "diagnosis_date", confidence: 0.95 }],
+  // Diagnosis — aligned with Rust targets: icd10_code, diagnosis_description, diagnosis_onset_date
+  icd10: [{ target: "icd10_code", confidence: 0.98 }],
+  icd_10: [{ target: "icd10_code", confidence: 0.98 }],
+  icd10_code: [{ target: "icd10_code", confidence: 0.98 }],
+  current_icd10_list: [{ target: "icd10_code", confidence: 0.99 }],
+  diagnosis_code: [{ target: "icd10_code", confidence: 0.95 }],
+  dx_code: [{ target: "icd10_code", confidence: 0.95 }],
+  dx_name: [{ target: "diagnosis_description", confidence: 0.95 }],
+  diagnosis: [{ target: "diagnosis_description", confidence: 0.90 }],
+  diagnosis_name: [{ target: "diagnosis_description", confidence: 0.95 }],
+  diagnosis_description: [{ target: "diagnosis_description", confidence: 0.95 }],
+  condition: [{ target: "diagnosis_description", confidence: 0.85 }],
+  problem: [{ target: "diagnosis_description", confidence: 0.80 }],
+  onset_date: [{ target: "diagnosis_onset_date", confidence: 0.88 }],
+  diagnosis_date: [{ target: "diagnosis_onset_date", confidence: 0.95 }],
 
-  // Medications
-  medication: [{ target: "medication_name", confidence: 0.95 }],
-  medication_name: [{ target: "medication_name", confidence: 0.97 }],
-  drug_name: [{ target: "medication_name", confidence: 0.95 }],
-  med_name: [{ target: "medication_name", confidence: 0.95 }],
-  drug: [{ target: "medication_name", confidence: 0.85 }],
-  med_dose: [{ target: "medication_dose", confidence: 0.93 }],
-  dose: [{ target: "medication_dose", confidence: 0.85 }],
-  dosage: [{ target: "medication_dose", confidence: 0.85 }],
+  // Medications — aligned with Rust targets: drug_name, dose, medication_start_date
+  medication: [{ target: "drug_name", confidence: 0.95 }],
+  medication_name: [{ target: "drug_name", confidence: 0.97 }],
+  drug_name: [{ target: "drug_name", confidence: 0.95 }],
+  med_name: [{ target: "drug_name", confidence: 0.95 }],
+  drug: [{ target: "drug_name", confidence: 0.85 }],
+  med_dose: [{ target: "dose", confidence: 0.93 }],
+  dose: [{ target: "dose", confidence: 0.85 }],
+  dosage: [{ target: "dose", confidence: 0.85 }],
 
-  // Labs
-  lab_test: [{ target: "lab_test", confidence: 0.95 }],
-  test_name: [{ target: "lab_test", confidence: 0.93 }],
-  proc_name: [{ target: "lab_test", confidence: 0.91 }],
+  // Labs — aligned with Rust targets: test_name, lab_value, lab_unit, result_date, reference_range
+  lab_test: [{ target: "test_name", confidence: 0.95 }],
+  test_name: [{ target: "test_name", confidence: 0.93 }],
+  proc_name: [{ target: "test_name", confidence: 0.91 }],
+  loinc_code: [{ target: "loinc_code", confidence: 0.98 }],
+  loinc: [{ target: "loinc_code", confidence: 0.97 }],
   result_value: [{ target: "lab_value", confidence: 0.96 }],
   lab_value: [{ target: "lab_value", confidence: 0.96 }],
   value: [{ target: "lab_value", confidence: 0.70 }],
   result_unit: [{ target: "lab_unit", confidence: 0.95 }],
   lab_unit: [{ target: "lab_unit", confidence: 0.95 }],
   unit: [{ target: "lab_unit", confidence: 0.70 }],
-  result_date: [{ target: "lab_date", confidence: 0.92 }],
-  lab_date: [{ target: "lab_date", confidence: 0.95 }],
-  ref_range: [{ target: "lab_ref_range", confidence: 0.89 }],
-  reference_range: [{ target: "lab_ref_range", confidence: 0.92 }],
+  result_date: [{ target: "result_date", confidence: 0.92 }],
+  lab_date: [{ target: "result_date", confidence: 0.95 }],
+  ref_range: [{ target: "reference_range", confidence: 0.89 }],
+  reference_range: [{ target: "reference_range", confidence: 0.92 }],
+  abnormal_flag: [{ target: "abnormal_flag", confidence: 0.95 }],
+  abnormal: [{ target: "abnormal_flag", confidence: 0.90 }],
 
   // Vitals
   bp_systolic: [{ target: "vital_value", confidence: 0.72 }],
   systolic: [{ target: "vital_value", confidence: 0.70 }],
-  weight: [{ target: "weight", confidence: 0.85 }],
-  weight_kg: [{ target: "weight", confidence: 0.90 }],
-  height: [{ target: "height", confidence: 0.85 }],
-  height_cm: [{ target: "height", confidence: 0.90 }],
-  bmi: [{ target: "bmi", confidence: 0.95 }],
+  weight: [{ target: "vital_value", confidence: 0.75 }],
+  weight_kg: [{ target: "vital_value", confidence: 0.78 }],
+  height: [{ target: "vital_value", confidence: 0.75 }],
+  height_cm: [{ target: "vital_value", confidence: 0.78 }],
+  bmi: [{ target: "vital_value", confidence: 0.75 }],
 };
 
 function normalizeHeader(header: string): string {
@@ -153,8 +157,8 @@ export function parseCsvWithMappings(
 ): ParsedPatient[] {
   const patientMap = new Map<string, ParsedPatient>();
 
-  // Find the patient ID column index
-  const patientIdMapping = mappings.find((m) => m.targetField === "patient_id");
+  // Find the patient ID column index (Rust-aligned target name)
+  const patientIdMapping = mappings.find((m) => m.targetField === "site_patient_id");
   const patientIdIdx = patientIdMapping ? headers.indexOf(patientIdMapping.sourceColumn) : -1;
 
   // If no patient ID mapped, use row index as ID
@@ -187,38 +191,38 @@ export function parseCsvWithMappings(
       patientMap.set(id, patient);
     }
 
-    // Diagnosis
-    const icd10 = getCol(row, headers, mappings, "diagnosis_icd10");
-    const dxDesc = getCol(row, headers, mappings, "diagnosis_desc");
+    // Diagnosis (Rust-aligned target names)
+    const icd10 = getCol(row, headers, mappings, "icd10_code");
+    const dxDesc = getCol(row, headers, mappings, "diagnosis_description");
     if ((icd10 || dxDesc) && !patient.diagnoses.some((d) => d.icd10 === icd10 && d.name === dxDesc)) {
       patient.diagnoses.push({
         icd10: icd10,
         name: dxDesc,
-        onset: getCol(row, headers, mappings, "diagnosis_date"),
+        onset: getCol(row, headers, mappings, "diagnosis_onset_date"),
       });
     }
 
-    // Medication
-    const medName = getCol(row, headers, mappings, "medication_name");
+    // Medication (Rust-aligned target names)
+    const medName = getCol(row, headers, mappings, "drug_name");
     if (medName && !patient.medications.some((m) => m.name === medName)) {
       patient.medications.push({
         name: medName,
-        dose: getCol(row, headers, mappings, "medication_dose"),
+        dose: getCol(row, headers, mappings, "dose"),
         route: "",
         status: "Active",
       });
     }
 
-    // Labs
-    const labTest = getCol(row, headers, mappings, "lab_test");
-    const labDate = getCol(row, headers, mappings, "lab_date");
+    // Labs (Rust-aligned target names)
+    const labTest = getCol(row, headers, mappings, "test_name");
+    const labDate = getCol(row, headers, mappings, "result_date");
     if (labTest && !patient.labs.some((l) => l.test === labTest && l.date === labDate)) {
       patient.labs.push({
         test: labTest,
         value: getCol(row, headers, mappings, "lab_value"),
         unit: getCol(row, headers, mappings, "lab_unit"),
         date: labDate,
-        ref: getCol(row, headers, mappings, "lab_ref_range"),
+        ref: getCol(row, headers, mappings, "reference_range"),
         abnormal: false,
       });
     }

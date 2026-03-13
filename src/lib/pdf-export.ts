@@ -30,8 +30,17 @@ export async function exportPrintableHTML(html: string, filename: string): Promi
 
       await writeTextFile(filePath, html);
 
+      // Open the file so the user can see it immediately
+      try {
+        const { open } = await import("@tauri-apps/plugin-shell");
+        await open(filePath);
+      } catch {
+        // Non-critical — file is still saved
+      }
+
       return { success: true, filePath, fileName };
-    } catch {
+    } catch (err) {
+      console.warn("[export] Tauri file write failed, falling back to browser tab:", err);
       // Fallback to web approach if Tauri APIs fail
       openPrintWindow(html);
       return { success: true };

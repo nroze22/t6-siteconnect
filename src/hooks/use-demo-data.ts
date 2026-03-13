@@ -1,13 +1,12 @@
 import { useEffect } from "react";
 import { useScreeningStore } from "@/stores/use-screening-store";
 import { useAppStore } from "@/stores/use-app-store";
-import { screenPatientsForStudy } from "@/lib/epic-demo-data";
-import { getPatients } from "@/lib/data-provider";
+import { getPatients, getStudies, screenPatientsViaRust, screeningResultToOutput } from "@/lib/data-provider";
 
 /**
  * Loads patient data into the Zustand stores on mount.
- * In Tauri mode, queries real data from SQLite.
- * In web mode, falls back to demo data.
+ * In Tauri mode, queries real data from SQLite and screens via Rust engine.
+ * In web mode, falls back to demo data with JS screening.
  *
  * Skips if the screening store already has persisted data (from a previous session).
  */
@@ -27,16 +26,22 @@ export function useDemoData() {
         databaseReady: true,
         patientCount: patients.length,
         studyCount: 6,
-        llmStatus: "running",
-        llmModel: "BioMistral-7B",
       });
-      if (!selectedStudyId) selectStudy("study-1");
+      if (!selectedStudyId) {
+        getStudies().then((studies) => {
+          selectStudy(studies.length > 0 ? studies[0]!.id : "study-1");
+        });
+      }
       return;
     }
 
     // No persisted data — load fresh
-    getPatients().then((parsed) => {
-      const screening = screenPatientsForStudy(parsed, "study-1");
+    (async () => {
+      const studies = await getStudies();
+      const studyId = studies.length > 0 ? studies[0]!.id : "study-1";
+
+      const rustResults = await screenPatientsViaRust(studyId);
+      const screening = rustResults.map(screeningResultToOutput);
 
       setPatients(screening.map((s) => s.summary));
 
@@ -45,15 +50,14 @@ export function useDemoData() {
         setCriteriaResults(s.result.id, s.criteria);
       }
 
-      selectStudy("study-1");
+      selectStudy(studyId);
 
+      const parsed = await getPatients();
       setStatus({
         databaseReady: true,
         patientCount: parsed.length,
-        studyCount: 6,
-        llmStatus: "running",
-        llmModel: "BioMistral-7B",
+        studyCount: studies.length || 6,
       });
-    });
+    })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 }

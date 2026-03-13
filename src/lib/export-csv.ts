@@ -103,7 +103,23 @@ function csvEscape(val: string): string {
   return val;
 }
 
-export function downloadCSV(content: string, filename: string): void {
+const isTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+
+export async function downloadCSV(content: string, filename: string): Promise<string | undefined> {
+  if (isTauri) {
+    try {
+      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+      const { downloadDir, join } = await import("@tauri-apps/api/path");
+
+      const downloadsPath = await downloadDir();
+      const filePath = await join(downloadsPath, filename);
+      await writeTextFile(filePath, content);
+      return filePath;
+    } catch {
+      // Fall through to web fallback
+    }
+  }
+
   const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -111,4 +127,5 @@ export function downloadCSV(content: string, filename: string): void {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
+  return undefined;
 }

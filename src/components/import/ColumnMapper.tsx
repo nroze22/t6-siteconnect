@@ -10,25 +10,44 @@ import type { ColumnMapping } from "@/types";
 
 const TARGET_FIELDS = [
   { value: "", label: "-- Skip Column --" },
-  { value: "patient_id", label: "Subject ID" },
+  // Demographics (match Rust target names)
+  { value: "site_patient_id", label: "Subject ID" },
   { value: "date_of_birth", label: "Date of Birth" },
   { value: "gender", label: "Gender" },
   { value: "race", label: "Race" },
   { value: "ethnicity", label: "Ethnicity" },
   { value: "insurance_type", label: "Insurance Type" },
-  { value: "diagnosis_icd10", label: "Diagnosis ICD-10" },
-  { value: "diagnosis_desc", label: "Diagnosis Description" },
-  { value: "diagnosis_date", label: "Diagnosis Date" },
-  { value: "medication_name", label: "Medication Name" },
-  { value: "medication_dose", label: "Medication Dose" },
-  { value: "medication_start", label: "Medication Start Date" },
-  { value: "lab_test", label: "Lab Test Name" },
+  // Diagnoses
+  { value: "icd10_code", label: "Diagnosis ICD-10" },
+  { value: "diagnosis_description", label: "Diagnosis Description" },
+  { value: "diagnosis_onset_date", label: "Diagnosis Date" },
+  { value: "diagnosis_status", label: "Diagnosis Status" },
+  // Medications
+  { value: "drug_name", label: "Medication Name" },
+  { value: "dose", label: "Medication Dose" },
+  { value: "frequency", label: "Medication Frequency" },
+  { value: "medication_start_date", label: "Medication Start Date" },
+  { value: "medication_end_date", label: "Medication End Date" },
+  // Labs
+  { value: "test_name", label: "Lab Test Name" },
+  { value: "loinc_code", label: "LOINC Code" },
   { value: "lab_value", label: "Lab Value" },
   { value: "lab_unit", label: "Lab Unit" },
-  { value: "lab_date", label: "Lab Result Date" },
-  { value: "lab_ref_range", label: "Lab Reference Range" },
+  { value: "result_date", label: "Lab Result Date" },
+  { value: "reference_range", label: "Lab Reference Range" },
+  { value: "abnormal_flag", label: "Abnormal Flag" },
+  // Vitals
   { value: "vital_type", label: "Vital Sign Type" },
   { value: "vital_value", label: "Vital Sign Value" },
+  { value: "vital_date", label: "Vital Sign Date" },
+  // Procedures
+  { value: "procedure_description", label: "Procedure Description" },
+  { value: "cpt_code", label: "CPT Code" },
+  { value: "procedure_date", label: "Procedure Date" },
+  // Allergies
+  { value: "allergen", label: "Allergen" },
+  { value: "allergy_reaction", label: "Allergy Reaction" },
+  // Other
   { value: "note_text", label: "Clinical Note Text" },
 ] as const;
 
@@ -41,7 +60,7 @@ interface ColumnMapperProps {
 function ConfidenceBadge({ confidence, isManual }: { confidence: number; isManual: boolean }) {
   if (isManual) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-blue-500/10 px-2 py-0.5 text-[12px] font-semibold text-blue-400 ring-1 ring-blue-500/20">
+      <span className="inline-flex items-center gap-1 rounded-md bg-blue-500/15 px-2 py-0.5 text-[12px] font-semibold text-blue-300 ring-1 ring-blue-500/25">
         <Pencil className="h-2.5 w-2.5" />
         Manual
       </span>

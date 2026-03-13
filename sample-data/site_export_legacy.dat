@@ -1,0 +1,11 @@
+patient_id|date_of_birth|gender|race|diagnosis_code|diagnosis_description|medication|dose|lab_test|lab_value|lab_unit|result_date
+MRN-2024-001|03/14/1958|Male|White|C34.11|Malignant neoplasm upper lobe right lung|Pembrolizumab|200 mg|Hemoglobin|13.2|g/dL|06/15/2024
+MRN-2024-001|03/14/1958|Male|White|E11.9|Type 2 diabetes mellitus|Metformin|1000 mg|HbA1c|7.2|%|06/15/2024
+MRN-2024-002|09/22/1971|Female|Black or African American|C50.911|Malignant neoplasm right breast|Letrozole|2.5 mg|Hemoglobin|11.8|g/dL|06/10/2024
+MRN-2024-002|09/22/1971|Female|Black or African American|E78.5|Hyperlipidemia|Palbociclib|125 mg|Total Cholesterol|242|mg/dL|06/10/2024
+MRN-2024-005|01/17/1953|Male|White|C61|Malignant neoplasm of prostate|Enzalutamide|160 mg|PSA|18.5|ng/mL|06/20/2024
+MRN-2024-005|01/17/1953|Male|White|I10|Essential hypertension|Amlodipine|10 mg|Hemoglobin|12.8|g/dL|06/20/2024
+MRN-2024-008|07/19/1962|Female|Asian|C34.31|Malignant neoplasm lower lobe left lung|Osimertinib|80 mg|EGFR Mutation|Positive||04/25/2024
+MRN-2024-008|07/19/1962|Female|Asian|J44.1|COPD with acute exacerbation|Tiotropium|18 mcg|Hemoglobin|11.5|g/dL|06/22/2024
+MRN-2024-011|08/15/1969|Male|Black or African American|C22.0|Liver cell carcinoma|Atezolizumab|1200 mg|AFP|1250|ng/mL|06/28/2024
+MRN-2024-011|08/15/1969|Male|Black or African American|K74.60|Cirrhosis of liver|Bevacizumab|15 mg/kg|ALT|68|U/L|06/28/2024

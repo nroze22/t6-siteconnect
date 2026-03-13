@@ -23,6 +23,14 @@
     "fs:allow-remove",
     "fs:allow-stat",
     "fs:allow-read-dir",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        { "path": "$APPDATA/**" },
+        { "path": "$DOWNLOAD/**" },
+        { "path": "$HOME/**" }
+      ]
+    },
     "store:default",
     "notification:default",
     "notification:allow-notify",

@@ -50,3 +50,4 @@ logs/
 *.db-journal
 *.db-wal
 *.db-shm
+.vercel

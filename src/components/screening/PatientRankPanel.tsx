@@ -140,7 +140,7 @@ export function PatientRankPanel() {
       </div>
 
       {/* Subject List */}
-      <div className="flex-1 overflow-y-auto" ref={listRef}>
+      <div className="flex-1 overflow-y-auto striped-rows" ref={listRef}>
         {patients.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8 text-center">
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10 ring-1 ring-indigo-500/20">

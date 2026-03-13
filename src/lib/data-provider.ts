@@ -221,17 +221,15 @@ export async function screenPatientsViaRust(studyId: string): Promise<ScreeningR
   if (isTauri) {
     try {
       const results = await tauriInvoke<ScreeningResult[]>("screen_patients_for_study", { studyId });
-      // Only use Rust results if they contain meaningful screening data
-      // (study exists in DB with criteria and patients were actually screened)
-      if (results.length > 0 && results[0]!.criteria_results.length > 0) {
-        return results;
-      }
+      // In Tauri mode, always return Rust results (even if empty — means no patients imported yet).
+      // Only fall through to JS demo if the Rust call itself throws (DB not initialized).
+      return results;
     } catch {
-      // DB not initialized or no patients
+      // DB not initialized or no patients — fall through to JS demo
     }
   }
 
-  // Fallback: use JS screening
+  // Fallback: use JS screening (web/demo mode only)
   const { parseEpicRows, screenPatientsForStudy: jsScreen } = await import("./epic-demo-data");
   const patients = parseEpicRows();
   const results = jsScreen(patients, studyId);
@@ -375,6 +373,93 @@ export async function importExtractedPatients(patients: ExtractedPatient[]): Pro
     return { imported: patients.length, updated: 0, total: patients.length };
   }
   return tauriInvoke<ImportExtractedResult>("import_extracted_patients", { patients });
+}
+
+// --- Patient Summary & Criterion Rationale ---
+
+export async function generatePatientSummary(patientContext: string): Promise<string> {
+  if (!isTauri) {
+    // Demo mode: generate template-based summary
+    return generateTemplateSummary(patientContext);
+  }
+  try {
+    const prompt = `You are a clinical research coordinator. Write a concise 2-3 sentence clinical synopsis of this patient for pre-screening evaluation. Focus on key demographics, primary diagnoses, relevant labs, and current medications. Do NOT use bullet points — write flowing prose.
+
+PATIENT DATA:
+${patientContext}
+
+CLINICAL SYNOPSIS:`;
+    return await tauriInvoke<string>("chat_with_llm", { message: prompt });
+  } catch {
+    return generateTemplateSummary(patientContext);
+  }
+}
+
+export async function generateCriterionRationale(
+  criterionText: string,
+  criterionType: string,
+  result: string,
+  evidence: string | null,
+  patientContext: string,
+): Promise<string> {
+  if (!isTauri) {
+    return generateTemplateRationale(criterionType, result, evidence, criterionText);
+  }
+  try {
+    const prompt = `You are a clinical research coordinator explaining an eligibility criterion evaluation to a colleague. In 1-2 sentences, explain WHY this patient ${result === "met" ? "meets" : result === "not_met" ? "does not meet" : "has an unclear status for"} this ${criterionType} criterion. Reference specific patient data. Be precise and clinical.
+
+CRITERION: ${criterionText}
+RESULT: ${result}
+EVIDENCE: ${evidence ?? "No specific evidence available"}
+
+PATIENT DATA:
+${patientContext}
+
+EXPLANATION:`;
+    return await tauriInvoke<string>("chat_with_llm", { message: prompt });
+  } catch {
+    return generateTemplateRationale(criterionType, result, evidence, criterionText);
+  }
+}
+
+function generateTemplateSummary(context: string): string {
+  // Parse basic info from the context string
+  const ageMatch = context.match(/(\d+)\s*(?:yo|years?\s*old|y\/o)/i) ?? context.match(/age[:\s]*(\d+)/i);
+  const genderMatch = context.match(/\b(male|female|man|woman)\b/i);
+  const age = ageMatch?.[1] ?? "unknown age";
+  const gender = genderMatch?.[1] ?? "patient";
+
+  // Extract conditions mentioned
+  const conditions: string[] = [];
+  const conditionPatterns = [
+    /diabetes/i, /hypertension/i, /NSCLC/i, /heart failure/i, /obesity/i,
+    /alzheimer/i, /crohn/i, /dermatitis/i, /cancer/i, /asthma/i,
+  ];
+  for (const p of conditionPatterns) {
+    const m = context.match(p);
+    if (m) conditions.push(m[0]);
+  }
+
+  const condStr = conditions.length > 0 ? conditions.join(", ") : "multiple conditions";
+  return `${age}-year-old ${gender} presenting with ${condStr}. Review criterion-level evidence below for detailed eligibility assessment.`;
+}
+
+function generateTemplateRationale(
+  criterionType: string,
+  result: string,
+  evidence: string | null,
+  criterionText: string,
+): string {
+  const verb = result === "met"
+    ? (criterionType === "exclusion" ? "triggers this exclusion" : "meets this inclusion criterion")
+    : result === "not_met"
+    ? (criterionType === "exclusion" ? "does not trigger this exclusion" : "does not meet this inclusion criterion")
+    : "has insufficient data to determine this criterion";
+
+  if (evidence) {
+    return `Patient ${verb}. ${evidence}`;
+  }
+  return `Patient ${verb}: "${criterionText}". No specific evidence was identified in the available clinical data.`;
 }
 
 // --- AI Insight Generation ---

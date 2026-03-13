@@ -199,6 +199,7 @@ function collectHighlightTerms(patient: ExtractedPatient): string[] {
   for (const v of patient.vitals) {
     terms.push(String(v.value));
   }
+  // Filter out single-character terms only
   return terms.filter((t) => t.length >= 2);
 }
 
@@ -299,7 +300,8 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
   const [inputError, setInputError] = useState<string | null>(null);
   const [editingPatientIdx, setEditingPatientIdx] = useState<number>(0);
   const [showSource, setShowSource] = useState(true);
-  const [hoveredTerm, setHoveredTerm] = useState<string | null>(null);
+  const [hoveredTerm, setHoveredTerm] = useState<string[] | null>(null);
+  const sourceScrollRef = useRef<HTMLDivElement>(null);
   const [elapsedSecs, setElapsedSecs] = useState(0);
   // Per-patient verification tracking (keyed by docIdx-patientIdx)
   const [verifications, setVerifications] = useState<Record<string, VerificationState>>({});
@@ -996,8 +998,8 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
                   </div>
                 )}
 
-                {/* Side-by-side layout */}
-                <div className={`grid gap-3 ${showSource ? "grid-cols-2" : "grid-cols-1"}`} style={{ minHeight: 400 }}>
+                {/* Side-by-side layout — fixed-height frame so panels scroll independently */}
+                <div className={`grid gap-3 ${showSource ? "grid-cols-2" : "grid-cols-1"}`} style={{ height: "calc(100vh - 320px)", minHeight: 360 }}>
                   {/* LEFT: Extracted data — full clinical review */}
                   <div className="rounded-xl border border-edge-2 bg-card overflow-hidden flex flex-col">
                     <div className="flex items-center justify-between px-4 py-2.5 border-b border-edge-2 bg-surface-1/50">
@@ -1030,12 +1032,12 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
                             onVerify={() => setVerification((v) => ({ ...v, demographics: !v.demographics }))}
                           >
                             <div className="grid grid-cols-3 gap-1.5">
-                              <InlineField label="Name" value={activePatient.name} onSave={(v) => updatePatientField("name", v)} onHover={setHoveredTerm} hoveredTerm={hoveredTerm} required />
-                              <InlineField label="MRN" value={activePatient.patient_id} onSave={(v) => updatePatientField("patient_id", v)} onHover={setHoveredTerm} hoveredTerm={hoveredTerm} required />
-                              <InlineField label="DOB" value={activePatient.date_of_birth} onSave={(v) => updatePatientField("date_of_birth", v)} onHover={setHoveredTerm} hoveredTerm={hoveredTerm} placeholder="YYYY-MM-DD" />
-                              <InlineField label="Age" value={activePatient.age?.toString() ?? null} onSave={(v) => updatePatientField("age", v)} onHover={setHoveredTerm} hoveredTerm={hoveredTerm} />
-                              <InlineField label="Gender" value={activePatient.gender} onSave={(v) => updatePatientField("gender", v)} onHover={setHoveredTerm} hoveredTerm={hoveredTerm} />
-                              <InlineField label="Race" value={activePatient.race} onSave={(v) => updatePatientField("race", v)} onHover={setHoveredTerm} hoveredTerm={hoveredTerm} />
+                              <InlineField label="Name" value={activePatient.name} onSave={(v) => updatePatientField("name", v)} onHover={(t) => setHoveredTerm(t ? [t] : null)} hoveredTerm={hoveredTerm} required />
+                              <InlineField label="MRN" value={activePatient.patient_id} onSave={(v) => updatePatientField("patient_id", v)} onHover={(t) => setHoveredTerm(t ? [t] : null)} hoveredTerm={hoveredTerm} required />
+                              <InlineField label="DOB" value={activePatient.date_of_birth} onSave={(v) => updatePatientField("date_of_birth", v)} onHover={(t) => setHoveredTerm(t ? [t] : null)} hoveredTerm={hoveredTerm} placeholder="YYYY-MM-DD" />
+                              <InlineField label="Age" value={activePatient.age?.toString() ?? null} onSave={(v) => updatePatientField("age", v)} onHover={(t) => setHoveredTerm(t ? [t] : null)} hoveredTerm={hoveredTerm} />
+                              <InlineField label="Gender" value={activePatient.gender} onSave={(v) => updatePatientField("gender", v)} onHover={(t) => setHoveredTerm(t ? [t] : null)} hoveredTerm={hoveredTerm} />
+                              <InlineField label="Race" value={activePatient.race} onSave={(v) => updatePatientField("race", v)} onHover={(t) => setHoveredTerm(t ? [t] : null)} hoveredTerm={hoveredTerm} />
                             </div>
                           </ReviewSection>
 
@@ -1060,9 +1062,9 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
                                     return { ...v, diagnoses: s };
                                   })}
                                   onRemove={() => removeDiagnosis(i)}
-                                  onHover={() => setHoveredTerm(dx.description)}
+                                  onHover={() => setHoveredTerm([dx.description, dx.icd10_code, dx.status, dx.onset_date].filter(Boolean) as string[])}
                                   onUnhover={() => setHoveredTerm(null)}
-                                  isHovered={!!hoveredTerm && (dx.description.toLowerCase().includes(hoveredTerm.toLowerCase()) || dx.icd10_code === hoveredTerm)}
+                                  isHovered={!!hoveredTerm && hoveredTerm.some(t => dx.description.toLowerCase().includes(t.toLowerCase()) || t.toLowerCase().includes(dx.description.toLowerCase()))}
                                   hoverColor="rose"
                                 >
                                   <InlineCell value={dx.description} onSave={(v) => updateDiagnosis(i, "description", v)} className="flex-1 font-medium" placeholder="Description" />
@@ -1095,9 +1097,9 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
                                     return { ...v, medications: s };
                                   })}
                                   onRemove={() => removeMedication(i)}
-                                  onHover={() => setHoveredTerm(med.drug_name)}
+                                  onHover={() => setHoveredTerm([med.drug_name, med.dose, med.frequency].filter(Boolean) as string[])}
                                   onUnhover={() => setHoveredTerm(null)}
-                                  isHovered={!!hoveredTerm && med.drug_name.toLowerCase().includes(hoveredTerm.toLowerCase())}
+                                  isHovered={!!hoveredTerm && hoveredTerm.some(t => med.drug_name.toLowerCase().includes(t.toLowerCase()) || t.toLowerCase().includes(med.drug_name.toLowerCase()))}
                                   hoverColor="emerald"
                                 >
                                   <InlineCell value={med.drug_name} onSave={(v) => updateMedication(i, "drug_name", v)} className="flex-1 font-medium" placeholder="Drug name" />
@@ -1130,9 +1132,9 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
                                     return { ...v, labs: s };
                                   })}
                                   onRemove={() => removeLab(i)}
-                                  onHover={() => setHoveredTerm(lab.test_name)}
+                                  onHover={() => setHoveredTerm([lab.test_name, lab.value != null ? String(lab.value) : null, lab.unit].filter(Boolean) as string[])}
                                   onUnhover={() => setHoveredTerm(null)}
-                                  isHovered={!!hoveredTerm && lab.test_name.toLowerCase().includes(hoveredTerm.toLowerCase())}
+                                  isHovered={!!hoveredTerm && hoveredTerm.some(t => lab.test_name.toLowerCase().includes(t.toLowerCase()) || t.toLowerCase().includes(lab.test_name.toLowerCase()))}
                                   hoverColor="indigo"
                                 >
                                   <InlineCell value={lab.test_name} onSave={(v) => updateLab(i, "test_name", v)} className="flex-1 font-medium" placeholder="Test name" />
@@ -1166,9 +1168,9 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
                                     return { ...prev, vitals: s };
                                   })}
                                   onRemove={() => removeVital(i)}
-                                  onHover={() => setHoveredTerm(v.measurement_type)}
+                                  onHover={() => setHoveredTerm([v.measurement_type, String(v.value), v.unit].filter(Boolean) as string[])}
                                   onUnhover={() => setHoveredTerm(null)}
-                                  isHovered={!!hoveredTerm && v.measurement_type.toLowerCase().includes(hoveredTerm.toLowerCase())}
+                                  isHovered={!!hoveredTerm && hoveredTerm.some(t => v.measurement_type.toLowerCase().includes(t.toLowerCase()) || t.toLowerCase().includes(v.measurement_type.toLowerCase()))}
                                   hoverColor="purple"
                                   compact
                                 >
@@ -1200,8 +1202,8 @@ export function SmartImportPanel({ onImportComplete }: SmartImportPanelProps) {
                           ))}
                         </div>
                       </div>
-                      <div className="flex-1 overflow-y-auto p-4">
-                        <HighlightedSource text={activeDoc.sourceText} terms={highlightTerms} hoveredTerm={hoveredTerm} patient={activePatient} />
+                      <div ref={sourceScrollRef} className="flex-1 overflow-y-auto p-4">
+                        <HighlightedSource text={activeDoc.sourceText} terms={highlightTerms} hoveredTerm={hoveredTerm} patient={activePatient} scrollContainerRef={sourceScrollRef} />
                       </div>
                     </div>
                   )}
@@ -1366,7 +1368,7 @@ function InlineField({
   value: string | null | undefined;
   onSave: (v: string) => void;
   onHover: (term: string | null) => void;
-  hoveredTerm: string | null;
+  hoveredTerm: string[] | null;
   placeholder?: string;
   required?: boolean;
 }) {
@@ -1381,7 +1383,7 @@ function InlineField({
     }
   }, [editing, value]);
 
-  const isHovered = hoveredTerm && value && value.toLowerCase().includes(hoveredTerm.toLowerCase());
+  const isHovered = hoveredTerm && value && hoveredTerm.some(t => value.toLowerCase().includes(t.toLowerCase()) || t.toLowerCase().includes(value.toLowerCase()));
   const isEmpty = !value;
 
   if (editing) {
@@ -1528,11 +1530,13 @@ function HighlightedSource({
   terms,
   hoveredTerm,
   patient,
+  scrollContainerRef,
 }: {
   text: string;
   terms: string[];
-  hoveredTerm: string | null;
+  hoveredTerm: string[] | null;
   patient: ExtractedPatient | null;
+  scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
 }) {
   const rendered = useMemo(() => {
     if (!patient || terms.length === 0) {
@@ -1540,8 +1544,17 @@ function HighlightedSource({
     }
 
     const sortedTerms = [...terms].sort((a, b) => b.length - a.length);
-    const escaped = sortedTerms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-    const pattern = new RegExp(`(${escaped.join("|")})`, "gi");
+    // Build boundary-aware patterns: numbers use digit lookaround, words use \b
+    const boundedTerms = sortedTerms.map((t) => {
+      const escaped = t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      if (/^\d+(\.\d+)?$/.test(t)) {
+        // Pure number — don't match inside larger numbers
+        return `(?<!\\d)${escaped}(?!\\d)`;
+      }
+      // Word — use word boundaries to prevent substring matches
+      return `(?<![a-zA-Z])${escaped}(?![a-zA-Z])`;
+    });
+    const pattern = new RegExp(`(${boundedTerms.join("|")})`, "gi");
     const parts = text.split(pattern);
 
     return parts.map((part, i) => {
@@ -1550,14 +1563,15 @@ function HighlightedSource({
 
       const category = getTermCategory(matchedTerm, patient);
       const colors = CATEGORY_COLORS[category];
-      const isHovered = hoveredTerm && (
-        matchedTerm.toLowerCase().includes(hoveredTerm.toLowerCase()) ||
-        hoveredTerm.toLowerCase().includes(matchedTerm.toLowerCase())
+      const isHovered = hoveredTerm && hoveredTerm.some(ht =>
+        matchedTerm.toLowerCase().includes(ht.toLowerCase()) ||
+        ht.toLowerCase().includes(matchedTerm.toLowerCase())
       );
 
       return (
         <span
           key={i}
+          data-hover-term={matchedTerm.toLowerCase()}
           className={`inline rounded px-0.5 py-px transition-all duration-150 ${colors.bg} ${colors.text} font-medium ${
             isHovered ? `ring-2 ${colors.border} ring-offset-1 ring-offset-card brightness-125` : ""
           }`}
@@ -1567,6 +1581,21 @@ function HighlightedSource({
       );
     });
   }, [text, terms, hoveredTerm, patient]);
+
+  // Auto-scroll source panel to first highlighted match (manual scrollTo to avoid ancestor scroll)
+  useEffect(() => {
+    if (!hoveredTerm || !scrollContainerRef?.current) return;
+    const container = scrollContainerRef.current;
+    // Find the first highlighted span inside the source container
+    const firstMatch = container.querySelector<HTMLElement>("span[data-hover-term].ring-2");
+    if (firstMatch) {
+      // Calculate position relative to the scroll container only
+      const containerRect = container.getBoundingClientRect();
+      const matchRect = firstMatch.getBoundingClientRect();
+      const targetScroll = container.scrollTop + (matchRect.top - containerRect.top) - (containerRect.height / 2) + (matchRect.height / 2);
+      container.scrollTo({ top: Math.max(0, targetScroll), behavior: "smooth" });
+    }
+  }, [hoveredTerm, scrollContainerRef]);
 
   return (
     <pre className="whitespace-pre-wrap text-[12px] leading-relaxed font-mono text-dim">

@@ -1,0 +1,13 @@
+patient_id,date_of_birth,gender,race,ethnicity,insurance_type
+MRN-2024-001,1958-03-14,male,White,Not Hispanic or Latino,Medicare
+MRN-2024-002,1971-09-22,female,Black or African American,Not Hispanic or Latino,Blue Cross PPO
+MRN-2024-003,1965-06-08,male,Asian,Not Hispanic or Latino,Aetna HMO
+MRN-2024-004,1980-11-30,female,White,Hispanic or Latino,UnitedHealth
+MRN-2024-005,1953-01-17,male,White,Not Hispanic or Latino,Medicare
+MRN-2024-006,1975-04-25,female,Black or African American,Not Hispanic or Latino,Cigna PPO
+MRN-2024-007,1988-12-03,male,White,Not Hispanic or Latino,Anthem Blue Cross
+MRN-2024-008,1962-07-19,female,Asian,Not Hispanic or Latino,Kaiser Permanente
+MRN-2024-009,1945-05-11,male,White,Not Hispanic or Latino,Medicare
+MRN-2024-010,1977-02-28,female,White,Hispanic or Latino,Medicaid
+MRN-2024-011,1969-08-15,male,Black or African American,Not Hispanic or Latino,Humana
+MRN-2024-012,1983-10-07,female,White,Not Hispanic or Latino,Blue Shield

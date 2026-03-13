@@ -1111,6 +1111,7 @@ export function CohortBuilderPage() {
               </button>
               <button
                 onClick={handleExportCSV}
+                title="Saves to ~/Downloads"
                 className="flex items-center gap-1.5 h-7 px-2.5 rounded-md text-xs text-dim hover:text-body hover:bg-surface-3 transition-colors"
               >
                 <Download className="h-3.5 w-3.5" />
@@ -1118,6 +1119,7 @@ export function CohortBuilderPage() {
               </button>
               <button
                 onClick={handleGenerateReport}
+                title="Saves HTML report to ~/Downloads"
                 className="flex items-center gap-1.5 h-7 px-2.5 rounded-md text-xs bg-primary/15 text-primary hover:bg-primary/25 transition-colors"
               >
                 <FileText className="h-3.5 w-3.5" />
@@ -1340,33 +1342,33 @@ export function CohortBuilderPage() {
           >
             {/* Big match count */}
             <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="rounded-xl bg-card border border-edge-2 p-5">
+              <div className="card-lift rounded-xl bg-card border border-edge-2 p-5">
                 <div className="text-xs font-medium text-dim uppercase tracking-wider mb-1">
                   Matching Subjects
                 </div>
-                <div className="text-3xl font-bold text-emerald-400 tracking-tight">
+                <div className="text-3xl font-bold tabular-nums text-emerald-400 tracking-tight">
                   {formatNumber(animatedMatch)}
                 </div>
                 <div className="text-xs text-dim mt-1">
                   of {formatNumber(animatedTotal)} total
                 </div>
               </div>
-              <div className="rounded-xl bg-card border border-edge-2 p-5">
+              <div className="card-lift rounded-xl bg-card border border-edge-2 p-5">
                 <div className="text-xs font-medium text-dim uppercase tracking-wider mb-1">
                   Match Rate
                 </div>
-                <div className="text-3xl font-bold text-indigo-400 tracking-tight">
+                <div className="text-3xl font-bold tabular-nums text-indigo-400 tracking-tight">
                   {animatedRate}%
                 </div>
                 <div className="text-xs text-dim mt-1">
                   of population
                 </div>
               </div>
-              <div className="rounded-xl bg-card border border-edge-2 p-5">
+              <div className="card-lift rounded-xl bg-card border border-edge-2 p-5">
                 <div className="text-xs font-medium text-dim uppercase tracking-wider mb-1">
                   Avg Age
                 </div>
-                <div className="text-3xl font-bold text-body tracking-tight">
+                <div className="text-3xl font-bold tabular-nums text-body tracking-tight">
                   {result.demographics.avgAge}
                 </div>
                 <div className="text-xs text-dim mt-1">
@@ -1377,7 +1379,7 @@ export function CohortBuilderPage() {
 
             {/* Attrition Waterfall */}
             {waterfallData.length > 0 && (
-              <div className="rounded-xl bg-card border border-edge-2 p-5 mb-6">
+              <div className="card-lift rounded-xl bg-card border border-edge-2 p-5 mb-6">
                 <h3 className="text-sm font-semibold text-body mb-4 flex items-center gap-2">
                   <Filter className="h-4 w-4 text-indigo-400" />
                   Criterion Attrition
@@ -1399,7 +1401,7 @@ export function CohortBuilderPage() {
                             </span>
                           )}
                         </span>
-                        <span className="text-xs text-dim">
+                        <span className="text-xs tabular-nums text-dim">
                           {w.passing} / {result.totalPatients} ({(w.rate * 100).toFixed(0)}%)
                         </span>
                       </div>
@@ -1424,7 +1426,7 @@ export function CohortBuilderPage() {
             {/* Demographics Row */}
             <div className="grid grid-cols-3 gap-4 mb-6">
               {/* Age Distribution */}
-              <div className="rounded-xl bg-card border border-edge-2 p-5">
+              <div className="card-lift rounded-xl bg-card border border-edge-2 p-5">
                 <h3 className="text-xs font-semibold text-dim uppercase tracking-wider mb-3">
                   Age Distribution
                 </h3>
@@ -1460,7 +1462,7 @@ export function CohortBuilderPage() {
               </div>
 
               {/* Gender Split */}
-              <div className="rounded-xl bg-card border border-edge-2 p-5">
+              <div className="card-lift rounded-xl bg-card border border-edge-2 p-5">
                 <h3 className="text-xs font-semibold text-dim uppercase tracking-wider mb-3">
                   Gender Split
                 </h3>
@@ -1506,7 +1508,7 @@ export function CohortBuilderPage() {
               </div>
 
               {/* Race Breakdown */}
-              <div className="rounded-xl bg-card border border-edge-2 p-5">
+              <div className="card-lift rounded-xl bg-card border border-edge-2 p-5">
                 <h3 className="text-xs font-semibold text-dim uppercase tracking-wider mb-3">
                   Race Breakdown
                 </h3>

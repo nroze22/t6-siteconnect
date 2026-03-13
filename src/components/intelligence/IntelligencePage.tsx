@@ -109,7 +109,7 @@ const SEVERITY_STYLES: Record<string, { bg: string; badge: string; border: strin
   },
   low: {
     bg: "bg-blue-500/5",
-    badge: "bg-blue-500/15 text-blue-400 ring-1 ring-blue-500/30",
+    badge: "bg-blue-500/15 text-blue-300 ring-1 ring-blue-500/30",
     border: "border-blue-500/20",
   },
 };
@@ -598,7 +598,7 @@ function RadialGauge({ score, size = 160, trackStroke }: { score: number; size?:
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-4xl font-bold text-heading" style={{ color }}>
+        <span className="text-4xl font-bold tabular-nums text-heading" style={{ color }}>
           {animatedScore}
         </span>
         <span className="text-xs font-medium text-dim mt-0.5">
@@ -697,7 +697,7 @@ function ResearchReadinessSection({ patients }: { patients: ParsedPatient[] }) {
   }));
 
   return (
-    <motion.div variants={fadeUp} className="bg-card border border-edge-2 rounded-xl p-6">
+    <motion.div variants={fadeUp} className="card-lift bg-card border border-edge-2 rounded-xl p-6">
       <div className="flex items-center gap-2 mb-6">
         <div className="p-2 rounded-lg bg-indigo-500/10">
           <Gauge className="h-5 w-5 text-indigo-400" />
@@ -751,7 +751,7 @@ function ResearchReadinessSection({ patients }: { patients: ParsedPatient[] }) {
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs text-dim">{s.label}</span>
                 <span
-                  className="text-xs font-mono font-semibold"
+                  className="text-xs font-mono font-semibold tabular-nums"
                   style={{ color: scoreColor(s.value) }}
                 >
                   {s.value}
@@ -800,7 +800,7 @@ function MissedOpportunitySection({ patients }: { patients: ParsedPatient[] }) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   return (
-    <motion.div variants={fadeUp} className="bg-card border border-edge-2 rounded-xl p-6">
+    <motion.div variants={fadeUp} className="card-lift bg-card border border-edge-2 rounded-xl p-6">
       <div className="flex items-center gap-2 mb-6">
         <div className="p-2 rounded-lg bg-amber-500/10">
           <Lightbulb className="h-5 w-5 text-amber-400" />
@@ -896,7 +896,7 @@ function EnrollmentFunnelSection({ totalSubjects }: { totalSubjects: number }) {
   );
 
   return (
-    <motion.div variants={fadeUp} className="bg-card border border-edge-2 rounded-xl p-6">
+    <motion.div variants={fadeUp} className="card-lift bg-card border border-edge-2 rounded-xl p-6">
       <div className="flex items-center gap-2 mb-6">
         <div className="p-2 rounded-lg bg-cyan-500/10">
           <TrendingUp className="h-5 w-5 text-cyan-400" />
@@ -1050,7 +1050,7 @@ function EnrollmentFunnelSection({ totalSubjects }: { totalSubjects: number }) {
                 P(Success)
               </div>
               <div
-                className={`text-lg font-bold font-mono ${
+                className={`text-lg font-bold font-mono tabular-nums ${
                   mcResult.probabilityOfSuccess >= 70
                     ? "text-emerald-400"
                     : mcResult.probabilityOfSuccess >= 40
@@ -1065,7 +1065,7 @@ function EnrollmentFunnelSection({ totalSubjects }: { totalSubjects: number }) {
               <div className="text-[12px] text-dim uppercase tracking-wider mb-1">
                 Median Time to Target
               </div>
-              <div className="text-lg font-bold font-mono text-body">
+              <div className="text-lg font-bold font-mono tabular-nums text-body">
                 {mcResult.medianTimeToTarget !== null
                   ? `${mcResult.medianTimeToTarget} mo`
                   : "N/A"}
@@ -1075,7 +1075,7 @@ function EnrollmentFunnelSection({ totalSubjects }: { totalSubjects: number }) {
               <div className="text-[12px] text-dim uppercase tracking-wider mb-1">
                 80% Confidence Interval
               </div>
-              <div className="text-lg font-bold font-mono text-body">
+              <div className="text-lg font-bold font-mono tabular-nums text-body">
                 {mcResult.confidenceInterval[0]}&ndash;{mcResult.confidenceInterval[1]}
               </div>
               <div className="text-[12px] text-dim mt-0.5">enrolled subjects</div>
@@ -1084,7 +1084,7 @@ function EnrollmentFunnelSection({ totalSubjects }: { totalSubjects: number }) {
               <div className="text-[12px] text-dim uppercase tracking-wider mb-1">
                 Expected Enrolled
               </div>
-              <div className="text-lg font-bold font-mono text-cyan-400">
+              <div className="text-lg font-bold font-mono tabular-nums text-cyan-400">
                 {mcResult.expectedEnrolled}
               </div>
               <div className="text-[12px] text-dim mt-0.5">mean across 1,000 sims</div>
@@ -1126,7 +1126,7 @@ function ROICalculatorSection({ defaultEligible }: { defaultEligible: number }) 
   }, []);
 
   return (
-    <motion.div variants={fadeUp} className="bg-card border border-edge-2 rounded-xl p-6">
+    <motion.div variants={fadeUp} className="card-lift bg-card border border-edge-2 rounded-xl p-6">
       <div className="flex items-center gap-2 mb-6">
         <div className="p-2 rounded-lg bg-emerald-500/10">
           <Calculator className="h-5 w-5 text-emerald-400" />
@@ -1262,7 +1262,7 @@ function ROICalculatorSection({ defaultEligible }: { defaultEligible: number }) 
               <div className="text-[12px] text-dim uppercase tracking-wider mb-1">
                 Projected Enrolled
               </div>
-              <div className="text-xl font-bold text-body">
+              <div className="text-xl font-bold tabular-nums text-body">
                 <AnimatedCount value={roi.projectedEnrolled} />
               </div>
             </div>
@@ -1270,7 +1270,7 @@ function ROICalculatorSection({ defaultEligible }: { defaultEligible: number }) 
               <div className="text-[12px] text-dim uppercase tracking-wider mb-1">
                 Gross Revenue
               </div>
-              <div className="text-xl font-bold text-emerald-400">
+              <div className="text-xl font-bold tabular-nums text-emerald-400">
                 <AnimatedDollar value={roi.grossRevenue} />
               </div>
             </div>
@@ -1278,7 +1278,7 @@ function ROICalculatorSection({ defaultEligible }: { defaultEligible: number }) 
               <div className="text-[12px] text-dim uppercase tracking-wider mb-1">
                 Total Costs
               </div>
-              <div className="text-xl font-bold text-body">
+              <div className="text-xl font-bold tabular-nums text-body">
                 <AnimatedDollar value={roi.totalCosts} />
               </div>
             </div>
@@ -1287,7 +1287,7 @@ function ROICalculatorSection({ defaultEligible }: { defaultEligible: number }) 
                 Net Revenue
               </div>
               <div
-                className={`text-xl font-bold ${roi.netRevenue >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                className={`text-xl font-bold tabular-nums ${roi.netRevenue >= 0 ? "text-emerald-400" : "text-red-400"}`}
               >
                 <AnimatedDollar value={roi.netRevenue} />
               </div>
@@ -1521,6 +1521,7 @@ export function IntelligencePage() {
                 });
                 toast.success("Report saved", fileName ? `Saved to ~/Downloads/${fileName}` : "Saved to Downloads");
               }}
+              title="Saves HTML report to ~/Downloads"
               className="ml-auto flex items-center gap-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors px-3 py-1.5 rounded-md bg-indigo-500/10 hover:bg-indigo-500/15"
             >
               <Download className="h-3.5 w-3.5" />

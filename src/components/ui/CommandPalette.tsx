@@ -28,6 +28,7 @@ interface CommandItem {
   section: string;
   action: () => void;
   keywords?: string[];
+  shortcutKey?: string;
 }
 
 export function CommandPalette() {
@@ -48,20 +49,20 @@ export function CommandPalette() {
 
   const commands: CommandItem[] = useMemo(
     () => [
-      // Navigation
-      { id: "nav-dashboard", label: "Dashboard", hint: "Site overview & status", icon: <Search className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("dashboard"), keywords: ["home", "overview", "dashboard", "status"] },
-      { id: "nav-screening", label: "Subject Screening", hint: "Review eligibility", icon: <Search className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("screening"), keywords: ["subjects", "screen", "eligibility", "criteria"] },
-      { id: "nav-import", label: "Import Data", hint: "CSV, FHIR, HL7", icon: <FileUp className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("import"), keywords: ["upload", "csv", "fhir", "hl7", "file"] },
-      { id: "nav-trials", label: "Trial Discovery", hint: "Browse & match trials", icon: <FlaskConical className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("trials"), keywords: ["study", "clinical", "nct", "sponsor"] },
-      { id: "nav-review", label: "Review Queue", hint: "Decisions & export", icon: <ClipboardCheck className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("review"), keywords: ["accept", "reject", "defer", "decision"] },
-      { id: "nav-pipeline", label: "Enrollment Pipeline", hint: "Track outreach", icon: <GitBranch className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("pipeline"), keywords: ["enrollment", "kanban", "outreach", "status"] },
-      { id: "nav-analytics", label: "Population Intel", hint: "Feasibility & diversity", icon: <BarChart3 className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("analytics"), keywords: ["chart", "diversity", "feasibility", "demographics"] },
-      { id: "nav-cohort", label: "Cohort Builder", hint: "Explore populations", icon: <Users className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("cohort"), keywords: ["cohort", "population", "explorer", "query", "filter", "subjects"] },
-      { id: "nav-intelligence", label: "Research Intelligence", hint: "Readiness & ROI", icon: <Lightbulb className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("intelligence"), keywords: ["readiness", "roi", "opportunity", "funnel", "intelligence", "score"] },
-      { id: "nav-performance", label: "Site Performance", hint: "Metrics & revenue", icon: <TrendingUp className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("performance"), keywords: ["revenue", "metrics", "kpi", "financial"] },
-      { id: "nav-settings", label: "Settings", hint: "LLM, database, export", icon: <Settings className="h-4 w-4" />, section: "Navigate", action: () => navigateTo("settings"), keywords: ["configure", "llm", "database", "preferences", "audit"] },
+      // Pages
+      { id: "nav-dashboard", label: "Dashboard", hint: "Site overview & status", icon: <Search className="h-4 w-4" />, section: "Pages", shortcutKey: "`", action: () => navigateTo("dashboard"), keywords: ["home", "overview", "dashboard", "status"] },
+      { id: "nav-screening", label: "Subject Screening", hint: "Review eligibility", icon: <Search className="h-4 w-4" />, section: "Pages", shortcutKey: "1", action: () => navigateTo("screening"), keywords: ["subjects", "screen", "eligibility", "criteria"] },
+      { id: "nav-import", label: "Import Data", hint: "CSV, FHIR, HL7", icon: <FileUp className="h-4 w-4" />, section: "Pages", shortcutKey: "2", action: () => navigateTo("import"), keywords: ["upload", "csv", "fhir", "hl7", "file"] },
+      { id: "nav-trials", label: "Trial Discovery", hint: "Browse & match trials", icon: <FlaskConical className="h-4 w-4" />, section: "Pages", shortcutKey: "3", action: () => navigateTo("trials"), keywords: ["study", "clinical", "nct", "sponsor"] },
+      { id: "nav-review", label: "Review Queue", hint: "Decisions & export", icon: <ClipboardCheck className="h-4 w-4" />, section: "Pages", shortcutKey: "4", action: () => navigateTo("review"), keywords: ["accept", "reject", "defer", "decision"] },
+      { id: "nav-pipeline", label: "Enrollment Pipeline", hint: "Track outreach", icon: <GitBranch className="h-4 w-4" />, section: "Pages", shortcutKey: "5", action: () => navigateTo("pipeline"), keywords: ["enrollment", "kanban", "outreach", "status"] },
+      { id: "nav-analytics", label: "Population Intel", hint: "Feasibility & diversity", icon: <BarChart3 className="h-4 w-4" />, section: "Pages", shortcutKey: "6", action: () => navigateTo("analytics"), keywords: ["chart", "diversity", "feasibility", "demographics"] },
+      { id: "nav-cohort", label: "Cohort Builder", hint: "Explore populations", icon: <Users className="h-4 w-4" />, section: "Pages", shortcutKey: "7", action: () => navigateTo("cohort"), keywords: ["cohort", "population", "explorer", "query", "filter", "subjects"] },
+      { id: "nav-intelligence", label: "Research Intelligence", hint: "Readiness & ROI", icon: <Lightbulb className="h-4 w-4" />, section: "Pages", shortcutKey: "8", action: () => navigateTo("intelligence"), keywords: ["readiness", "roi", "opportunity", "funnel", "intelligence", "score"] },
+      { id: "nav-performance", label: "Site Performance", hint: "Metrics & revenue", icon: <TrendingUp className="h-4 w-4" />, section: "Pages", shortcutKey: "9", action: () => navigateTo("performance"), keywords: ["revenue", "metrics", "kpi", "financial"] },
+      { id: "nav-settings", label: "Settings", hint: "LLM, database, export", icon: <Settings className="h-4 w-4" />, section: "Pages", shortcutKey: "0", action: () => navigateTo("settings"), keywords: ["configure", "llm", "database", "preferences", "audit"] },
       // Actions
-      { id: "act-shortcuts", label: "Keyboard Shortcuts", hint: "View all shortcuts", icon: <Keyboard className="h-4 w-4" />, section: "Actions", action: () => { setOpen(false); window.dispatchEvent(new CustomEvent("toggle-shortcuts")); }, keywords: ["keys", "hotkey", "shortcut"] },
+      { id: "act-shortcuts", label: "Keyboard Shortcuts", hint: "View all shortcuts", icon: <Keyboard className="h-4 w-4" />, section: "Actions", shortcutKey: "?", action: () => { setOpen(false); window.dispatchEvent(new CustomEvent("toggle-shortcuts")); }, keywords: ["keys", "hotkey", "shortcut"] },
       { id: "act-help", label: "Help & Guide", hint: "Page-specific help and tips", icon: <HelpCircle className="h-4 w-4" />, section: "Actions", action: () => { setOpen(false); window.dispatchEvent(new CustomEvent("toggle-help")); }, keywords: ["help", "guide", "documentation", "how", "faq"] },
     ],
     [navigateTo]
@@ -158,46 +159,48 @@ export function CommandPalette() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-[9990] bg-black/60 backdrop-blur-sm"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[9990] bg-black/70 backdrop-blur-md"
             onClick={() => setOpen(false)}
           />
 
           {/* Palette */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: -10 }}
+            initial={{ opacity: 0, scale: 0.92, y: -20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: -10 }}
-            transition={{ type: "spring", damping: 30, stiffness: 400 }}
-            className="fixed left-1/2 top-[18%] z-[9991] w-[560px] -translate-x-1/2 overflow-hidden rounded-2xl bg-card/98 ring-1 ring-white/10 shadow-2xl shadow-black/40 backdrop-blur-2xl"
+            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+            transition={{ type: "spring", damping: 28, stiffness: 380, mass: 0.8 }}
+            className="glass fixed left-1/2 top-[16%] z-[9991] w-[580px] -translate-x-1/2 overflow-hidden rounded-2xl bg-card/95 ring-1 ring-white/[0.12] shadow-[0_25px_60px_-12px_rgba(0,0,0,0.5),0_0_0_1px_rgba(99,102,241,0.05)]"
           >
             {/* Search input */}
-            <div className="flex items-center gap-3 border-b border-edge-2 px-4 py-3">
-              <Search className="h-4.5 w-4.5 shrink-0 text-dim" />
+            <div className="flex items-center gap-3 border-b border-edge-2 px-5 py-4">
+              <Search className="h-5 w-5 shrink-0 text-indigo-400/70" />
               <input
                 ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search commands, pages, actions..."
-                className="flex-1 bg-transparent text-[14px] text-body placeholder-dim outline-none"
+                placeholder="Where do you want to go?"
+                className="flex-1 bg-transparent text-[16px] font-medium text-body placeholder-dim/60 outline-none"
               />
-              <kbd className="hidden sm:flex items-center gap-0.5 rounded-md bg-surface-3 px-1.5 py-0.5 text-[12px] font-medium text-dim ring-1 ring-edge-3">
+              <kbd className="hidden sm:flex items-center gap-0.5 rounded-md bg-surface-3 px-2 py-1 text-[11px] font-medium text-dim ring-1 ring-edge-3">
                 ESC
               </kbd>
             </div>
 
             {/* Results */}
-            <div ref={listRef} className="max-h-[360px] overflow-y-auto p-2">
+            <div ref={listRef} className="max-h-[380px] overflow-y-auto p-2">
               {flatItems.length === 0 && (
-                <div className="flex flex-col items-center gap-2 py-8 text-dim">
-                  <Search className="h-5 w-5" />
+                <div className="flex flex-col items-center gap-3 py-10 text-dim">
+                  <Search className="h-6 w-6 opacity-40" />
                   <p className="text-[13px]">No results for &ldquo;{query}&rdquo;</p>
+                  <p className="text-[12px] text-faint">Try a different search term</p>
                 </div>
               )}
 
-              {Array.from(sections.entries()).map(([section, items]) => (
+              {Array.from(sections.entries()).map(([section, items], sectionIdx) => (
                 <div key={section}>
-                  <p className="px-3 pt-2 pb-1 text-[12px] font-semibold uppercase tracking-widest text-dim">
+                  {sectionIdx > 0 && <div className="mx-3 my-1.5 border-t border-edge-1" />}
+                  <p className="px-3 pt-2.5 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-faint">
                     {section}
                   </p>
                   {items.map((item) => {
@@ -215,15 +218,24 @@ export function CommandPalette() {
                             : "text-dim hover:bg-surface-2"
                         }`}
                       >
-                        <span className={`shrink-0 ${isSelected ? "text-indigo-400" : "text-dim"}`}>
+                        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${isSelected ? "bg-indigo-500/15 text-indigo-400" : "bg-surface-2 text-dim"}`}>
                           {item.icon}
                         </span>
                         <div className="flex-1 min-w-0">
-                          <span className="block text-[13px] font-medium">{item.label}</span>
+                          <span className={`block text-[13px] font-medium ${isSelected ? "text-indigo-200" : "text-body"}`}>{item.label}</span>
                           <span className={`block text-[12px] ${isSelected ? "text-indigo-400/50" : "text-dim"}`}>
                             {item.hint}
                           </span>
                         </div>
+                        {item.shortcutKey && (
+                          <kbd className={`hidden sm:flex shrink-0 h-5 min-w-[20px] items-center justify-center rounded-md px-1.5 text-[11px] font-mono font-medium transition-colors ${
+                            isSelected
+                              ? "bg-indigo-500/20 text-indigo-300 ring-1 ring-indigo-500/30"
+                              : "bg-surface-3 text-faint ring-1 ring-edge-2"
+                          }`}>
+                            {item.shortcutKey}
+                          </kbd>
+                        )}
                         {isSelected && (
                           <ArrowRight className="h-3.5 w-3.5 shrink-0 text-indigo-500/50" />
                         )}
@@ -235,20 +247,34 @@ export function CommandPalette() {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between border-t border-edge-2 px-4 py-2">
-              <div className="flex items-center gap-3 text-[12px] text-dim">
-                <span className="flex items-center gap-1">
-                  <CornerDownLeft className="h-3 w-3" /> Select
+            <div className="flex items-center justify-between border-t border-edge-2 bg-surface-1 px-5 py-2.5">
+              <div className="flex items-center gap-4 text-[11px] text-faint">
+                <span className="flex items-center gap-1.5">
+                  <kbd className="flex h-4 items-center rounded bg-surface-3 px-1 text-[10px] ring-1 ring-edge-2">
+                    <CornerDownLeft className="h-2.5 w-2.5" />
+                  </kbd>
+                  Select
                 </span>
-                <span className="flex items-center gap-1">
-                  <span className="text-[9px]">↑↓</span> Navigate
+                <span className="flex items-center gap-1.5">
+                  <kbd className="flex h-4 items-center rounded bg-surface-3 px-1 text-[10px] ring-1 ring-edge-2">
+                    ↑↓
+                  </kbd>
+                  Navigate
                 </span>
               </div>
-              <div className="flex items-center gap-1 text-[12px] text-dim">
+              <div className="flex items-center gap-1.5 text-[11px] text-faint">
                 {/Mac|iPod|iPhone|iPad/.test(navigator.userAgent) ? (
-                  <><Command className="h-3 w-3" /><span>K to toggle</span></>
+                  <>
+                    <kbd className="flex h-4 items-center gap-0.5 rounded bg-surface-3 px-1 text-[10px] ring-1 ring-edge-2">
+                      <Command className="h-2.5 w-2.5" />K
+                    </kbd>
+                    <span>to toggle</span>
+                  </>
                 ) : (
-                  <span>Ctrl+K to toggle</span>
+                  <>
+                    <kbd className="flex h-4 items-center rounded bg-surface-3 px-1 text-[10px] ring-1 ring-edge-2">Ctrl+K</kbd>
+                    <span>to toggle</span>
+                  </>
                 )}
               </div>
             </div>

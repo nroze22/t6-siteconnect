@@ -130,7 +130,7 @@ export function PipelinePage() {
                 { step: "3", label: "Track", desc: "Pipeline tracks enrollment" },
               ].map((item) => (
                 <div key={item.step} className="rounded-lg bg-surface-1 p-3 ring-1 ring-edge-2">
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500/15 text-[10px] font-bold text-indigo-400">
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500/15 text-[10px] font-bold text-indigo-300">
                     {item.step}
                   </span>
                   <p className="mt-1.5 text-[12px] font-semibold text-body">{item.label}</p>
@@ -199,12 +199,12 @@ export function PipelinePage() {
               {i > 0 && <ArrowRight className="mx-1 h-3 w-3 text-faint" />}
               <div className="rounded-md bg-surface-2 px-2.5 py-1 ring-1 ring-edge-2">
                 <span className="text-[9px] text-dim">{metric.label}</span>
-                <span className={`ml-1.5 text-[13px] font-bold ${metric.color}`}>{metric.value}%</span>
+                <span className={`ml-1.5 text-[13px] font-bold tabular-nums ${metric.color}`}>{metric.value}%</span>
               </div>
             </div>
           ))}
           <div className="ml-auto flex items-center gap-2 text-[12px] text-dim">
-            <span>{filteredData.length} subjects in pipeline</span>
+            <span className="tabular-nums">{filteredData.length} subjects in pipeline</span>
           </div>
         </div>
       </div>
@@ -223,7 +223,7 @@ export function PipelinePage() {
                     <span className={config.color}>{config.icon}</span>
                     <span className={`text-[12px] font-semibold ${config.color}`}>{config.label}</span>
                   </div>
-                  <span className={`rounded-full ${config.bgColor} px-2 py-0.5 text-[12px] font-bold ${config.color} ring-1 ${config.borderColor}`}>
+                  <span className={`rounded-full ${config.bgColor} px-2 py-0.5 text-[12px] font-bold tabular-nums ${config.color} ring-1 ${config.borderColor}`}>
                     {stageCounts[stage]}
                   </span>
                 </div>
@@ -318,7 +318,7 @@ function PipelineCard({ patient, expanded, onToggle, onAdvance, onLogCall, onAdd
 
   return (
     <div
-      className={`rounded-lg border border-edge-2 bg-surface-1 transition-all duration-200 hover:border-edge-4 hover:shadow-lg hover:shadow-black/10 hover:-translate-y-0.5 ${expanded ? "ring-1 ring-indigo-500/20" : ""}`}
+      className={`card-lift rounded-lg border border-edge-2 bg-surface-1 transition-all duration-200 hover:border-edge-4 ${expanded ? "ring-1 ring-indigo-500/20" : ""}`}
     >
       <button onClick={onToggle} className="w-full px-3 py-2.5 text-left">
         <div className="flex items-center justify-between">
@@ -326,19 +326,19 @@ function PipelineCard({ patient, expanded, onToggle, onAdvance, onLogCall, onAdd
           <span className="text-[12px] font-mono text-dim">{patient.mrn}</span>
         </div>
         <div className="mt-1 flex items-center gap-2">
-          <span className="rounded bg-indigo-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-indigo-400 ring-1 ring-indigo-500/20">{patient.studyName}</span>
+          <span className="rounded bg-indigo-500/15 px-1.5 py-0.5 text-[9px] font-semibold text-indigo-300 ring-1 ring-indigo-500/25">{patient.studyName}</span>
           <span className="text-[12px] text-dim">{patient.age}y {patient.gender[0]}</span>
         </div>
         <div className="mt-1.5 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <Clock className="h-3 w-3 text-dim" />
-            <span className={`text-[12px] ${patient.daysInStage > 5 ? "text-amber-400" : "text-dim"}`}>
+            <span className={`text-[12px] tabular-nums ${patient.daysInStage > 5 ? "text-amber-400" : "text-dim"}`}>
               {patient.daysInStage}d in stage
             </span>
           </div>
           <div className="flex items-center gap-1">
             {patient.contactAttempts > 0 && (
-              <span className="text-[12px] text-dim">{patient.contactAttempts} calls</span>
+              <span className="text-[12px] tabular-nums text-dim">{patient.contactAttempts} calls</span>
             )}
             <ChevronDown className={`h-3 w-3 text-dim transition-transform ${expanded ? "rotate-180" : ""}`} />
           </div>
@@ -357,7 +357,7 @@ function PipelineCard({ patient, expanded, onToggle, onAdvance, onLogCall, onAdd
               <div className="h-1.5 flex-1 rounded-full bg-surface-3">
                 <div className="h-full rounded-full bg-indigo-500 animate-bar-fill" style={{ width: `${patient.score}%` }} />
               </div>
-              <span className="text-[12px] font-bold text-indigo-400">{patient.score}</span>
+              <span className="text-[12px] font-bold tabular-nums text-indigo-400">{patient.score}</span>
             </div>
           </div>
           {patient.notes && (
