@@ -139,13 +139,13 @@ export function UnlockScreen({ onUnlock }: UnlockScreenProps) {
             </div>
           </div>
 
-          {/* Error */}
-          {error && (
-            <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2.5">
+          {/* Error — fixed height slot to prevent layout shift */}
+          <div className={`mb-4 overflow-hidden transition-all duration-200 ease-out ${error ? "max-h-20 opacity-100" : "max-h-0 opacity-0"}`}>
+            <div className="flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2.5">
               <AlertTriangle className="h-4 w-4 shrink-0 text-red-400" />
               <p className="text-sm text-red-300">{error}</p>
             </div>
-          )}
+          </div>
 
           {/* Unlock Button */}
           <button
@@ -173,8 +173,8 @@ export function UnlockScreen({ onUnlock }: UnlockScreenProps) {
             </button>
           </div>
 
-          {showForgotInfo && (
-            <div className="mt-3 space-y-3">
+          <div className={`overflow-hidden transition-all duration-300 ease-out ${showForgotInfo ? "mt-3 max-h-[400px] opacity-100" : "max-h-0 opacity-0"}`}>
+            <div className="space-y-3">
               <div className="rounded-lg border border-amber-500/10 bg-amber-500/5 px-4 py-3">
                 <div className="flex items-start gap-2">
                   <Shield className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500/70" />
@@ -224,14 +224,14 @@ export function UnlockScreen({ onUnlock }: UnlockScreenProps) {
                         : "Delete & Reset"}
                   </button>
                 </div>
-                {confirmDelete && (
-                  <p className="mt-2 text-[12px] text-red-400/80">
+                <div className={`overflow-hidden transition-all duration-200 ease-out ${confirmDelete ? "mt-2 max-h-8 opacity-100" : "max-h-0 opacity-0"}`}>
+                  <p className="text-[12px] text-red-400/80">
                     This will permanently delete all patient data. Click again to confirm.
                   </p>
-                )}
+                </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Footer */}

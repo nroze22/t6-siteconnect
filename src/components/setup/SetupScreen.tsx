@@ -337,33 +337,35 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
               </button>
             </div>
 
-            {/* Strength Indicator */}
-            {passphrase.length > 0 && (
-              <div className="mt-2">
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ease-out ${strength.color} ${strength.width}`}
-                  />
-                </div>
-                <p
-                  className={`mt-1 text-xs ${
-                    strength.score <= 2
-                      ? "text-red-400"
-                      : strength.score <= 4
-                        ? "text-amber-400"
-                        : "text-emerald-400"
-                  }`}
-                >
-                  {strength.label}
-                  {passphrase.length < 12 && (
-                    <span className="text-dim">
-                      {" "}
-                      &mdash; {12 - passphrase.length} more characters needed
-                    </span>
-                  )}
-                </p>
+            {/* Strength Indicator — always rendered to prevent shift */}
+            <div className={`mt-2 transition-opacity duration-200 ${passphrase.length > 0 ? "opacity-100" : "opacity-0"}`}>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ease-out ${strength.color} ${strength.width}`}
+                />
               </div>
-            )}
+              <p
+                className={`mt-1 h-4 text-xs ${
+                  strength.score <= 2
+                    ? "text-red-400"
+                    : strength.score <= 4
+                      ? "text-amber-400"
+                      : "text-emerald-400"
+                }`}
+              >
+                {passphrase.length > 0 && (
+                  <>
+                    {strength.label}
+                    {passphrase.length < 12 && (
+                      <span className="text-dim">
+                        {" "}
+                        &mdash; {12 - passphrase.length} more characters needed
+                      </span>
+                    )}
+                  </>
+                )}
+              </p>
+            </div>
           </div>
 
           {/* Confirm Passphrase */}
@@ -403,27 +405,30 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                 )}
               </button>
             </div>
-            {mismatch && (
-              <p className="mt-1 flex items-center gap-1 text-xs text-red-400">
-                <AlertTriangle className="h-3 w-3" />
-                Passphrases do not match
-              </p>
-            )}
-            {confirmPassphrase && passphrase === confirmPassphrase && (
-              <p className="mt-1 flex items-center gap-1 text-xs text-emerald-400">
-                <CheckCircle2 className="h-3 w-3" />
-                Passphrases match
-              </p>
-            )}
+            {/* Fixed-height slot for match/mismatch to prevent layout shift */}
+            <div className="mt-1 h-5">
+              {mismatch && (
+                <p className="flex items-center gap-1 text-xs text-red-400">
+                  <AlertTriangle className="h-3 w-3" />
+                  Passphrases do not match
+                </p>
+              )}
+              {confirmPassphrase && passphrase === confirmPassphrase && (
+                <p className="flex items-center gap-1 text-xs text-emerald-400">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Passphrases match
+                </p>
+              )}
+            </div>
           </div>
 
-          {/* Error */}
-          {error && (
-            <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3">
+          {/* Error — animated to prevent layout shift */}
+          <div className={`overflow-hidden transition-all duration-200 ease-out ${error ? "mb-4 max-h-20 opacity-100" : "max-h-0 opacity-0"}`}>
+            <div className="flex items-start gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
               <p className="text-sm text-red-300">{error}</p>
             </div>
-          )}
+          </div>
 
           {/* Initialize Button */}
           <button
@@ -626,13 +631,16 @@ export function SetupScreen({ onComplete }: SetupScreenProps) {
                       autoComplete="off"
                       spellCheck={false}
                     />
-                    {confirmText.length > 0 &&
-                      confirmText !== "I SAVED MY KEY" && (
-                        <p className="mt-1.5 text-xs text-red-400">
-                          Text does not match. Please type exactly: I SAVED MY
-                          KEY
-                        </p>
-                      )}
+                    {/* Fixed-height slot for validation message */}
+                    <div className="mt-1.5 h-4">
+                      {confirmText.length > 0 &&
+                        confirmText !== "I SAVED MY KEY" && (
+                          <p className="text-xs text-red-400">
+                            Text does not match. Please type exactly: I SAVED MY
+                            KEY
+                          </p>
+                        )}
+                    </div>
                   </div>
 
                   <button
