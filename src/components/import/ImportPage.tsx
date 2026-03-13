@@ -412,7 +412,9 @@ export function ImportPage() {
           setProgressStage(parseLabel);
           setProgress(20);
 
+          console.log("[import] executing real import with mapping:", realMapping.field_mappings.map(m => `${m.source_column} → ${m.target_field}`));
           const result = await executeRealImport(selectedFile.path, realMapping);
+          console.log("[import] result:", result.records_imported, "imported,", result.records_updated, "updated,", result.records_skipped, "skipped, errors:", result.errors.length);
 
           setProgress(60);
           setProgressStage("Screening subjects against active studies...");
@@ -448,7 +450,7 @@ export function ImportPage() {
 
           setAppStatus({
             databaseReady: true,
-            patientCount: result.records_imported,
+            patientCount: result.records_imported + result.records_updated,
             studyCount: studies.length || 1,
             lastImport: new Date().toISOString(),
           });
@@ -468,7 +470,12 @@ export function ImportPage() {
             errors: result.errors.map((e) => `Row ${e.row}: ${e.message}`),
           });
           setStep("complete");
-          toast.success(`Imported ${result.records_imported} subjects`, result.records_updated > 0 ? `${result.records_updated} records updated` : undefined);
+          const totalProcessed = result.records_imported + result.records_updated;
+          const details = [
+            result.records_imported > 0 ? `${result.records_imported} new` : null,
+            result.records_updated > 0 ? `${result.records_updated} updated` : null,
+          ].filter(Boolean).join(", ");
+          toast.success(`Processed ${totalProcessed} subjects`, details || undefined);
           return;
         } catch (err) {
           setImportError(err instanceof Error ? err.message : String(err));

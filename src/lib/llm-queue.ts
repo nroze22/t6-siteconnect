@@ -154,21 +154,25 @@ async function processQueue(cancelledRef: { current: boolean }) {
 
   // Only process if LLM is running
   if (useAppStore.getState().status.llmStatus !== "running") {
+    console.log("[llm-queue] LLM not running, waiting...");
     store.setQueueStatus("paused");
     try {
       await waitForLlmRunning(cancelledRef);
     } catch {
+      console.log("[llm-queue] Wait cancelled");
       return; // cancelled
     }
   }
 
   store.setQueueStatus("processing");
   let totalCompleted = 0;
+  let consecutiveErrors = 0;
 
   // Outer loop: rebuild job list each pass to pick up new patients/criteria
   // and respect priority changes
   while (!cancelledRef.current) {
     const jobs = buildJobList();
+    console.log("[llm-queue] Job list rebuilt:", jobs.length, "jobs remaining (summaries:", jobs.filter(j => j.type === "summary").length, ", rationales:", jobs.filter(j => j.type === "rationale").length, ")");
     if (jobs.length === 0) break;
 
     store.setProgress(totalCompleted, totalCompleted + jobs.length);
@@ -178,11 +182,11 @@ async function processQueue(cancelledRef: { current: boolean }) {
 
       // Re-check LLM status before each job
       if (useAppStore.getState().status.llmStatus !== "running") {
+        console.log("[llm-queue] LLM went offline mid-queue, pausing...");
         store.setQueueStatus("paused");
         try {
           await waitForLlmRunning(cancelledRef);
         } catch {
-          // cancelled — exit both loops
           store.setCurrentJob(null);
           return;
         }
@@ -202,12 +206,19 @@ async function processQueue(cancelledRef: { current: boolean }) {
       store.setCurrentJob(job.patientId);
       try {
         if (job.type === "summary") {
+          console.log("[llm-queue] Generating summary for patient", job.patientId);
           const ctx = buildPatientContext(job.patientId);
           if (ctx) {
             const result = await generatePatientSummary(ctx);
             if (!cancelledRef.current && result && result.length > 20) {
               useLlmQueueStore.getState().setSummary(job.patientId, { text: result, isAi: true });
+              console.log("[llm-queue] Summary saved for", job.patientId, `(${result.length} chars)`);
+              consecutiveErrors = 0;
+            } else {
+              console.warn("[llm-queue] Summary too short or empty for", job.patientId, "result:", result?.slice(0, 50));
             }
+          } else {
+            console.warn("[llm-queue] No patient context for", job.patientId);
           }
         } else {
           const ctx = buildPatientContext(job.patientId);
@@ -221,11 +232,23 @@ async function processQueue(cancelledRef: { current: boolean }) {
             );
             if (!cancelledRef.current && result) {
               useLlmQueueStore.getState().setRationale(job.criterionId, result);
+              consecutiveErrors = 0;
             }
           }
         }
-      } catch {
-        // Skip failed jobs — user can still click "Explain" manually
+      } catch (err) {
+        consecutiveErrors++;
+        console.error(`[llm-queue] Job failed (${consecutiveErrors} consecutive):`, job.type, job.patientId, err);
+        // If LLM is consistently failing, back off to avoid hammering it
+        if (consecutiveErrors >= 3) {
+          console.warn("[llm-queue] Too many consecutive errors, pausing 5s...");
+          await new Promise((r) => setTimeout(r, 5000));
+          // Re-check if LLM is still running
+          if (useAppStore.getState().status.llmStatus !== "running") {
+            console.log("[llm-queue] LLM went offline after errors, breaking");
+            break;
+          }
+        }
       }
 
       totalCompleted++;
@@ -237,6 +260,7 @@ async function processQueue(cancelledRef: { current: boolean }) {
   }
 
   if (!cancelledRef.current) {
+    console.log("[llm-queue] Queue complete. Total processed:", totalCompleted);
     store.setQueueStatus("done");
     store.setCurrentJob(null);
   }
@@ -247,24 +271,37 @@ async function processQueue(cancelledRef: { current: boolean }) {
 // ---------------------------------------------------------------------------
 
 let activeCancel: { current: boolean } | null = null;
+let queueInitialized = false;
 
 function startProcessing() {
   // Cancel any existing run
   if (activeCancel) activeCancel.current = true;
   const cancelledRef = { current: false };
   activeCancel = cancelledRef;
-  processQueue(cancelledRef);
+  console.log("[llm-queue] Starting queue processing...");
+  processQueue(cancelledRef).catch((err) => {
+    console.error("[llm-queue] processQueue error:", err);
+  });
 }
 
 /**
  * Initialize the background LLM queue.
  * Call once at app startup. Returns a cleanup function.
+ * Guards against React.StrictMode double-mount.
  */
 export function initLlmQueue(): () => void {
+  // Guard against double-initialization (React.StrictMode remounts)
+  if (queueInitialized) {
+    console.log("[llm-queue] Already initialized, skipping duplicate init");
+    return () => {}; // No-op cleanup for the duplicate
+  }
+  queueInitialized = true;
+  console.log("[llm-queue] Initializing LLM queue");
+
   // Start processing when LLM comes online
   const unsubLlm = useAppStore.subscribe((state, prevState) => {
     if (state.status.llmStatus === "running" && prevState.status.llmStatus !== "running") {
-      // LLM just came online — start queue
+      console.log("[llm-queue] LLM came online — starting queue");
       startProcessing();
     }
   });
@@ -276,6 +313,7 @@ export function initLlmQueue(): () => void {
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         if (useAppStore.getState().status.llmStatus === "running") {
+          console.log("[llm-queue] Screening data changed — restarting queue");
           startProcessing();
         }
       }, 1000);
@@ -289,9 +327,11 @@ export function initLlmQueue(): () => void {
   }
 
   return () => {
+    console.log("[llm-queue] Cleanup called");
     if (activeCancel) activeCancel.current = true;
     unsubLlm();
     unsubScreening();
     if (debounceTimer) clearTimeout(debounceTimer);
+    queueInitialized = false;
   };
 }

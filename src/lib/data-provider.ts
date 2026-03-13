@@ -221,11 +221,10 @@ export async function screenPatientsViaRust(studyId: string): Promise<ScreeningR
   if (isTauri) {
     try {
       const results = await tauriInvoke<ScreeningResult[]>("screen_patients_for_study", { studyId });
-      // In Tauri mode, always return Rust results (even if empty — means no patients imported yet).
-      // Only fall through to JS demo if the Rust call itself throws (DB not initialized).
+      console.log("[screening] Rust returned", results.length, "patients for study", studyId);
       return results;
-    } catch {
-      // DB not initialized or no patients — fall through to JS demo
+    } catch (err) {
+      console.error("[screening] Rust screening failed, falling back to JS demo:", err);
     }
   }
 
