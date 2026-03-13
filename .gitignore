@@ -36,6 +36,7 @@ Thumbs.db
 
 # Test
 coverage/
+test-results/
 
 # Logs
 *.log
@@ -44,6 +45,9 @@ logs/
 # Model files (too large for git)
 *.gguf
 *.bin
+
+# Build artifacts
+*.dmg
 
 # SQLite databases
 *.db
