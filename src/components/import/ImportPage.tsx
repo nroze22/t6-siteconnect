@@ -941,7 +941,7 @@ export function ImportPage() {
                       onClick={async () => {
                         const path = await pickImportFile();
                         if (path) {
-                          const name = path.split("/").pop() ?? path;
+                          const name = path.split(/[\\/]/).pop() ?? path;
                           const lower = name.toLowerCase();
                           const format: SelectedFile["format"] = (lower.endsWith(".xlsx") || lower.endsWith(".xls")) ? "excel"
                             : (lower.endsWith(".json") || lower.endsWith(".ndjson")) ? "fhir_json"

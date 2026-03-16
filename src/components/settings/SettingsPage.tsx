@@ -262,7 +262,7 @@ function WatcherPanel() {
               type="text"
               value={watchPath}
               onChange={(e) => setWatchPath(e.target.value)}
-              placeholder="/path/to/emr/exports"
+              placeholder="Path to EMR export folder"
               className="flex-1 rounded-lg border border-edge-2 bg-surface-2 px-3 py-2 font-mono text-[12px] text-body placeholder-dim focus:border-indigo-500/40 focus:outline-none focus:ring-1 focus:ring-indigo-500/20"
             />
             <button onClick={handlePickFolder} className="flex items-center gap-1.5 rounded-lg border border-edge-3 bg-surface-2 px-3 py-2 text-[12px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body">

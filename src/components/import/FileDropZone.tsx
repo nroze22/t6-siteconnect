@@ -149,7 +149,7 @@ export function FileDropZone({ onFileSelected, selectedFile, onClear }: FileDrop
             const paths: string[] = event.payload.paths;
             const firstPath = paths[0];
             if (firstPath) {
-              const name = firstPath.split("/").pop() ?? firstPath;
+              const name = firstPath.split(/[\\/]/).pop() ?? firstPath;
               const format = detectFormat(name);
               onFileSelected({ name, size: 0, format, path: firstPath });
             }
@@ -373,7 +373,7 @@ export function FileDropZone({ onFileSelected, selectedFile, onClear }: FileDrop
                   ],
                 });
                 if (typeof result === "string") {
-                  const name = result.split("/").pop() ?? result;
+                  const name = result.split(/[\\/]/).pop() ?? result;
                   const format = detectFormat(name);
                   onFileSelected({ name, size: 0, format, path: result });
                 }
@@ -488,7 +488,7 @@ export function FileDropZone({ onFileSelected, selectedFile, onClear }: FileDrop
                     ],
                   });
                   if (typeof result === "string") {
-                    const name = result.split("/").pop() ?? result;
+                    const name = result.split(/[\\/]/).pop() ?? result;
                     const format = detectFormat(name);
                     onFileSelected({ name, size: 0, format, path: result });
                   }
