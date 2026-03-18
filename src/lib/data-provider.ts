@@ -123,6 +123,40 @@ async function tauriInvoke<T>(cmd: string, args?: Record<string, unknown>): Prom
   return invoke<T>(cmd, args);
 }
 
+// --- Study-to-demo mapping for fallback screening ---
+// When DB has no patients, map any study ID to the best-fit JS demo study
+
+const NCT_TO_DEMO: Record<string, string> = {
+  "NCT05502237": "study-1", // KEYNOTE-789 (NSCLC)
+  "NCT04564897": "study-2", // DELIVER (HFpEF)
+  "NCT05252390": "study-3", // STEP-5 (Obesity)
+  "NCT04381936": "study-4", // Lecanemab (Alzheimer's)
+  "NCT05090566": "study-5", // Risankizumab (Crohn's)
+  "NCT04516746": "study-6", // Dupilumab (AD)
+};
+
+const TA_TO_DEMO: Record<string, string> = {
+  "Oncology": "study-1",
+  "Cardiovascular": "study-2",
+  "Cardiology": "study-2",
+  "Endocrinology": "study-3",
+  "Metabolic": "study-3",
+  "Neurology": "study-4",
+  "CNS/Neurology": "study-4",
+  "Gastroenterology": "study-5",
+  "Immunology": "study-5",
+  "Immunology/Rheumatology": "study-5",
+  "Dermatology": "study-6",
+  "Rare Disease": "study-1",
+};
+
+function findDemoStudyId(studyId: string, therapeuticArea?: string): string {
+  if (studyId.startsWith("study-")) return studyId;
+  if (NCT_TO_DEMO[studyId]) return NCT_TO_DEMO[studyId]!;
+  if (therapeuticArea && TA_TO_DEMO[therapeuticArea]) return TA_TO_DEMO[therapeuticArea]!;
+  return "study-1";
+}
+
 // --- Patient data ---
 
 /**
@@ -215,23 +249,28 @@ export async function getStudies(): Promise<AnalyticsStudy[]> {
 
 /**
  * Screen patients against a study using the Rust engine.
- * Falls back to the JS screening engine in web mode.
+ * Falls back to the JS demo screening engine when DB has no patients.
+ * @param therapeuticArea - optional hint for mapping to best-fit demo study
  */
-export async function screenPatientsViaRust(studyId: string): Promise<ScreeningResult[]> {
+export async function screenPatientsViaRust(studyId: string, therapeuticArea?: string): Promise<ScreeningResult[]> {
   if (isTauri) {
     try {
       const results = await tauriInvoke<ScreeningResult[]>("screen_patients_for_study", { studyId });
-      console.log("[screening] Rust returned", results.length, "patients for study", studyId);
-      return results;
+      if (results.length > 0) {
+        console.log("[screening] Rust returned", results.length, "patients for study", studyId);
+        return results;
+      }
+      console.log("[screening] Rust returned 0 patients, falling back to JS demo");
     } catch (err) {
       console.error("[screening] Rust screening failed, falling back to JS demo:", err);
     }
   }
 
-  // Fallback: use JS screening (web/demo mode only)
+  // Fallback: use JS demo screening — map to best-fit demo study criteria
+  const demoStudyId = findDemoStudyId(studyId, therapeuticArea);
   const { parseEpicRows, screenPatientsForStudy: jsScreen } = await import("./epic-demo-data");
   const patients = parseEpicRows();
-  const results = jsScreen(patients, studyId);
+  const results = jsScreen(patients, demoStudyId);
 
   return results.map((r) => ({
     screening_id: r.summary.id,

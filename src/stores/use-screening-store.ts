@@ -28,11 +28,19 @@ const STAFF = ["Sarah Chen, CRC", "James Wright, CRC", "Maria Lopez, CRC", "Kevi
 // Serialization helpers for Map<string, T>
 // ============================================================
 
+export interface StudyMeta {
+  short: string;
+  sponsor: string;
+  phase: string;
+  nct: string;
+}
+
 interface PersistedScreeningData {
   patients: PatientSummary[];
   screeningResults: [string, ScreeningResult][];
   criteriaResults: [string, CriterionResult[]][];
   selectedStudyId: string | null;
+  selectedStudyMeta?: StudyMeta | null;
 }
 
 function persistToStorage(state: {
@@ -40,6 +48,7 @@ function persistToStorage(state: {
   screeningResults: Map<string, ScreeningResult>;
   criteriaResults: Map<string, CriterionResult[]>;
   selectedStudyId: string | null;
+  selectedStudyMeta?: StudyMeta | null;
 }) {
   try {
     const data: PersistedScreeningData = {
@@ -47,6 +56,7 @@ function persistToStorage(state: {
       screeningResults: Array.from(state.screeningResults.entries()),
       criteriaResults: Array.from(state.criteriaResults.entries()),
       selectedStudyId: state.selectedStudyId,
+      selectedStudyMeta: state.selectedStudyMeta ?? null,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch {
@@ -59,6 +69,7 @@ function loadFromStorage(): Partial<{
   screeningResults: Map<string, ScreeningResult>;
   criteriaResults: Map<string, CriterionResult[]>;
   selectedStudyId: string | null;
+  selectedStudyMeta: StudyMeta | null;
 }> | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -69,6 +80,7 @@ function loadFromStorage(): Partial<{
       screeningResults: new Map(data.screeningResults),
       criteriaResults: new Map(data.criteriaResults),
       selectedStudyId: data.selectedStudyId,
+      selectedStudyMeta: data.selectedStudyMeta ?? null,
     };
   } catch {
     return null;
@@ -99,6 +111,9 @@ interface ScreeningStore {
   highlightedTab: string | null;
   highlightedRecordIds: string[];
 
+  // Study metadata (for display — supports research pack, DB, and demo studies)
+  selectedStudyMeta: StudyMeta | null;
+
   // UI state
   isStudyDetailOpen: boolean;
   isOverrideModalOpen: boolean;
@@ -106,7 +121,7 @@ interface ScreeningStore {
 
   // Actions
   selectPatient: (id: string | null) => void;
-  selectStudy: (id: string) => void;
+  selectStudy: (id: string, meta?: StudyMeta) => void;
   selectCriterion: (id: string | null) => void;
 
   setPatients: (patients: PatientSummary[]) => void;
@@ -139,6 +154,7 @@ const _hydrated = loadFromStorage();
 export const useScreeningStore = create<ScreeningStore>((set, get) => ({
   selectedPatientId: null,
   selectedStudyId: _hydrated?.selectedStudyId ?? null,
+  selectedStudyMeta: _hydrated?.selectedStudyMeta ?? null,
   selectedCriterionId: null,
 
   patients: _hydrated?.patients ?? [],
@@ -164,8 +180,8 @@ export const useScreeningStore = create<ScreeningStore>((set, get) => ({
       highlightedRecordIds: [],
     }),
 
-  selectStudy: (id) => {
-    set({ selectedStudyId: id });
+  selectStudy: (id, meta) => {
+    set({ selectedStudyId: id, selectedStudyMeta: meta ?? get().selectedStudyMeta });
     // Persist study selection
     const state = get();
     persistToStorage(state);

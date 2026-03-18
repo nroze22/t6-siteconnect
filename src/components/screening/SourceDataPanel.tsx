@@ -179,9 +179,11 @@ export function SourceDataPanel() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Load actual patient data (from DB or demo) for clinical data display
+  // Reload when the patients list changes (after screening or import)
+  const patientCount = patients.length;
   useEffect(() => {
     getPatients().then(setAllParsedPatients);
-  }, []);
+  }, [patientCount]);
 
   // Look up clinical data by matching the patient's sitePatientId (MRN) against ParsedPatient.mrn
   const selectedPatient = selectedPatientId ? patients.find((p) => p.id === selectedPatientId) : null;

@@ -643,7 +643,9 @@ export function TrialsPage() {
 
   const handleScreenPatients = useCallback(
     async (studyId: string) => {
-      const rustResults = await screenPatientsViaRust(studyId);
+      // Find the study for TA hint and metadata
+      const matchedStudy = studies.find((s) => s.id === studyId);
+      const rustResults = await screenPatientsViaRust(studyId, matchedStudy?.therapeuticArea);
       const screening = rustResults.map(screeningResultToOutput);
       if (screening.length === 0) {
         toast.warning("No subjects to screen", "Import subject data first");
@@ -654,12 +656,18 @@ export function TrialsPage() {
         setScreeningResult(s.summary.id, s.result);
         setCriteriaResults(s.result.id, s.criteria);
       }
-      selectStudy(studyId);
+      // Pass study metadata so screening page can display it
+      selectStudy(studyId, matchedStudy ? {
+        short: matchedStudy.shortTitle ?? matchedStudy.title,
+        sponsor: matchedStudy.sponsor,
+        phase: matchedStudy.phase,
+        nct: matchedStudy.nctNumber ?? "",
+      } : undefined);
       setCurrentPage("screening");
       const eligible = screening.filter((s) => s.summary.overallStatus === "eligible").length;
       toast.success(`Screened ${screening.length} subjects`, `${eligible} eligible for enrollment`);
     },
-    [setPatients, setScreeningResult, setCriteriaResults, selectStudy, setCurrentPage, toast]
+    [setPatients, setScreeningResult, setCriteriaResults, selectStudy, setCurrentPage, toast, studies]
   );
 
   const handleOpenWizard = useCallback(

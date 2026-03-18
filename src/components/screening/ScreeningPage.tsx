@@ -108,6 +108,7 @@ function ScreeningProgressOverlay() {
 
 export function ScreeningPage() {
   const selectedStudyId = useScreeningStore((s) => s.selectedStudyId);
+  const selectedStudyMeta = useScreeningStore((s) => s.selectedStudyMeta);
   const setStudyDetailOpen = useScreeningStore((s) => s.setStudyDetailOpen);
   const setPatients = useScreeningStore((s) => s.setPatients);
   const setScreeningResult = useScreeningStore((s) => s.setScreeningResult);
@@ -115,10 +116,12 @@ export function ScreeningPage() {
   const selectStudy = useScreeningStore((s) => s.selectStudy);
   const selectPatient = useScreeningStore((s) => s.selectPatient);
   const selectedPatientId = useScreeningStore((s) => s.selectedPatientId);
+  const patients = useScreeningStore((s) => s.patients);
 
   const [showStudyPicker, setShowStudyPicker] = useState(false);
   const [screening, setScreening] = useState(false);
   const [studyList, setStudyList] = useState(DEMO_STUDY_LIST);
+  const [studiesLoaded, setStudiesLoaded] = useState(false);
   const toast = useToast();
 
   // Load real studies from DB on mount
@@ -127,22 +130,23 @@ export function ScreeningPage() {
       if (studies.length > 0) {
         setStudyList(studies.map(analyticsStudyToDisplay));
       }
+      setStudiesLoaded(true);
     });
   }, []);
 
   const studyMap = Object.fromEntries(studyList.map((s) => [s.id, s]));
-  const study = selectedStudyId ? studyMap[selectedStudyId] : null;
+  // Use study metadata from store (covers research pack studies) or from study list
+  const study = selectedStudyId
+    ? studyMap[selectedStudyId] ?? (selectedStudyMeta ? { id: selectedStudyId, ...selectedStudyMeta } : null)
+    : null;
 
   const switchStudy = useCallback(async (studyId: string) => {
-    if (studyId === selectedStudyId) {
-      setShowStudyPicker(false);
-      return;
-    }
     setShowStudyPicker(false);
     setScreening(true);
     selectPatient(null);
 
     try {
+      const studyInfo = studyMap[studyId];
       const rustResults = await screenPatientsViaRust(studyId);
       const results = rustResults.map(screeningResultToOutput);
       if (results.length === 0) {
@@ -155,9 +159,13 @@ export function ScreeningPage() {
         setScreeningResult(s.summary.id, s.result);
         setCriteriaResults(s.result.id, s.criteria);
       }
-      selectStudy(studyId);
+      selectStudy(studyId, studyInfo ? {
+        short: studyInfo.short,
+        sponsor: studyInfo.sponsor,
+        phase: studyInfo.phase,
+        nct: studyInfo.nct,
+      } : undefined);
       const eligible = results.filter((s) => s.summary.overallStatus === "eligible").length;
-      const studyInfo = studyMap[studyId];
       toast.success(
         `Screened ${results.length} subjects`,
         `${eligible} eligible for ${studyInfo?.short.split(":")[0] ?? studyId}`
@@ -167,7 +175,15 @@ export function ScreeningPage() {
     } finally {
       setScreening(false);
     }
-  }, [selectedStudyId, setPatients, setScreeningResult, setCriteriaResults, selectStudy, selectPatient, toast]);
+  }, [setPatients, setScreeningResult, setCriteriaResults, selectStudy, selectPatient, toast, studyMap]);
+
+  // Auto-screen first study on mount when no patients are loaded yet
+  useEffect(() => {
+    if (studiesLoaded && patients.length === 0 && studyList.length > 0 && !screening) {
+      switchStudy(studyList[0]!.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studiesLoaded]);
 
   return (
     <>
