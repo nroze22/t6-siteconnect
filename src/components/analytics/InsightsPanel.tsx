@@ -32,14 +32,14 @@ import { useAppStore } from "@/stores/use-app-store";
 const TYPE_COLORS: Record<NarrativeInsight["type"], string> = {
   positive: "border-emerald-500 bg-emerald-500/10",
   warning: "border-amber-500 bg-amber-500/10",
-  opportunity: "border-blue-500 bg-blue-500/10",
+  opportunity: "border-cyan-500 bg-cyan-500/10",
   neutral: "border-slate-500 bg-slate-500/10",
 };
 
 const TYPE_ICON_COLORS: Record<NarrativeInsight["type"], string> = {
   positive: "text-emerald-400",
   warning: "text-amber-400",
-  opportunity: "text-blue-400",
+  opportunity: "text-cyan-400",
   neutral: "text-dim",
 };
 

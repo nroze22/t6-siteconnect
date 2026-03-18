@@ -385,14 +385,14 @@ function StudyCard({
                         key={key}
                         className={`rounded-lg p-3 ring-1 ${
                           isBase
-                            ? "bg-indigo-500/8 ring-indigo-500/20"
+                            ? "bg-surface-2 ring-indigo-500/25"
                             : "bg-surface-1 ring-edge-2"
                         }`}
                       >
-                        <p className={`text-[12px] font-bold uppercase tracking-wider ${isBase ? "text-indigo-400" : "text-dim"}`}>
+                        <p className={`text-[12px] font-bold uppercase tracking-wider ${isBase ? "text-indigo-300" : "text-dim"}`}>
                           {s.label}
                         </p>
-                        <p className={`mt-1 text-[16px] font-black tabular-nums ${isBase ? "text-indigo-300" : "text-body"}`}>
+                        <p className={`mt-1 text-[16px] font-black tabular-nums ${isBase ? "text-heading" : "text-body"}`}>
                           {formatCurrency(s.perPatientGrossCents)}
                         </p>
                         <p className="text-[12px] text-dim">gross / patient</p>

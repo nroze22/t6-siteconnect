@@ -563,24 +563,24 @@ function StepAssumptions({
       </div>
 
       {/* Live recalculated summary */}
-      <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4">
-        <h3 className="text-[12px] font-bold text-indigo-700 dark:text-indigo-400">Live Recalculated Estimate</h3>
+      <div className="rounded-xl border border-indigo-500/20 bg-surface-1 p-4">
+        <h3 className="text-[12px] font-bold text-indigo-700 dark:text-indigo-200">Live Recalculated Estimate</h3>
         <div className="mt-3 grid grid-cols-3 gap-4">
           <div>
-            <p className="text-[12px] text-indigo-700/80 dark:text-indigo-300/80">Per Patient (Net)</p>
-            <p className="text-[18px] font-black text-indigo-700 dark:text-indigo-300">
+            <p className="text-[12px] text-indigo-700/80 dark:text-dim">Per Patient (Net)</p>
+            <p className="text-[18px] font-black text-indigo-700 dark:text-heading">
               {formatCurrency(model.scenarioOutputs.base.perPatientNetCents)}
             </p>
           </div>
           <div>
-            <p className="text-[12px] text-indigo-700/80 dark:text-indigo-300/80">Total Net Contribution</p>
-            <p className="text-[18px] font-black text-indigo-700 dark:text-indigo-300">
+            <p className="text-[12px] text-indigo-700/80 dark:text-dim">Total Net Contribution</p>
+            <p className="text-[18px] font-black text-indigo-700 dark:text-heading">
               {formatCurrency(model.scenarioOutputs.base.totalNetContributionCents)}
             </p>
           </div>
           <div>
-            <p className="text-[12px] text-indigo-700/80 dark:text-indigo-300/80">Break-Even at</p>
-            <p className="text-[18px] font-black text-indigo-700 dark:text-indigo-300">
+            <p className="text-[12px] text-indigo-700/80 dark:text-dim">Break-Even at</p>
+            <p className="text-[18px] font-black text-indigo-700 dark:text-heading">
               {model.scenarioOutputs.base.breakEvenEnrollment} patients
             </p>
           </div>
@@ -706,13 +706,13 @@ function StepTuning({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-blue-400/30 bg-blue-400/10 p-4">
+      <div className="rounded-xl border border-edge-3 bg-surface-1 p-4">
         <div className="flex items-start gap-2">
-          <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-400" />
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
           <div>
             <p className="text-[13px] font-semibold text-heading">Override individual line items</p>
             <p className="mt-1 text-[12px] leading-relaxed text-body">
-              Click any unit value to enter your negotiated rate. Overrides are highlighted in blue
+              Click any unit value to enter your negotiated rate. Overrides are highlighted
               and recalculate all outputs in real-time.
             </p>
           </div>
@@ -731,13 +731,13 @@ function StepTuning({
                 <div
                   key={i}
                   className={`flex items-center justify-between rounded-lg px-3 py-2 transition-colors ${
-                    isOverridden ? "bg-blue-500/8 ring-1 ring-blue-500/15" : "hover:bg-surface-2"
+                    isOverridden ? "bg-emerald-500/8 ring-1 ring-emerald-500/15" : "hover:bg-surface-2"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-[12px] text-body">{d.label}</span>
                     {isOverridden && (
-                      <span className="rounded bg-blue-500/20 px-1.5 py-0.5 text-[9px] font-bold text-blue-400 ring-1 ring-blue-500/30">
+                      <span className="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-bold text-emerald-400 ring-1 ring-emerald-500/30">
                         OVERRIDE
                       </span>
                     )}
@@ -772,7 +772,7 @@ function StepTuning({
 function SummaryCard({ label, value, sub, color }: { label: string; value: string; sub: string; color: string }) {
   const colors: Record<string, string> = {
     emerald: "bg-emerald-500/8 dark:bg-emerald-500/10 ring-emerald-500/15 dark:ring-emerald-400/20 text-emerald-600 dark:text-emerald-300",
-    blue: "bg-blue-500/8 dark:bg-blue-500/10 ring-blue-500/15 dark:ring-blue-400/20 text-blue-600 dark:text-blue-300",
+    blue: "bg-blue-500/8 dark:bg-surface-2 ring-blue-500/15 dark:ring-blue-400/20 text-blue-600 dark:text-blue-200",
     amber: "bg-amber-500/8 dark:bg-amber-500/10 ring-amber-500/15 dark:ring-amber-400/20 text-amber-600 dark:text-amber-300",
     red: "bg-red-500/8 dark:bg-red-500/10 ring-red-500/15 dark:ring-red-400/20 text-red-600 dark:text-red-300",
     purple: "bg-purple-500/8 dark:bg-purple-500/10 ring-purple-500/15 dark:ring-purple-400/20 text-purple-600 dark:text-purple-300",
@@ -800,17 +800,17 @@ function BurdenBar({ label, value }: { label: string; value: number }) {
 }
 
 function ScenarioCard({ scenario, color, highlight }: { scenario: ScenarioCase; color: string; highlight?: boolean }) {
-  const ringColor = highlight ? "ring-indigo-500/30 border-indigo-500/20" : "ring-edge-2 border-edge-2";
-  const colors: Record<string, string> = { amber: "text-amber-400", indigo: "text-indigo-300", emerald: "text-emerald-400" };
+  const ringColor = highlight ? "ring-indigo-500/25 border-indigo-500/20" : "ring-edge-2 border-edge-2";
+  const colors: Record<string, string> = { amber: "text-amber-400", indigo: "text-indigo-200", emerald: "text-emerald-400" };
   const textColor = colors[color] ?? "text-body";
 
   return (
-    <div className={`rounded-xl border p-4 ${ringColor} ring-1 ${highlight ? "bg-indigo-500/5" : "bg-surface-1"}`}>
+    <div className={`rounded-xl border p-4 ${ringColor} ring-1 ${highlight ? "bg-surface-2" : "bg-surface-1"}`}>
       <h4 className={`text-[12px] font-bold ${textColor}`}>{scenario.label}</h4>
       <div className="mt-3 space-y-2.5">
         <div>
           <p className="text-[12px] text-dim">Gross / Patient</p>
-          <p className={`text-[16px] font-black ${textColor}`}>{formatCurrency(scenario.perPatientGrossCents)}</p>
+          <p className={`text-[16px] font-black ${highlight ? "text-heading" : textColor}`}>{formatCurrency(scenario.perPatientGrossCents)}</p>
         </div>
         <div>
           <p className="text-[12px] text-dim">Net / Patient</p>
@@ -947,7 +947,7 @@ function EditableValue({ valueCents, onChange }: { valueCents: number; onChange:
           }
           if (e.key === "Escape") setEditing(false);
         }}
-        className="w-20 rounded border border-indigo-500/40 bg-indigo-500/10 px-2 py-0.5 text-right text-[12px] text-indigo-300 outline-none"
+        className="w-20 rounded border border-edge-3 bg-surface-2 px-2 py-0.5 text-right text-[12px] text-heading outline-none focus:border-indigo-500/40 focus:ring-1 focus:ring-indigo-500/20"
       />
     );
   }
