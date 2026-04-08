@@ -16,6 +16,7 @@ import {
   ArrowUpDown,
   Filter,
   Search,
+  UserCheck,
 } from "lucide-react";
 import { useScreeningStore } from "@/stores/use-screening-store";
 import { useAppStore } from "@/stores/use-app-store";
@@ -42,14 +43,15 @@ type SortDir = "asc" | "desc";
 
 const filterConfig: { value: ReviewFilter; label: string; icon: React.ReactNode; color: string }[] = [
   { value: "all", label: "All Subjects", icon: <Users className="h-3.5 w-3.5" />, color: "text-dim" },
+  { value: "needs_pi_review", label: "Needs PI Review", icon: <UserCheck className="h-3.5 w-3.5" />, color: "text-purple-400" },
   { value: "accepted", label: "Accepted", icon: <CheckCircle2 className="h-3.5 w-3.5" />, color: "text-emerald-400" },
   { value: "rejected", label: "Rejected", icon: <XCircle className="h-3.5 w-3.5" />, color: "text-red-400" },
   { value: "deferred", label: "Deferred", icon: <Clock className="h-3.5 w-3.5" />, color: "text-amber-400" },
-  { value: "pending", label: "Pending Review", icon: <AlertCircle className="h-3.5 w-3.5" />, color: "text-blue-400" },
+  { value: "pending", label: "Pending", icon: <AlertCircle className="h-3.5 w-3.5" />, color: "text-blue-400" },
 ];
 
 const statusOrder: Record<string, number> = { eligible: 0, potentially_eligible: 1, needs_review: 2, ineligible: 3 };
-const decisionOrder: Record<string, number> = { accepted: 0, rejected: 1, deferred: 2, pending: 3 };
+const decisionOrder: Record<string, number> = { needs_pi_review: 0, accepted: 1, rejected: 2, deferred: 3, pending: 4 };
 
 function sortPatients(patients: PatientSummary[], field: SortField, dir: SortDir): PatientSummary[] {
   return [...patients].sort((a, b) => {
@@ -94,18 +96,19 @@ export function ReviewQueuePage() {
   }, [patients, filter, searchQuery, sortField, sortDir]);
 
   const counts = useMemo(() => {
-    const c = { accepted: 0, rejected: 0, deferred: 0, pending: 0, total: patients.length };
+    const c = { accepted: 0, rejected: 0, deferred: 0, pending: 0, needs_pi_review: 0, total: patients.length };
     for (const p of patients) {
       if (p.reviewStatus === "accepted") c.accepted++;
       else if (p.reviewStatus === "rejected") c.rejected++;
       else if (p.reviewStatus === "deferred") c.deferred++;
+      else if (p.reviewStatus === "needs_pi_review") c.needs_pi_review++;
       else c.pending++;
     }
     return c;
   }, [patients]);
 
   const progressPercent = patients.length > 0
-    ? Math.round(((counts.accepted + counts.rejected + counts.deferred) / patients.length) * 100)
+    ? Math.round(((counts.accepted + counts.rejected + counts.deferred + counts.needs_pi_review) / patients.length) * 100)
     : 0;
 
   const handleExportSummary = async () => {
@@ -300,6 +303,7 @@ export function ReviewQueuePage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <StatPill icon={<UserCheck className="h-3 w-3" />} count={counts.needs_pi_review} label="PI Review" color="purple" />
             <StatPill icon={<CheckCircle2 className="h-3 w-3" />} count={counts.accepted} label="Accepted" color="emerald" />
             <StatPill icon={<XCircle className="h-3 w-3" />} count={counts.rejected} label="Rejected" color="red" />
             <StatPill icon={<Clock className="h-3 w-3" />} count={counts.deferred} label="Deferred" color="amber" />
@@ -443,6 +447,14 @@ export function ReviewQueuePage() {
                               className="rounded-md bg-amber-600/80 p-1.5 text-white transition-colors hover:bg-amber-500"
                             >
                               <Clock className="h-3 w-3" />
+                            </button>
+                          </Tooltip>
+                          <Tooltip content="Flag for PI review" side="top">
+                            <button
+                              onClick={() => { reviewPatient(p.id, "needs_pi_review"); toast.info(`${p.sitePatientId} flagged for PI`); }}
+                              className="rounded-md bg-purple-600/80 p-1.5 text-white transition-colors hover:bg-purple-500"
+                            >
+                              <UserCheck className="h-3 w-3" />
                             </button>
                           </Tooltip>
                         </>

@@ -1,7 +1,8 @@
-# BioMistral Clinical Prompt Templates
+# Clinical LLM Prompt Templates
 
 > Prompt engineering reference for all LLM-powered features in TalOS SiteConnect.
-> These templates target BioMistral-7B (primary) and Gemma-1B (fallback), running locally via llama.cpp sidecar.
+> These templates target the Gemma 4 model family (E2B, E4B, 26B-A4B), running locally via llama.cpp sidecar.
+> Previously targeted BioMistral-7B and Gemma-3-1B; updated April 2026 for Gemma 4 with native JSON output and function calling.
 
 ---
 
@@ -1185,43 +1186,52 @@ RESPONSE:
 
 ### Prompt Construction Best Practices
 
-1. **Always include the JSON-only instruction**: End every user prompt with "Respond with JSON only, no additional text." This dramatically reduces preamble and explanation text from the model.
+1. **Use native JSON mode**: Gemma 4 supports `response_format: { "type": "json_object" }` natively. This is more reliable than instruction-based JSON forcing. Always enable it for structured output tasks.
 
-2. **System prompt length**: Keep system prompts under 500 tokens. BioMistral-7B has a 4096 token context window (expandable to 8192 with RoPE scaling, but quality degrades). Reserve context for patient data.
+2. **System prompt length**: Gemma 4 has 128K-256K context windows, so system prompts are no longer a bottleneck. However, keep system prompts focused for best results — under 1000 tokens is ideal.
 
-3. **Context window budget** (4096 tokens):
-   - System prompt: ~300-400 tokens
-   - User prompt + data: ~2500-3000 tokens
-   - Reserved for output: ~800-1200 tokens
+3. **Context window budget** (Gemma 4 E4B, 128K tokens):
+   - System prompt: ~500-1000 tokens
+   - Full patient record (demographics, diagnoses, meds, labs, notes): ~5000-50000 tokens
+   - Criterion context + few-shot examples: ~500-2000 tokens
+   - Reserved for output: ~1000-2000 tokens
+   - **Key advantage:** Can fit entire patient records in a single prompt, eliminating chunking/truncation
 
-4. **Truncation strategy**: When patient data exceeds context budget, prioritize in this order:
-   1. Data directly relevant to the criterion being evaluated
-   2. Diagnoses and medications (highest signal)
-   3. Lab results (with dates, most recent first)
-   4. Clinical notes (truncate to most recent, most relevant excerpts)
-   5. Demographics (compact, always include)
+4. **For E2B on constrained RAM** (32K effective context):
+   - Prioritize data directly relevant to the criterion being evaluated
+   - Diagnoses and medications (highest signal)
+   - Lab results (with dates, most recent first)
+   - Clinical notes (truncate to most recent, most relevant excerpts)
+   - Demographics (compact, always include)
 
-5. **JSON repair**: Model output occasionally has minor JSON issues. Always run output through a lenient JSON parser that handles:
+5. **JSON repair**: Gemma 4's native JSON mode produces well-formed output, but always validate. Run through a lenient JSON parser that handles edge cases:
    - Trailing commas
-   - Single quotes instead of double quotes
    - Missing closing brackets
    - Unescaped newlines in strings
 
 ### Model-Specific Notes
 
-**BioMistral-7B (Primary)**
-- Strongest at medical entity extraction and criterion evaluation
-- Good at following JSON schemas with few-shot examples
-- Occasionally verbose in reasoning fields — truncate if needed
+**Gemma 4 E4B (Optimal Tier, 16GB+)**
+- Strong clinical reasoning (GPQA Diamond 58.6%)
+- Native JSON schema conformance — no few-shot examples needed for structured output
+- Function calling support (86.4% t2-bench) — can use tool-based evaluation pipelines
+- 128K context — fits full patient records without truncation
 - Best results with temperature 0.05-0.2 for structured tasks
-- Quantization: Q4_K_M recommended for 8GB RAM systems; Q5_K_M for 16GB+
+- Quantization: Q4_K_M (~5.0 GB) recommended; Q5_K_M (~5.5 GB) for higher quality
 
-**Gemma-1B (Fallback)**
-- Suitable for column mapping and simple criterion evaluation
-- Struggles with complex compound criteria — fall back to rule-based for these
-- Shorter outputs; reduce max_tokens to 256 for most tasks
-- Faster inference (~3x vs BioMistral-7B) — useful for batch operations
-- Quantization: Q8_0 fits easily in 4GB RAM
+**Gemma 4 E2B (Recommended Tier, 4-8GB)**
+- Edge-optimized: only 2.3B active parameters for fast CPU inference
+- Native structured JSON output still works well
+- Good for criterion evaluation and entity extraction
+- 128K context native, but limit to 32K on 8GB systems for RAM headroom
+- Quantization: Q4_K_M (~3.1 GB) for 8GB; IQ2_M (~2.3 GB) for 4GB systems
+
+**Gemma 4 26B-A4B (Premium Tier, 24GB+)**
+- Near-frontier reasoning (GPQA 82.3%, AIME 88.3%)
+- MoE architecture: 26B total params but only 3.8B active per token — fast inference
+- 256K context — can process multiple patients or entire study protocols at once
+- Best for complex compound criteria, multi-factor clinical reasoning
+- Quantization: Q4_K_M (~16.9 GB)
 
 ### Error Handling
 
@@ -1238,7 +1248,7 @@ For screening operations that evaluate many patients against many criteria:
 
 - Process one criterion at a time across all patients (not all criteria for one patient)
 - This allows caching the system prompt + criterion context
-- Use Gemma-1B for initial pass on simple criteria, BioMistral-7B for complex ones
+- Use Gemma 4 E2B for initial pass on simple criteria, E4B/26B-A4B for complex ones
 - Parallelize across CPU cores if hardware allows (llama.cpp supports this)
 - Report progress via Tauri channel events for UI updates
 

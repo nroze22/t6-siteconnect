@@ -3,12 +3,17 @@ import { useAppStore } from "@/stores/use-app-store";
 import { useScreeningStore } from "@/stores/use-screening-store";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { useHelpDrawer } from "@/components/ui/HelpDrawer";
+import { ModeSwitcher } from "@/components/layout/ModeSwitcher";
 
 const isMac = typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
 
 const pageConfig: Record<string, { title: string; subtitle: string }> = {
+  dashboard: {
+    title: "Dashboard",
+    subtitle: "Site overview and quick actions",
+  },
   screening: {
-    title: "Subject Screening",
+    title: "Screening",
     subtitle: "Review eligibility against active study criteria",
   },
   import: {
@@ -24,28 +29,32 @@ const pageConfig: Record<string, { title: string; subtitle: string }> = {
     subtitle: "Review screening decisions and export results",
   },
   analytics: {
-    title: "Population Intelligence",
-    subtitle: "Feasibility, lab trajectories, and diversity analytics",
+    title: "Analytics",
+    subtitle: "Feasibility, cohort queries, and diversity profiling",
   },
   pipeline: {
-    title: "Enrollment Pipeline",
+    title: "Enrollment",
     subtitle: "Track subjects from screening through enrollment",
   },
-  cohort: {
-    title: "Cohort Builder",
-    subtitle: "Define and explore subject populations with natural language queries",
-  },
   intelligence: {
-    title: "Research Intelligence",
-    subtitle: "Readiness scoring, missed opportunities, enrollment funnels, and ROI analysis",
+    title: "Site Intelligence",
+    subtitle: "Readiness scoring, missed opportunities, and ROI analysis",
   },
   performance: {
-    title: "Site Performance",
-    subtitle: "Screen failure intelligence, multi-study matching, and revenue",
+    title: "Performance",
+    subtitle: "Screen failure rates, multi-study matching, and revenue",
+  },
+  registry: {
+    title: "Patient Registry",
+    subtitle: "Consent management and volunteer matching",
+  },
+  naaccr: {
+    title: "Tumor Registry",
+    subtitle: "NAACCR case abstraction and state submission",
   },
   settings: {
     title: "Settings",
-    subtitle: "Configure LLM, database, and export options",
+    subtitle: "Configure AI model, database, and export options",
   },
 };
 
@@ -64,25 +73,25 @@ export function Header() {
   };
 
   return (
-    <header className="no-select flex h-12 items-center justify-between border-b border-border bg-card/30 glass px-5">
-      <div>
-        <h2 className="text-[15px] font-semibold text-foreground leading-tight">
+    <header className="no-select flex h-12 items-center justify-between border-b border-border bg-card/50 glass-subtle px-5">
+      <div className="min-w-0">
+        <h2 className="text-[15px] font-semibold text-heading leading-tight truncate">
           {config.title}
         </h2>
-        <p className="text-[12px] text-dim leading-tight">
+        <p className="text-[11px] text-dim leading-tight truncate">
           {screeningSub}
         </p>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         {/* Command palette trigger */}
         <button
           onClick={openCommandPalette}
           className="flex items-center gap-2 rounded-lg bg-surface-2 px-3 py-1.5 text-dim ring-1 ring-edge-2 transition-all hover:bg-surface-3 hover:text-body hover:ring-edge-4"
         >
           <Search className="h-3 w-3" />
-          <span className="text-[12px]">Search...</span>
-          <div className="flex items-center gap-0.5 ml-2">
+          <span className="text-[11px]">Search...</span>
+          <div className="flex items-center gap-0.5 ml-1">
             <kbd className="flex h-[18px] items-center rounded bg-surface-3 px-1 text-[9px] font-medium text-dim ring-1 ring-edge-3">
               {isMac ? <Command className="h-2.5 w-2.5" /> : <span className="text-[9px]">Ctrl</span>}
             </kbd>
@@ -92,11 +101,20 @@ export function Header() {
           </div>
         </button>
 
+        {/* Divider */}
+        <div className="h-4 w-px bg-border mx-1" aria-hidden="true" />
+
+        {/* Workspace mode switcher */}
+        <ModeSwitcher />
+
+        {/* Divider */}
+        <div className="h-4 w-px bg-border mx-1" aria-hidden="true" />
+
         {/* Offline indicator */}
         <Tooltip content="All data stays on this device" side="bottom">
-          <div className="flex items-center gap-1.5 rounded-md bg-surface-2 px-2.5 py-1 ring-1 ring-edge-2">
+          <div className="flex items-center gap-1.5 rounded-md bg-surface-2 px-2 py-1 ring-1 ring-edge-2">
             <WifiOff className="h-3 w-3 text-dim" />
-            <span className="text-[12px] font-medium text-dim">Offline</span>
+            <span className="text-[11px] font-medium text-dim">Offline</span>
           </div>
         </Tooltip>
 
@@ -106,7 +124,7 @@ export function Header() {
             onClick={() => window.dispatchEvent(new CustomEvent("toggle-shortcuts"))}
             className="flex items-center justify-center rounded-md px-2 py-1 text-dim transition-colors hover:bg-surface-3 hover:text-body"
           >
-            <kbd className="flex h-[18px] items-center rounded bg-surface-3 px-1.5 text-[12px] font-medium text-dim ring-1 ring-edge-3">
+            <kbd className="flex h-[18px] items-center rounded bg-surface-3 px-1.5 text-[11px] font-medium text-dim ring-1 ring-edge-3">
               ?
             </kbd>
           </button>

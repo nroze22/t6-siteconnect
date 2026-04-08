@@ -23,9 +23,10 @@
 
 | Tier | RAM | CPU | Free Disk | LLM Model | Available Features |
 |------|-----|-----|-----------|-----------|-------------------|
-| **Minimum** | 4 GB | 2 cores (x64) | 2 GB | None | Rule-based screening, data import/export, analytics, sponsor pitches (template-based only) |
-| **Recommended** | 8 GB | 4 cores (x64 or ARM) | 8 GB | Gemma-1B (Q8_0, ~1.2 GB) | All Minimum features + basic AI screening, column auto-mapping, simple entity extraction |
-| **Optimal** | 16 GB+ | 4+ cores (x64 or ARM) | 12 GB | BioMistral-7B (Q4_K_M, ~4.5 GB) | All features: full AI screening, complex criteria parsing, NER from clinical notes, AI-powered pitch content |
+| **Minimum** | 4 GB | 2 cores (x64) | 5 GB | Gemma 4 E2B (IQ2_M, ~2.3 GB) | Basic AI screening, data import/export, analytics, structured JSON output |
+| **Recommended** | 8 GB | 4 cores (x64 or ARM) | 8 GB | Gemma 4 E2B (Q4_K_M, ~3.1 GB) | All Minimum features + full AI screening, column auto-mapping, entity extraction |
+| **Optimal** | 16 GB+ | 4+ cores (x64 or ARM) | 12 GB | Gemma 4 E4B (Q4_K_M, ~5.0 GB) | All features: full AI screening, 128K context, complex criteria parsing, NER, AI pitches |
+| **Premium** | 24 GB+ | 4+ cores (x64 or ARM) | 25 GB | Gemma 4 26B-A4B (Q4_K_M, ~16.9 GB) | All features + near-frontier reasoning, 256K context, MoE efficiency |
 
 ### Detailed Requirements
 
@@ -35,16 +36,18 @@
 - ARM64 Windows is NOT currently supported
 
 **RAM:**
-- Minimum tier: 4 GB total system RAM; SiteConnect uses ~500 MB without LLM
-- Recommended tier: 8 GB total; Gemma-1B requires ~2 GB during inference
-- Optimal tier: 16 GB total; BioMistral-7B requires ~6-8 GB during inference
+- Minimum tier: 4 GB total system RAM; Gemma 4 E2B IQ2_M requires ~2.5 GB during inference
+- Recommended tier: 8 GB total; Gemma 4 E2B Q4_K_M requires ~4 GB during inference
+- Optimal tier: 16 GB total; Gemma 4 E4B Q4_K_M requires ~6-8 GB during inference
+- Premium tier: 24 GB total; Gemma 4 26B-A4B Q4_K_M requires ~18-20 GB during inference
 - Available RAM matters more than total RAM — close other applications during screening if near the threshold
 
 **Disk:**
 - Application binary: ~150 MB (includes WebView2 bootstrapper on Windows)
-- Gemma-1B model (Q8_0): ~1.2 GB
-- BioMistral-7B model (Q4_K_M): ~4.5 GB
-- BioMistral-7B model (Q5_K_M, optimal quality): ~5.3 GB
+- Gemma 4 E2B model (IQ2_M): ~2.3 GB
+- Gemma 4 E2B model (Q4_K_M): ~3.1 GB
+- Gemma 4 E4B model (Q4_K_M): ~5.0 GB
+- Gemma 4 26B-A4B model (Q4_K_M): ~16.9 GB
 - Patient database: ~1 MB per 1,000 patients (with indexes and embeddings)
 - Embedding model (all-MiniLM-L6-v2): ~80 MB
 - Temporary space during import: up to 2x the size of the import file
@@ -60,8 +63,8 @@
 |-----------|-------------|-----------------|--------------|
 | Data import (10,000 patients) | 15-30 sec | 10-20 sec | 8-15 sec |
 | Rule-based screening (1,000 patients, 10 criteria) | 2-5 sec | 1-3 sec | 1-2 sec |
-| AI screening per criterion per patient | N/A | 1-3 sec (Gemma) | 3-8 sec (BioMistral) |
-| Full AI screening (1,000 patients, 10 criteria) | N/A | 3-8 hours | 8-22 hours |
+| AI screening per criterion per patient | 2-5 sec (E2B IQ2) | 1-3 sec (E2B Q4) | 1-3 sec (E4B) |
+| Full AI screening (1,000 patients, 10 criteria) | 6-14 hours | 3-8 hours | 3-8 hours |
 | Vector similarity search (10,000 patients) | 1-2 sec | <1 sec | <1 sec |
 | Report/pitch generation | 1-2 sec (template) | 5-10 sec (AI) | 10-20 sec (AI) |
 
@@ -145,9 +148,9 @@ On first launch, SiteConnect presents a setup wizard:
 3. **Confirm passphrase**: Re-enter the passphrase for verification
 4. **Hardware check**: The application detects available RAM, CPU, and disk space. Displays which tier the system qualifies for and which LLM models can run.
 5. **Model selection** (if hardware permits):
-   - "No AI model" — rule-based screening only
-   - "Gemma-1B (Recommended for 8GB systems)" — downloads ~1.2 GB
-   - "BioMistral-7B (Recommended for 16GB+ systems)" — downloads ~4.5 GB
+   - "Gemma 4 E2B (Recommended for 4-8GB systems)" — downloads ~3.1 GB (or ~2.3 GB IQ2_M for 4GB)
+   - "Gemma 4 E4B (Recommended for 16GB+ systems)" — downloads ~5.0 GB
+   - "Gemma 4 26B-A4B (For 24GB+ systems)" — downloads ~16.9 GB
 6. **Model download** (if selected): Progress bar with estimated time. Download can be paused and resumed. SHA-256 checksum verification runs automatically after download.
 7. **Setup complete**: Application opens to the main dashboard
 
@@ -163,8 +166,8 @@ USB Drive/
 │   ├── TalOS-SiteConnect-1.x.x-x64.dmg
 │   └── TalOS-SiteConnect-1.x.x-aarch64.dmg
 ├── models/
-│   ├── gemma-1b-q8_0.gguf
-│   ├── biomistral-7b-q4_k_m.gguf
+│   ├── gemma-4-e2b.Q4_K_M.gguf
+│   ├── gemma-4-e4b.Q4_K_M.gguf
 │   ├── all-MiniLM-L6-v2.onnx
 │   └── checksums.sha256
 ├── studies/
@@ -317,7 +320,7 @@ A: Updates are delivered as new installer packages (same distribution channel as
 - Cause: Not enough free RAM for the selected model
 - Fix:
   1. Close other applications to free memory
-  2. Switch to a smaller model (Gemma-1B instead of BioMistral-7B)
+  2. Switch to a smaller model (Gemma 4 E2B instead of E4B or 26B-A4B)
   3. Use a more aggressive quantization (Q4_K_S instead of Q4_K_M)
   4. If no model can fit, use rule-based screening only
 
@@ -369,7 +372,7 @@ A: Updates are delivered as new installer packages (same distribution channel as
 
 **"Column mapping failed"**
 - Cause: Column headers could not be automatically mapped to SiteConnect fields
-- Fix: Use the manual column mapping interface. See `biomistral-clinical-prompts.md` Section 5 for the AI-assisted mapping feature (requires LLM).
+- Fix: Use the manual column mapping interface. See `clinical-llm-prompts.md` Section 5 for the AI-assisted mapping feature (requires LLM).
 
 **Import hangs or is extremely slow**
 - Cause: Very large file (100,000+ rows) or complex Excel workbook
@@ -382,11 +385,11 @@ A: Updates are delivered as new installer packages (same distribution channel as
 ### Slow Screening
 
 **Screening takes hours**
-- Cause: AI screening with BioMistral-7B processes each patient-criterion pair through the LLM (3-8 seconds each). For 1,000 patients x 10 criteria = 10,000 evaluations.
+- Cause: AI screening with Gemma 4 processes each patient-criterion pair through the LLM (1-3 seconds each). For 1,000 patients x 10 criteria = 10,000 evaluations.
 - Fix:
   1. Use rule-based screening first (seconds), then AI screening only for criteria that cannot be evaluated by rules
   2. Reduce batch size: screen 100-200 patients at a time
-  3. Use Gemma-1B for initial pass (faster), BioMistral-7B only for complex criteria
+  3. Use Gemma 4 E2B for initial pass (faster), E4B/26B-A4B only for complex criteria
   4. Let screening run overnight as a background process
 
 ### Database Issues

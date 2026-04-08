@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { LlmStatusBanner } from "@/components/ui/LlmStatusBanner";
 import {
   BarChart3,
   TrendingUp,
@@ -63,8 +64,9 @@ import { FeasibilityInsights, DiversityInsights } from "@/components/analytics/I
 import { ActiveFiltersBar } from "@/components/analytics/ActiveFiltersBar";
 import { DrillDownPanel } from "@/components/analytics/DrillDownPanel";
 import { useAppStore } from "@/stores/use-app-store";
+import { CohortBuilderPage } from "@/components/cohort/CohortBuilderPage";
 
-type AnalyticsTab = "feasibility" | "trajectory" | "diversity";
+type AnalyticsTab = "feasibility" | "trajectory" | "diversity" | "cohort";
 
 function getTooltipStyle(isLight: boolean) {
   return {
@@ -102,12 +104,14 @@ export function AnalyticsPage() {
 
   const tabs: { id: AnalyticsTab; label: string; icon: React.ReactNode; desc: string }[] = [
     { id: "feasibility", label: "Protocol Feasibility", icon: <Calculator className="h-4 w-4" />, desc: "Can you run this study?" },
+    { id: "cohort", label: "Cohort Builder", icon: <Target className="h-4 w-4" />, desc: "Build custom queries" },
     { id: "trajectory", label: "Lab Trajectories", icon: <TrendingUp className="h-4 w-4" />, desc: "Subjects becoming eligible" },
     { id: "diversity", label: "Diversity Profile", icon: <Users className="h-4 w-4" />, desc: "FDA diversity compliance" },
   ];
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-background">
+      <LlmStatusBanner />
       <div className="shrink-0 border-b border-border bg-card/50 px-6 py-3">
         <div className="flex items-center justify-between">
           <p className="text-[12px] text-dim">
@@ -135,9 +139,11 @@ export function AnalyticsPage() {
             >
               <span className={activeTab === tab.id ? "text-indigo-400" : ""}>{tab.icon}</span>
               {tab.label}
-              <span className={`text-[12px] ${activeTab === tab.id ? "text-body" : "text-dim"}`}>
-                {tab.desc}
-              </span>
+              {activeTab === tab.id && (
+                <span className="text-[11px] text-body">
+                  — {tab.desc}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -159,6 +165,7 @@ export function AnalyticsPage() {
         ) : (
           <>
             {activeTab === "feasibility" && <FeasibilityTab patients={patients} />}
+            {activeTab === "cohort" && <CohortBuilderPage embedded />}
             {activeTab === "trajectory" && <TrajectoryTab patients={patients} />}
             {activeTab === "diversity" && <DiversityTab patients={patients} />}
           </>

@@ -314,24 +314,34 @@ GGUF (GPT-Generated Unified Format) is the standard model format for llama.cpp. 
 
 ### 3.2 Model Recommendations
 
-#### Primary Model: BioMistral-7B-GGUF
+All models use the **Gemma 4** family (Google DeepMind, April 2026, **Apache 2.0** license).
 
-- **Base:** BioMistral-7B (fine-tuned Mistral-7B on PubMed)
-- **Size at Q4_K_M:** ~4.4 GB
+#### Primary Model: Gemma-4-E4B-GGUF (Optimal Tier)
+
+- **Base:** Gemma 4 E4B (8B total params, 4.5B active — edge-optimized dense)
+- **Size at Q4_K_M:** ~5.0 GB
 - **RAM Required:** ~6-8 GB (model + context)
-- **Strengths:** Medical terminology, clinical reasoning, structured output
-- **Context Window:** 8192 tokens (Mistral native), recommend 4096 for screening
-- **Prompt Template:** Mistral instruct format
+- **Strengths:** Strong reasoning (GPQA 58.6%), native JSON schema output, function calling (86.4% t2-bench)
+- **Context Window:** 128K tokens native
+- **Prompt Template:** Gemma 4 instruct format
 
-#### Fallback Model: Gemma-3-1B-GGUF
+#### Edge Model: Gemma-4-E2B-GGUF (Recommended Tier)
 
-- **Base:** Google Gemma 3 1B
-- **Size at Q4_K_M:** ~0.8 GB
-- **RAM Required:** ~2-3 GB (model + context)
-- **Strengths:** Fast inference, small footprint, reasonable instruction following
-- **Context Window:** 8192 tokens, recommend 2048 for screening
-- **Limitations:** Less medical domain knowledge, shorter reasoning chains
-- **Use Case:** Fallback when insufficient RAM for BioMistral
+- **Base:** Gemma 4 E2B (4.5B total params, 2.3B active — edge-optimized dense)
+- **Size at Q4_K_M:** ~3.1 GB (IQ2_M: ~2.3 GB for minimum tier)
+- **RAM Required:** ~3-5 GB (model + context)
+- **Strengths:** Fast CPU inference, native structured JSON, 128K context
+- **Context Window:** 128K tokens native
+- **Use Case:** Primary model for 4-8 GB RAM systems
+
+#### Premium Model: Gemma-4-26B-A4B-GGUF (Premium Tier)
+
+- **Base:** Gemma 4 26B A4B (26B total params, 3.8B active — Mixture of Experts)
+- **Size at Q4_K_M:** ~16.9 GB
+- **RAM Required:** ~18-20 GB (model + context)
+- **Strengths:** Near-frontier reasoning (GPQA 82.3%, AIME 88.3%), 256K context, MoE efficiency
+- **Context Window:** 256K tokens native
+- **Use Case:** Premium tier for 24GB+ systems (Mac Studio, high-end laptops)
 
 ### 3.3 Model File Storage
 
@@ -712,13 +722,16 @@ async fn llm_request_with_timeout(
 Total RAM needed = model_file_size * 1.2 + context_tokens * 2 MB / 1024
 
 Examples:
-- BioMistral-7B Q4_K_M (4.4 GB) + 4096 ctx:
-  4.4 * 1.2 + 4096 * 0.002 = 5.28 + 8.19 = ~13.5 GB total
-  (but practically ~6-8 GB due to memory mapping)
+- Gemma-4-E2B Q4_K_M (3.1 GB) + 32K ctx:
+  3.1 * 1.2 + 32768 * 0.002 = 3.72 + 65.5 = ~69 GB theoretical
+  (practically ~4-5 GB due to memory mapping and GQA)
 
-- Gemma-3-1B Q4_K_M (0.8 GB) + 2048 ctx:
-  0.8 * 1.2 + 2048 * 0.002 = 0.96 + 4.1 = ~5 GB total
-  (practically ~2-3 GB)
+- Gemma-4-E4B Q4_K_M (5.0 GB) + 128K ctx:
+  5.0 * 1.2 + 131072 * 0.002 = 6.0 + 262 = ~268 GB theoretical
+  (practically ~6-8 GB due to memory mapping, GQA, and KV cache optimization)
+
+- Gemma-4-26B-A4B Q4_K_M (16.9 GB) + 256K ctx:
+  Practically ~18-20 GB (MoE only activates 3.8B params per token)
 ```
 
 **Note:** The 1.2x multiplier accounts for KV cache, computation buffers, and overhead. Context memory scales linearly with context size and model dimensions.
@@ -892,17 +905,20 @@ impl LlmRequestQueue {
 
 ## 7. Prompt Engineering for Medical LLMs
 
-### 7.1 BioMistral Prompt Format (Mistral Instruct Template)
+### 7.1 Gemma 4 Prompt Format
 
-BioMistral uses the Mistral instruct template:
+Gemma 4 uses its native instruct template with optional thinking mode:
 
 ```
-<s>[INST] {system_prompt}
-
-{user_message} [/INST]
+<start_of_turn>user
+{user_message}<end_of_turn>
+<start_of_turn>model
 ```
 
-When using `/v1/chat/completions`, the server applies the template automatically. When using `/v1/completions`, you must format manually.
+When using `/v1/chat/completions`, the server applies the template automatically. Gemma 4 natively supports:
+- **JSON mode:** Set `response_format: { "type": "json_object" }` for guaranteed JSON output
+- **Function calling:** Define tools via JSON schemas in the system prompt
+- **Thinking mode:** Configurable chain-of-thought reasoning before producing the final response
 
 ### 7.2 System Prompts for Clinical Reasoning
 
@@ -1015,58 +1031,66 @@ pub struct LlmCapability {
 
 #[derive(Serialize, Clone)]
 pub enum CapabilityTier {
-    Full,       // BioMistral-7B, all LLM features
-    Limited,    // Gemma-1B, basic LLM features
-    RuleOnly,   // No LLM, rule-based screening only
+    Premium,      // Gemma-4-26B-A4B, near-frontier reasoning, 256K context
+    Optimal,      // Gemma-4-E4B, full AI features, 128K context
+    Recommended,  // Gemma-4-E2B Q4_K_M, AI screening + structured JSON
+    Minimum,      // Gemma-4-E2B IQ2_M, basic AI screening
 }
 
 fn determine_capability(total_ram_gb: f64) -> LlmCapability {
-    if total_ram_gb >= 16.0 {
+    if total_ram_gb >= 24.0 {
         LlmCapability {
-            model: Some("BioMistral-7B-Q4_K_M".into()),
+            model: Some("Gemma-4-26B-A4B-Q4_K_M".into()),
             features: vec![
                 "criterion_evaluation".into(),
                 "free_text_extraction".into(),
                 "clinical_reasoning".into(),
                 "confidence_scoring".into(),
+                "structured_json".into(),
+                "function_calling".into(),
             ],
-            tier: CapabilityTier::Full,
-            reason: format!("{:.0} GB RAM detected. Full LLM capability available.", total_ram_gb),
+            tier: CapabilityTier::Premium,
+            reason: format!("{:.0} GB RAM detected. Premium tier with near-frontier reasoning.", total_ram_gb),
         }
-    } else if total_ram_gb >= 8.0 {
+    } else if total_ram_gb >= 16.0 {
         LlmCapability {
-            model: Some("BioMistral-7B-Q4_K_M".into()),
+            model: Some("Gemma-4-E4B-Q4_K_M".into()),
+            features: vec![
+                "criterion_evaluation".into(),
+                "free_text_extraction".into(),
+                "clinical_reasoning".into(),
+                "confidence_scoring".into(),
+                "structured_json".into(),
+                "function_calling".into(),
+            ],
+            tier: CapabilityTier::Optimal,
+            reason: format!("{:.0} GB RAM detected. Full AI capability with 128K context.", total_ram_gb),
+        }
+    } else if total_ram_gb >= 4.0 {
+        LlmCapability {
+            model: Some("Gemma-4-E2B-Q4_K_M".into()),
             features: vec![
                 "criterion_evaluation".into(),
                 "confidence_scoring".into(),
+                "structured_json".into(),
+                "basic_text_extraction".into(),
             ],
-            tier: CapabilityTier::Full,
+            tier: CapabilityTier::Recommended,
             reason: format!(
-                "{:.0} GB RAM detected. Full LLM available with reduced context window.",
-                total_ram_gb
-            ),
-        }
-    } else if total_ram_gb >= 6.0 {
-        LlmCapability {
-            model: Some("Gemma-3-1B-Q4_K_M".into()),
-            features: vec![
-                "basic_criterion_evaluation".into(),
-                "simple_text_extraction".into(),
-            ],
-            tier: CapabilityTier::Limited,
-            reason: format!(
-                "{:.0} GB RAM detected. Using lightweight model with limited features.",
+                "{:.0} GB RAM detected. AI screening with Gemma 4 E2B.",
                 total_ram_gb
             ),
         }
     } else {
         LlmCapability {
-            model: None,
-            features: vec![],
-            tier: CapabilityTier::RuleOnly,
+            model: Some("Gemma-4-E2B-IQ2_M".into()),
+            features: vec![
+                "basic_criterion_evaluation".into(),
+                "structured_json".into(),
+            ],
+            tier: CapabilityTier::Minimum,
             reason: format!(
-                "{:.0} GB RAM detected. Insufficient for LLM inference. \
-                 Rule-based screening only.",
+                "{:.0} GB RAM detected. Basic AI with Gemma 4 E2B (IQ2_M quantization).",
                 total_ram_gb
             ),
         }
@@ -1076,19 +1100,21 @@ fn determine_capability(total_ram_gb: f64) -> LlmCapability {
 
 ### 8.2 Feature Availability Matrix
 
-| Feature | Full (16GB+) | Full (8GB+) | Limited (6GB+) | Rule Only (<6GB) |
-|---------|-------------|-------------|----------------|-----------------|
+| Feature | Premium (24GB+) | Optimal (16GB+) | Recommended (4-16GB) | Minimum (<4GB) |
+|---------|----------------|----------------|---------------------|----------------|
 | Age/sex/demographics matching | Rule | Rule | Rule | Rule |
 | ICD-10 diagnosis matching | Rule | Rule | Rule | Rule |
 | Lab value comparison | Rule | Rule | Rule | Rule |
 | RxNorm medication matching | Rule | Rule | Rule | Rule |
 | Vital sign comparison | Rule | Rule | Rule | Rule |
 | Washout period calculation | Rule | Rule | Rule | Rule |
-| Free-text diagnosis extraction | LLM | LLM (2k ctx) | LLM (1k ctx) | Not available |
-| Complex criterion reasoning | LLM | LLM (2k ctx) | Basic | Not available |
-| Clinical note analysis | LLM (4k ctx) | LLM (2k ctx) | Not available | Not available |
-| Confidence explanation | LLM | LLM | Basic | Fixed scores |
-| Multi-criterion synthesis | LLM | LLM | Not available | Not available |
+| Structured JSON output | LLM (native) | LLM (native) | LLM (native) | LLM (native) |
+| Free-text diagnosis extraction | LLM (256K ctx) | LLM (128K ctx) | LLM (32K ctx) | LLM (4K ctx) |
+| Complex criterion reasoning | LLM (full) | LLM (full) | LLM | LLM (basic) |
+| Clinical note analysis | LLM (256K ctx) | LLM (128K ctx) | LLM (32K ctx) | LLM (4K ctx) |
+| Confidence explanation | LLM | LLM | LLM | LLM (basic) |
+| Multi-criterion synthesis | LLM | LLM | LLM | LLM (basic) |
+| Full patient record in single prompt | Yes (256K) | Yes (128K) | Partial (32K) | No (4K) |
 
 ### 8.3 Feature Flags Tied to Model Availability
 
@@ -1104,26 +1130,33 @@ pub struct FeatureFlags {
 impl From<&LlmCapability> for FeatureFlags {
     fn from(cap: &LlmCapability) -> Self {
         match cap.tier {
-            CapabilityTier::Full => FeatureFlags {
+            CapabilityTier::Premium => FeatureFlags {
                 llm_criterion_evaluation: true,
                 llm_free_text_extraction: true,
                 llm_clinical_notes: true,
                 llm_confidence_explanation: true,
-                max_context_tokens: if get_available_ram_gb() >= 16.0 { 4096 } else { 2048 },
+                max_context_tokens: 262144, // 256K (Gemma 4 26B-A4B)
             },
-            CapabilityTier::Limited => FeatureFlags {
+            CapabilityTier::Optimal => FeatureFlags {
+                llm_criterion_evaluation: true,
+                llm_free_text_extraction: true,
+                llm_clinical_notes: true,
+                llm_confidence_explanation: true,
+                max_context_tokens: 131072, // 128K (Gemma 4 E4B)
+            },
+            CapabilityTier::Recommended => FeatureFlags {
+                llm_criterion_evaluation: true,
+                llm_free_text_extraction: true,
+                llm_clinical_notes: true,
+                llm_confidence_explanation: true,
+                max_context_tokens: 32768, // 32K (Gemma 4 E2B, RAM-limited)
+            },
+            CapabilityTier::Minimum => FeatureFlags {
                 llm_criterion_evaluation: true,
                 llm_free_text_extraction: true,
                 llm_clinical_notes: false,
                 llm_confidence_explanation: false,
-                max_context_tokens: 1024,
-            },
-            CapabilityTier::RuleOnly => FeatureFlags {
-                llm_criterion_evaluation: false,
-                llm_free_text_extraction: false,
-                llm_clinical_notes: false,
-                llm_confidence_explanation: false,
-                max_context_tokens: 0,
+                max_context_tokens: 4096, // 4K (Gemma 4 E2B IQ2_M, RAM-limited)
             },
         }
     }

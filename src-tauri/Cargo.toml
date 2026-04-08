@@ -42,6 +42,12 @@ notify = { version = "6", features = ["macos_fsevent"] }
 calamine = "0.25"
 sysinfo = "0.30"
 regex = "1"
+base64 = "0.22"
+rand = "0.8"
+keyring = "3"
+url = "2"
+p256 = { version = "0.13", features = ["jwk", "ecdsa"] }
+jsonwebtoken = "9"
 
 [features]
 default = ["custom-protocol"]

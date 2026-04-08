@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter, Manager};
 use uuid::Uuid;
 
 use crate::db::DbState;
 use crate::db::audit::{write_audit_entry, AuditAction};
 use crate::screening::engine::ScreeningEngine;
 use crate::screening::rules::PatientData;
-use crate::commands::llm::{LlmState, LlmStatus, evaluate_criterion};
+use crate::commands::llm::{LlmState, LlmStatus, evaluate_criteria_batch, BatchCriterionInput};
 
 /// Tauri commands for the screening engine.
 /// Wired to the real ScreeningEngine and database.
@@ -48,6 +48,28 @@ pub struct ScreenRequest {
 }
 
 #[derive(Deserialize)]
+pub struct MultiScreenRequest {
+    pub study_ids: Vec<String>,
+    pub patient_ids: Option<Vec<String>>,
+}
+
+#[derive(Serialize)]
+pub struct MultiScreenBatchResponse {
+    pub batch_id: String,
+    pub results: Vec<ScreeningResultResponse>,
+    pub study_count: usize,
+    pub patient_count: usize,
+}
+
+#[derive(Clone, Serialize)]
+pub struct ScreeningProgress {
+    pub batch_id: String,
+    pub studies_completed: usize,
+    pub studies_total: usize,
+    pub current_study_name: String,
+}
+
+#[derive(Deserialize)]
 pub struct OverrideRequest {
     pub screening_result_id: String,
     pub criterion_id: String,
@@ -81,13 +103,14 @@ pub async fn screen_patients(app: AppHandle, request: ScreenRequest) -> Result<V
         let llm_state = app.state::<LlmState>();
         let lock = llm_state.0.lock().map_err(|e| format!("Lock poisoned: {}", e))?;
         if lock.status == LlmStatus::Running {
-            Some((lock.port, lock.backend.clone(), lock.ollama_model.clone()))
+            Some((lock.port, lock.model.clone()))
         } else {
             None
         }
     };
 
-    if let Some((port, backend, ollama_model)) = llm_info {
+    if let Some((port, model)) = llm_info {
+        let model = model.unwrap_or_default();
         let mut llm_attempted = 0u32;
         let mut llm_resolved = 0u32;
 
@@ -110,41 +133,52 @@ pub async fn screen_patients(app: AppHandle, request: ScreenRequest) -> Result<V
         };
 
         for result in &mut results {
-            // Build rich patient context from full clinical data
             let patient_context = if let Some(pd) = patient_data_map.get(&result.patient_id) {
                 build_patient_context_from_data(pd)
             } else {
                 build_patient_context_fallback(result)
             };
 
-            for criterion in &mut result.criteria_results {
-                if criterion.result != "needs_review" {
-                    continue;
-                }
+            // Collect all needs_review criteria for this patient into a batch.
+            let pending: Vec<(usize, BatchCriterionInput)> = result
+                .criteria_results
+                .iter()
+                .enumerate()
+                .filter(|(_, c)| c.result == "needs_review")
+                .map(|(i, c)| (i, BatchCriterionInput {
+                    criterion_text: c.criterion_text.clone(),
+                    criterion_type: c.criterion_type.clone(),
+                }))
+                .collect();
 
-                llm_attempted += 1;
+            if pending.is_empty() {
+                continue;
+            }
 
-                match evaluate_criterion(port, &criterion.criterion_text, &criterion.criterion_type, &patient_context, &backend, ollama_model.as_deref()).await {
-                    Ok(eval) => {
-                        criterion.result = eval.result;
-                        criterion.confidence = eval.confidence;
-                        criterion.evidence = Some(eval.reasoning);
-                        criterion.evidence_source = if eval.evidence_extracted.is_empty() {
-                            None
-                        } else {
-                            Some(eval.evidence_extracted.join("; "))
-                        };
-                        criterion.ai_determined = true;
-                        llm_resolved += 1;
-                    }
-                    Err(_) => {
-                        // Graceful degradation: leave as needs_review
-                        criterion.evidence = Some("LLM evaluation attempted but failed".to_string());
-                    }
+            llm_attempted += pending.len() as u32;
+
+            // Evaluate all criteria for this patient in a single LLM call.
+            let batch_inputs: Vec<BatchCriterionInput> = pending.iter().map(|(_, b)| b.clone()).collect();
+            let evals = evaluate_criteria_batch(port, &batch_inputs, &patient_context, &model).await;
+
+            for ((idx, _), eval) in pending.iter().zip(evals) {
+                let criterion = &mut result.criteria_results[*idx];
+                if eval.result != "unknown" || eval.confidence > 0.0 {
+                    criterion.result = eval.result;
+                    criterion.confidence = eval.confidence;
+                    criterion.evidence = Some(eval.reasoning);
+                    criterion.evidence_source = if eval.evidence_extracted.is_empty() {
+                        None
+                    } else {
+                        Some(eval.evidence_extracted.join("; "))
+                    };
+                    criterion.ai_determined = true;
+                    llm_resolved += 1;
+                } else {
+                    criterion.evidence = Some(eval.reasoning);
                 }
             }
 
-            // Recompute counters after LLM evaluation
             recompute_patient_result(result);
         }
 
@@ -179,6 +213,99 @@ pub async fn screen_patients(app: AppHandle, request: ScreenRequest) -> Result<V
         .collect();
 
     Ok(responses)
+}
+
+/// Screen patients against multiple studies simultaneously.
+/// Loads patient data once and evaluates against all study criteria.
+#[tauri::command]
+pub async fn screen_patients_multi(app: AppHandle, request: MultiScreenRequest) -> Result<MultiScreenBatchResponse, String> {
+    let batch_id = Uuid::new_v4().to_string();
+
+    // Emit initial progress
+    let _ = app.emit("screening-progress", ScreeningProgress {
+        batch_id: batch_id.clone(),
+        studies_completed: 0,
+        studies_total: request.study_ids.len(),
+        current_study_name: "Loading patient data...".to_string(),
+    });
+
+    let results = {
+        let db_state = app.state::<DbState>();
+        let lock = db_state.0.lock().map_err(|e| format!("Lock poisoned: {}", e))?;
+        let pool = lock.as_ref().ok_or("Database not initialized")?;
+        let conn = pool.get().map_err(|e| format!("Failed to get connection: {}", e))?;
+
+        tracing::info!(
+            "Multi-protocol screening: {} studies",
+            request.study_ids.len()
+        );
+
+        // Record the batch
+        let started_at = chrono::Utc::now().to_rfc3339();
+        let study_ids_json = serde_json::to_string(&request.study_ids).unwrap_or_default();
+        let _ = conn.execute(
+            "INSERT INTO screening_batches (id, study_ids, patient_count, study_count, started_at, status)
+             VALUES (?1, ?2, 0, ?3, ?4, 'running')",
+            rusqlite::params![batch_id, study_ids_json, request.study_ids.len(), started_at],
+        );
+
+        let patient_ids_ref = request.patient_ids.as_deref();
+        ScreeningEngine::screen_patients_multi(&conn, &request.study_ids, patient_ids_ref)?
+    };
+
+    // Count unique patients (collect owned strings so we don't borrow results)
+    let unique_patients: std::collections::HashSet<String> = results.iter().map(|r| r.patient_id.clone()).collect();
+    let patient_count = unique_patients.len();
+
+    // Mark batch complete
+    {
+        let db_state = app.state::<DbState>();
+        let lock = db_state.0.lock().map_err(|e| format!("Lock poisoned: {}", e))?;
+        if let Some(pool) = lock.as_ref() {
+            if let Ok(conn) = pool.get() {
+                let completed_at = chrono::Utc::now().to_rfc3339();
+                let _ = conn.execute(
+                    "UPDATE screening_batches SET status = 'completed', completed_at = ?1, patient_count = ?2 WHERE id = ?3",
+                    rusqlite::params![completed_at, patient_count, batch_id],
+                );
+            }
+        }
+    }
+
+    // Emit completion progress
+    let _ = app.emit("screening-progress", ScreeningProgress {
+        batch_id: batch_id.clone(),
+        studies_completed: request.study_ids.len(),
+        studies_total: request.study_ids.len(),
+        current_study_name: "Complete".to_string(),
+    });
+
+    let responses: Vec<ScreeningResultResponse> = results
+        .into_iter()
+        .map(|r| ScreeningResultResponse {
+            screening_id: r.screening_id,
+            patient_id: r.patient_id,
+            study_id: r.study_id,
+            site_patient_id: r.site_patient_id,
+            age: r.age,
+            gender: r.gender,
+            primary_diagnosis: r.primary_diagnosis,
+            overall_status: r.overall_status,
+            score: r.score,
+            inclusion_met: r.inclusion_met,
+            inclusion_total: r.inclusion_total,
+            exclusion_triggered: r.exclusion_triggered,
+            exclusion_total: r.exclusion_total,
+            missing_data_count: r.missing_data_count,
+        })
+        .collect();
+
+    Ok(MultiScreenBatchResponse {
+        batch_id,
+        results: responses,
+        study_count: request.study_ids.len(),
+        patient_count: patient_count,
+    })
 }
 
 /// Build rich patient context from full clinical data for LLM evaluation.

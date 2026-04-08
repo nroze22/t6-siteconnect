@@ -79,11 +79,12 @@ export interface ScreeningResult {
 export interface LlmStatus {
   status: "not_configured" | "model_downloading" | "model_ready" | "starting" | "running" | "error" | "stopped";
   model_name: string | null;
-  model_path: string | null;
   port: number;
-  model_size_bytes: number | null;
   backend: string;
-  ollama_model: string | null;
+  // Legacy fields kept for backward compat with Settings UI (may be undefined)
+  model_path?: string | null;
+  model_size_bytes?: number | null;
+  ollama_model?: string | null;
 }
 
 // Ollama types
@@ -164,20 +165,26 @@ function findDemoStudyId(studyId: string, therapeuticArea?: string): string {
  * Returns in the unified ParsedPatient format used by all analytics components.
  */
 export async function getPatients(): Promise<ParsedPatient[]> {
+  // Always load demo data as baseline so cohort builder / analytics are compelling
+  const { parseEpicRows } = await import("./epic-demo-data");
+  const demoPatients = parseEpicRows();
+
   if (isTauri) {
     try {
-      const patients = await tauriInvoke<AnalyticsPatient[]>("get_analytics_patients");
-      if (patients.length > 0) {
-        return patients.map(analyticsPatientToParsed);
+      const dbPatients = await tauriInvoke<AnalyticsPatient[]>("get_analytics_patients");
+      if (dbPatients.length > 0) {
+        const dbParsed = dbPatients.map(analyticsPatientToParsed);
+        // Merge: DB patients take precedence, demo fills in the rest (deduplicate by MRN)
+        const mrnSet = new Set(dbParsed.map((p) => p.mrn));
+        const merged = [...dbParsed, ...demoPatients.filter((d) => !mrnSet.has(d.mrn))];
+        return merged;
       }
     } catch (e) {
-      console.warn("Failed to load patients from DB, falling back to demo data:", e);
+      console.warn("Failed to load patients from DB, using demo data:", e);
     }
   }
 
-  // Fallback: demo data
-  const { parseEpicRows } = await import("./epic-demo-data");
-  return parseEpicRows();
+  return demoPatients;
 }
 
 /**
@@ -300,29 +307,106 @@ export async function screenPatientsViaRust(studyId: string, therapeuticArea?: s
   }));
 }
 
+// --- Multi-Protocol Screening ---
+
+export interface MultiScreenBatchResult {
+  batchId: string;
+  results: ScreeningResult[];
+  studyCount: number;
+  patientCount: number;
+}
+
+export async function screenPatientsMulti(
+  studyIds: string[],
+  patientIds?: string[]
+): Promise<MultiScreenBatchResult> {
+  if (isTauri) {
+    try {
+      const response = await tauriInvoke<{
+        batch_id: string;
+        results: Array<{
+          screening_id: string;
+          patient_id: string;
+          study_id: string;
+          site_patient_id: string;
+          age: number | null;
+          gender: string | null;
+          primary_diagnosis: string | null;
+          overall_status: string;
+          score: number;
+          inclusion_met: number;
+          inclusion_total: number;
+          exclusion_triggered: number;
+          exclusion_total: number;
+          missing_data_count: number;
+        }>;
+        study_count: number;
+        patient_count: number;
+      }>("screen_patients_multi", {
+        request: { study_ids: studyIds, patient_ids: patientIds ?? null },
+      });
+
+      console.log(
+        "[multi-screening] Rust returned",
+        response.results.length,
+        "results across",
+        response.study_count,
+        "studies"
+      );
+
+      return {
+        batchId: response.batch_id,
+        results: response.results.map((r) => ({
+          screening_id: r.screening_id,
+          patient_id: r.patient_id,
+          study_id: r.study_id,
+          site_patient_id: r.site_patient_id,
+          age: r.age ?? undefined,
+          gender: r.gender ?? undefined,
+          primary_diagnosis: r.primary_diagnosis,
+          overall_status: r.overall_status,
+          score: r.score,
+          inclusion_met: r.inclusion_met,
+          inclusion_total: r.inclusion_total,
+          exclusion_triggered: r.exclusion_triggered,
+          exclusion_total: r.exclusion_total,
+          missing_data_count: r.missing_data_count,
+          criteria_results: [],
+        })),
+        studyCount: response.study_count,
+        patientCount: response.patient_count,
+      };
+    } catch (err) {
+      console.error("[multi-screening] Rust failed, falling back to sequential JS:", err);
+    }
+  }
+
+  // Fallback: sequential JS demo screening
+  const allResults: ScreeningResult[] = [];
+  for (const studyId of studyIds) {
+    const results = await screenPatientsViaRust(studyId);
+    allResults.push(...results);
+  }
+
+  return {
+    batchId: `demo-${Date.now()}`,
+    results: allResults,
+    studyCount: studyIds.length,
+    patientCount: new Set(allResults.map((r) => r.patient_id)).size,
+  };
+}
+
 // --- LLM commands ---
 
 export async function getLlmStatus(): Promise<LlmStatus> {
   if (!isTauri) {
-    return { status: "not_configured", model_name: null, model_path: null, port: 8384, model_size_bytes: null, backend: "none", ollama_model: null };
+    return { status: "not_configured", model_name: null, port: 11434, backend: "ollama" };
   }
   try {
     return await tauriInvoke<LlmStatus>("get_llm_status");
   } catch {
-    return { status: "not_configured", model_name: null, model_path: null, port: 8384, model_size_bytes: null, backend: "none", ollama_model: null };
+    return { status: "not_configured", model_name: null, port: 11434, backend: "ollama" };
   }
-}
-
-export async function setLlmModel(modelPath: string): Promise<LlmStatus> {
-  return tauriInvoke<LlmStatus>("set_llm_model", { modelPath });
-}
-
-export async function startLlmServer(): Promise<LlmStatus> {
-  return tauriInvoke<LlmStatus>("start_llm_server");
-}
-
-export async function stopLlmServer(): Promise<LlmStatus> {
-  return tauriInvoke<LlmStatus>("stop_llm_server");
 }
 
 export async function checkLlmHealth(): Promise<boolean> {
@@ -528,7 +612,7 @@ export async function generateAiInsight(context: string, insightType: string): P
 
 export async function checkOllamaStatus(): Promise<OllamaStatus> {
   if (!isTauri) {
-    return { installed: false, running: false, models: [] };
+    return { installed: true, running: true, models: [] };
   }
   try {
     return await tauriInvoke<OllamaStatus>("check_ollama_status");
@@ -547,20 +631,23 @@ export async function getOllamaModels(): Promise<OllamaModel[]> {
 }
 
 export async function installOllama(): Promise<string> {
+  if (!isTauri) return "Demo: Ollama installed";
   return tauriInvoke<string>("install_ollama");
 }
 
 export async function startOllama(): Promise<string> {
+  if (!isTauri) return "Demo: Ollama started";
   return tauriInvoke<string>("start_ollama");
 }
 
 export async function pullOllamaModel(model: string): Promise<void> {
+  if (!isTauri) return;
   return tauriInvoke<void>("pull_ollama_model", { model });
 }
 
 export async function detectSystemHardware(): Promise<SystemHardware> {
   if (!isTauri) {
-    return { total_ram_bytes: 16_000_000_000, total_ram_gb: 16, free_disk_bytes: 100_000_000_000, free_disk_gb: 100, recommended_tier: "standard", recommended_model: "gemma3:4b" };
+    return { total_ram_bytes: 16_000_000_000, total_ram_gb: 16, free_disk_bytes: 100_000_000_000, free_disk_gb: 100, recommended_tier: "optimal", recommended_model: "gemma3:12b" };
   }
   try {
     return await tauriInvoke<SystemHardware>("detect_system_hardware");
@@ -570,6 +657,9 @@ export async function detectSystemHardware(): Promise<SystemHardware> {
 }
 
 export async function configureOllamaBackend(model: string): Promise<LlmStatus> {
+  if (!isTauri) {
+    return { status: "running", model_name: model, port: 11434, backend: "ollama" };
+  }
   return tauriInvoke<LlmStatus>("configure_ollama_backend", { model });
 }
 

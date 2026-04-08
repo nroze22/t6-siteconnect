@@ -49,6 +49,9 @@ import { useSiteProfileStore } from "@/stores/use-site-profile-store";
 import { useResearchPackStore } from "@/stores/use-research-pack-store";
 import { DEMO_SITE_PROFILE } from "@/data/demo-site-profile";
 import { BudgetWizard } from "./BudgetWizard";
+import { CreateStudyModal } from "./CreateStudyModal";
+import { Plus } from "lucide-react";
+import { useModeStore } from "@/stores/use-mode-store";
 import type { Study } from "@/types";
 import type { PackStudy } from "@/types/research-pack";
 
@@ -155,6 +158,7 @@ function StudyCard({
   study,
   model,
   fitInfo,
+  compact,
   onScreenPatients,
   onGeneratePitch,
   onOpenWizard,
@@ -162,6 +166,8 @@ function StudyCard({
   study: StudyView;
   model: StudyFinancialModel;
   fitInfo?: { score: number; fit: "low" | "medium" | "high"; reasons: string[] };
+  /** When true, hides financial details and shows only study identity + eligible count + screen button. Used in Screening mode. */
+  compact?: boolean;
   onScreenPatients: (studyId: string) => void;
   onGeneratePitch: (study: StudyView) => void;
   onOpenWizard: (study: StudyView, model: StudyFinancialModel) => void;
@@ -233,14 +239,16 @@ function StudyCard({
             </p>
           </div>
 
-          {/* Financial highlight — range-based */}
-          <div className="shrink-0 rounded-xl bg-emerald-500/10 p-3 text-center ring-1 ring-emerald-400/30">
-            <p className="text-[9px] font-semibold text-dim uppercase tracking-wider">Est. Opportunity</p>
-            <p className="text-[17px] font-black tabular-nums text-heading tracking-tight">
-              {formatRangeCurrency(model.perPatientRange)}
-            </p>
-            <p className="text-[9px] text-dim">/ enrolled patient</p>
-          </div>
+          {/* Financial highlight — hidden in compact/screening mode */}
+          {!compact && (
+            <div className="shrink-0 rounded-xl bg-emerald-500/10 p-3 text-center ring-1 ring-emerald-400/30">
+              <p className="text-[9px] font-semibold text-dim uppercase tracking-wider">Est. Opportunity</p>
+              <p className="text-[17px] font-black tabular-nums text-heading tracking-tight">
+                {formatRangeCurrency(model.perPatientRange)}
+              </p>
+              <p className="text-[9px] text-dim">/ enrolled patient</p>
+            </div>
+          )}
         </div>
 
         {/* Metrics row */}
@@ -251,26 +259,32 @@ function StudyCard({
             sub="at your site"
             color="indigo"
           />
-          <MetricBadge
-            icon={<TrendingUp className="h-3 w-3 text-emerald-400" />}
-            label={formatCurrencyCompact(baseCase.totalNetContributionCents)}
-            sub="net contribution"
-            color="emerald"
-          />
-          <MetricBadge
-            icon={<Activity className="h-3 w-3" />}
-            label={model.burdenScore.overall.replace("_", " ")}
-            sub="burden"
-            color={model.burdenScore.overall === "low" ? "emerald" : model.burdenScore.overall === "medium" ? "amber" : "red"}
-            className={`ring-1 ${burdenColor(model.burdenScore.overall)}`}
-          />
-          <MetricBadge
-            icon={<AlertTriangle className="h-3 w-3" />}
-            label={model.screenFailRisk}
-            sub="SF risk"
-            color={model.screenFailRisk === "low" ? "emerald" : model.screenFailRisk === "medium" ? "amber" : "red"}
-            className={`ring-1 ${riskColor(model.screenFailRisk)}`}
-          />
+          {!compact && (
+            <MetricBadge
+              icon={<TrendingUp className="h-3 w-3 text-emerald-400" />}
+              label={formatCurrencyCompact(baseCase.totalNetContributionCents)}
+              sub="net contribution"
+              color="emerald"
+            />
+          )}
+          {!compact && (
+            <MetricBadge
+              icon={<Activity className="h-3 w-3" />}
+              label={model.burdenScore.overall.replace("_", " ")}
+              sub="burden"
+              color={model.burdenScore.overall === "low" ? "emerald" : model.burdenScore.overall === "medium" ? "amber" : "red"}
+              className={`ring-1 ${burdenColor(model.burdenScore.overall)}`}
+            />
+          )}
+          {!compact && (
+            <MetricBadge
+              icon={<AlertTriangle className="h-3 w-3" />}
+              label={model.screenFailRisk}
+              sub="SF risk"
+              color={model.screenFailRisk === "low" ? "emerald" : model.screenFailRisk === "medium" ? "amber" : "red"}
+              className={`ring-1 ${riskColor(model.screenFailRisk)}`}
+            />
+          )}
           <MetricBadge
             icon={<Clock className="h-3 w-3 text-dim" />}
             label={model.visitModel.estimatedDurationMonths + "mo"}
@@ -556,6 +570,7 @@ export function TrialsPage() {
     study: StudyView;
     model: StudyFinancialModel;
   } | null>(null);
+  const [isCreateStudyOpen, setIsCreateStudyOpen] = useState(false);
 
   const setPatients = useScreeningStore((s) => s.setPatients);
   const setScreeningResult = useScreeningStore((s) => s.setScreeningResult);
@@ -564,6 +579,8 @@ export function TrialsPage() {
   const setCurrentPage = useAppStore((s) => s.setCurrentPage);
 
   const toast = useToast();
+  const currentMode = useModeStore((s) => s.currentMode);
+  const isScreeningMode = currentMode === "screening";
   const siteProfile = useSiteProfileStore((s) => s.profile);
   const siteProfileStore = useSiteProfileStore();
 
@@ -780,56 +797,87 @@ export function TrialsPage() {
               {packManifest?.studyCount ?? 0} real trials • CMS-anchored pricing • {siteProfile.onboardingComplete ? siteProfile.research.siteName : "Site"} personalized
             </p>
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-dim" />
-            <input
-              type="text"
-              placeholder="Search trials, sponsors, indications..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-80 rounded-lg border border-edge-2 bg-surface-2 py-2 pl-9 pr-9 text-[12px] text-body placeholder-dim focus:border-indigo-500/40 focus:outline-none focus:ring-1 focus:ring-indigo-500/20"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-2.5 rounded p-0.5 text-dim hover:text-body"
-              >
-                <XIcon className="h-3.5 w-3.5" />
-              </button>
-            )}
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-dim" />
+              <input
+                type="text"
+                placeholder="Search trials, sponsors, indications..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-80 rounded-lg border border-edge-2 bg-surface-2 py-2 pl-9 pr-9 text-[12px] text-body placeholder-dim focus:border-indigo-500/40 focus:outline-none focus:ring-1 focus:ring-indigo-500/20"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-2.5 rounded p-0.5 text-dim hover:text-body"
+                >
+                  <XIcon className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => setIsCreateStudyOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500 px-3 py-2 text-[12px] font-semibold text-white shadow-lg shadow-indigo-500/20 transition-colors hover:bg-indigo-400"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Create Study
+            </button>
           </div>
         </div>
 
-        {/* Revenue summary bar */}
-        <div className="mt-3 flex items-center gap-3">
-          <div className="flex items-center gap-2.5 rounded-lg bg-emerald-500/10 px-4 py-2.5 ring-1 ring-emerald-400/30">
-            <DollarSign className="h-5 w-5 text-emerald-400" />
-            <div>
-              <p className="text-[12px] font-semibold text-dim">Total Net Opportunity</p>
-              <p className="text-xl font-black tabular-nums text-heading">{animatedRevenue}</p>
+        {/* Revenue summary bar — hidden in Screening mode where CRCs just need to pick a study */}
+        {isScreeningMode ? (
+          <div className="mt-3 flex items-center gap-3">
+            <div className="flex items-center gap-2.5 rounded-lg bg-blue-500/10 px-4 py-2.5 ring-1 ring-blue-400/30">
+              <Users className="h-5 w-5 text-blue-400" />
+              <div>
+                <p className="text-[12px] font-semibold text-dim">Eligible Subjects</p>
+                <p className="text-xl font-black tabular-nums text-heading">{formatNumber(totalEligible)}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5 rounded-lg bg-purple-500/10 px-4 py-2.5 ring-1 ring-purple-400/30">
+              <FlaskConical className="h-5 w-5 text-purple-400" />
+              <div>
+                <p className="text-[12px] font-semibold text-dim">Active Studies</p>
+                <p className="text-xl font-black tabular-nums text-heading">{studies.length}</p>
+              </div>
+            </div>
+            <p className="ml-auto text-[11px] text-dim">
+              Select a study below, then click <strong className="text-body">Screen Patients</strong> to start.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-3 flex items-center gap-3">
+            <div className="flex items-center gap-2.5 rounded-lg bg-emerald-500/10 px-4 py-2.5 ring-1 ring-emerald-400/30">
+              <DollarSign className="h-5 w-5 text-emerald-400" />
+              <div>
+                <p className="text-[12px] font-semibold text-dim">Total Net Opportunity</p>
+                <p className="text-xl font-black tabular-nums text-heading">{animatedRevenue}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5 rounded-lg bg-blue-500/10 px-4 py-2.5 ring-1 ring-blue-400/30">
+              <Users className="h-5 w-5 text-blue-400" />
+              <div>
+                <p className="text-[12px] font-semibold text-dim">Eligible Subjects</p>
+                <p className="text-xl font-black tabular-nums text-heading">{formatNumber(totalEligible)}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5 rounded-lg bg-purple-500/10 px-4 py-2.5 ring-1 ring-purple-400/30">
+              <FlaskConical className="h-5 w-5 text-purple-400" />
+              <div>
+                <p className="text-[12px] font-semibold text-dim">Active Studies</p>
+                <p className="text-xl font-black tabular-nums text-heading">{studies.length}</p>
+              </div>
+            </div>
+            <div className="ml-auto flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-2 ring-1 ring-edge-2">
+              <ShieldCheck className="h-4 w-4 text-indigo-400" />
+              <span className="text-[12px] font-medium text-dim">
+                ClinicalTrials.gov verified • CMS 2025 fee schedule • Tufts CSDD benchmarks
+              </span>
             </div>
           </div>
-          <div className="flex items-center gap-2.5 rounded-lg bg-blue-500/10 px-4 py-2.5 ring-1 ring-blue-400/30">
-            <Users className="h-5 w-5 text-blue-400" />
-            <div>
-              <p className="text-[12px] font-semibold text-dim">Eligible Subjects</p>
-              <p className="text-xl font-black tabular-nums text-heading">{formatNumber(totalEligible)}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2.5 rounded-lg bg-purple-500/10 px-4 py-2.5 ring-1 ring-purple-400/30">
-            <FlaskConical className="h-5 w-5 text-purple-400" />
-            <div>
-              <p className="text-[12px] font-semibold text-dim">Active Studies</p>
-              <p className="text-xl font-black tabular-nums text-heading">{studies.length}</p>
-            </div>
-          </div>
-          <div className="ml-auto flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-2 ring-1 ring-edge-2">
-            <ShieldCheck className="h-4 w-4 text-indigo-400" />
-            <span className="text-[12px] font-medium text-dim">
-              ClinicalTrials.gov verified • CMS 2025 fee schedule • Tufts CSDD benchmarks
-            </span>
-          </div>
-        </div>
+        )}
 
         {/* Filter + sort row */}
         <div className="mt-3 flex items-center justify-between">
@@ -889,6 +937,7 @@ export function TrialsPage() {
                 study={study}
                 model={model}
                 fitInfo={fitScores.get(study.id)}
+                compact={isScreeningMode}
                 onScreenPatients={handleScreenPatients}
                 onGeneratePitch={handleGeneratePitch}
                 onOpenWizard={handleOpenWizard}
@@ -915,6 +964,15 @@ export function TrialsPage() {
           />
         )}
       </AnimatePresence>
+
+      {/* Create Custom Study modal */}
+      <CreateStudyModal
+        open={isCreateStudyOpen}
+        onClose={() => setIsCreateStudyOpen(false)}
+        onCreated={() => {
+          toast.success("Study created", "Your custom study has been saved locally.");
+        }}
+      />
     </div>
   );
 }

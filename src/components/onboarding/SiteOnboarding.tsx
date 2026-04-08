@@ -14,6 +14,8 @@ import {
   Shield,
 } from "lucide-react";
 import { useSiteProfileStore } from "@/stores/use-site-profile-store";
+import { useModeStore } from "@/stores/use-mode-store";
+import { suggestModeFromWorkflow } from "@/lib/workspace-modes";
 import {
   THERAPEUTIC_AREAS,
   STUDY_PHASES,
@@ -46,19 +48,30 @@ type StepId = (typeof STEPS)[number]["id"];
 export function SiteOnboarding({ onComplete }: SiteOnboardingProps) {
   const [step, setStep] = useState<StepId>("research");
   const store = useSiteProfileStore();
+  const setMode = useModeStore((s) => s.setMode);
   const stepIndex = STEPS.findIndex((s) => s.id === step);
   const isFirst = stepIndex === 0;
   const isLast = stepIndex === STEPS.length - 1;
 
   const handleNext = useCallback(() => {
     if (isLast) {
+      // Seed the workspace mode from the user's workflow preferences so the
+      // post-onboarding experience is already tailored to their role. The
+      // user can still change or reset this from the header dropdown.
+      const wf = store.profile.workflow;
+      setMode(
+        suggestModeFromWorkflow({
+          workspaceOptimization: wf.workspaceOptimization,
+          primaryUsers: wf.primaryUsers,
+        }),
+      );
       store.completeOnboarding();
       onComplete();
     } else {
       const nextStep = STEPS[stepIndex + 1];
       if (nextStep) setStep(nextStep.id);
     }
-  }, [isLast, stepIndex, store, onComplete]);
+  }, [isLast, stepIndex, store, setMode, onComplete]);
 
   const handleBack = useCallback(() => {
     if (!isFirst) {

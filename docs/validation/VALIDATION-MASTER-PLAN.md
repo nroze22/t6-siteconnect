@@ -72,7 +72,7 @@ The following modules are in scope:
 | Database Security | SQLCipher AES-256 encrypted SQLite database with passphrase management |
 | Patient Import Pipeline | CSV file import with smart column auto-mapping across EMR systems |
 | Screening Engine (Tier 1) | Deterministic rule-based screening against study eligibility criteria |
-| Screening Engine (Tier 2) | LLM-assisted screening via BioMistral-7B / llama.cpp sidecar |
+| Screening Engine (Tier 2) | LLM-assisted screening via Gemma 4 (E2B/E4B/26B-A4B) / llama.cpp sidecar |
 | Audit Trail | HMAC-chained, tamper-evident audit log with SHA-256 integrity verification |
 | Review Queue | Patient review workflow with accept/reject/defer actions |
 | Trial Discovery | Curated trial list with financial intelligence |
@@ -112,7 +112,7 @@ TalOS SiteConnect is a desktop application that enables clinical research sites 
 |                                                                |
 |  +---------------------------+  +---------------------------+  |
 |  |    Rust Backend           |  |   llama.cpp Sidecar       |  |
-|  |    (Tauri Commands)       |  |   (BioMistral-7B GGUF)    |  |
+|  |    (Tauri Commands)       |  |   (Gemma 4 GGUF)          |  |
 |  +---------------------------+  +---------------------------+  |
 |                                                                |
 |  +-----------------------------------------------------------+|
@@ -137,7 +137,7 @@ TalOS SiteConnect is a desktop application that enables clinical research sites 
 | Integrity Hashing | SHA-256 | sha2 0.10 |
 | Connection Pool | r2d2 | 0.8 |
 | LLM Runtime | llama.cpp | Latest |
-| LLM Model | BioMistral-7B | GGUF format |
+| LLM Model | Gemma 4 (E2B/E4B/26B-A4B) | GGUF format, Apache 2.0 |
 | HTTP Client | reqwest | 0.12 (LLM health checks only) |
 | File Watching | notify | 6.x |
 | Secret Zeroing | zeroize | 1.x |

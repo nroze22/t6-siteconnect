@@ -55,6 +55,29 @@
   --color-score-moderate: #f59e0b;
   --color-score-poor: #ef4444;
 
+  /* Accent colors — use these instead of hardcoded Tailwind color classes */
+  --color-accent-indigo: #6366f1;
+  --color-accent-emerald: #10b981;
+  --color-accent-sky: #0ea5e9;
+  --color-accent-violet: #a855f7;
+  --color-accent-amber: #f59e0b;
+
+  /* Typography scale — use these for consistent sizing */
+  --text-xs: 0.6875rem;    /* 11px — captions, badges, timestamps */
+  --text-sm: 0.75rem;      /* 12px — body text, hints, secondary */
+  --text-base: 0.8125rem;  /* 13px — primary body, nav labels */
+  --text-md: 0.875rem;     /* 14px — subheadings, card titles */
+  --text-lg: 0.9375rem;    /* 15px — page titles */
+  --text-xl: 1.5rem;       /* 24px — hero numbers, main heading */
+  --text-2xl: 1.75rem;     /* 28px — large KPI values */
+
+  /* Animation tokens */
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: "SF Mono", "JetBrains Mono", ui-monospace, monospace;
   --font-display: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -82,6 +105,13 @@
   --color-input: #e2e8f0;
   --color-ring: #4f46e5;
 
+  /* Accent colors — darker for light mode */
+  --color-accent-indigo: #4f46e5;
+  --color-accent-emerald: #059669;
+  --color-accent-sky: #0284c7;
+  --color-accent-violet: #7c3aed;
+  --color-accent-amber: #d97706;
+
   /* Surface overlays — subtle dark tint on white */
   --color-surface-1: rgba(0, 0, 0, 0.02);
   --color-surface-2: rgba(0, 0, 0, 0.03);
@@ -101,6 +131,12 @@
   --color-dim: #64748b;
   --color-faint: #94a3b8;
 }
+
+/* Dropdown menus need solid opaque backgrounds — surface tokens are
+   intentionally semi-transparent for layering, but popover menus
+   must fully obscure the content behind them. */
+.mode-dropdown { background: #131825; }
+.light .mode-dropdown { background: #ffffff; }
 
 @layer base {
   * {
@@ -164,7 +200,7 @@
 
   /* Smooth page transitions */
   main > * {
-    animation: page-in 0.2s ease-out;
+    animation: page-in var(--duration-normal) var(--ease-smooth);
   }
   @keyframes page-in {
     from { opacity: 0; transform: translateY(4px); }
@@ -358,8 +394,8 @@
 
   /* ═══ Premium card lift on hover ═══ */
   .card-lift {
-    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
-                box-shadow 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform var(--duration-normal) var(--ease-smooth),
+                box-shadow var(--duration-normal) var(--ease-smooth);
   }
   .card-lift:hover {
     transform: translateY(-1px);
@@ -415,7 +451,7 @@
     to { opacity: 1; filter: blur(0); }
   }
   .animate-crossfade {
-    animation: crossfade-in 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: crossfade-in var(--duration-normal) var(--ease-smooth) both;
   }
 
   /* ═══ Pulse-then-settle for highlights ═══ */
@@ -476,5 +512,27 @@
     background: var(--color-primary);
     opacity: 0.6;
     transition: height 0.3s ease;
+  }
+}
+
+/* ═══ Accessibility: Respect reduced motion preferences ═══ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .card-lift:hover {
+    transform: none;
+  }
+
+  /* Keep opacity changes for state visibility, just make them instant */
+  .animate-pulse,
+  .animate-live-pulse {
+    animation: none !important;
   }
 }

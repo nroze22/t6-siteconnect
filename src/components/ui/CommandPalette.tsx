@@ -18,6 +18,8 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { useAppStore } from "@/stores/use-app-store";
+import { useModeStore } from "@/stores/use-mode-store";
+import { isPageVisibleInMode } from "@/lib/workspace-modes";
 import type { NavigationPage } from "@/types";
 
 interface CommandItem {
@@ -29,6 +31,8 @@ interface CommandItem {
   action: () => void;
   keywords?: string[];
   shortcutKey?: string;
+  /** When set, this command is hidden if the page is not visible in the active workspace mode. */
+  page?: NavigationPage;
 }
 
 export function CommandPalette() {
@@ -38,6 +42,7 @@ export function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const setCurrentPage = useAppStore((s) => s.setCurrentPage);
+  const currentMode = useModeStore((s) => s.currentMode);
 
   const navigateTo = useCallback(
     (page: NavigationPage) => {
@@ -47,25 +52,33 @@ export function CommandPalette() {
     [setCurrentPage]
   );
 
-  const commands: CommandItem[] = useMemo(
+  const allCommands: CommandItem[] = useMemo(
     () => [
-      // Pages
-      { id: "nav-dashboard", label: "Dashboard", hint: "Site overview & status", icon: <Search className="h-4 w-4" />, section: "Pages", shortcutKey: "`", action: () => navigateTo("dashboard"), keywords: ["home", "overview", "dashboard", "status"] },
-      { id: "nav-screening", label: "Subject Screening", hint: "Review eligibility", icon: <Search className="h-4 w-4" />, section: "Pages", shortcutKey: "1", action: () => navigateTo("screening"), keywords: ["subjects", "screen", "eligibility", "criteria"] },
-      { id: "nav-import", label: "Import Data", hint: "CSV, FHIR, HL7", icon: <FileUp className="h-4 w-4" />, section: "Pages", shortcutKey: "2", action: () => navigateTo("import"), keywords: ["upload", "csv", "fhir", "hl7", "file"] },
-      { id: "nav-trials", label: "Trial Discovery", hint: "Browse & match trials", icon: <FlaskConical className="h-4 w-4" />, section: "Pages", shortcutKey: "3", action: () => navigateTo("trials"), keywords: ["study", "clinical", "nct", "sponsor"] },
-      { id: "nav-review", label: "Review Queue", hint: "Decisions & export", icon: <ClipboardCheck className="h-4 w-4" />, section: "Pages", shortcutKey: "4", action: () => navigateTo("review"), keywords: ["accept", "reject", "defer", "decision"] },
-      { id: "nav-pipeline", label: "Enrollment Pipeline", hint: "Track outreach", icon: <GitBranch className="h-4 w-4" />, section: "Pages", shortcutKey: "5", action: () => navigateTo("pipeline"), keywords: ["enrollment", "kanban", "outreach", "status"] },
-      { id: "nav-analytics", label: "Population Intel", hint: "Feasibility & diversity", icon: <BarChart3 className="h-4 w-4" />, section: "Pages", shortcutKey: "6", action: () => navigateTo("analytics"), keywords: ["chart", "diversity", "feasibility", "demographics"] },
-      { id: "nav-cohort", label: "Cohort Builder", hint: "Explore populations", icon: <Users className="h-4 w-4" />, section: "Pages", shortcutKey: "7", action: () => navigateTo("cohort"), keywords: ["cohort", "population", "explorer", "query", "filter", "subjects"] },
-      { id: "nav-intelligence", label: "Research Intelligence", hint: "Readiness & ROI", icon: <Lightbulb className="h-4 w-4" />, section: "Pages", shortcutKey: "8", action: () => navigateTo("intelligence"), keywords: ["readiness", "roi", "opportunity", "funnel", "intelligence", "score"] },
-      { id: "nav-performance", label: "Site Performance", hint: "Metrics & revenue", icon: <TrendingUp className="h-4 w-4" />, section: "Pages", shortcutKey: "9", action: () => navigateTo("performance"), keywords: ["revenue", "metrics", "kpi", "financial"] },
-      { id: "nav-settings", label: "Settings", hint: "LLM, database, export", icon: <Settings className="h-4 w-4" />, section: "Pages", shortcutKey: "0", action: () => navigateTo("settings"), keywords: ["configure", "llm", "database", "preferences", "audit"] },
-      // Actions
+      // Pages — each carries its `page` for mode filtering
+      { id: "nav-dashboard", label: "Dashboard", hint: "Site overview & status", icon: <Search className="h-4 w-4" />, section: "Pages", shortcutKey: "`", page: "dashboard" as NavigationPage, action: () => navigateTo("dashboard"), keywords: ["home", "overview", "dashboard", "status"] },
+      { id: "nav-screening", label: "Screening", hint: "Review eligibility", icon: <Search className="h-4 w-4" />, section: "Pages", shortcutKey: "1", page: "screening" as NavigationPage, action: () => navigateTo("screening"), keywords: ["subjects", "screen", "eligibility", "criteria"] },
+      { id: "nav-import", label: "Import Data", hint: "CSV, FHIR, HL7", icon: <FileUp className="h-4 w-4" />, section: "Pages", shortcutKey: "2", page: "import" as NavigationPage, action: () => navigateTo("import"), keywords: ["upload", "csv", "fhir", "hl7", "file"] },
+      { id: "nav-review", label: "Review Queue", hint: "Decisions & export", icon: <ClipboardCheck className="h-4 w-4" />, section: "Pages", shortcutKey: "3", page: "review" as NavigationPage, action: () => navigateTo("review"), keywords: ["accept", "reject", "defer", "decision"] },
+      { id: "nav-trials", label: "Trial Discovery", hint: "Browse & match trials", icon: <FlaskConical className="h-4 w-4" />, section: "Pages", shortcutKey: "4", page: "trials" as NavigationPage, action: () => navigateTo("trials"), keywords: ["study", "clinical", "nct", "sponsor"] },
+      { id: "nav-intelligence", label: "Site Intelligence", hint: "Readiness & ROI", icon: <Lightbulb className="h-4 w-4" />, section: "Pages", shortcutKey: "5", page: "intelligence" as NavigationPage, action: () => navigateTo("intelligence"), keywords: ["readiness", "roi", "opportunity", "funnel", "intelligence", "score"] },
+      { id: "nav-pipeline", label: "Enrollment", hint: "Track outreach", icon: <GitBranch className="h-4 w-4" />, section: "Pages", shortcutKey: "6", page: "pipeline" as NavigationPage, action: () => navigateTo("pipeline"), keywords: ["enrollment", "kanban", "outreach", "status"] },
+      { id: "nav-analytics", label: "Analytics", hint: "Feasibility, cohorts & diversity", icon: <BarChart3 className="h-4 w-4" />, section: "Pages", shortcutKey: "7", page: "analytics" as NavigationPage, action: () => navigateTo("analytics"), keywords: ["chart", "diversity", "feasibility", "demographics", "cohort", "population", "query", "filter"] },
+      { id: "nav-performance", label: "Performance", hint: "Metrics & revenue", icon: <TrendingUp className="h-4 w-4" />, section: "Pages", shortcutKey: "8", page: "performance" as NavigationPage, action: () => navigateTo("performance"), keywords: ["revenue", "metrics", "kpi", "financial"] },
+      { id: "nav-registry", label: "Patient Registry", hint: "Consent & matching", icon: <Users className="h-4 w-4" />, section: "Pages", shortcutKey: "9", page: "registry" as NavigationPage, action: () => navigateTo("registry"), keywords: ["consent", "registry", "volunteer", "matching"] },
+      { id: "nav-settings", label: "Settings", hint: "LLM, database, export", icon: <Settings className="h-4 w-4" />, section: "Pages", shortcutKey: "0", page: "settings" as NavigationPage, action: () => navigateTo("settings"), keywords: ["configure", "llm", "database", "preferences", "audit"] },
+      // Actions — always visible regardless of mode
       { id: "act-shortcuts", label: "Keyboard Shortcuts", hint: "View all shortcuts", icon: <Keyboard className="h-4 w-4" />, section: "Actions", shortcutKey: "?", action: () => { setOpen(false); window.dispatchEvent(new CustomEvent("toggle-shortcuts")); }, keywords: ["keys", "hotkey", "shortcut"] },
       { id: "act-help", label: "Help & Guide", hint: "Page-specific help and tips", icon: <HelpCircle className="h-4 w-4" />, section: "Actions", action: () => { setOpen(false); window.dispatchEvent(new CustomEvent("toggle-help")); }, keywords: ["help", "guide", "documentation", "how", "faq"] },
     ],
     [navigateTo]
+  );
+
+  // Filter page commands by the active workspace mode. Actions (no `page`
+  // field) are always shown. This keeps the palette consistent with what
+  // the sidebar and keyboard shortcuts expose.
+  const commands = useMemo(
+    () => allCommands.filter((c) => !c.page || isPageVisibleInMode(c.page, currentMode)),
+    [allCommands, currentMode],
   );
 
   const filtered = useMemo(() => {

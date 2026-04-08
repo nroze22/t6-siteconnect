@@ -844,7 +844,7 @@ async function exportCohortCSV(patients: ParsedPatient[]): Promise<string | unde
 // MAIN COMPONENT
 // ============================================================
 
-export function CohortBuilderPage() {
+export function CohortBuilderPage({ embedded: _embedded }: { embedded?: boolean } = {}) {
   const toast = useToast();
   const [patients, setPatients] = useState<ParsedPatient[]>([]);
   const [loading, setLoading] = useState(true);

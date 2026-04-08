@@ -537,10 +537,15 @@ async fn spawn_via_tauri_shell(
 
 ### Supported Models
 
-| Model            | Size    | Quantization | RAM Required | Context | Use Case                        |
-| ---------------- | ------- | ------------ | ------------ | ------- | ------------------------------- |
-| Gemma-3-1B       | ~1 GB   | Q4_K_M       | 4 GB         | 2048    | Basic extraction, low-end HW   |
-| BioMistral-7B    | ~4.4 GB | Q4_K_M       | 10 GB        | 4096    | Clinical NLP, full capability   |
+All models use the **Gemma 4** family (Google DeepMind, April 2026, Apache 2.0 license).
+
+| Model            | Params (Total/Active) | Size (Q4_K_M) | RAM Required | Context  | Use Case                          |
+| ---------------- | --------------------- | ------------- | ------------ | -------- | --------------------------------- |
+| Gemma-4-E2B      | 4.5B / 2.3B active    | ~3.1 GB       | 4-8 GB       | 128K     | Edge-optimized AI screening       |
+| Gemma-4-E4B      | 8B / 4.5B active      | ~5.0 GB       | 16 GB+       | 128K     | Full AI features, structured JSON |
+| Gemma-4-26B-A4B  | 26B / 3.8B active MoE | ~16.9 GB      | 24 GB+       | 256K     | Near-frontier clinical reasoning  |
+
+**Key capabilities:** Native function calling + JSON schema conformance (86.4% t2-bench), 128K-256K context windows, configurable thinking mode (chain-of-thought before JSON output).
 
 ### GGUF Format Requirements
 
@@ -690,14 +695,14 @@ pub struct HardwareProfile {
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum ModelTier {
-    /// < 4 GB RAM: no LLM, rule-only mode
-    None,
-    /// 4-8 GB RAM: Gemma-1B with 2048 context
-    Small,
-    /// 8-16 GB RAM: Gemma-1B or BioMistral with reduced context
-    Medium,
-    /// 16+ GB RAM: BioMistral-7B with 4096 context
-    Large,
+    /// < 4 GB RAM: Gemma-4-E2B with IQ2_M quantization (basic AI)
+    Minimum,
+    /// 4-8 GB RAM: Gemma-4-E2B Q4_K_M with 128K context
+    Recommended,
+    /// 16+ GB RAM: Gemma-4-E4B Q4_K_M with 128K context
+    Optimal,
+    /// 24+ GB RAM: Gemma-4-26B-A4B Q4_K_M with 256K context (MoE)
+    Premium,
 }
 ```
 
@@ -718,19 +723,19 @@ fn detect_hardware() -> HardwareProfile {
     let total_ram_gb = total_ram / (1024 * 1024 * 1024);
 
     let recommended_tier = match total_ram_gb {
-        0..=3   => ModelTier::None,
-        4..=7   => ModelTier::Small,
-        8..=15  => ModelTier::Medium,
-        _       => ModelTier::Large,
+        0..=3   => ModelTier::Minimum,
+        4..=15  => ModelTier::Recommended,
+        16..=23 => ModelTier::Optimal,
+        _       => ModelTier::Premium,
     };
 
     let recommended_threads = std::cmp::max(2, cpu_cores as u32 - 2);
 
     let recommended_ctx_size = match recommended_tier {
-        ModelTier::None  => 0,
-        ModelTier::Small => 2048,
-        ModelTier::Medium => 2048,
-        ModelTier::Large => 4096,
+        ModelTier::Minimum     => 4096,    // E2B IQ2_M still supports 128K, but limit for RAM
+        ModelTier::Recommended => 32768,   // E2B Q4_K_M — generous context
+        ModelTier::Optimal     => 131072,  // E4B Q4_K_M — full 128K context
+        ModelTier::Premium     => 262144,  // 26B-A4B — full 256K context
     };
 
     HardwareProfile {
@@ -749,19 +754,22 @@ fn detect_hardware() -> HardwareProfile {
 ```rust
 fn configure_for_tier(tier: &ModelTier) -> Option<SidecarConfig> {
     match tier {
-        ModelTier::None => None, // Do not start the sidecar
-        ModelTier::Small => Some(SidecarConfig {
-            model_name: "gemma-3-1b.Q4_K_M.gguf",
-            ctx_size: 2048,
-            // Leave headroom for the OS and the app itself
-        }),
-        ModelTier::Medium => Some(SidecarConfig {
-            model_name: "gemma-3-1b.Q4_K_M.gguf",
-            ctx_size: 2048,
-        }),
-        ModelTier::Large => Some(SidecarConfig {
-            model_name: "biomistral-7b.Q4_K_M.gguf",
+        ModelTier::Minimum => Some(SidecarConfig {
+            model_name: "gemma-4-e2b.IQ2_M.gguf",
             ctx_size: 4096,
+            // ~2.3 GB model, leaves headroom on 4 GB systems
+        }),
+        ModelTier::Recommended => Some(SidecarConfig {
+            model_name: "gemma-4-e2b.Q4_K_M.gguf",
+            ctx_size: 32768,
+        }),
+        ModelTier::Optimal => Some(SidecarConfig {
+            model_name: "gemma-4-e4b.Q4_K_M.gguf",
+            ctx_size: 131072,
+        }),
+        ModelTier::Premium => Some(SidecarConfig {
+            model_name: "gemma-4-26b-a4b.Q4_K_M.gguf",
+            ctx_size: 262144,
         }),
     }
 }
@@ -1018,13 +1026,15 @@ fn enforce_json_system_prompt(messages: &mut Vec<ChatMessage>) {
 
 ### Feature Availability by Tier
 
-| Feature                        | None (Rule-Only) | Small (Gemma-1B) | Large (BioMistral-7B) |
-| ------------------------------ | ----------------- | ----------------- | ---------------------- |
-| Rule-based criterion eval      | Yes               | Yes               | Yes                    |
-| AI criterion eval              | No                | Basic             | Full                   |
-| Entity extraction from notes   | No                | No                | Yes                    |
-| Sponsor pitch generation       | No                | Basic             | Full                   |
-| Semantic trial search          | No                | No                | Yes                    |
+| Feature                        | Minimum (E2B IQ2) | Recommended (E2B Q4) | Optimal (E4B Q4) | Premium (26B-A4B Q4) |
+| ------------------------------ | ----------------- | -------------------- | ----------------- | -------------------- |
+| Rule-based criterion eval      | Yes               | Yes                  | Yes               | Yes                  |
+| AI criterion eval              | Basic             | Yes                  | Full              | Full                 |
+| Structured JSON output         | Yes               | Yes                  | Yes               | Yes                  |
+| Entity extraction from notes   | Basic             | Yes                  | Full              | Full                 |
+| Sponsor pitch generation       | No                | Basic                | Full              | Full                 |
+| Semantic trial search          | No                | Basic                | Yes               | Yes                  |
+| Full patient record (single prompt) | No           | Partial (32K ctx)    | Yes (128K ctx)    | Yes (256K ctx)       |
 
 ### Feature Flags
 
@@ -1046,23 +1056,24 @@ interface LlmFeatureFlags {
 
 function featureFlagsForTier(tier: ModelTier): LlmFeatureFlags {
   switch (tier) {
-    case 'none':
-      return {
-        ruleBasedScreening: true,
-        aiCriterionEval: false,
-        entityExtraction: false,
-        pitchGeneration: false,
-        semanticSearch: false,
-      };
-    case 'small':
+    case 'minimum':
       return {
         ruleBasedScreening: true,
         aiCriterionEval: true,
-        entityExtraction: false,
-        pitchGeneration: true,
+        entityExtraction: true,
+        pitchGeneration: false,
         semanticSearch: false,
       };
-    case 'large':
+    case 'recommended':
+      return {
+        ruleBasedScreening: true,
+        aiCriterionEval: true,
+        entityExtraction: true,
+        pitchGeneration: true,
+        semanticSearch: true,
+      };
+    case 'optimal':
+    case 'premium':
       return {
         ruleBasedScreening: true,
         aiCriterionEval: true,
@@ -1200,7 +1211,7 @@ function LlmTroubleshootingDialog() {
             <h4 className="font-medium">Possible Solutions</h4>
             <ul className="text-sm list-disc pl-4 space-y-1">
               <li>Close other applications to free memory</li>
-              <li>Try a smaller model (Gemma-1B instead of BioMistral-7B)</li>
+              <li>Try a smaller model (Gemma 4 E2B instead of E4B or 26B)</li>
               <li>Restart the application</li>
               <li>Rule-based screening is still fully functional</li>
             </ul>

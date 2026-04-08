@@ -3,6 +3,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { StatusBar } from "@/components/layout/StatusBar";
 import { DashboardPage } from "@/components/dashboard/DashboardPage";
+import { ModeLanding } from "@/components/layout/ModeLanding";
 import { ScreeningPage } from "@/components/screening/ScreeningPage";
 import { ImportPage } from "@/components/import/ImportPage";
 import { TrialsPage } from "@/components/trials/TrialsPage";
@@ -11,9 +12,11 @@ import { AnalyticsPage } from "@/components/analytics/AnalyticsPage";
 import { PipelinePage } from "@/components/pipeline/PipelinePage";
 import { PerformancePage } from "@/components/performance/PerformancePage";
 import { SettingsPage } from "@/components/settings/SettingsPage";
-import { CohortBuilderPage } from "@/components/cohort/CohortBuilderPage";
 import { IntelligencePage } from "@/components/intelligence/IntelligencePage";
+import { RegistryPage } from "@/components/registry/RegistryPage";
+import { NaacrPage } from "@/components/naaccr/NaacrPage";
 import { SiteOnboarding } from "@/components/onboarding/SiteOnboarding";
+import { ModeSelector } from "@/components/onboarding/ModeSelector";
 import { SetupScreen } from "@/components/setup/SetupScreen";
 import { UnlockScreen } from "@/components/setup/UnlockScreen";
 import { ToastProvider } from "@/components/ui/Toast";
@@ -24,6 +27,8 @@ import { PageTransition } from "@/components/ui/PageTransition";
 import { WelcomeOverview } from "@/components/welcome/WelcomeOverview";
 import { useAppStore } from "@/stores/use-app-store";
 import { useSiteProfileStore } from "@/stores/use-site-profile-store";
+import { useModeStore } from "@/stores/use-mode-store";
+import { isPageVisibleInMode, getWorkspaceMode } from "@/lib/workspace-modes";
 import { useDemoData } from "@/hooks/use-demo-data";
 import { useWatcherListener } from "@/hooks/use-watcher-listener";
 import { checkDatabaseExists } from "@/lib/tauri";
@@ -103,11 +108,14 @@ const isTauri =
 
 function PageRouter() {
   const currentPage = useAppStore((s) => s.currentPage);
+  const currentMode = useModeStore((s) => s.currentMode);
 
   const page = (() => {
     switch (currentPage) {
       case "dashboard":
-        return <DashboardPage />;
+        // Non-admin modes get a role-tailored landing. Admin keeps the full
+        // dashboard because it's the "I use everything" workspace.
+        return currentMode === "admin" ? <DashboardPage /> : <ModeLanding />;
       case "screening":
         return <ScreeningPage />;
       case "import":
@@ -120,12 +128,14 @@ function PageRouter() {
         return <AnalyticsPage />;
       case "pipeline":
         return <PipelinePage />;
-      case "cohort":
-        return <CohortBuilderPage />;
       case "intelligence":
         return <IntelligencePage />;
       case "performance":
         return <PerformancePage />;
+      case "registry":
+        return <RegistryPage />;
+      case "naaccr":
+        return <NaacrPage />;
       case "settings":
         return <SettingsPage />;
       default:
@@ -145,29 +155,30 @@ const pageKeys: Record<string, NavigationPage> = {
   "`": "dashboard",
   "1": "screening",
   "2": "import",
-  "3": "trials",
-  "4": "review",
-  "5": "pipeline",
-  "6": "analytics",
-  "7": "cohort",
-  "8": "intelligence",
-  "9": "performance",
+  "3": "review",
+  "4": "trials",
+  "5": "intelligence",
+  "6": "pipeline",
+  "7": "analytics",
+  "8": "performance",
+  "9": "registry",
   "0": "settings",
 };
 
 function useGlobalShortcuts() {
   const setCurrentPage = useAppStore((s) => s.setCurrentPage);
   const lock = useAppStore((s) => s.lock);
+  const currentMode = useModeStore((s) => s.currentMode);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return;
 
-      // Number keys for navigation (no modifiers)
+      // Number keys for navigation (no modifiers) — filtered by workspace mode
       if (!e.metaKey && !e.ctrlKey && !e.altKey) {
         const page = pageKeys[e.key];
-        if (page) {
+        if (page && isPageVisibleInMode(page, currentMode)) {
           e.preventDefault();
           setCurrentPage(page);
           return;
@@ -196,9 +207,21 @@ function MainApp() {
   useDemoData();
   useGlobalShortcuts();
   const currentPage = useAppStore((s) => s.currentPage);
+  const setCurrentPage = useAppStore((s) => s.setCurrentPage);
   const theme = useAppStore((s) => s.theme);
   const setLlmStatus = useAppStore((s) => s.setLlmStatus);
   const loadProfile = useSiteProfileStore((s) => s.loadFromStorage);
+  const currentMode = useModeStore((s) => s.currentMode);
+  const hasChosenMode = useModeStore((s) => s.hasChosenMode);
+
+  // Keep the active page consistent with the active workspace mode.
+  // If a shortcut or deep link lands on a page hidden in this mode,
+  // redirect to the mode's landing page.
+  useEffect(() => {
+    if (!isPageVisibleInMode(currentPage, currentMode)) {
+      setCurrentPage(getWorkspaceMode(currentMode).landingPage);
+    }
+  }, [currentPage, currentMode, setCurrentPage]);
   // Apply theme class on mount and when theme changes
   useEffect(() => {
     if (theme === "light") {
@@ -258,7 +281,8 @@ function MainApp() {
           <StatusBar />
         </div>
         {showOnboarding && <SiteOnboarding onComplete={handleOnboardingComplete} />}
-        {!showOnboarding && <WelcomeOverview />}
+        {!showOnboarding && !hasChosenMode && <ModeSelector />}
+        {!showOnboarding && hasChosenMode && <WelcomeOverview />}
         <CommandPalette />
         <KeyboardShortcutsOverlay />
         <HelpDrawer currentPage={currentPage} />

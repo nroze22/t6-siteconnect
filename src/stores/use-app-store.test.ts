@@ -41,8 +41,9 @@ describe("useAppStore", () => {
         "analytics",
         "pipeline",
         "performance",
-        "cohort",
         "intelligence",
+        "registry",
+        "naaccr",
         "settings",
       ] as const;
 
@@ -131,16 +132,16 @@ describe("useAppStore", () => {
     });
 
     it("sets LLM status with model", () => {
-      useAppStore.getState().setLlmStatus("running", "BioMistral-7B");
+      useAppStore.getState().setLlmStatus("running", "Gemma-3-4B");
       const status = useAppStore.getState().status;
       expect(status.llmStatus).toBe("running");
-      expect(status.llmModel).toBe("BioMistral-7B");
+      expect(status.llmModel).toBe("Gemma-3-4B");
     });
 
     it("preserves existing model when not provided", () => {
-      useAppStore.getState().setLlmStatus("running", "BioMistral-7B");
+      useAppStore.getState().setLlmStatus("running", "Gemma-3-4B");
       useAppStore.getState().setLlmStatus("error");
-      expect(useAppStore.getState().status.llmModel).toBe("BioMistral-7B");
+      expect(useAppStore.getState().status.llmModel).toBe("Gemma-3-4B");
     });
   });
 });

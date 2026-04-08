@@ -690,8 +690,9 @@ use sha2::{Sha256, Digest};
 use std::io::Read;
 
 const EXPECTED_CHECKSUMS: &[(&str, &str)] = &[
-    ("biomistral-7b-q4_k_m.gguf", "a1b2c3d4e5f6..."),
-    ("gemma-1b-q8_0.gguf", "f6e5d4c3b2a1..."),
+    ("gemma-4-e2b.Q4_K_M.gguf", "a1b2c3d4e5f6..."),
+    ("gemma-4-e4b.Q4_K_M.gguf", "f6e5d4c3b2a1..."),
+    ("gemma-4-26b-a4b.Q4_K_M.gguf", "c3d4e5f6a1b2..."),
 ];
 
 fn verify_model_integrity(model_path: &str) -> Result<bool> {
@@ -777,8 +778,8 @@ END;
 | data | patients_deleted | {"count": 50} |
 | data | study_added | {"nct_id": "NCT12345"} |
 | data | study_removed | {"nct_id": "NCT12345"} |
-| model | model_loaded | {"model": "biomistral-7b-q4_k_m", "verified": true} |
-| model | model_verification_failed | {"model": "biomistral-7b-q4_k_m", "expected_hash": "...", "actual_hash": "..."} |
+| model | model_loaded | {"model": "gemma-4-e4b.Q4_K_M", "verified": true} |
+| model | model_verification_failed | {"model": "gemma-4-e4b.Q4_K_M", "expected_hash": "...", "actual_hash": "..."} |
 
 ### Checksum Computation
 

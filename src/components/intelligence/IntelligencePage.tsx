@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { LlmStatusBanner } from "@/components/ui/LlmStatusBanner";
 import {
   Target,
   TrendingUp,
@@ -1421,6 +1422,7 @@ export function IntelligencePage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-background">
+      <LlmStatusBanner />
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-6 space-y-6 max-w-[1400px] mx-auto">

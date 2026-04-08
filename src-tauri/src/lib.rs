@@ -1,16 +1,23 @@
 mod commands;
 mod db;
+mod epic;
+mod fhir;
 mod import;
+mod registry;
 mod screening;
 
 use commands::{greet, get_app_status};
 use commands::database::{init_database, unlock_database, check_database_exists};
 use commands::import::{detect_file_format, preview_import, execute_import, validate_import, check_duplicate_import, adjust_column_mapping, get_available_target_fields, save_import_profile, list_import_profiles, delete_import_profile, use_import_profile};
-use commands::screening::{screen_patients, override_criterion, get_study_criteria};
+use commands::screening::{screen_patients, screen_patients_multi, override_criterion, get_study_criteria};
+use commands::registry::{get_registry_patients, get_patient_detail, upsert_patient_consent, withdraw_patient_consent, update_registry_status, get_registry_dashboard, trigger_auto_match, get_auto_match_notifications, dismiss_auto_match};
+use commands::naaccr::{detect_reportable_cases, get_reportable_cases, update_reportable_case, autopopulate_case, validate_case, export_naaccr_xml, get_naaccr_dashboard};
 use commands::watcher::{start_folder_watcher, stop_folder_watcher, get_watcher_status, WatcherState};
 use commands::analytics::{get_analytics_patients, get_analytics_studies, get_analytics_summary, screen_patients_for_study, get_audit_trail, export_audit_trail, verify_audit_chain_cmd};
-use commands::llm::{get_llm_status, set_llm_model, start_llm_server, stop_llm_server, check_llm_health, evaluate_criterion_with_llm, pick_llm_model, chat_with_llm, parse_clinical_notes, generate_ai_insight, import_extracted_patients, LlmState};
+use commands::llm::{get_llm_status, check_llm_health, evaluate_criterion_with_llm, chat_with_llm, parse_clinical_notes, generate_ai_insight, import_extracted_patients, LlmState};
 use commands::ollama::{check_ollama_status, get_ollama_models, install_ollama, start_ollama, pull_ollama_model, detect_system_hardware, configure_ollama_backend, test_ollama_inference};
+use commands::studies::{parse_protocol_text, create_custom_study, infer_structured_rules};
+use commands::epic::{list_epic_connections, upsert_epic_connection, delete_epic_connection, test_epic_connection, connect_epic_connection, disconnect_epic_connection, pull_epic_cohort, generate_epic_keypair, get_epic_public_jwk, connect_epic_backend_services};
 use db::DbState;
 use tauri::Manager;
 
@@ -70,11 +77,30 @@ pub fn run() {
             delete_import_profile,
             use_import_profile,
             screen_patients,
+            screen_patients_multi,
             override_criterion,
             get_study_criteria,
             start_folder_watcher,
             stop_folder_watcher,
             get_watcher_status,
+            // Registry
+            get_registry_patients,
+            get_patient_detail,
+            upsert_patient_consent,
+            withdraw_patient_consent,
+            update_registry_status,
+            get_registry_dashboard,
+            trigger_auto_match,
+            get_auto_match_notifications,
+            dismiss_auto_match,
+            // NAACCR
+            detect_reportable_cases,
+            get_reportable_cases,
+            update_reportable_case,
+            autopopulate_case,
+            validate_case,
+            export_naaccr_xml,
+            get_naaccr_dashboard,
             // Analytics
             get_analytics_patients,
             get_analytics_studies,
@@ -83,14 +109,10 @@ pub fn run() {
             get_audit_trail,
             export_audit_trail,
             verify_audit_chain_cmd,
-            // LLM
+            // LLM (Ollama)
             get_llm_status,
-            set_llm_model,
-            start_llm_server,
-            stop_llm_server,
             check_llm_health,
             evaluate_criterion_with_llm,
-            pick_llm_model,
             chat_with_llm,
             parse_clinical_notes,
             generate_ai_insight,
@@ -104,6 +126,21 @@ pub fn run() {
             detect_system_hardware,
             configure_ollama_backend,
             test_ollama_inference,
+            // Custom studies
+            parse_protocol_text,
+            create_custom_study,
+            infer_structured_rules,
+            // Epic / FHIR connection profiles
+            list_epic_connections,
+            upsert_epic_connection,
+            delete_epic_connection,
+            test_epic_connection,
+            connect_epic_connection,
+            disconnect_epic_connection,
+            pull_epic_cohort,
+            generate_epic_keypair,
+            get_epic_public_jwk,
+            connect_epic_backend_services,
         ])
         .run(tauri::generate_context!())
         .expect("error while running TalOS SiteConnect");

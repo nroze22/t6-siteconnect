@@ -17,6 +17,16 @@ pub enum AuditAction {
     DatabaseInitialized,
     DatabaseUnlocked,
     StudySeeded,
+    // Registry actions
+    ConsentGranted,
+    ConsentWithdrawn,
+    RegistryStatusChanged,
+    AutoMatchTriggered,
+    // NAACCR actions
+    CaseDetected,
+    CaseAbstracted,
+    CaseSubmitted,
+    NaacrXmlExported,
 }
 
 impl AuditAction {
@@ -31,6 +41,14 @@ impl AuditAction {
             Self::DatabaseInitialized => "database_initialized",
             Self::DatabaseUnlocked => "database_unlocked",
             Self::StudySeeded => "study_seeded",
+            Self::ConsentGranted => "consent_granted",
+            Self::ConsentWithdrawn => "consent_withdrawn",
+            Self::RegistryStatusChanged => "registry_status_changed",
+            Self::AutoMatchTriggered => "auto_match_triggered",
+            Self::CaseDetected => "case_detected",
+            Self::CaseAbstracted => "case_abstracted",
+            Self::CaseSubmitted => "case_submitted",
+            Self::NaacrXmlExported => "naaccr_xml_exported",
         }
     }
 }

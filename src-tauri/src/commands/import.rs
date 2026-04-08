@@ -282,24 +282,48 @@ fn persist_patients(
                 new_id
             };
 
-            // Insert diagnoses (dedup by icd10_code for this patient)
+            // Insert diagnoses (dedup by description for this patient)
+            // Track status changes in diagnosis_history for longitudinal registry
             for dx in &patient.diagnoses {
-                let exists: bool = conn.query_row(
-                    "SELECT COUNT(*) > 0 FROM diagnoses WHERE patient_id = ?1 AND description = ?2",
-                    rusqlite::params![patient_id, dx.description],
-                    |row| row.get(0),
-                ).unwrap_or(false);
+                let new_status = dx.status.as_deref().unwrap_or("active");
 
-                if !exists {
-                    let dx_id = uuid::Uuid::new_v4().to_string();
-                    let _ = conn.execute(
-                        "INSERT INTO diagnoses (id, patient_id, icd10_code, description, onset_date, status)
-                         VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-                        rusqlite::params![
-                            dx_id, patient_id, dx.icd10_code, dx.description, dx.onset_date,
-                            dx.status.as_deref().unwrap_or("active"),
-                        ],
-                    );
+                // Check if diagnosis already exists and get its current status
+                let existing: Option<(String, String)> = conn.query_row(
+                    "SELECT id, status FROM diagnoses WHERE patient_id = ?1 AND description = ?2",
+                    rusqlite::params![patient_id, dx.description],
+                    |row| Ok((row.get(0)?, row.get(1)?)),
+                ).ok();
+
+                match existing {
+                    Some((existing_id, existing_status)) => {
+                        // Diagnosis exists — check if status changed
+                        if existing_status != new_status {
+                            // Record the status change in diagnosis_history
+                            let history_id = uuid::Uuid::new_v4().to_string();
+                            let now = chrono::Utc::now().to_rfc3339();
+                            let _ = conn.execute(
+                                "INSERT INTO diagnosis_history (id, diagnosis_id, patient_id, previous_status, new_status, changed_at, change_source)
+                                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, 'import')",
+                                rusqlite::params![history_id, existing_id, patient_id, existing_status, new_status, now],
+                            );
+                            // Update the diagnosis status
+                            let _ = conn.execute(
+                                "UPDATE diagnoses SET status = ?1 WHERE id = ?2",
+                                rusqlite::params![new_status, existing_id],
+                            );
+                        }
+                    }
+                    None => {
+                        // New diagnosis — insert
+                        let dx_id = uuid::Uuid::new_v4().to_string();
+                        let _ = conn.execute(
+                            "INSERT INTO diagnoses (id, patient_id, icd10_code, description, onset_date, status)
+                             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                            rusqlite::params![
+                                dx_id, patient_id, dx.icd10_code, dx.description, dx.onset_date, new_status,
+                            ],
+                        );
+                    }
                 }
             }
 

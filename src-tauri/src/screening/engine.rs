@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use serde::Serialize;
 use rusqlite::Connection;
 use uuid::Uuid;
@@ -227,6 +228,189 @@ impl ScreeningEngine {
         // Sort by score descending
         results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
         Ok(results)
+    }
+
+    /// Screen all patients against multiple studies efficiently.
+    /// Loads all patient data once, then evaluates against each study's criteria.
+    pub fn screen_patients_multi(
+        conn: &Connection,
+        study_ids: &[String],
+        patient_ids_filter: Option<&[String]>,
+    ) -> Result<Vec<PatientScreeningResult>, String> {
+        // Load all patient IDs
+        let all_patient_ids = Self::get_all_patient_ids(conn)
+            .map_err(|e| format!("Failed to load patient IDs: {}", e))?;
+
+        let patient_ids: Vec<&String> = if let Some(filter) = patient_ids_filter {
+            all_patient_ids.iter().filter(|id| filter.contains(id)).collect()
+        } else {
+            all_patient_ids.iter().collect()
+        };
+
+        // Load all patient data once into a HashMap
+        let mut patient_data_map: HashMap<String, (PatientData, String)> = HashMap::with_capacity(patient_ids.len());
+        for pid in &patient_ids {
+            match Self::load_patient_data(conn, pid) {
+                Ok(pd) => {
+                    let site_patient_id: String = conn.query_row(
+                        "SELECT site_patient_id FROM patients WHERE id = ?1",
+                        [pid.as_str()],
+                        |row| row.get(0),
+                    ).unwrap_or_else(|_| pid.to_string());
+                    patient_data_map.insert(pid.to_string(), (pd, site_patient_id));
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to load patient {}: {}", pid, e);
+                }
+            }
+        }
+
+        // Load all study criteria once
+        let mut study_criteria_map: HashMap<String, Vec<StudyCriterion>> = HashMap::with_capacity(study_ids.len());
+        for study_id in study_ids {
+            match Self::load_study_criteria(conn, study_id) {
+                Ok(criteria) => { study_criteria_map.insert(study_id.clone(), criteria); }
+                Err(e) => {
+                    tracing::warn!("Failed to load criteria for study {}: {}", study_id, e);
+                }
+            }
+        }
+
+        // Evaluate every patient × study combination
+        let mut results = Vec::with_capacity(patient_data_map.len() * study_ids.len());
+        for study_id in study_ids {
+            let criteria = match study_criteria_map.get(study_id) {
+                Some(c) => c,
+                None => continue,
+            };
+
+            for (patient_id, (patient, site_patient_id)) in &patient_data_map {
+                let result = Self::evaluate_patient_against_criteria(
+                    patient_id,
+                    site_patient_id,
+                    patient,
+                    study_id,
+                    criteria,
+                );
+                results.push(result);
+            }
+        }
+
+        // Sort by score descending
+        results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+        Ok(results)
+    }
+
+    /// Evaluate a pre-loaded patient against a study's criteria without additional DB access.
+    fn evaluate_patient_against_criteria(
+        patient_id: &str,
+        site_patient_id: &str,
+        patient: &PatientData,
+        study_id: &str,
+        criteria: &[StudyCriterion],
+    ) -> PatientScreeningResult {
+        let patient_age = patient.age;
+        let patient_gender = patient.gender.clone();
+        let primary_diagnosis = patient.diagnoses.first().map(|d| d.description.clone());
+
+        let mut evaluations = Vec::new();
+        let mut inclusion_met = 0u32;
+        let mut inclusion_total = 0u32;
+        let mut exclusion_triggered = 0u32;
+        let mut exclusion_total = 0u32;
+        let mut missing_data_count = 0u32;
+
+        for criterion in criteria {
+            let is_inclusion = criterion.criterion_type == "inclusion";
+            if is_inclusion {
+                inclusion_total += 1;
+            } else {
+                exclusion_total += 1;
+            }
+
+            let evaluation = if criterion.rule_type == "structured" {
+                if let Some(rule_json) = &criterion.structured_rule {
+                    match serde_json::from_str::<StructuredRule>(rule_json) {
+                        Ok(rule) => {
+                            let rule_result = evaluate_rule(&rule, patient);
+                            Self::rule_result_to_evaluation(
+                                &criterion.id,
+                                &criterion.criterion_type,
+                                &criterion.criterion_text,
+                                &rule_result,
+                                is_inclusion,
+                            )
+                        }
+                        Err(_) => CriterionEvaluation {
+                            criterion_id: criterion.id.clone(),
+                            criterion_type: criterion.criterion_type.clone(),
+                            criterion_text: criterion.criterion_text.clone(),
+                            result: "needs_review".to_string(),
+                            evidence: Some("Structured rule could not be parsed".to_string()),
+                            evidence_source: None,
+                            confidence: 0.0,
+                            ai_determined: false,
+                        },
+                    }
+                } else {
+                    CriterionEvaluation {
+                        criterion_id: criterion.id.clone(),
+                        criterion_type: criterion.criterion_type.clone(),
+                        criterion_text: criterion.criterion_text.clone(),
+                        result: "needs_review".to_string(),
+                        evidence: Some("No structured rule defined".to_string()),
+                        evidence_source: None,
+                        confidence: 0.0,
+                        ai_determined: false,
+                    }
+                }
+            } else {
+                CriterionEvaluation {
+                    criterion_id: criterion.id.clone(),
+                    criterion_type: criterion.criterion_type.clone(),
+                    criterion_text: criterion.criterion_text.clone(),
+                    result: "needs_review".to_string(),
+                    evidence: Some("Requires LLM evaluation (not yet available)".to_string()),
+                    evidence_source: None,
+                    confidence: 0.0,
+                    ai_determined: false,
+                }
+            };
+
+            match evaluation.result.as_str() {
+                "met" if is_inclusion => inclusion_met += 1,
+                "met" if !is_inclusion => exclusion_triggered += 1,
+                "unknown" | "needs_review" => missing_data_count += 1,
+                _ => {}
+            }
+
+            evaluations.push(evaluation);
+        }
+
+        let (status, score) = Self::compute_status(
+            inclusion_met,
+            inclusion_total,
+            exclusion_triggered,
+            missing_data_count,
+        );
+
+        PatientScreeningResult {
+            screening_id: Uuid::new_v4().to_string(),
+            patient_id: patient_id.to_string(),
+            study_id: study_id.to_string(),
+            site_patient_id: site_patient_id.to_string(),
+            age: patient_age,
+            gender: patient_gender,
+            primary_diagnosis,
+            overall_status: status.as_str().to_string(),
+            score,
+            inclusion_met,
+            inclusion_total,
+            exclusion_triggered,
+            exclusion_total,
+            missing_data_count,
+            criteria_results: evaluations,
+        }
     }
 
     fn rule_result_to_evaluation(
@@ -512,5 +696,138 @@ mod tests {
         let results = ScreeningEngine::screen_all_patients(&conn, "s001").unwrap();
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].patient_id, "p001");
+    }
+
+    #[test]
+    fn test_screen_patients_multi() {
+        let conn = setup_test_db();
+
+        // Add a second study
+        conn.execute(
+            "INSERT INTO studies (id, title, sponsor, phase, status, therapeutic_area, indication)
+             VALUES ('s002', 'Test Study 2', 'Sponsor B', 'Phase 2', 'recruiting', 'Cardiology', 'CHF')",
+            [],
+        ).unwrap();
+        conn.execute(
+            "INSERT INTO study_criteria (id, study_id, type, criterion_number, criterion_text, structured_rule, rule_type)
+             VALUES ('sc010', 's002', 'inclusion', 1, 'Age >= 21 years',
+                     '{\"type\":\"AgeRange\",\"min\":21,\"max\":null}', 'structured')",
+            [],
+        ).unwrap();
+
+        let study_ids = vec!["s001".to_string(), "s002".to_string()];
+        let results = ScreeningEngine::screen_patients_multi(&conn, &study_ids, None).unwrap();
+
+        // Should have results for patient p001 against both studies
+        assert_eq!(results.len(), 2);
+        let study_ids_in_results: Vec<&str> = results.iter().map(|r| r.study_id.as_str()).collect();
+        assert!(study_ids_in_results.contains(&"s001"));
+        assert!(study_ids_in_results.contains(&"s002"));
+
+        // Both should have patient p001
+        for r in &results {
+            assert_eq!(r.patient_id, "p001");
+        }
+    }
+
+    #[test]
+    fn test_screen_patients_multi_with_filter() {
+        let conn = setup_test_db();
+
+        // Add a second patient
+        conn.execute(
+            "INSERT INTO patients (id, site_patient_id, date_of_birth, gender, imported_at, last_updated)
+             VALUES ('p002', 'MRN-002', '1990-06-20', 'female', '2026-01-01', '2026-01-01')",
+            [],
+        ).unwrap();
+
+        let study_ids = vec!["s001".to_string()];
+        let filter = vec!["p001".to_string()];
+        let results = ScreeningEngine::screen_patients_multi(&conn, &study_ids, Some(&filter)).unwrap();
+
+        // Should only have results for p001, not p002
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].patient_id, "p001");
+    }
+
+    #[test]
+    fn test_screen_patients_multi_empty_studies() {
+        let conn = setup_test_db();
+        let study_ids: Vec<String> = vec![];
+        let results = ScreeningEngine::screen_patients_multi(&conn, &study_ids, None).unwrap();
+        assert_eq!(results.len(), 0, "Empty study list should return no results");
+    }
+
+    #[test]
+    fn test_screen_patients_multi_nonexistent_study() {
+        let conn = setup_test_db();
+        let study_ids = vec!["nonexistent-study".to_string()];
+        let results = ScreeningEngine::screen_patients_multi(&conn, &study_ids, None).unwrap();
+        // Should still succeed but with no criteria to evaluate
+        assert_eq!(results.len(), 1, "Should still create a result per patient");
+        assert_eq!(results[0].inclusion_total, 0);
+        assert_eq!(results[0].exclusion_total, 0);
+    }
+
+    #[test]
+    fn test_screen_patients_multi_scores_consistent() {
+        let conn = setup_test_db();
+
+        // Screen single patient against single study using both methods
+        let single_result = ScreeningEngine::screen_patient(&conn, "p001", "s001").unwrap();
+        let multi_results = ScreeningEngine::screen_patients_multi(&conn, &["s001".to_string()], None).unwrap();
+
+        let multi_result = multi_results.iter().find(|r| r.patient_id == "p001" && r.study_id == "s001").unwrap();
+
+        // Scores should be identical between single and multi methods
+        assert_eq!(single_result.score, multi_result.score, "Scores should match");
+        assert_eq!(single_result.overall_status, multi_result.overall_status, "Status should match");
+        assert_eq!(single_result.inclusion_met, multi_result.inclusion_met, "Inclusion met should match");
+        assert_eq!(single_result.inclusion_total, multi_result.inclusion_total, "Inclusion total should match");
+        assert_eq!(single_result.exclusion_triggered, multi_result.exclusion_triggered, "Exclusion triggered should match");
+        assert_eq!(single_result.missing_data_count, multi_result.missing_data_count, "Missing data should match");
+    }
+
+    #[test]
+    fn test_screen_patient_ineligible_exclusion() {
+        let conn = setup_test_db();
+
+        // Add autoimmune diagnosis that triggers exclusion
+        conn.execute(
+            "INSERT INTO diagnoses (id, patient_id, icd10_code, description, status, source, confidence)
+             VALUES ('dx-ai', 'p001', 'M06.0', 'Rheumatoid arthritis', 'active', 'structured', 1.0)",
+            [],
+        ).unwrap();
+
+        let result = ScreeningEngine::screen_patient(&conn, "p001", "s001").unwrap();
+        assert_eq!(result.overall_status, "ineligible", "Should be ineligible with exclusion triggered");
+        assert_eq!(result.exclusion_triggered, 1);
+        assert!(result.score <= 30.0, "Score should be capped at 30 with exclusion");
+    }
+
+    #[test]
+    fn test_compute_status_eligible() {
+        let (status, score) = ScreeningEngine::compute_status(5, 5, 0, 0);
+        assert_eq!(status, ScreeningStatus::Eligible);
+        assert_eq!(score, 100.0);
+    }
+
+    #[test]
+    fn test_compute_status_potentially_eligible() {
+        let (status, _score) = ScreeningEngine::compute_status(4, 5, 0, 1);
+        assert_eq!(status, ScreeningStatus::PotentiallyEligible);
+    }
+
+    #[test]
+    fn test_compute_status_needs_review() {
+        let (status, _score) = ScreeningEngine::compute_status(1, 5, 0, 4);
+        assert_eq!(status, ScreeningStatus::NeedsReview);
+    }
+
+    #[test]
+    fn test_compute_status_ineligible_exclusion() {
+        let (status, score) = ScreeningEngine::compute_status(5, 5, 1, 0);
+        assert_eq!(status, ScreeningStatus::Ineligible);
+        assert!(score <= 30.0);
     }
 }

@@ -941,7 +941,7 @@ fn parse_eligibility_text(text: &str) -> (Vec<String>, Vec<String>) {
 2. SiteConnect fetches matching studies via API v2
 3. Studies are stored in local SQLite database
 4. Eligibility criteria are parsed into individual criteria
-5. Each criterion is sent through the parsing prompt (Section 2 of biomistral-clinical-prompts.md) to generate structured rules
+5. Each criterion is sent through the parsing prompt (Section 2 of clinical-llm-prompts.md) to generate structured rules
 6. Study embeddings are generated and stored for vector similarity
 
 **Incremental updates:**

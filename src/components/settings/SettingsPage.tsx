@@ -53,9 +53,6 @@ import {
 } from "@/lib/tauri";
 import {
   getLlmStatus,
-  setLlmModel,
-  startLlmServer,
-  stopLlmServer,
   checkLlmHealth,
   checkOllamaStatus,
   installOllama,
@@ -80,6 +77,7 @@ import { useToast } from "@/components/ui/Toast";
 import { useAppStore } from "@/stores/use-app-store";
 import { useWatcherStore } from "@/stores/use-watcher-store";
 import { AiChatTest } from "./AiChatTest";
+import { EpicConnectionsPanel } from "./EpicConnectionsPanel";
 
 // ─── Tab Definition ──────────────────────────────────────────
 
@@ -140,6 +138,7 @@ export function SettingsPage() {
             <>
               <DatabasePanel />
               <WatcherPanel />
+              <EpicConnectionsPanel />
             </>
           )}
           {activeTab === "security" && (
@@ -349,8 +348,10 @@ function WatcherPanel() {
 // ─── Ollama model tier definitions ─────────────────────────────────
 
 const AI_MODELS = [
-  { id: "gemma3:1b", label: "Lightweight", size: "~815 MB", sizeGb: 1.0, ramReq: "8 GB+", downloadTime: "2–10 min", description: "Fast inference, lower accuracy. Good for constrained hardware." },
-  { id: "gemma3:4b", label: "Standard", size: "~3.3 GB", sizeGb: 3.5, ramReq: "16 GB+", downloadTime: "10–30 min", description: "Best balance of speed and quality. Recommended for most sites." },
+  { id: "gemma3:1b", label: "Lite (1B)", size: "~1.0 GB", sizeGb: 1.0, ramReq: "4 GB", downloadTime: "1–3 min", description: "Lightweight model for basic AI screening. Fast inference on any hardware." },
+  { id: "gemma3:4b", label: "Standard (4B)", size: "~3.3 GB", sizeGb: 3.3, ramReq: "8 GB+", downloadTime: "5–15 min", description: "Balanced performance and quality. Recommended for most sites." },
+  { id: "gemma3:12b", label: "Advanced (12B)", size: "~8.1 GB", sizeGb: 8.1, ramReq: "16 GB+", downloadTime: "15–30 min", description: "High-quality clinical reasoning. Great for complex eligibility criteria." },
+  { id: "gemma3:27b", label: "Premium (27B)", size: "~17 GB", sizeGb: 17.0, ramReq: "24 GB+", downloadTime: "30–60 min", description: "Near-frontier reasoning with 128K context. Best accuracy available." },
 ] as const;
 
 type SetupPhase = "idle" | "installing_ollama" | "starting_ollama" | "downloading_model" | "activating" | "testing" | "done" | "error";
@@ -361,7 +362,7 @@ function AiSetupPanel() {
 
   // Core state
   const [llmStatus, setLlmStatusLocal] = useState<LlmStatus>({
-    status: "not_configured", model_name: null, model_path: null, port: 8384, model_size_bytes: null, backend: "none", ollama_model: null,
+    status: "not_configured", model_name: null, port: 11434, backend: "ollama",
   });
   const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus>({ installed: false, running: false, models: [] });
   const [hardware, setHardware] = useState<SystemHardware | null>(null);
@@ -378,16 +379,11 @@ function AiSetupPanel() {
   const [downloadSpeed, setDownloadSpeed] = useState<string>("");
   const lastProgressRef = useRef<{ completed: number; time: number } | null>(null);
 
-  // Advanced (llama-server) state
-  const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [modelPath, setModelPath] = useState("");
-  const [manualLoading, setManualLoading] = useState(false);
-
   // Sync local + global LLM state
   const setStatus = useCallback((update: LlmStatus | ((prev: LlmStatus) => LlmStatus)) => {
     setLlmStatusLocal((prev) => {
       const next = typeof update === "function" ? update(prev) : update;
-      const backend = next.backend === "ollama" ? "ollama" as const : next.backend === "llama_server" ? "llama_server" as const : "none" as const;
+      const backend = "ollama" as const;
       setGlobalLlmStatus(next.status, next.model_name ?? next.ollama_model, backend);
       return next;
     });
@@ -564,8 +560,15 @@ function AiSetupPanel() {
       } catch (e) {
         setPhase("error");
         setPullProgress(null);
-        setError(e instanceof Error ? e.message : String(e));
-        toast.error("Download failed", e instanceof Error ? e.message : "Unknown error");
+        const msg = e instanceof Error ? e.message : String(e);
+        if (msg.includes("OLLAMA_UPDATE_REQUIRED")) {
+          setError("Ollama needs to be updated to support this model. Please download the latest version from ollama.com/download, then try again.");
+          toast.error("Ollama update required", "This model requires a newer Ollama version. Update at ollama.com/download");
+          try { const { open } = await import("@tauri-apps/plugin-shell"); await open("https://ollama.com/download"); } catch { /* ignore */ }
+        } else {
+          setError(msg);
+          toast.error("Download failed", msg);
+        }
         return;
       }
     }
@@ -605,51 +608,10 @@ function AiSetupPanel() {
 
   // Disable AI
   const handleDisableAi = useCallback(async () => {
-    try {
-      if (isTauri) { setStatus(await stopLlmServer()); }
-      else { setStatus((prev) => ({ ...prev, status: "not_configured", backend: "none", ollama_model: null })); }
-      setPhase("idle");
-      toast.info("AI screening disabled", "Screening will use rule-based mode only");
-    } catch {
-      // ignore
-    }
+    setStatus((prev) => ({ ...prev, status: "not_configured", model_name: null }));
+    setPhase("idle");
+    toast.info("AI screening disabled", "Screening will use rule-based mode only");
   }, [setStatus, toast]);
-
-  // --- Advanced: llama-server handlers ---
-  async function handlePickModel() {
-    if (!isTauri) { setModelPath("~/models/BioMistral-7B-DARE-Q4_K_M.gguf"); return; }
-    const { open } = await import("@tauri-apps/plugin-dialog");
-    const result = await open({ title: "Select GGUF Model File", filters: [{ name: "GGUF Models", extensions: ["gguf"] }] });
-    if (typeof result === "string") { setModelPath(result); setError(null); }
-  }
-
-  async function handleSetModel() {
-    if (!modelPath.trim()) { setError("Please select a model file first"); return; }
-    setManualLoading(true); setError(null);
-    try {
-      if (isTauri) { setStatus(await setLlmModel(modelPath)); }
-      else { setStatus((prev) => ({ ...prev, status: "model_ready", model_name: "BioMistral-7B-DARE-Q4_K_M.gguf", model_path: modelPath, model_size_bytes: 4_400_000_000, backend: "llama_server", ollama_model: null })); }
-    } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
-    finally { setManualLoading(false); }
-  }
-
-  async function handleStartServer() {
-    setManualLoading(true); setError(null);
-    try {
-      if (isTauri) { setStatus(await startLlmServer()); }
-      else { setStatus((prev) => ({ ...prev, status: "starting" })); setTimeout(() => { setStatus((prev) => ({ ...prev, status: "running" })); setHealthy(true); }, 1500); }
-    } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
-    finally { setManualLoading(false); }
-  }
-
-  async function handleStopServer() {
-    setManualLoading(true);
-    try {
-      if (isTauri) { setStatus(await stopLlmServer()); }
-      else { setStatus((prev) => ({ ...prev, status: "model_ready" })); setHealthy(false); }
-    } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
-    finally { setManualLoading(false); }
-  }
 
   // Status badge
   const isActive = llmStatus.status === "running" && llmStatus.backend === "ollama";
@@ -658,7 +620,6 @@ function AiSetupPanel() {
   const badge = (() => {
     if (isActive) return { label: "Active", cls: "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20", dot: true };
     if (isSettingUp) return { label: "Setting up...", cls: "text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20", dot: false };
-    if (llmStatus.status === "running" && llmStatus.backend === "llama_server") return { label: "Running (Manual)", cls: "text-blue-400 bg-blue-500/10 ring-1 ring-blue-500/20", dot: true };
     return { label: "Not Active", cls: "text-dim bg-surface-2 ring-1 ring-edge-2", dot: false };
   })();
 
@@ -940,69 +901,14 @@ function AiSetupPanel() {
           </div>
         )}
 
-        {/* ── Advanced (llama.cpp) — collapsed ── */}
-        <div>
-          <button
-            onClick={() => setAdvancedOpen(!advancedOpen)}
-            className="flex w-full items-center justify-between rounded-lg bg-surface-1 px-3 py-2 text-[11px] font-medium text-dim ring-1 ring-edge-1 transition-colors hover:text-body"
-          >
-            <span className="flex items-center gap-1.5">
-              <Server className="h-3 w-3" />
-              Advanced: Manual GGUF Model
-            </span>
-            {advancedOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-          </button>
-
-          {advancedOpen && (
-            <div className="mt-2 space-y-3 rounded-lg bg-surface-1 p-3 ring-1 ring-edge-1">
-              <div>
-                <label className="text-[11px] font-semibold uppercase tracking-wider text-dim">Model File (GGUF)</label>
-                <div className="mt-1.5 flex gap-2">
-                  <input
-                    type="text"
-                    value={modelPath || llmStatus.model_path || ""}
-                    onChange={(e) => setModelPath(e.target.value)}
-                    placeholder="path/to/model.gguf"
-                    className="flex-1 rounded-lg border border-edge-2 bg-surface-2 px-3 py-2 font-mono text-[11px] text-body placeholder-dim focus:border-purple-500/40 focus:outline-none focus:ring-1 focus:ring-purple-500/20"
-                  />
-                  <button onClick={handlePickModel} className="flex items-center gap-1.5 rounded-lg border border-edge-3 bg-surface-2 px-3 py-2 text-[11px] font-medium text-dim transition-colors hover:bg-surface-3 hover:text-body">
-                    <FolderOpen className="h-3.5 w-3.5" /> Browse
-                  </button>
-                </div>
-              </div>
-
-              {llmStatus.model_name && llmStatus.backend !== "ollama" && (
-                <div className="flex items-center gap-3 rounded-lg bg-surface-2 px-3 py-2 ring-1 ring-edge-1">
-                  <Server className="h-4 w-4 text-purple-400" />
-                  <div className="flex-1">
-                    <p className="text-[11px] font-medium text-body">{llmStatus.model_name}</p>
-                    <p className="text-[11px] text-dim">
-                      {llmStatus.model_size_bytes ? formatBytes(llmStatus.model_size_bytes) : "Size unknown"} · Port {llmStatus.port}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex items-center gap-2">
-                {llmStatus.status === "not_configured" || llmStatus.backend === "ollama" || (!llmStatus.model_path && !modelPath) ? (
-                  <button onClick={handleSetModel} disabled={manualLoading || !modelPath.trim()} className="flex items-center gap-1.5 rounded-lg bg-purple-600 px-4 py-2 text-[11px] font-semibold text-white transition-colors hover:bg-purple-500 disabled:opacity-50">
-                    {manualLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />} Configure Model
-                  </button>
-                ) : llmStatus.status === "running" && llmStatus.backend !== "ollama" ? (
-                  <button onClick={handleStopServer} disabled={manualLoading} className="flex items-center gap-1.5 rounded-lg bg-red-600/80 px-4 py-2 text-[11px] font-semibold text-white transition-colors hover:bg-red-500 disabled:opacity-50">
-                    <Square className="h-3 w-3" /> Stop Server
-                  </button>
-                ) : (
-                  <>
-                    <button onClick={handleStartServer} disabled={manualLoading} className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-[11px] font-semibold text-white transition-colors hover:bg-emerald-500 disabled:opacity-50">
-                      {manualLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />} Start Server
-                    </button>
-                    <button onClick={handleSetModel} disabled={manualLoading} className="flex items-center gap-1 rounded-lg border border-edge-3 bg-surface-2 px-3 py-2 text-[11px] font-medium text-dim transition-colors hover:bg-surface-3">Change Model</button>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
+        {/* Gemma 4 model guidance */}
+        <div className="rounded-lg border border-edge-2 bg-surface-2 px-3 py-2.5 text-[11px] text-dim">
+          <span className="font-semibold text-body">Recommended Gemma 4 models:</span>
+          <ul className="mt-1 space-y-0.5 text-[10px]">
+            <li><code className="text-indigo-300">gemma4:e2b</code> — 3.5 GB, good for 8GB RAM</li>
+            <li><code className="text-indigo-300">gemma4:e4b</code> — 5.4 GB, best quality/speed for 16GB RAM</li>
+            <li><code className="text-indigo-300">gemma4:26b-a4b</code> — 17 GB, near-frontier reasoning for 24GB+ RAM</li>
+          </ul>
         </div>
       </div>
     </div>

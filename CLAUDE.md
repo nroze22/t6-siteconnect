@@ -47,7 +47,7 @@
 |  screening_results / studies / study_criteria      |
 +---------------------------------------------------+
 |         llama-server Sidecar (localhost HTTP)       |
-|  BioMistral-7B or Gemma-3-1B (GGUF, CPU-only)     |
+|  Gemma-4-E4B or Gemma-4-E2B (GGUF, CPU-only)      |
 +---------------------------------------------------+
 ```
 
@@ -66,8 +66,9 @@
 | Validation | Zod + React Hook Form |
 | Local Database | SQLite + SQLCipher (AES-256) + sqlite-vec |
 | LLM Inference | llama.cpp (llama-server sidecar) |
-| Primary Model | BioMistral-7B-GGUF (Q4_K_M, ~4.4GB) |
-| Alt Model | Gemma-3-1B-GGUF (~1GB) |
+| Primary Model | Gemma-4-E4B-GGUF (Q4_K_M, ~5.0GB) |
+| Alt Model | Gemma-4-E2B-GGUF (Q4_K_M, ~3.1GB) |
+| Premium Model | Gemma-4-26B-A4B-GGUF (Q4_K_M, ~16.9GB, 24GB+ RAM) |
 | NER Pipeline | spaCy + scispaCy (Python sidecar) |
 | Data Import | Custom parsers (CSV, XLSX, FHIR JSON, CDA XML, HL7v2) |
 | Icons | Lucide React |
@@ -146,7 +147,7 @@ talos-siteconnect/
 | EMR data formats | `.agents/knowledge/emr-data-formats-reference.md` |
 | Tauri v2 development | `.agents/knowledge/tauri-v2-development-reference.md` |
 | llama.cpp sidecar | `.agents/knowledge/llama-cpp-sidecar-integration.md` |
-| Clinical LLM prompts | `.agents/knowledge/biomistral-clinical-prompts.md` |
+| Clinical LLM prompts | `.agents/knowledge/clinical-llm-prompts.md` |
 | Trial matching algorithms | `.agents/knowledge/trial-matching-algorithms.md` |
 | Desktop security | `.agents/knowledge/desktop-security-architecture.md` |
 | Site deployment | `.agents/knowledge/site-deployment-playbook.md` |
@@ -210,9 +211,10 @@ Clicking a criterion in the middle panel highlights the corresponding source dat
 
 | Tier | RAM | Model | Features |
 |------|-----|-------|----------|
-| Minimum | 4GB | None | Rule-based screening only |
-| Recommended | 8GB | Gemma-1B | Basic AI screening |
-| Optimal | 16GB+ | BioMistral-7B | Full AI features |
+| Minimum | 4GB | Gemma-4-E2B (IQ2_M, ~2.3GB) | Basic AI screening |
+| Recommended | 8GB | Gemma-4-E2B (Q4_K_M, ~3.1GB) | AI screening + structured JSON |
+| Optimal | 16GB+ | Gemma-4-E4B (Q4_K_M, ~5.0GB) | Full AI features, 128K context |
+| Premium | 24GB+ | Gemma-4-26B-A4B (Q4_K_M, ~16.9GB) | Near-frontier reasoning, 256K context |
 
 ---
 

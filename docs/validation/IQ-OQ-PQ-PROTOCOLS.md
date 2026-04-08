@@ -544,7 +544,7 @@ The Performance Qualification verifies that TalOS SiteConnect performs reliably 
 
 **Objective**: Verify LLM criterion evaluation completes within acceptable time.
 
-**Prerequisites**: BioMistral-7B GGUF model loaded; llama-server running on localhost.
+**Prerequisites**: Gemma 4 GGUF model loaded; llama-server running on localhost.
 
 | Step | Action | Expected Result | Measurement Method | Actual Result | Pass/Fail |
 |---|---|---|---|---|---|

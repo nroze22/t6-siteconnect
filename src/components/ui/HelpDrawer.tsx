@@ -258,7 +258,7 @@ const pageHelp: Record<NavigationPage, PageHelp> = {
       },
       {
         title: "Local LLM",
-        content: "TalOS SiteConnect can run a local language model (BioMistral-7B via llama.cpp) for Tier 2 screening — criteria that require clinical judgment beyond rule-based matching. The model runs entirely on your device.",
+        content: "TalOS SiteConnect can run a local language model (Gemma 3 via Ollama) for Tier 2 screening — criteria that require clinical judgment beyond rule-based matching. The model runs entirely on your device with up to 128K context window.",
       },
       {
         title: "Audit Trail",
@@ -275,25 +275,6 @@ const pageHelp: Record<NavigationPage, PageHelp> = {
       { icon: <Brain className="h-3.5 w-3.5" />, text: "LLM requires ~4GB RAM — close other apps if performance is slow" },
     ],
   },
-  cohort: {
-    title: "Cohort Builder",
-    icon: <Users className="h-5 w-5" />,
-    description: "Define and explore subject populations using natural language or guided filters. Build feasibility queries instantly.",
-    sections: [
-      {
-        title: "How to Use",
-        content: "Type a plain-English query like \"diabetic patients over 50 with A1c above 8\", or add filters manually using the filter builder. View the attrition waterfall to see which criteria are most restrictive, then export matched cohorts as CSV.",
-      },
-      {
-        title: "Supported Queries",
-        content: "Diagnosis (\"diabetes\", \"lung cancer\", \"heart failure\"), Age (\"over 50\", \"under 65\", \"age 40-70\"), Labs (\"A1c above 8\", \"eGFR below 60\"), Medications (\"on metformin\"), and Sex (\"male\", \"female\").",
-      },
-    ],
-    tips: [
-      { icon: <Search className="h-3.5 w-3.5" />, text: "Combine multiple criteria in one query for complex cohorts" },
-      { icon: <BarChart3 className="h-3.5 w-3.5" />, text: "The attrition waterfall shows your biggest enrollment bottleneck" },
-    ],
-  },
   intelligence: {
     title: "Research Intelligence",
     icon: <Lightbulb className="h-5 w-5" />,
@@ -307,6 +288,34 @@ const pageHelp: Record<NavigationPage, PageHelp> = {
     tips: [
       { icon: <TrendingUp className="h-3.5 w-3.5" />, text: "Adjust funnel drop-off rates to model best-case and worst-case scenarios" },
       { icon: <DollarSign className="h-3.5 w-3.5" />, text: "Use the ROI calculator to justify study activation decisions to leadership" },
+    ],
+  },
+  registry: {
+    title: "Patient Registry",
+    icon: <Users className="h-5 w-5" />,
+    description: "A living, consent-tracked patient database. Browse patients, manage research consent tiers, and auto-match patients to new studies.",
+    sections: [
+      {
+        title: "Getting Started",
+        content: "Import patient data first, then manage consent status per patient. When new studies arrive, the registry auto-matches eligible patients.",
+      },
+    ],
+    tips: [
+      { icon: <Shield className="h-3.5 w-3.5" />, text: "All consent data stays local — never transmitted off-device" },
+    ],
+  },
+  naaccr: {
+    title: "Tumor Registry",
+    icon: <Shield className="h-5 w-5" />,
+    description: "Automate mandated cancer case reporting (NAACCR). Detect reportable cases, auto-populate fields, validate, and export XML for state submission.",
+    sections: [
+      {
+        title: "Workflow",
+        content: "Run case detection to find reportable cancers from ICD-10 codes. Review auto-populated NAACCR fields, fill gaps manually or with LLM assistance, validate against GenEDITS rules, and export NAACCR XML.",
+      },
+    ],
+    tips: [
+      { icon: <TrendingUp className="h-3.5 w-3.5" />, text: "Cases with ICD-10 C00-C96 and D00-D09 are auto-detected as reportable" },
     ],
   },
 };

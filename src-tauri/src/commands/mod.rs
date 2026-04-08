@@ -1,9 +1,13 @@
 pub mod analytics;
 pub mod database;
+pub mod epic;
 pub mod import;
 pub mod llm;
+pub mod naaccr;
 pub mod ollama;
+pub mod registry;
 pub mod screening;
+pub mod studies;
 pub mod watcher;
 
 use serde::Serialize;

@@ -1,4 +1,5 @@
 pub mod fhir;
+pub mod fhir_normalize;
 pub mod hl7;
 pub mod mapping;
 

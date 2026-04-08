@@ -112,7 +112,7 @@ export interface StudyCriterion {
 
 export type ScreeningStatus = "eligible" | "potentially_eligible" | "ineligible" | "needs_review";
 export type CriterionResultType = "met" | "not_met" | "unknown" | "needs_review";
-export type ReviewStatus = "pending" | "accepted" | "rejected" | "deferred";
+export type ReviewStatus = "pending" | "accepted" | "rejected" | "deferred" | "needs_pi_review";
 
 export interface ScreeningResult {
   id: string;
@@ -220,6 +220,120 @@ export type NavigationPage =
   | "analytics"
   | "pipeline"
   | "performance"
-  | "cohort"
   | "intelligence"
+  | "registry"
+  | "naaccr"
   | "settings";
+
+// --- Multi-Protocol Screening ---
+
+export interface MultiScreenRequest {
+  studyIds: string[];
+  patientIds?: string[];
+}
+
+export interface MultiScreenBatchResponse {
+  batchId: string;
+  results: ScreeningResultResponse[];
+  studyCount: number;
+  patientCount: number;
+}
+
+export interface ScreeningResultResponse {
+  screeningId: string;
+  patientId: string;
+  studyId: string;
+  sitePatientId: string;
+  age: number | null;
+  gender: string | null;
+  primaryDiagnosis: string | null;
+  overallStatus: ScreeningStatus;
+  score: number;
+  inclusionMet: number;
+  inclusionTotal: number;
+  exclusionTriggered: number;
+  exclusionTotal: number;
+  missingDataCount: number;
+}
+
+export interface ScreeningProgress {
+  batchId: string;
+  studiesCompleted: number;
+  studiesTotal: number;
+  currentStudyName: string;
+}
+
+export interface MatrixCell {
+  patientId: string;
+  studyId: string;
+  score: number;
+  status: ScreeningStatus;
+  inclusionMet: number;
+  inclusionTotal: number;
+  exclusionTriggered: number;
+}
+
+export interface PatientBestMatches {
+  patientId: string;
+  sitePatientId: string;
+  age: number | null;
+  gender: string | null;
+  primaryDiagnosis: string | null;
+  matches: Array<{
+    studyId: string;
+    studyTitle: string;
+    score: number;
+    status: ScreeningStatus;
+  }>;
+}
+
+// --- Patient Registry ---
+
+export type ConsentType = "general_research" | "condition_specific" | "full_record" | "healthy_volunteer";
+export type ConsentStatus = "active" | "withdrawn" | "expired";
+export type RegistryAvailability = "available" | "enrolled" | "washout" | "unavailable";
+
+export interface PatientConsent {
+  id: string;
+  patientId: string;
+  consentType: ConsentType;
+  conditionScope: string | null;
+  status: ConsentStatus;
+  grantedDate: string;
+  expiryDate: string | null;
+  withdrawnDate: string | null;
+  withdrawalReason: string | null;
+  documentedBy: string | null;
+  notes: string | null;
+}
+
+export interface PatientRegistryStatus {
+  patientId: string;
+  registryStatus: "active" | "inactive" | "deceased" | "withdrawn";
+  availability: RegistryAvailability;
+  washoutUntil: string | null;
+  totalStudiesParticipated: number;
+  lastStudyEndDate: string | null;
+  maxConcurrentStudies: number;
+  compensationTotalCents: number;
+  annualCompensationLimitCents: number | null;
+}
+
+export interface RegistryDashboard {
+  totalPatients: number;
+  byConsentTier: Record<ConsentType, number>;
+  byAvailability: Record<RegistryAvailability, number>;
+  topConditions: Array<{ icd10Prefix: string; description: string; count: number }>;
+  recentUpdates: Array<{ patientId: string; action: string; timestamp: string }>;
+}
+
+export interface AutoMatchNotification {
+  id: string;
+  patientId: string;
+  studyId: string;
+  score: number;
+  status: ScreeningStatus;
+  notifiedAt: string;
+  dismissed: boolean;
+  actioned: boolean;
+}

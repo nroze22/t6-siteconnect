@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use sysinfo::{Disks, System};
 use tauri::{AppHandle, Emitter, Manager};
 
-use crate::commands::llm::{LlmBackend, LlmState, LlmStatus, LlmStatusResponse};
+use crate::commands::llm::{LlmState, LlmStatus, LlmStatusResponse};
 
 // --- Response types ---
 
@@ -460,7 +460,22 @@ pub async fn pull_ollama_model(app: AppHandle, model: String) -> Result<(), Stri
         .map_err(|e| format!("Failed to start model pull: {}", e))?;
 
     if !resp.status().is_success() {
-        return Err(format!("Ollama pull returned status {}", resp.status()));
+        let status = resp.status();
+        let body = resp.text().await.unwrap_or_default();
+
+        // Ollama returns 412 when the model requires a newer version
+        if status.as_u16() == 412 {
+            return Err(format!(
+                "OLLAMA_UPDATE_REQUIRED: This model requires a newer version of Ollama. \
+                 Please update Ollama at https://ollama.com/download and try again."
+            ));
+        }
+
+        return Err(format!(
+            "Ollama pull failed (HTTP {}): {}",
+            status,
+            if body.is_empty() { "unknown error".to_string() } else { body }
+        ));
     }
 
     // Stream NDJSON lines
@@ -529,12 +544,14 @@ pub fn detect_system_hardware() -> Result<SystemHardware, String> {
         .unwrap_or(0);
     let free_disk_gb = free_disk_bytes as f64 / (1024.0 * 1024.0 * 1024.0);
 
-    let (recommended_tier, recommended_model) = if total_ram_gb >= 16.0 {
-        ("standard", "gemma3:4b")
+    let (recommended_tier, recommended_model) = if total_ram_gb >= 24.0 {
+        ("premium", "gemma4:26b-a4b")  // MoE: 25B params, 3.8B active, near-frontier
+    } else if total_ram_gb >= 16.0 {
+        ("optimal", "gemma4:e4b")      // 8B params, 4.5B active, best quality/speed
     } else if total_ram_gb >= 8.0 {
-        ("lite", "gemma3:1b")
+        ("recommended", "gemma4:e2b")  // 4.5B params, 2.3B active, good structured output
     } else {
-        ("none", "none")
+        ("minimum", "gemma4:e2b")      // Same model, tighter memory — marginal but functional
     };
 
     Ok(SystemHardware {
@@ -570,8 +587,8 @@ pub async fn configure_ollama_backend(
     }
 
     // Verify the model is available
-    // Ollama model names may include :latest suffix (e.g., "gemma3:4b" listed as "gemma3:4b")
-    // or the tag may be implicit (e.g., user passes "gemma3" which maps to "gemma3:latest")
+    // Ollama model names may include :latest suffix (e.g., "gemma4:e4b" listed as "gemma4:e4b")
+    // or the tag may be implicit (e.g., user passes "gemma4" which maps to "gemma4:latest")
     let models = fetch_ollama_models().await?;
     let model_found = models.iter().any(|m| {
         m.name == model
@@ -593,21 +610,17 @@ pub async fn configure_ollama_backend(
         .lock()
         .map_err(|e| format!("Lock poisoned: {}", e))?;
 
-    lock.backend = LlmBackend::Ollama;
     lock.status = LlmStatus::Running;
-    lock.ollama_model = Some(model.clone());
+    lock.model = Some(model.clone());
     lock.port = 11434;
 
     tracing::info!("LLM backend configured: Ollama with model {}", model);
 
     Ok(LlmStatusResponse {
         status: lock.status.clone(),
-        model_name: Some(model.clone()),
-        model_path: lock.model_path.clone(),
+        model_name: Some(model),
         port: lock.port,
-        model_size_bytes: None,
         backend: "ollama".to_string(),
-        ollama_model: Some(model),
     })
 }
 
@@ -621,11 +634,11 @@ pub async fn test_ollama_inference(app: AppHandle) -> Result<TestInferenceResult
             .lock()
             .map_err(|e| format!("Lock poisoned: {}", e))?;
 
-        if lock.backend != LlmBackend::Ollama {
-            return Err("Backend is not set to Ollama".to_string());
+        if lock.status != LlmStatus::Running {
+            return Err("LLM is not running".to_string());
         }
 
-        lock.ollama_model
+        lock.model
             .clone()
             .ok_or("No Ollama model configured")?
     };
