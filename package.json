@@ -17,7 +17,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:all": "vitest run && playwright test",
     "test:report": "node scripts/zephyr-reporter.mjs",
-    "test:validate": "vitest run --coverage && node scripts/zephyr-reporter.mjs"
+    "test:validate": "vitest run --coverage && node scripts/zephyr-reporter.mjs",
+    "demo:fixtures": "node scripts/export-data-counts-demo.mjs"
   },
   "author": "Talosix",
   "license": "UNLICENSED",

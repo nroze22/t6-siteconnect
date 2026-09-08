@@ -1,3 +1,4 @@
+import { DataCountsPage } from "@/components/data-counts/DataCountsPage";
 import React, { useEffect, useState, useCallback } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
@@ -110,7 +111,7 @@ function PageRouter() {
   const currentPage = useAppStore((s) => s.currentPage);
   const currentMode = useModeStore((s) => s.currentMode);
 
-  const page = (() => {
+  const page = currentMode === "data-counts" ? <DataCountsPage /> : (() => {
     switch (currentPage) {
       case "dashboard":
         // Non-admin modes get a role-tailored landing. Admin keeps the full
@@ -171,6 +172,7 @@ function useGlobalShortcuts() {
   const currentMode = useModeStore((s) => s.currentMode);
 
   useEffect(() => {
+    if (currentMode === "data-counts") return;
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return;
@@ -194,7 +196,7 @@ function useGlobalShortcuts() {
 
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [setCurrentPage, lock]);
+  }, [setCurrentPage, lock, currentMode]);
 }
 
 /** Must be rendered inside ToastProvider so useToast() works. */
@@ -204,7 +206,8 @@ function WatcherInit() {
 }
 
 function MainApp() {
-  useDemoData();
+  const dataCountsMode = useModeStore(s => s.currentMode === "data-counts");
+  useDemoData(!dataCountsMode);
   useGlobalShortcuts();
   const currentPage = useAppStore((s) => s.currentPage);
   const setCurrentPage = useAppStore((s) => s.setCurrentPage);
@@ -247,9 +250,10 @@ function MainApp() {
 
   // Initialize background LLM processing queue
   useEffect(() => {
+    if (dataCountsMode) return;
     const cleanup = initLlmQueue();
     return cleanup;
-  }, []);
+  }, [dataCountsMode]);
 
   const [showOnboarding, setShowOnboarding] = useState(() => {
     try {
@@ -270,7 +274,7 @@ function MainApp() {
 
   return (
     <ToastProvider>
-      <WatcherInit />
+      {!dataCountsMode && <WatcherInit />}
       <div className="flex h-screen w-screen overflow-hidden bg-background">
         <Sidebar />
         <div className="flex flex-1 flex-col overflow-hidden">
@@ -278,20 +282,19 @@ function MainApp() {
           <main className="flex-1 overflow-hidden">
             <PageRouter />
           </main>
-          <StatusBar />
+          {dataCountsMode ? <footer className="flex h-8 items-center justify-between border-t border-border px-5 text-[10px] text-dim"><span>Data COUNTS · synthetic rehearsal</span><span>No real broker connection · no approved PPRL</span></footer> : <StatusBar />}
         </div>
-        {showOnboarding && <SiteOnboarding onComplete={handleOnboardingComplete} />}
-        {!showOnboarding && !hasChosenMode && <ModeSelector />}
-        {!showOnboarding && hasChosenMode && <WelcomeOverview />}
-        <CommandPalette />
-        <KeyboardShortcutsOverlay />
-        <HelpDrawer currentPage={currentPage} />
+        {!dataCountsMode && showOnboarding && <SiteOnboarding onComplete={handleOnboardingComplete} />}
+        {!dataCountsMode && !showOnboarding && !hasChosenMode && <ModeSelector />}
+        {!dataCountsMode && !showOnboarding && hasChosenMode && <WelcomeOverview />}
+        {!dataCountsMode && <><CommandPalette /><KeyboardShortcutsOverlay /><HelpDrawer currentPage={currentPage} /></>}
       </div>
     </ToastProvider>
   );
 }
 
 export default function App() {
+  const demoMode = useModeStore(s => s.currentMode === "data-counts");
   // null = still loading, true/false = resolved
   const [databaseExists, setDatabaseExists] = useState<boolean | null>(null);
   const [databaseUnlocked, setDatabaseUnlocked] = useState(false);
@@ -317,6 +320,9 @@ export default function App() {
   const handleUnlock = useCallback(() => {
     setDatabaseUnlocked(true);
   }, []);
+
+  // The synthetic-only rehearsal is isolated from the clinical database.
+  if (demoMode) return <ErrorBoundary><MainApp /></ErrorBoundary>;
 
   // Loading state — branded splash screen
   if (databaseExists === null) {
@@ -353,14 +359,16 @@ export default function App() {
     );
   }
 
+  const backToRehearsal = <button className="fixed top-5 right-5 z-50 rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white" onClick={() => useModeStore.getState().setMode("data-counts")}>Return to synthetic rehearsal</button>;
+
   // First run — no database yet
   if (!databaseExists) {
-    return <SetupScreen onComplete={handleSetupComplete} />;
+    return <>{backToRehearsal}<SetupScreen onComplete={handleSetupComplete} /></>;
   }
 
   // Database exists but not unlocked
   if (!databaseUnlocked) {
-    return <UnlockScreen onUnlock={handleUnlock} />;
+    return <>{backToRehearsal}<UnlockScreen onUnlock={handleUnlock} /></>;
   }
 
   // Ready

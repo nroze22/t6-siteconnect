@@ -1,0 +1,13 @@
+import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import {transform} from 'esbuild';
+const {code}=await transform(await readFile(new URL('../src/lib/data-counts/engine.ts',import.meta.url),'utf8'),{loader:'ts',format:'esm'});
+const engine=await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
+const folder=new URL('../sample-data/data-counts/',import.meta.url);await mkdir(folder,{recursive:true});
+const save=(name,data)=>writeFile(new URL(name,folder),JSON.stringify(data,null,2)+'\n');
+await save('request-v1.json',engine.REQUEST);
+await save('source-v1-with-issues.fhir.json',engine.sourceBundle(false));
+await save('source-v2-corrected.fhir.json',engine.sourceBundle(true));
+await save('permission-fixtures.json',{synthetic:true,authority:'Internal demo only',v1:engine.PATIENTS.map(p=>({patient:p.id,permitted:p.permitted})),v2:engine.PATIENTS.map(p=>({patient:p.id,permitted:p.permitted&&p.id!=='SYN-003'}))});
+await save('expected-run-v2.json',{synthetic:true,warning:'Illustrative privacy tokens and dates. Not for NIH submission.',...await engine.buildRun(true,false)});
+await save('expected-revocation-refresh.json',{synthetic:true,warning:'Illustrative privacy tokens and dates. Not for NIH submission.',...await engine.buildRun(true,true)});
+console.log('Wrote six synthetic demo fixtures to sample-data/data-counts');

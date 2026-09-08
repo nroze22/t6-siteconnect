@@ -347,11 +347,14 @@ function WatcherPanel() {
 
 // ─── Ollama model tier definitions ─────────────────────────────────
 
+// Catalog checked against https://ollama.com/library/gemma4 on 2026-09-08.
+// RAM figures are conservative demo planning estimates, not measured guarantees.
 const AI_MODELS = [
-  { id: "gemma3:1b", label: "Lite (1B)", size: "~1.0 GB", sizeGb: 1.0, ramReq: "4 GB", downloadTime: "1–3 min", description: "Lightweight model for basic AI screening. Fast inference on any hardware." },
-  { id: "gemma3:4b", label: "Standard (4B)", size: "~3.3 GB", sizeGb: 3.3, ramReq: "8 GB+", downloadTime: "5–15 min", description: "Balanced performance and quality. Recommended for most sites." },
-  { id: "gemma3:12b", label: "Advanced (12B)", size: "~8.1 GB", sizeGb: 8.1, ramReq: "16 GB+", downloadTime: "15–30 min", description: "High-quality clinical reasoning. Great for complex eligibility criteria." },
-  { id: "gemma3:27b", label: "Premium (27B)", size: "~17 GB", sizeGb: 17.0, ramReq: "24 GB+", downloadTime: "30–60 min", description: "Near-frontier reasoning with 128K context. Best accuracy available." },
+  { id: "gemma4:e2b", label: "Gemma 4 E2B", size: "~7.2 GB", sizeGb: 7.2, ramReq: "16 GB+ suggested", downloadTime: "varies", description: "Compact current-generation option. Validate extraction on your demo machine." },
+  { id: "gemma4:e4b", label: "Gemma 4 E4B", size: "~9.6 GB", sizeGb: 9.6, ramReq: "24 GB+ suggested", downloadTime: "varies", description: "Default candidate on larger demo machines. Review every extracted value." },
+  { id: "gemma4:12b", label: "Gemma 4 12B", size: "~7.6 GB", sizeGb: 7.6, ramReq: "24 GB+ suggested", downloadTime: "varies", description: "Optional dense model for comparison. Benchmark latency before presenting." },
+  { id: "gemma4:26b", label: "Gemma 4 26B", size: "~19 GB", sizeGb: 19, ramReq: "32 GB+ suggested", downloadTime: "varies", description: "Manual workstation option. Not selected automatically for the rehearsal." },
+  { id: "gemma3:1b", label: "Legacy lite (1B)", size: "~1.0 GB", sizeGb: 1, ramReq: "4 GB+", downloadTime: "varies", description: "Existing lightweight fallback. Limited extraction capability; review carefully." },
 ] as const;
 
 type SetupPhase = "idle" | "installing_ollama" | "starting_ollama" | "downloading_model" | "activating" | "testing" | "done" | "error";
@@ -366,7 +369,7 @@ function AiSetupPanel() {
   });
   const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus>({ installed: false, running: false, models: [] });
   const [hardware, setHardware] = useState<SystemHardware | null>(null);
-  const [selectedModel, setSelectedModel] = useState<string>("gemma3:4b");
+  const [selectedModel, setSelectedModel] = useState<string>("gemma4:e2b");
 
   // One-click setup state
   const [phase, setPhase] = useState<SetupPhase>("idle");
@@ -813,7 +816,7 @@ function AiSetupPanel() {
 
             <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-1">Choose a model</p>
             <p className="text-[11px] text-dim mb-3 leading-relaxed">
-              AI models are large files (1–4 GB) and require a one-time download. Depending on your internet speed, this can take <strong className="text-body">10–30 minutes</strong>. Once downloaded, all AI screening runs 100% locally — no internet needed.
+              Model downloads range from about 1–19 GB. Download time depends on your connection; allow disk space for the model and working files. These listed models run locally after setup. Check inference before your presentation.
             </p>
             <div className="grid grid-cols-2 gap-3">
               {AI_MODELS.map((model) => {
@@ -864,7 +867,7 @@ function AiSetupPanel() {
             {hardware?.recommended_tier === "none" && (
               <div className="mt-3 flex items-center gap-2 rounded-lg bg-amber-500/5 px-3 py-2 ring-1 ring-amber-500/15">
                 <AlertCircle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                <span className="text-[12px] text-amber-400">Your system has less than 8 GB RAM. AI screening requires at least 8 GB. Rule-based screening is still available.</span>
+                <span className="text-[12px] text-amber-400">This system has less than 4 GB RAM. Use the structured-data rehearsal without local AI.</span>
               </div>
             )}
           </div>
@@ -905,9 +908,9 @@ function AiSetupPanel() {
         <div className="rounded-lg border border-edge-2 bg-surface-2 px-3 py-2.5 text-[11px] text-dim">
           <span className="font-semibold text-body">Recommended Gemma 4 models:</span>
           <ul className="mt-1 space-y-0.5 text-[10px]">
-            <li><code className="text-indigo-300">gemma4:e2b</code> — 3.5 GB, good for 8GB RAM</li>
-            <li><code className="text-indigo-300">gemma4:e4b</code> — 5.4 GB, best quality/speed for 16GB RAM</li>
-            <li><code className="text-indigo-300">gemma4:26b-a4b</code> — 17 GB, near-frontier reasoning for 24GB+ RAM</li>
+            <li><code className="text-indigo-300">gemma4:e2b</code> — about 7.2 GB download; plan 16 GB+ RAM</li>
+            <li><code className="text-indigo-300">gemma4:e4b</code> — about 9.6 GB download; plan 24 GB+ RAM</li>
+            <li><code className="text-indigo-300">gemma4:26b</code> — about 19 GB download; manual workstation option</li>
           </ul>
         </div>
       </div>

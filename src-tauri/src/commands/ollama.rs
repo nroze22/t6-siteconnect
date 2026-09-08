@@ -544,14 +544,15 @@ pub fn detect_system_hardware() -> Result<SystemHardware, String> {
         .unwrap_or(0);
     let free_disk_gb = free_disk_bytes as f64 / (1024.0 * 1024.0 * 1024.0);
 
+    // Catalog size is not total runtime memory; leave room for OS and context.
     let (recommended_tier, recommended_model) = if total_ram_gb >= 24.0 {
-        ("premium", "gemma4:26b-a4b")  // MoE: 25B params, 3.8B active, near-frontier
+        ("optimal", "gemma4:e4b")
     } else if total_ram_gb >= 16.0 {
-        ("optimal", "gemma4:e4b")      // 8B params, 4.5B active, best quality/speed
-    } else if total_ram_gb >= 8.0 {
-        ("recommended", "gemma4:e2b")  // 4.5B params, 2.3B active, good structured output
+        ("recommended", "gemma4:e2b")
+    } else if total_ram_gb >= 4.0 {
+        ("minimum", "gemma3:1b")
     } else {
-        ("minimum", "gemma4:e2b")      // Same model, tighter memory — marginal but functional
+        ("none", "none")
     };
 
     Ok(SystemHardware {

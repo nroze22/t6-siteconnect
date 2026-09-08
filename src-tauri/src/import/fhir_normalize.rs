@@ -302,7 +302,14 @@ pub fn insert_observation(
         .and_then(|v| v.as_str())
         .unwrap_or("");
 
-    let (test_name, _) = extract_code_and_text(observation.get("code"));
+    let coding = observation.pointer("/code/coding").and_then(|v| v.as_array())
+        .and_then(|items| items.iter().find(|c| c.get("system").and_then(|s| s.as_str()) == Some("http://loinc.org")).or_else(|| items.first()));
+    let loinc_code = coding.filter(|c| c.get("system").and_then(|s| s.as_str()) == Some("http://loinc.org"))
+        .and_then(|c| c.get("code")).and_then(|v| v.as_str());
+    let test_name = extract_code_and_text(observation.get("code")).1
+        .or_else(|| coding.and_then(|c| c.get("code")).and_then(|v| v.as_str()).map(String::from));
+    let resource_id = observation.get("id").and_then(|v| v.as_str());
+    let row_id = resource_id.map(|id| format!("fhir-observation-{}-{}", patient_id, id)).unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
     let test_name = match test_name {
         Some(n) if !n.trim().is_empty() => n,
         _ => {
@@ -323,22 +330,23 @@ pub fn insert_observation(
     let result_date = observation
         .get("effectiveDateTime")
         .and_then(|v| v.as_str())
-        .map(date_only);
+        .map(String::from);
 
     if category == "vital-signs" {
-        // Vitals — no `value` requirement (BP components handled below).
+        // Never manufacture zero when a numeric observation is absent.
         let measurement_type = vital_type_from_loinc(&test_name);
-        let value_for_vital = value.unwrap_or_default();
+        let Some(value_for_vital) = value else { stats.skipped += 1; return; };
         let unit = unit.unwrap_or_default();
         if let Err(err) = conn.execute(
-            "INSERT INTO vitals (id, patient_id, vital_type, value, unit)
-             VALUES (?1, ?2, ?3, ?4, ?5)",
+            "INSERT INTO vitals (id, patient_id, vital_type, value, unit, measurement_date)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6) ON CONFLICT(id) DO UPDATE SET vital_type=excluded.vital_type, value=excluded.value, unit=excluded.unit, measurement_date=excluded.measurement_date",
             params![
-                uuid::Uuid::new_v4().to_string(),
+                row_id,
                 patient_id,
                 measurement_type,
                 value_for_vital,
                 unit,
+                result_date,
             ],
         ) {
             tracing::warn!("Failed to insert vital: {}", err);
@@ -370,16 +378,17 @@ pub fn insert_observation(
         .map(String::from);
 
     if let Err(err) = conn.execute(
-        "INSERT INTO lab_results (id, patient_id, test_name, value, unit, result_date, abnormal_flag)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        "INSERT INTO lab_results (id, patient_id, test_name, value, unit, result_date, abnormal_flag, loinc_code)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8) ON CONFLICT(id) DO UPDATE SET test_name=excluded.test_name, value=excluded.value, unit=excluded.unit, result_date=excluded.result_date, abnormal_flag=excluded.abnormal_flag, loinc_code=excluded.loinc_code",
         params![
-            uuid::Uuid::new_v4().to_string(),
+            row_id,
             patient_id,
             test_name,
             value,
             unit,
             result_date,
             abnormal_flag,
+            loinc_code,
         ],
     ) {
         tracing::warn!("Failed to insert lab: {}", err);
@@ -500,6 +509,28 @@ fn vital_type_from_loinc(display: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn lab_updates_preserve_loinc_and_timestamp_without_duplicate_rows() {
+        let conn = Connection::open_in_memory().unwrap();
+        crate::db::run_migrations(&conn).unwrap();
+        let mut stats = NormalizeStats::default();
+        let patient = upsert_patient(&conn, &serde_json::json!({"id":"synthetic-1","birthDate":"1960-01-01"}), &mut stats).unwrap();
+        let mut observation = serde_json::json!({"id":"lab-1", "category":[{"coding":[{"code":"laboratory"}]}],
+            "code":{"coding":[{"system":"http://loinc.org","code":"2160-0","display":"Creatinine"}]},
+            "valueQuantity":{"value":1.2,"unit":"mg/dL"},"effectiveDateTime":"2026-08-06T08:30:00Z"});
+        insert_observation(&conn, &patient, &observation, &mut stats);
+        observation["valueQuantity"]["value"] = serde_json::json!(1.3);
+        insert_observation(&conn, &patient, &observation, &mut stats);
+        let (count, code, value, time): (i64,String,f64,String) = conn.query_row(
+            "SELECT count(*), loinc_code, value, result_date FROM lab_results", [], |r| Ok((r.get(0)?,r.get(1)?,r.get(2)?,r.get(3)?))).unwrap();
+        assert_eq!(count, 1); assert_eq!(code, "2160-0"); assert_eq!(value, 1.3); assert_eq!(time,"2026-08-06T08:30:00Z");
+        observation["category"][0]["coding"][0]["code"] = serde_json::json!("vital-signs");
+        observation.as_object_mut().unwrap().remove("valueQuantity");
+        insert_observation(&conn, &patient, &observation, &mut stats);
+        assert_eq!(conn.query_row("SELECT count(*) FROM vitals", [], |r| r.get::<_,i64>(0)).unwrap(),0);
+        assert_eq!(stats.skipped,1);
+    }
 
     #[test]
     fn date_only_strips_time() {
