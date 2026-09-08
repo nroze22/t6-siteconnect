@@ -38,3 +38,17 @@ describe('Data COUNTS guided experience',()=>{
   expect((screen.getByRole('button',{name:'Export demo package'}) as HTMLButtonElement).disabled).toBe(false);
  });
 });
+
+it('keeps source evidence aligned with search and issue navigation',async()=>{
+ cleanup();localStorage.clear();localStorage.setItem('siteconnect-data-counts-intro-v1','complete');HTMLElement.prototype.scrollTo=()=>{};useAppStore.setState({currentPage:'dashboard',theme:'light'});
+ render(<DataCountsPage/>);
+ fireEvent.click(screen.getByRole('button',{name:'Source records'}));
+ fireEvent.change(screen.getByRole('textbox',{name:'Search source records'}),{target:{value:'OBS-003-1-5'}});
+ expect(screen.getByRole('heading',{name:'Glucose'})).toBeTruthy();
+ expect(screen.getByText('Not supplied · do not interpret as a fasting glucose')).toBeTruthy();
+ fireEvent.click(screen.getByRole('button',{name:'Run quality checks'}));
+ await screen.findByText('2 release blockers');
+ fireEvent.click(screen.getAllByRole('button',{name:'Inspect source evidence'})[0]!);
+ expect((screen.getByRole('textbox',{name:'Search source records'}) as HTMLInputElement).value).toBe('');
+ expect(screen.getByText(/Unit not supplied/)).toBeTruthy();
+});

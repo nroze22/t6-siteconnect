@@ -81,9 +81,15 @@ The reference is RFI **75N95C26R00005**, not an awarded contract. This implement
 ## Verification
 
 - TypeScript and Vite production build passed.
-- 225 frontend tests passed; 108 Rust tests passed.
+- 232 frontend tests passed; 108 Rust tests passed.
 - Added regression coverage: source defects block release; exact counts; code/unit and time-interval preservation; stable identity; revocation invalidates approval; no duplicate simulated ingestion; FHIR-shaped source exports; pooled encrypted connections across reopen; lab update preservation; no fabricated zero vital.
-- This revision verified first-run onboarding, remembered introduction completion, persistent appearance switching, source correction, explicit approval gating and receipt completion. Two UI regression tests cover onboarding and the correction/review path.
+- This revision verified first-run onboarding, remembered introduction completion, persistent appearance switching, source correction, explicit approval gating and receipt completion. Three UI regression tests cover onboarding and the correction/review path.
 - Browser walkthrough verified corrected release, authorization, lost-receipt reconciliation, 108-row revocation refresh, retained Screening workspace and reset.
 - Packaged Apple Silicon app launched at `tauri://localhost`. Native request export saved and its JSON was read back. Native missing-model behavior and return from database unlock to the isolated rehearsal were verified.
 - Existing compiler warnings and a large frontend bundle warning remain. No real hospital connection, live broker, approved PPRL, model inference benchmark, load test, signed installer or production upgrade was verified.
+
+## Clinical data review · September 8, 2026
+
+Request v2 and output schema v2 preserve final-result status and specimen context. The six example LOINC codes were checked against official definitions. Observation time and result availability are labeled separately. No reference range, abnormal flag or fasting status is invented. The release view gives patient-level exclusion reasons; changed packages require a fresh review. Search and issue inspection keep source evidence aligned with the displayed record.
+
+See `CLINICAL-DATA-REVIEW.md` for evidence, boundary tests and the site acceptance cases still required. `request-v1.json` is retained as historical context; use `request-v2.json` with current fixtures.

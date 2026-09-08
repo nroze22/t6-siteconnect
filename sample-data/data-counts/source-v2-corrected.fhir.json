@@ -12,6 +12,7 @@
   },
   "entry": [
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-001",
       "resource": {
         "resourceType": "Patient",
         "id": "SYN-001",
@@ -19,6 +20,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-002",
       "resource": {
         "resourceType": "Patient",
         "id": "SYN-002",
@@ -26,6 +28,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-003",
       "resource": {
         "resourceType": "Patient",
         "id": "SYN-003",
@@ -33,6 +36,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-004",
       "resource": {
         "resourceType": "Patient",
         "id": "SYN-004",
@@ -40,6 +44,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-005",
       "resource": {
         "resourceType": "Patient",
         "id": "SYN-005",
@@ -47,6 +52,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-006",
       "resource": {
         "resourceType": "Patient",
         "id": "SYN-006",
@@ -54,6 +60,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-007",
       "resource": {
         "resourceType": "Patient",
         "id": "SYN-007",
@@ -61,6 +68,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-008",
       "resource": {
         "resourceType": "Patient",
         "id": "SYN-008",
@@ -68,6 +76,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-009",
       "resource": {
         "resourceType": "Patient",
         "id": "SYN-009",
@@ -75,6 +84,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-010",
       "resource": {
         "resourceType": "Patient",
         "id": "SYN-010",
@@ -82,6 +92,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-011",
       "resource": {
         "resourceType": "Patient",
         "id": "SYN-011",
@@ -89,6 +100,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-012",
       "resource": {
         "resourceType": "Patient",
         "id": "SYN-012",
@@ -96,6 +108,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-1-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-001-1-1",
@@ -131,6 +144,9 @@
         "subject": {
           "reference": "Patient/SYN-001"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -142,6 +158,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-1-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-001-1-2",
@@ -177,6 +194,9 @@
         "subject": {
           "reference": "Patient/SYN-001"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -188,6 +208,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-1-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-001-1-3",
@@ -223,6 +244,9 @@
         "subject": {
           "reference": "Patient/SYN-001"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -234,6 +258,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-1-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-001-1-4",
@@ -269,6 +294,9 @@
         "subject": {
           "reference": "Patient/SYN-001"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -280,6 +308,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-1-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-001-1-5",
@@ -315,6 +344,9 @@
         "subject": {
           "reference": "Patient/SYN-001"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -326,6 +358,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-1-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-001-1-6",
@@ -361,6 +394,9 @@
         "subject": {
           "reference": "Patient/SYN-001"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -372,6 +408,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-2-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-001-2-1",
@@ -407,6 +444,9 @@
         "subject": {
           "reference": "Patient/SYN-001"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -418,6 +458,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-2-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-001-2-2",
@@ -453,6 +494,9 @@
         "subject": {
           "reference": "Patient/SYN-001"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -464,6 +508,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-2-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-001-2-3",
@@ -499,6 +544,9 @@
         "subject": {
           "reference": "Patient/SYN-001"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -510,6 +558,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-2-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-001-2-4",
@@ -545,6 +594,9 @@
         "subject": {
           "reference": "Patient/SYN-001"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -556,6 +608,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-2-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-001-2-5",
@@ -591,6 +644,9 @@
         "subject": {
           "reference": "Patient/SYN-001"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -602,6 +658,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-2-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-001-2-6",
@@ -637,6 +694,9 @@
         "subject": {
           "reference": "Patient/SYN-001"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -648,6 +708,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-1-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-002-1-1",
@@ -683,6 +744,9 @@
         "subject": {
           "reference": "Patient/SYN-002"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -694,6 +758,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-1-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-002-1-2",
@@ -729,6 +794,9 @@
         "subject": {
           "reference": "Patient/SYN-002"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -740,6 +808,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-1-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-002-1-3",
@@ -775,6 +844,9 @@
         "subject": {
           "reference": "Patient/SYN-002"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -786,6 +858,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-1-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-002-1-4",
@@ -821,6 +894,9 @@
         "subject": {
           "reference": "Patient/SYN-002"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -832,6 +908,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-1-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-002-1-5",
@@ -867,6 +944,9 @@
         "subject": {
           "reference": "Patient/SYN-002"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -878,6 +958,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-1-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-002-1-6",
@@ -913,6 +994,9 @@
         "subject": {
           "reference": "Patient/SYN-002"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -924,6 +1008,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-2-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-002-2-1",
@@ -959,6 +1044,9 @@
         "subject": {
           "reference": "Patient/SYN-002"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -970,6 +1058,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-2-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-002-2-2",
@@ -1005,6 +1094,9 @@
         "subject": {
           "reference": "Patient/SYN-002"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -1016,6 +1108,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-2-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-002-2-3",
@@ -1051,6 +1144,9 @@
         "subject": {
           "reference": "Patient/SYN-002"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -1062,6 +1158,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-2-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-002-2-4",
@@ -1097,6 +1194,9 @@
         "subject": {
           "reference": "Patient/SYN-002"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -1108,6 +1208,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-2-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-002-2-5",
@@ -1143,6 +1244,9 @@
         "subject": {
           "reference": "Patient/SYN-002"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -1154,6 +1258,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-2-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-002-2-6",
@@ -1189,6 +1294,9 @@
         "subject": {
           "reference": "Patient/SYN-002"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -1200,6 +1308,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-1-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-003-1-1",
@@ -1235,6 +1344,9 @@
         "subject": {
           "reference": "Patient/SYN-003"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -1246,6 +1358,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-1-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-003-1-2",
@@ -1281,6 +1394,9 @@
         "subject": {
           "reference": "Patient/SYN-003"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -1292,6 +1408,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-1-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-003-1-3",
@@ -1327,6 +1444,9 @@
         "subject": {
           "reference": "Patient/SYN-003"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -1338,6 +1458,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-1-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-003-1-4",
@@ -1373,6 +1494,9 @@
         "subject": {
           "reference": "Patient/SYN-003"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -1384,6 +1508,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-1-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-003-1-5",
@@ -1419,6 +1544,9 @@
         "subject": {
           "reference": "Patient/SYN-003"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -1430,6 +1558,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-1-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-003-1-6",
@@ -1465,6 +1594,9 @@
         "subject": {
           "reference": "Patient/SYN-003"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -1476,6 +1608,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-2-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-003-2-1",
@@ -1511,6 +1644,9 @@
         "subject": {
           "reference": "Patient/SYN-003"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -1522,6 +1658,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-2-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-003-2-2",
@@ -1557,6 +1694,9 @@
         "subject": {
           "reference": "Patient/SYN-003"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -1568,6 +1708,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-2-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-003-2-3",
@@ -1603,6 +1744,9 @@
         "subject": {
           "reference": "Patient/SYN-003"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -1614,6 +1758,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-2-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-003-2-4",
@@ -1649,6 +1794,9 @@
         "subject": {
           "reference": "Patient/SYN-003"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -1660,6 +1808,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-2-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-003-2-5",
@@ -1695,6 +1844,9 @@
         "subject": {
           "reference": "Patient/SYN-003"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -1706,6 +1858,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-2-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-003-2-6",
@@ -1741,6 +1894,9 @@
         "subject": {
           "reference": "Patient/SYN-003"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -1752,6 +1908,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-1-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-004-1-1",
@@ -1787,6 +1944,9 @@
         "subject": {
           "reference": "Patient/SYN-004"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -1798,6 +1958,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-1-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-004-1-2",
@@ -1833,6 +1994,9 @@
         "subject": {
           "reference": "Patient/SYN-004"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -1844,6 +2008,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-1-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-004-1-3",
@@ -1879,6 +2044,9 @@
         "subject": {
           "reference": "Patient/SYN-004"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -1890,6 +2058,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-1-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-004-1-4",
@@ -1925,6 +2094,9 @@
         "subject": {
           "reference": "Patient/SYN-004"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -1936,6 +2108,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-1-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-004-1-5",
@@ -1971,6 +2144,9 @@
         "subject": {
           "reference": "Patient/SYN-004"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -1982,6 +2158,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-1-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-004-1-6",
@@ -2017,6 +2194,9 @@
         "subject": {
           "reference": "Patient/SYN-004"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -2028,6 +2208,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-2-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-004-2-1",
@@ -2063,6 +2244,9 @@
         "subject": {
           "reference": "Patient/SYN-004"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -2074,6 +2258,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-2-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-004-2-2",
@@ -2109,6 +2294,9 @@
         "subject": {
           "reference": "Patient/SYN-004"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -2120,6 +2308,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-2-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-004-2-3",
@@ -2155,6 +2344,9 @@
         "subject": {
           "reference": "Patient/SYN-004"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -2166,6 +2358,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-2-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-004-2-4",
@@ -2201,6 +2394,9 @@
         "subject": {
           "reference": "Patient/SYN-004"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -2212,6 +2408,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-2-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-004-2-5",
@@ -2247,6 +2444,9 @@
         "subject": {
           "reference": "Patient/SYN-004"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -2258,6 +2458,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-2-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-004-2-6",
@@ -2293,6 +2494,9 @@
         "subject": {
           "reference": "Patient/SYN-004"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -2304,6 +2508,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-1-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-005-1-1",
@@ -2339,6 +2544,9 @@
         "subject": {
           "reference": "Patient/SYN-005"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -2350,6 +2558,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-1-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-005-1-2",
@@ -2385,6 +2594,9 @@
         "subject": {
           "reference": "Patient/SYN-005"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -2396,6 +2608,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-1-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-005-1-3",
@@ -2431,6 +2644,9 @@
         "subject": {
           "reference": "Patient/SYN-005"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -2442,6 +2658,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-1-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-005-1-4",
@@ -2477,6 +2694,9 @@
         "subject": {
           "reference": "Patient/SYN-005"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -2488,6 +2708,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-1-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-005-1-5",
@@ -2523,6 +2744,9 @@
         "subject": {
           "reference": "Patient/SYN-005"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -2534,6 +2758,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-1-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-005-1-6",
@@ -2569,6 +2794,9 @@
         "subject": {
           "reference": "Patient/SYN-005"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -2580,6 +2808,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-2-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-005-2-1",
@@ -2615,6 +2844,9 @@
         "subject": {
           "reference": "Patient/SYN-005"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -2626,6 +2858,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-2-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-005-2-2",
@@ -2661,6 +2894,9 @@
         "subject": {
           "reference": "Patient/SYN-005"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -2672,6 +2908,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-2-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-005-2-3",
@@ -2707,6 +2944,9 @@
         "subject": {
           "reference": "Patient/SYN-005"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -2718,6 +2958,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-2-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-005-2-4",
@@ -2753,6 +2994,9 @@
         "subject": {
           "reference": "Patient/SYN-005"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -2764,6 +3008,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-2-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-005-2-5",
@@ -2799,6 +3044,9 @@
         "subject": {
           "reference": "Patient/SYN-005"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -2810,6 +3058,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-2-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-005-2-6",
@@ -2845,6 +3094,9 @@
         "subject": {
           "reference": "Patient/SYN-005"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -2856,6 +3108,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-1-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-006-1-1",
@@ -2891,6 +3144,9 @@
         "subject": {
           "reference": "Patient/SYN-006"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -2902,6 +3158,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-1-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-006-1-2",
@@ -2937,6 +3194,9 @@
         "subject": {
           "reference": "Patient/SYN-006"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -2948,6 +3208,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-1-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-006-1-3",
@@ -2983,6 +3244,9 @@
         "subject": {
           "reference": "Patient/SYN-006"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -2994,6 +3258,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-1-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-006-1-4",
@@ -3029,6 +3294,9 @@
         "subject": {
           "reference": "Patient/SYN-006"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -3040,6 +3308,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-1-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-006-1-5",
@@ -3075,6 +3344,9 @@
         "subject": {
           "reference": "Patient/SYN-006"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -3086,6 +3358,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-1-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-006-1-6",
@@ -3121,6 +3394,9 @@
         "subject": {
           "reference": "Patient/SYN-006"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -3132,6 +3408,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-2-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-006-2-1",
@@ -3167,6 +3444,9 @@
         "subject": {
           "reference": "Patient/SYN-006"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -3178,6 +3458,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-2-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-006-2-2",
@@ -3213,6 +3494,9 @@
         "subject": {
           "reference": "Patient/SYN-006"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -3224,6 +3508,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-2-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-006-2-3",
@@ -3259,6 +3544,9 @@
         "subject": {
           "reference": "Patient/SYN-006"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -3270,6 +3558,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-2-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-006-2-4",
@@ -3305,6 +3594,9 @@
         "subject": {
           "reference": "Patient/SYN-006"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -3316,6 +3608,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-2-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-006-2-5",
@@ -3351,6 +3644,9 @@
         "subject": {
           "reference": "Patient/SYN-006"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -3362,6 +3658,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-2-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-006-2-6",
@@ -3397,6 +3694,9 @@
         "subject": {
           "reference": "Patient/SYN-006"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -3408,6 +3708,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-1-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-007-1-1",
@@ -3443,6 +3744,9 @@
         "subject": {
           "reference": "Patient/SYN-007"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -3454,6 +3758,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-1-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-007-1-2",
@@ -3489,6 +3794,9 @@
         "subject": {
           "reference": "Patient/SYN-007"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -3500,6 +3808,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-1-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-007-1-3",
@@ -3535,6 +3844,9 @@
         "subject": {
           "reference": "Patient/SYN-007"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -3546,6 +3858,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-1-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-007-1-4",
@@ -3581,6 +3894,9 @@
         "subject": {
           "reference": "Patient/SYN-007"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -3592,6 +3908,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-1-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-007-1-5",
@@ -3627,6 +3944,9 @@
         "subject": {
           "reference": "Patient/SYN-007"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -3638,6 +3958,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-1-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-007-1-6",
@@ -3673,6 +3994,9 @@
         "subject": {
           "reference": "Patient/SYN-007"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -3684,6 +4008,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-2-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-007-2-1",
@@ -3719,6 +4044,9 @@
         "subject": {
           "reference": "Patient/SYN-007"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -3730,6 +4058,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-2-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-007-2-2",
@@ -3765,6 +4094,9 @@
         "subject": {
           "reference": "Patient/SYN-007"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -3776,6 +4108,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-2-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-007-2-3",
@@ -3811,6 +4144,9 @@
         "subject": {
           "reference": "Patient/SYN-007"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -3822,6 +4158,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-2-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-007-2-4",
@@ -3857,6 +4194,9 @@
         "subject": {
           "reference": "Patient/SYN-007"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -3868,6 +4208,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-2-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-007-2-5",
@@ -3903,6 +4244,9 @@
         "subject": {
           "reference": "Patient/SYN-007"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -3914,6 +4258,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-2-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-007-2-6",
@@ -3949,6 +4294,9 @@
         "subject": {
           "reference": "Patient/SYN-007"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -3960,6 +4308,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-1-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-008-1-1",
@@ -3995,6 +4344,9 @@
         "subject": {
           "reference": "Patient/SYN-008"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -4006,6 +4358,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-1-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-008-1-2",
@@ -4041,6 +4394,9 @@
         "subject": {
           "reference": "Patient/SYN-008"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -4052,6 +4408,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-1-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-008-1-3",
@@ -4087,6 +4444,9 @@
         "subject": {
           "reference": "Patient/SYN-008"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -4098,6 +4458,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-1-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-008-1-4",
@@ -4133,6 +4494,9 @@
         "subject": {
           "reference": "Patient/SYN-008"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -4144,6 +4508,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-1-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-008-1-5",
@@ -4179,6 +4544,9 @@
         "subject": {
           "reference": "Patient/SYN-008"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -4190,6 +4558,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-1-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-008-1-6",
@@ -4225,6 +4594,9 @@
         "subject": {
           "reference": "Patient/SYN-008"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -4236,6 +4608,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-2-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-008-2-1",
@@ -4271,6 +4644,9 @@
         "subject": {
           "reference": "Patient/SYN-008"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -4282,6 +4658,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-2-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-008-2-2",
@@ -4317,6 +4694,9 @@
         "subject": {
           "reference": "Patient/SYN-008"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -4328,6 +4708,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-2-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-008-2-3",
@@ -4363,6 +4744,9 @@
         "subject": {
           "reference": "Patient/SYN-008"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -4374,6 +4758,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-2-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-008-2-4",
@@ -4409,6 +4794,9 @@
         "subject": {
           "reference": "Patient/SYN-008"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -4420,6 +4808,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-2-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-008-2-5",
@@ -4455,6 +4844,9 @@
         "subject": {
           "reference": "Patient/SYN-008"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -4466,6 +4858,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-2-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-008-2-6",
@@ -4501,6 +4894,9 @@
         "subject": {
           "reference": "Patient/SYN-008"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -4512,6 +4908,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-1-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-009-1-1",
@@ -4547,6 +4944,9 @@
         "subject": {
           "reference": "Patient/SYN-009"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -4558,6 +4958,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-1-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-009-1-2",
@@ -4593,6 +4994,9 @@
         "subject": {
           "reference": "Patient/SYN-009"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -4604,6 +5008,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-1-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-009-1-3",
@@ -4639,6 +5044,9 @@
         "subject": {
           "reference": "Patient/SYN-009"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -4650,6 +5058,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-1-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-009-1-4",
@@ -4685,6 +5094,9 @@
         "subject": {
           "reference": "Patient/SYN-009"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -4696,6 +5108,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-1-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-009-1-5",
@@ -4731,6 +5144,9 @@
         "subject": {
           "reference": "Patient/SYN-009"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -4742,6 +5158,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-1-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-009-1-6",
@@ -4777,6 +5194,9 @@
         "subject": {
           "reference": "Patient/SYN-009"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -4788,6 +5208,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-2-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-009-2-1",
@@ -4823,6 +5244,9 @@
         "subject": {
           "reference": "Patient/SYN-009"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -4834,6 +5258,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-2-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-009-2-2",
@@ -4869,6 +5294,9 @@
         "subject": {
           "reference": "Patient/SYN-009"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -4880,6 +5308,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-2-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-009-2-3",
@@ -4915,6 +5344,9 @@
         "subject": {
           "reference": "Patient/SYN-009"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -4926,6 +5358,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-2-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-009-2-4",
@@ -4961,6 +5394,9 @@
         "subject": {
           "reference": "Patient/SYN-009"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -4972,6 +5408,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-2-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-009-2-5",
@@ -5007,6 +5444,9 @@
         "subject": {
           "reference": "Patient/SYN-009"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -5018,6 +5458,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-2-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-009-2-6",
@@ -5053,6 +5494,9 @@
         "subject": {
           "reference": "Patient/SYN-009"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -5064,6 +5508,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-1-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-010-1-1",
@@ -5099,6 +5544,9 @@
         "subject": {
           "reference": "Patient/SYN-010"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -5110,6 +5558,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-1-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-010-1-2",
@@ -5145,6 +5594,9 @@
         "subject": {
           "reference": "Patient/SYN-010"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -5156,6 +5608,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-1-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-010-1-3",
@@ -5191,6 +5644,9 @@
         "subject": {
           "reference": "Patient/SYN-010"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -5202,6 +5658,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-1-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-010-1-4",
@@ -5237,6 +5694,9 @@
         "subject": {
           "reference": "Patient/SYN-010"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -5248,6 +5708,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-1-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-010-1-5",
@@ -5283,6 +5744,9 @@
         "subject": {
           "reference": "Patient/SYN-010"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -5294,6 +5758,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-1-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-010-1-6",
@@ -5329,6 +5794,9 @@
         "subject": {
           "reference": "Patient/SYN-010"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -5340,6 +5808,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-2-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-010-2-1",
@@ -5375,6 +5844,9 @@
         "subject": {
           "reference": "Patient/SYN-010"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -5386,6 +5858,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-2-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-010-2-2",
@@ -5421,6 +5894,9 @@
         "subject": {
           "reference": "Patient/SYN-010"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -5432,6 +5908,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-2-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-010-2-3",
@@ -5467,6 +5944,9 @@
         "subject": {
           "reference": "Patient/SYN-010"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -5478,6 +5958,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-2-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-010-2-4",
@@ -5513,6 +5994,9 @@
         "subject": {
           "reference": "Patient/SYN-010"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -5524,6 +6008,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-2-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-010-2-5",
@@ -5559,6 +6044,9 @@
         "subject": {
           "reference": "Patient/SYN-010"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -5570,6 +6058,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-2-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-010-2-6",
@@ -5605,6 +6094,9 @@
         "subject": {
           "reference": "Patient/SYN-010"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -5616,6 +6108,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-1-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-011-1-1",
@@ -5651,6 +6144,9 @@
         "subject": {
           "reference": "Patient/SYN-011"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -5662,6 +6158,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-1-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-011-1-2",
@@ -5697,6 +6194,9 @@
         "subject": {
           "reference": "Patient/SYN-011"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -5708,6 +6208,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-1-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-011-1-3",
@@ -5743,6 +6244,9 @@
         "subject": {
           "reference": "Patient/SYN-011"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -5754,6 +6258,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-1-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-011-1-4",
@@ -5789,6 +6294,9 @@
         "subject": {
           "reference": "Patient/SYN-011"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -5800,6 +6308,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-1-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-011-1-5",
@@ -5835,6 +6344,9 @@
         "subject": {
           "reference": "Patient/SYN-011"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -5846,6 +6358,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-1-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-011-1-6",
@@ -5881,6 +6394,9 @@
         "subject": {
           "reference": "Patient/SYN-011"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -5892,6 +6408,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-2-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-011-2-1",
@@ -5927,6 +6444,9 @@
         "subject": {
           "reference": "Patient/SYN-011"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -5938,6 +6458,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-2-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-011-2-2",
@@ -5973,6 +6494,9 @@
         "subject": {
           "reference": "Patient/SYN-011"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -5984,6 +6508,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-2-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-011-2-3",
@@ -6019,6 +6544,9 @@
         "subject": {
           "reference": "Patient/SYN-011"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -6030,6 +6558,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-2-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-011-2-4",
@@ -6065,6 +6594,9 @@
         "subject": {
           "reference": "Patient/SYN-011"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -6076,6 +6608,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-2-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-011-2-5",
@@ -6111,6 +6644,9 @@
         "subject": {
           "reference": "Patient/SYN-011"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -6122,6 +6658,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-2-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-011-2-6",
@@ -6157,6 +6694,9 @@
         "subject": {
           "reference": "Patient/SYN-011"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -6168,6 +6708,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-1-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-012-1-1",
@@ -6203,6 +6744,9 @@
         "subject": {
           "reference": "Patient/SYN-012"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -6214,6 +6758,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-1-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-012-1-2",
@@ -6249,6 +6794,9 @@
         "subject": {
           "reference": "Patient/SYN-012"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -6260,6 +6808,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-1-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-012-1-3",
@@ -6295,6 +6844,9 @@
         "subject": {
           "reference": "Patient/SYN-012"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -6306,6 +6858,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-1-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-012-1-4",
@@ -6341,6 +6894,9 @@
         "subject": {
           "reference": "Patient/SYN-012"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -6352,6 +6908,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-1-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-012-1-5",
@@ -6387,6 +6944,9 @@
         "subject": {
           "reference": "Patient/SYN-012"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -6398,6 +6958,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-1-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-012-1-6",
@@ -6433,6 +6994,9 @@
         "subject": {
           "reference": "Patient/SYN-012"
         },
+        "specimen": {
+          "display": "Whole blood"
+        },
         "effectiveDateTime": "2026-08-06T08:30:00Z",
         "issued": "2026-08-06T10:15:00Z",
         "valueQuantity": {
@@ -6444,6 +7008,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-2-1",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-012-2-1",
@@ -6479,6 +7044,9 @@
         "subject": {
           "reference": "Patient/SYN-012"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -6490,6 +7058,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-2-2",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-012-2-2",
@@ -6525,6 +7094,9 @@
         "subject": {
           "reference": "Patient/SYN-012"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -6536,6 +7108,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-2-3",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-012-2-3",
@@ -6571,6 +7144,9 @@
         "subject": {
           "reference": "Patient/SYN-012"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -6582,6 +7158,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-2-4",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-012-2-4",
@@ -6617,6 +7194,9 @@
         "subject": {
           "reference": "Patient/SYN-012"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -6628,6 +7208,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-2-5",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-012-2-5",
@@ -6663,6 +7244,9 @@
         "subject": {
           "reference": "Patient/SYN-012"
         },
+        "specimen": {
+          "display": "Serum"
+        },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
         "valueQuantity": {
@@ -6674,6 +7258,7 @@
       }
     },
     {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-2-6",
       "resource": {
         "resourceType": "Observation",
         "id": "OBS-012-2-6",
@@ -6708,6 +7293,9 @@
         },
         "subject": {
           "reference": "Patient/SYN-012"
+        },
+        "specimen": {
+          "display": "Whole blood"
         },
         "effectiveDateTime": "2026-08-20T08:30:00Z",
         "issued": "2026-08-20T10:15:00Z",
