@@ -2,6 +2,14 @@
 
 This is an alpha rehearsal built on existing SiteConnect code. It is not a finished NIH client, a validated privacy implementation, or a production deployment. The native app is Tauri + React + Rust (not Electron). It retains the desktop/local-processing foundation and original workspaces.
 
+## Guided light experience
+
+This revision opens in light mode, including a one-time migration from the earlier dark default. The appearance button lets users choose dark mode again, and that explicit choice persists. Existing clinical data and rehearsal records are preserved.
+
+New users see a three-step introduction: their role and included data, the inspect/resolve/review workflow, and a readiness explanation. Continue and Back stay reachable in a 720-pixel-high window. The introduction can be skipped or replayed with **Quick introduction**, and completion is remembered independently of rehearsal data.
+
+The workspace then opens the example request. Contextual **Next step** guidance directs the user through source inspection, quality checks, correction, review and simulated receipt reconciliation. Technical field names have plain-language labels. Approval explains the required review action, successful checks use a green state, and completed delivery offers evidence export. Permission-change testing is introduced after the main flow succeeds. Larger text, light cards and darker text colors improve readability.
+
 ## Open and present
 
 The supplied Mac app is a local Apple Silicon debug build, not a signed/notarized distribution release. It starts with Data COUNTS selected on first use of this build. It subsequently remembers the workspace you choose. Existing database files and the old workspace preference are not overwritten. Native clinical workspaces still require their original database passphrase; use **Return to synthetic rehearsal** if you do not want to unlock them. Never delete an existing database to access this demo.
@@ -73,8 +81,9 @@ The reference is RFI **75N95C26R00005**, not an awarded contract. This implement
 ## Verification
 
 - TypeScript and Vite production build passed.
-- 223 frontend tests passed; 108 Rust tests passed.
+- 225 frontend tests passed; 108 Rust tests passed.
 - Added regression coverage: source defects block release; exact counts; code/unit and time-interval preservation; stable identity; revocation invalidates approval; no duplicate simulated ingestion; FHIR-shaped source exports; pooled encrypted connections across reopen; lab update preservation; no fabricated zero vital.
+- This revision verified first-run onboarding, remembered introduction completion, persistent appearance switching, source correction, explicit approval gating and receipt completion. Two UI regression tests cover onboarding and the correction/review path.
 - Browser walkthrough verified corrected release, authorization, lost-receipt reconciliation, 108-row revocation refresh, retained Screening workspace and reset.
 - Packaged Apple Silicon app launched at `tauri://localhost`. Native request export saved and its JSON was read back. Native missing-model behavior and return from database unlock to the isolated rehearsal were verified.
 - Existing compiler warnings and a large frontend bundle warning remain. No real hospital connection, live broker, approved PPRL, model inference benchmark, load test, signed installer or production upgrade was verified.

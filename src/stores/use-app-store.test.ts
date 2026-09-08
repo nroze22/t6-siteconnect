@@ -7,7 +7,7 @@ describe("useAppStore", () => {
     useAppStore.setState({
       currentPage: "screening",
       isLocked: false,
-      theme: "dark",
+      theme: "light",
       status: {
         llmStatus: "not_configured",
         llmModel: null,
@@ -74,8 +74,8 @@ describe("useAppStore", () => {
 
   // TC-UI-002: Theme management
   describe("theme", () => {
-    it("defaults to dark theme", () => {
-      expect(useAppStore.getState().theme).toBe("dark");
+    it("resets to the light theme", () => {
+      expect(useAppStore.getState().theme).toBe("light");
     });
 
     it("sets theme to light", () => {
@@ -89,6 +89,7 @@ describe("useAppStore", () => {
     });
 
     it("toggles theme from dark to light", () => {
+      useAppStore.getState().setTheme("dark");
       useAppStore.getState().toggleTheme();
       expect(useAppStore.getState().theme).toBe("light");
     });

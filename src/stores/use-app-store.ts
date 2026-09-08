@@ -32,6 +32,20 @@ function applyThemeClass(theme: Theme) {
   }
 }
 
+function initialTheme(): Theme {
+  try {
+    // Introduce the requested light default once; later explicit choices persist.
+    if (!localStorage.getItem("siteconnect-light-default-v1")) {
+      localStorage.setItem("siteconnect-light-default-v1", "true");
+      localStorage.setItem("siteconnect-theme", "light");
+      return "light";
+    }
+    return localStorage.getItem("siteconnect-theme") === "dark" ? "dark" : "light";
+  } catch { return "light"; }
+}
+const startingTheme = initialTheme();
+applyThemeClass(startingTheme);
+
 export const useAppStore = create<AppStore>((set, get) => ({
   currentPage: "dashboard",
   setCurrentPage: (page) => set({ currentPage: page }),
@@ -61,7 +75,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   lock: () => set({ isLocked: true }),
   unlock: () => set({ isLocked: false }),
 
-  theme: (localStorage.getItem("siteconnect-theme") as Theme) ?? "dark",
+  theme: startingTheme,
   setTheme: (theme) => {
     localStorage.setItem("siteconnect-theme", theme);
     applyThemeClass(theme);
