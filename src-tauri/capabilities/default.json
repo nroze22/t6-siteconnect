@@ -2,7 +2,9 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Default permissions for TalOS SiteConnect",
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "core:default",
     "shell:allow-open",
@@ -26,9 +28,9 @@
     {
       "identifier": "fs:scope",
       "allow": [
-        { "path": "$APPDATA/**" },
-        { "path": "$DOWNLOAD/**" },
-        { "path": "$HOME/**" }
+        {
+          "path": "$APPDATA/**"
+        }
       ]
     },
     "store:default",
