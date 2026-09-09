@@ -2,6 +2,8 @@
 
 Updated September 8, 2026. Synthetic files only.
 
+This review describes the preceding source-reader revision. DOCLING-INTEGRATION.md supersedes its no-OCR statement for PDFs opened with the new advanced reader. Basic-reader and other format limitations below still apply.
+
 ## What changed
 
 Local AI now opens real files into a source review workspace. Structured records use deterministic readers, preserving supplied values. Narrative documents use Ollama with a shared JSON Schema and constrained extraction profile. Clicking a candidate returns to its original segment; text is highlighted and PDF pages retain coordinate-based source overlays. AI annotations remain separate from original data.

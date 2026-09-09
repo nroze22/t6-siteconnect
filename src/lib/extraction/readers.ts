@@ -23,7 +23,7 @@ function fhirSegments(value:unknown,path:string,segments:Segment[]){
  if(value===null||typeof value!=='object'){segments.push({id:path,label:path,text:value===null?'null':String(value)});return;}
  if(Array.isArray(value))value.forEach((v,i)=>fhirSegments(v,`${path}/${i}`,segments));else Object.entries(value).forEach(([k,v])=>fhirSegments(v,`${path}/${k.replaceAll('~','~0').replaceAll('/','~1')}`,segments));
 }
-export async function readSource(file:File):Promise<SourceFile>{
+export async function readSource(file:File,options:{allowImagePages?:boolean}={}):Promise<SourceFile>{
  if(file.size>MAX_FILE_BYTES)throw Error('File exceeds 12 MB. Split it into smaller synthetic examples.');
  if(!file.size)throw Error('This file is empty.');const bytes=await file.arrayBuffer();const hash=await digest(bytes);const ext=file.name.split('.').pop()!.toLowerCase();
  const out:SourceFile={name:file.name,hash,format:ext,segments:[],entities:[],warnings:[],mode:'narrative',original:''};
@@ -35,7 +35,7 @@ export async function readSource(file:File):Promise<SourceFile>{
   try{if(pdf.numPages>30)throw Error('Limit this review to 30 pages per file.');
    for(let p=1;p<=pdf.numPages;p++){const page=await pdf.getPage(p);const viewport=page.getViewport({scale:1});const content=await page.getTextContent();let str='';const runs:NonNullable<Segment['runs']>=[];
     for(const item of content.items){if(!('str' in item)||!item.str)continue;const start=str.length;str+=item.str;const transform=pdfjs.Util.transform(viewport.transform,item.transform);const height=Math.hypot(transform[2]!,transform[3]!);runs.push({start,end:str.length,box:{x:transform[4]!,y:transform[5]!-height,width:Math.max(1,item.width),height:Math.max(1,height)}});str+=item.hasEOL?'\n':' ';}
-    if(!str.trim()){out.warnings.push(`Page ${p} has no readable text. OCR is required; image-only content is not extracted.`);continue;}
+    if(!str.trim()){out.warnings.push(`Page ${p} has no readable text. OCR is required; image-only content is not extracted.`);if(!options.allowImagePages)continue;}
     const canvas=document.createElement('canvas');if(viewport.width*viewport.height>8000000)throw Error(`PDF page ${p} is too large to render safely.`);const renderView=page.getViewport({scale:Math.min(1.4,1400/viewport.width)});canvas.width=renderView.width;canvas.height=renderView.height;
     await page.render({canvas,viewport:renderView}).promise;
     out.segments.push({id:`page-${p}`,label:`PDF page ${p}`,text:str,page:p,runs,pageWidth:viewport.width,pageHeight:viewport.height,image:canvas.toDataURL('image/png')});

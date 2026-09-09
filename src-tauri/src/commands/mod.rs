@@ -42,3 +42,5 @@ pub fn get_app_status() -> AppStatus {
         last_import: None,
     }
 }
+
+pub mod docling;

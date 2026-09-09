@@ -1,5 +1,7 @@
 # SiteConnect presentation kit
 
+New: DOCLING-INTEGRATION.md documents the advanced PDF reader, setup prerequisites, scan fixtures and current verification. The prior note/source timing below remains historical.
+
 ## Before the audience arrives
 
 1. Open the updated Apple Silicon debug application. This is a local alpha build, not a signed production distribution.
@@ -37,7 +39,7 @@ SiteConnect is an alpha starting point. Do not claim deployed hospital clients, 
 
 The new source extraction profile and file workflow are documented in SOURCE-EXTRACTION-REVIEW.md. Timing below for the previous fixed-note command is historical and does not describe the new broader profile.
 
-- 264 frontend tests and 116 Rust tests passed; the Apple Silicon debug app built.
+- 271 frontend tests and 118 Rust tests passed; the Apple Silicon debug app built.
 - Browser journey: two blockers → corrected source → 120-observation export and readable summary → unknown receipt → reload → same package reconciled, one ingestion.
 - Loaded browser workflow continued with browser networking disabled. This is not a native clean-start offline test.
 - 1024×768 browser layout had no page-level horizontal overflow. Keyboard focus reached the next operational tab. This is a focused check, not an accessibility certification or projector test.
