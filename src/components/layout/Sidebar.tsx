@@ -205,7 +205,7 @@ export function Sidebar() {
                       <span className={`block text-[13px] font-semibold leading-tight ${isActive ? "text-heading" : "text-dim group-hover:text-body"}`}>
                         {item.label}
                       </span>
-                      <span className={`block text-[11px] leading-tight ${isActive ? "text-indigo-400/80" : "text-dim/60"}`}>
+                      <span className={`sidebar-item-hint block text-[11px] leading-tight ${isActive ? "text-indigo-400/80" : "text-dim/60"}`}>
                         {item.hint}
                       </span>
                     </div>
@@ -249,8 +249,8 @@ export function Sidebar() {
 
       {/* Security Footer */}
       <div className="border-t border-border px-4 py-3">
-        <Tooltip content="Zero data leaves this device. HIPAA-ready architecture." side="right">
-          <div className="flex items-center gap-2.5 rounded-lg bg-emerald-500/8 px-3 py-2 ring-1 ring-emerald-500/15">
+        <Tooltip content={currentMode === "data-counts" ? "Synthetic example records only. Broker delivery is simulated." : "Local processing workspace. Review configured integrations before using sensitive data."} side="right">
+          <div className="sidebar-status-badge flex items-center gap-2.5 rounded-lg bg-emerald-500/8 px-3 py-2 ring-1 ring-emerald-500/15">
             <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
             <span className="text-[12px] font-medium text-emerald-400/90">
               {currentMode === 'data-counts' ? 'Synthetic rehearsal' : '100% On-Premise'}
