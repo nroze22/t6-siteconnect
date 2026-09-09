@@ -1,0 +1,3 @@
+.model-setup-notice { color: #fde68a; background-color: #422006; }
+.light .model-setup-notice { color: #78350f; background-color: #fff7ed; }
+.model-setup-notice svg, .model-setup-notice span { color: inherit; }

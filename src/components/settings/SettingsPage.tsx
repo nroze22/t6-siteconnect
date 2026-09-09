@@ -1,3 +1,4 @@
+import "./model-setup.css";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   Brain,
@@ -564,7 +565,7 @@ export function AiSetupPanel() {
 
   const badge = (() => {
     if (isActive && !isSettingUp) return { label: "Active", cls: "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20", dot: true };
-    if (isSettingUp) return { label: "Setting up...", cls: "text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20", dot: false };
+    if (isSettingUp) return { label: "Setting up...", cls: "model-setup-notice", dot: false };
     return { label: "Not Active", cls: "text-dim bg-surface-2 ring-1 ring-edge-2", dot: false };
   })();
 
@@ -749,9 +750,9 @@ export function AiSetupPanel() {
                   </div>
                 )}
                 {hardware.free_disk_gb < 5 && ollamaStatus.models.length > 0 && (
-                  <div className="mt-2 flex items-center gap-2 rounded-lg bg-amber-500/5 px-3 py-2 ring-1 ring-amber-500/15">
-                    <Info className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                    <span className="text-[12px] text-amber-400">Low disk space, but you already have a model downloaded — you can activate it below.</span>
+                  <div className="mt-2 flex items-center gap-2 rounded-lg model-setup-notice px-3 py-2 ring-1 ring-amber-500/15">
+                    <Info className="h-3.5 w-3.5 text-inherit shrink-0" />
+                    <span className="text-[12px] text-inherit">Low disk space, but you already have a model downloaded — you can activate it below.</span>
                   </div>
                 )}
               </div>
@@ -793,7 +794,7 @@ export function AiSetupPanel() {
                       <span>{model.ramReq} RAM</span>
                     </div>
                     {!installed && (
-                      <div className="mt-2 flex items-center gap-1.5 rounded-md bg-amber-500/8 px-2 py-1 text-[10px] text-amber-400/80">
+                      <div className="mt-2 flex items-center gap-1.5 rounded-md model-setup-notice px-2 py-1 text-[12px] font-medium">
                         <Clock className="h-3 w-3 shrink-0" />
                         <span>Download: {model.downloadTime} depending on connection</span>
                       </div>
@@ -809,9 +810,9 @@ export function AiSetupPanel() {
 
             {hardware?.model_directory&&<p className="mt-3 text-[12px] text-dim break-all">Checked model directory: {hardware.model_directory}. For a separately configured Ollama service, verify it uses this same directory.</p>}
             {hardware?.recommended_tier === "none" && (
-              <div className="mt-3 flex items-center gap-2 rounded-lg bg-amber-500/5 px-3 py-2 ring-1 ring-amber-500/15">
-                <AlertCircle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                <span className="text-[12px] text-amber-400">Hardware checks are unavailable or memory is insufficient. Use the structured rehearsal without local AI.</span>
+              <div className="mt-3 flex items-center gap-2 rounded-lg model-setup-notice px-3 py-2 ring-1 ring-amber-500/15">
+                <AlertCircle className="h-3.5 w-3.5 text-inherit shrink-0" />
+                <span className="text-[12px] text-inherit">Hardware checks are unavailable or memory is insufficient. Use the structured rehearsal without local AI.</span>
               </div>
             )}
           </div>
