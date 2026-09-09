@@ -1,5 +1,7 @@
 # SiteConnect presentation kit
 
+Latest: REQUEST-REVIEW.md documents request-focused extraction, the reviewer inbox, source-grounded corrections and the open-question gate.
+
 New: DOCLING-INTEGRATION.md documents the advanced PDF reader, setup prerequisites, scan fixtures and current verification. The prior note/source timing below remains historical.
 
 ## Before the audience arrives

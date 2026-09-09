@@ -67,8 +67,12 @@ fn validate_output(raw: &str, segments: &[Segment]) -> Result<Value, String> {
     }
     for e in entities {
         let object = e.as_object().ok_or("Invalid entity")?;
-        if object.len() != 8 {
+        if object.len() != 8 && !(object.len()==9 && object.contains_key("field")) {
             return Err("Entity fields do not match schema".into());
+        }
+        if let Some(field)=object.get("field") {
+            let request:Value=serde_json::from_str(include_str!("../../../src/lib/data-counts/request.json")).map_err(|e|e.to_string())?;
+            if !request["fields"].as_array().unwrap().contains(field) && field!="Patient.id" && field!="Patient.birthDate" {return Err("Unexpected request field".into());}
         }
         for key in ["segment_id", "kind", "label", "value", "assertion", "quote"] {
             if !e[key].is_string() {
@@ -80,7 +84,7 @@ fn validate_output(raw: &str, segments: &[Segment]) -> Result<Value, String> {
                 return Err(format!("Invalid nullable field: {key}"));
             }
         }
-        if !["lab", "medication", "diagnosis", "vital", "demographic"]
+        if !["lab", "medication", "diagnosis", "vital", "demographic", "context"]
             .contains(&e["kind"].as_str().unwrap())
             || !["present", "negated", "historical", "uncertain", "unknown"]
                 .contains(&e["assertion"].as_str().unwrap())
@@ -117,6 +121,9 @@ fn grounding_errors(result: &Value, segments: &[Segment]) -> Vec<String> {
                 }
             }
         }
+        if let Some(field)=e["field"].as_str(){
+            if (field=="Observation.valueQuantity" && e["kind"]!="lab") || (field!="Observation.valueQuantity" && (e["kind"]!="context" || !e["unit"].is_null())) {errors.push(format!("Entity {i}: requested field and category disagree; use lab for valueQuantity and context with null unit for other fields"));}
+        }
         if e["kind"] == "diagnosis" && e["value"] != e["label"] {
             errors.push(format!(
                 "Entity {i}: diagnosis value must be identical to condition label"
@@ -129,9 +136,13 @@ fn grounding_errors(result: &Value, segments: &[Segment]) -> Vec<String> {
 pub async fn extract_source_entities(
     app: AppHandle,
     job_id: String,
+    request_key: Option<String>,
     segments: Vec<Segment>,
 ) -> Result<Value, String> {
     validate_input(&segments)?;
+    let definition:Value=serde_json::from_str(include_str!("../../../src/lib/data-counts/request.json")).map_err(|e|e.to_string())?;
+    let expected_key=format!("{}@{}",definition["id"].as_str().unwrap(),definition["version"]);
+    if request_key.as_ref().is_some_and(|k|k!=&expected_key){return Err("Request changed. Reload the matching request before extraction.".into());}
     if job_id.len() > 100 || job_id.is_empty() {
         return Err("Invalid job identifier".into());
     }
@@ -155,10 +166,10 @@ pub async fn extract_source_entities(
     }
     let _job = Job;
     let profile: Value =
-        serde_json::from_str(include_str!("../../../src/lib/extraction/profile.json"))
+        serde_json::from_str(if request_key.is_some(){include_str!("../../../src/lib/extraction/request-profile.json")}else{include_str!("../../../src/lib/extraction/profile.json")})
             .map_err(|e| e.to_string())?;
     let started = std::time::Instant::now();
-    let mut request = json!({"model":model,"stream":false,"think":profile["think"],"keep_alive":profile["keep_alive"],"options":profile["options"],"format":profile["schema"],"messages":[{"role":"system","content":format!("{}\nRequired JSON schema: {}",profile["system"].as_str().unwrap_or(""),profile["schema"])},{"role":"user","content":serde_json::to_string(&segments).map_err(|e|e.to_string())?}]});
+    let mut request = json!({"model":model,"stream":false,"think":profile["think"],"keep_alive":profile["keep_alive"],"options":profile["options"],"format":profile["schema"],"messages":[{"role":"system","content":format!("{}\nRequired JSON schema: {}\nRequest: {}",profile["system"].as_str().unwrap_or(""),profile["schema"],if request_key.is_some(){definition.clone()}else{Value::Null})},{"role":"user","content":serde_json::to_string(&segments).map_err(|e|e.to_string())?}]});
     let work = async {
         let client = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(180))
@@ -191,6 +202,7 @@ pub async fn extract_source_entities(
                         .into(),
                 );
             }
+            if request_key.is_some() && result["entities"].as_array().unwrap().iter().any(|e| !e["field"].is_string()) {return Err("Request-bound extraction omitted field identity.".into());}
             let errors = grounding_errors(&result, &segments);
             if attempt == 1 && !errors.is_empty() {
                 let content = serde_json::to_string(&result).map_err(|e| e.to_string())?;
@@ -205,7 +217,7 @@ pub async fn extract_source_entities(
                 continue;
             }
             return Ok(
-                json!({"result":result,"attempts":attempt,"model":model,"profile":profile["version"],"latency_ms":started.elapsed().as_millis() as u64,"prompt_tokens":response["prompt_eval_count"],"output_tokens":response["eval_count"]}),
+                json!({"result":result,"requestKey":request_key,"attempts":attempt,"model":model,"profile":profile["version"],"latency_ms":started.elapsed().as_millis() as u64,"prompt_tokens":response["prompt_eval_count"],"output_tokens":response["eval_count"]}),
             );
         }
         Err("Extraction did not complete".into())
