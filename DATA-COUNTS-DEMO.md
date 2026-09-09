@@ -81,7 +81,7 @@ The reference is RFI **75N95C26R00005**, not an awarded contract. This implement
 ## Verification
 
 - TypeScript and Vite production build passed.
-- 232 frontend tests passed; 108 Rust tests passed.
+- 234 frontend tests passed; 108 Rust tests passed.
 - Added regression coverage: source defects block release; exact counts; code/unit and time-interval preservation; stable identity; revocation invalidates approval; no duplicate simulated ingestion; FHIR-shaped source exports; pooled encrypted connections across reopen; lab update preservation; no fabricated zero vital.
 - This revision verified first-run onboarding, remembered introduction completion, persistent appearance switching, source correction, explicit approval gating and receipt completion. Three UI regression tests cover onboarding and the correction/review path.
 - Browser walkthrough verified corrected release, authorization, lost-receipt reconciliation, 108-row revocation refresh, retained Screening workspace and reset.
@@ -93,3 +93,11 @@ The reference is RFI **75N95C26R00005**, not an awarded contract. This implement
 Request v2 and output schema v2 preserve final-result status and specimen context. The six example LOINC codes were checked against official definitions. Observation time and result availability are labeled separately. No reference range, abnormal flag or fasting status is invented. The release view gives patient-level exclusion reasons; changed packages require a fresh review. Search and issue inspection keep source evidence aligned with the displayed record.
 
 See `CLINICAL-DATA-REVIEW.md` for evidence, boundary tests and the site acceptance cases still required. `request-v1.json` is retained as historical context; use `request-v2.json` with current fixtures.
+
+## Recovery and support improvements
+
+Unreadable saved rehearsal state is preserved until the operator explicitly resets it. A visible recovery message replaces silent fallback. Failed session writes pause authorization, package export and simulated delivery; Retry saving session restores those actions only after a successful write. This protects the synthetic workflow and is not a production durable-queue implementation.
+
+System now includes Device & recovery, interruption guidance, a support-summary export and update/maintenance instructions. The support summary uses an explicit metadata allowlist and excludes source records, values, patient identifiers, model output, file paths and activity text. It is saved locally, not sent to support. Native exports report successful save or cancellation; browser exports accurately report only that a download was requested.
+
+Verification: 234 frontend tests passed, including unreadable-state preservation and storage-failure/retry authorization gates. The native debug build succeeded, restarted with the existing synthetic session, and displayed the new recovery screen. Existing production security and compliance limitations remain unchanged. Assumed sponsor/user input informed prioritization; no new interviews or signoffs are claimed.

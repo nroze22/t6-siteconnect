@@ -1,4 +1,4 @@
-import {beforeEach,describe,expect,it} from 'vitest';
+import {beforeEach,describe,expect,it,vi} from 'vitest';
 import {render,screen,fireEvent,waitFor,cleanup} from '@testing-library/react';
 import {DataCountsPage} from './DataCountsPage';
 import {useAppStore} from '@/stores/use-app-store';
@@ -51,4 +51,34 @@ it('keeps source evidence aligned with search and issue navigation',async()=>{
  fireEvent.click(screen.getAllByRole('button',{name:'Inspect source evidence'})[0]!);
  expect((screen.getByRole('textbox',{name:'Search source records'}) as HTMLInputElement).value).toBe('');
  expect(screen.getByText(/Unit not supplied/)).toBeTruthy();
+});
+
+
+it('preserves unreadable saved evidence until an explicit synthetic reset',()=>{
+ cleanup();localStorage.clear();localStorage.setItem('siteconnect-data-counts-intro-v1','complete');
+ localStorage.setItem('siteconnect-data-counts-synthetic-v1','unreadable-evidence');
+ render(<DataCountsPage/>);
+ expect(screen.getByRole('heading',{name:'Session storage needs attention'})).toBeTruthy();
+ expect(localStorage.getItem('siteconnect-data-counts-synthetic-v1')).toBe('unreadable-evidence');
+ fireEvent.click(screen.getByRole('button',{name:'Reset rehearsal'}));
+ fireEvent.click(screen.getByRole('button',{name:'Reset synthetic workspace'}));
+ expect(JSON.parse(localStorage.getItem('siteconnect-data-counts-synthetic-v1')!).hasRun).toBe(false);
+ expect(screen.queryByRole('heading',{name:'Session storage needs attention'})).toBeNull();
+});
+
+it('pauses authorization on save failure and resumes after successful retry',async()=>{
+ cleanup();localStorage.clear();localStorage.setItem('siteconnect-data-counts-intro-v1','complete');
+ localStorage.setItem('siteconnect-data-counts-synthetic-v1',JSON.stringify({corrected:true,revoked:false,hasRun:true,approval:null,receipts:[],events:[]}));
+ const original=localStorage.setItem;
+ const fail=vi.spyOn(localStorage,'setItem').mockImplementation(function(this:Storage,key:string,value:string){if(key==='siteconnect-data-counts-synthetic-v1')throw Error('Quota exceeded');original.call(this,key,value);});
+ try{
+ render(<DataCountsPage/>);
+ await screen.findByRole('button',{name:'Open release review'});
+ fireEvent.click(screen.getByRole('button',{name:'Open release review'}));
+ fireEvent.click(screen.getByRole('checkbox'));
+ expect((screen.getByRole('button',{name:'Authorize demo package'}) as HTMLButtonElement).disabled).toBe(true);
+ fail.mockRestore();
+ fireEvent.click(screen.getByRole('button',{name:'Retry saving session'}));
+ await waitFor(()=>expect((screen.getByRole('button',{name:'Authorize demo package'}) as HTMLButtonElement).disabled).toBe(false));
+ }finally{fail.mockRestore();}
 });
