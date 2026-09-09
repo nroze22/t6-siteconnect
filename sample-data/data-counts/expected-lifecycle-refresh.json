@@ -1,12 +1,6 @@
 {
   "synthetic": true,
-  "warning": "Illustrative privacy tokens and dates. Not for NIH submission.",
   "exclusions": [
-    {
-      "patient": "SYN-003",
-      "count": 12,
-      "reason": "Permission revoked in fixture v2"
-    },
     {
       "patient": "SYN-011",
       "count": 12,
@@ -18,13 +12,13 @@
       "reason": "Not permitted by fixture authority"
     }
   ],
-  "id": "RUN-S2-E2",
-  "revision": 2,
-  "eligibilityVersion": 2,
+  "id": "RUN-S3-E1",
+  "revision": 3,
+  "eligibilityVersion": 1,
   "issues": [],
   "sourceCount": 144,
   "cohortExcluded": 12,
-  "permissionExcluded": 24,
+  "permissionExcluded": 12,
   "output": [
     {
       "resourceType": "Observation",
@@ -502,6 +496,254 @@
       "patientToken": "DEMO-TOKEN-002",
       "provenance": {
         "sourceResource": "OBS-002-2-6",
+        "sourceVersion": "2",
+        "transformation": "Synthetic date-shift fixture v1; DEMO token is not approved PPRL"
+      }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "OBS-003-1-1",
+      "status": "corrected",
+      "specimen": "Serum",
+      "code": "2160-0",
+      "display": "Creatinine",
+      "system": "http://loinc.org",
+      "value": 1.18,
+      "unit": "mg/dL",
+      "unitSystem": "http://unitsofmeasure.org",
+      "effectiveDateTime": "2026-07-25T08:30:00.000Z",
+      "issued": "2026-08-10T10:15:00.000Z",
+      "patientToken": "DEMO-TOKEN-003",
+      "provenance": {
+        "sourceResource": "OBS-003-1-1",
+        "sourceVersion": "3",
+        "transformation": "Synthetic date-shift fixture v1; DEMO token is not approved PPRL"
+      }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "OBS-003-1-2",
+      "status": "cancelled",
+      "specimen": "Serum",
+      "code": "3094-0",
+      "display": "Urea nitrogen",
+      "system": "http://loinc.org",
+      "value": null,
+      "unit": "mg/dL",
+      "unitSystem": "http://unitsofmeasure.org",
+      "effectiveDateTime": "2026-07-25T08:30:00.000Z",
+      "issued": "2026-08-10T10:15:00.000Z",
+      "dataAbsentReason": "not-performed",
+      "patientToken": "DEMO-TOKEN-003",
+      "provenance": {
+        "sourceResource": "OBS-003-1-2",
+        "sourceVersion": "3",
+        "transformation": "Synthetic date-shift fixture v1; DEMO token is not approved PPRL"
+      }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "OBS-003-1-3",
+      "status": "final",
+      "specimen": "Serum",
+      "code": "2951-2",
+      "display": "Sodium",
+      "system": "http://loinc.org",
+      "value": 139,
+      "unit": "mmol/L",
+      "unitSystem": "http://unitsofmeasure.org",
+      "effectiveDateTime": "2026-07-25T08:30:00.000Z",
+      "issued": "2026-07-25T10:15:00.000Z",
+      "referenceRange": {
+        "low": 135,
+        "high": 145,
+        "unit": "mmol/L"
+      },
+      "patientToken": "DEMO-TOKEN-003",
+      "provenance": {
+        "sourceResource": "OBS-003-1-3",
+        "sourceVersion": "3",
+        "transformation": "Synthetic date-shift fixture v1; DEMO token is not approved PPRL"
+      }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "OBS-003-1-4",
+      "status": "final",
+      "specimen": "Serum",
+      "code": "2823-3",
+      "display": "Potassium",
+      "system": "http://loinc.org",
+      "value": 2.5,
+      "unit": "mmol/L",
+      "unitSystem": "http://unitsofmeasure.org",
+      "effectiveDateTime": "2026-07-25T08:30:00.000Z",
+      "issued": "2026-07-25T10:15:00.000Z",
+      "comparator": "<",
+      "patientToken": "DEMO-TOKEN-003",
+      "provenance": {
+        "sourceResource": "OBS-003-1-4",
+        "sourceVersion": "3",
+        "transformation": "Synthetic date-shift fixture v1; DEMO token is not approved PPRL"
+      }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "OBS-003-1-5",
+      "status": "final",
+      "specimen": "Serum",
+      "code": "2345-7",
+      "display": "Glucose",
+      "system": "http://loinc.org",
+      "value": null,
+      "unit": "mg/dL",
+      "unitSystem": "http://unitsofmeasure.org",
+      "effectiveDateTime": "2026-07-25T08:30:00.000Z",
+      "issued": "2026-07-25T10:15:00.000Z",
+      "dataAbsentReason": "error",
+      "patientToken": "DEMO-TOKEN-003",
+      "provenance": {
+        "sourceResource": "OBS-003-1-5",
+        "sourceVersion": "3",
+        "transformation": "Synthetic date-shift fixture v1; DEMO token is not approved PPRL"
+      }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "OBS-003-1-6",
+      "status": "final",
+      "specimen": "Whole blood",
+      "code": "718-7",
+      "display": "Hemoglobin",
+      "system": "http://loinc.org",
+      "value": 14.2,
+      "unit": "g/dL",
+      "unitSystem": "http://unitsofmeasure.org",
+      "effectiveDateTime": "2026-07-25T08:30:00.000Z",
+      "issued": "2026-07-25T10:15:00.000Z",
+      "patientToken": "DEMO-TOKEN-003",
+      "provenance": {
+        "sourceResource": "OBS-003-1-6",
+        "sourceVersion": "2",
+        "transformation": "Synthetic date-shift fixture v1; DEMO token is not approved PPRL"
+      }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "OBS-003-2-1",
+      "status": "final",
+      "specimen": "Serum",
+      "code": "2160-0",
+      "display": "Creatinine",
+      "system": "http://loinc.org",
+      "value": 1.42,
+      "unit": "mg/dL",
+      "unitSystem": "http://unitsofmeasure.org",
+      "effectiveDateTime": "2026-08-08T08:30:00.000Z",
+      "issued": "2026-08-08T10:15:00.000Z",
+      "patientToken": "DEMO-TOKEN-003",
+      "provenance": {
+        "sourceResource": "OBS-003-2-1",
+        "sourceVersion": "2",
+        "transformation": "Synthetic date-shift fixture v1; DEMO token is not approved PPRL"
+      }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "OBS-003-2-2",
+      "status": "final",
+      "specimen": "Serum",
+      "code": "3094-0",
+      "display": "Urea nitrogen",
+      "system": "http://loinc.org",
+      "value": 17,
+      "unit": "mg/dL",
+      "unitSystem": "http://unitsofmeasure.org",
+      "effectiveDateTime": "2026-08-08T08:30:00.000Z",
+      "issued": "2026-08-08T10:15:00.000Z",
+      "patientToken": "DEMO-TOKEN-003",
+      "provenance": {
+        "sourceResource": "OBS-003-2-2",
+        "sourceVersion": "2",
+        "transformation": "Synthetic date-shift fixture v1; DEMO token is not approved PPRL"
+      }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "OBS-003-2-3",
+      "status": "final",
+      "specimen": "Serum",
+      "code": "2951-2",
+      "display": "Sodium",
+      "system": "http://loinc.org",
+      "value": 140,
+      "unit": "mmol/L",
+      "unitSystem": "http://unitsofmeasure.org",
+      "effectiveDateTime": "2026-08-08T08:30:00.000Z",
+      "issued": "2026-08-08T10:15:00.000Z",
+      "patientToken": "DEMO-TOKEN-003",
+      "provenance": {
+        "sourceResource": "OBS-003-2-3",
+        "sourceVersion": "2",
+        "transformation": "Synthetic date-shift fixture v1; DEMO token is not approved PPRL"
+      }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "OBS-003-2-4",
+      "status": "final",
+      "specimen": "Serum",
+      "code": "2823-3",
+      "display": "Potassium",
+      "system": "http://loinc.org",
+      "value": 4.34,
+      "unit": "mmol/L",
+      "unitSystem": "http://unitsofmeasure.org",
+      "effectiveDateTime": "2026-08-08T08:30:00.000Z",
+      "issued": "2026-08-08T10:15:00.000Z",
+      "patientToken": "DEMO-TOKEN-003",
+      "provenance": {
+        "sourceResource": "OBS-003-2-4",
+        "sourceVersion": "2",
+        "transformation": "Synthetic date-shift fixture v1; DEMO token is not approved PPRL"
+      }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "OBS-003-2-5",
+      "status": "final",
+      "specimen": "Serum",
+      "code": "2345-7",
+      "display": "Glucose",
+      "system": "http://loinc.org",
+      "value": 104,
+      "unit": "mg/dL",
+      "unitSystem": "http://unitsofmeasure.org",
+      "effectiveDateTime": "2026-08-08T08:30:00.000Z",
+      "issued": "2026-08-08T10:15:00.000Z",
+      "patientToken": "DEMO-TOKEN-003",
+      "provenance": {
+        "sourceResource": "OBS-003-2-5",
+        "sourceVersion": "2",
+        "transformation": "Synthetic date-shift fixture v1; DEMO token is not approved PPRL"
+      }
+    },
+    {
+      "resourceType": "Observation",
+      "id": "OBS-003-2-6",
+      "status": "final",
+      "specimen": "Whole blood",
+      "code": "718-7",
+      "display": "Hemoglobin",
+      "system": "http://loinc.org",
+      "value": 14.4,
+      "unit": "g/dL",
+      "unitSystem": "http://unitsofmeasure.org",
+      "effectiveDateTime": "2026-08-08T08:30:00.000Z",
+      "issued": "2026-08-08T10:15:00.000Z",
+      "patientToken": "DEMO-TOKEN-003",
+      "provenance": {
+        "sourceResource": "OBS-003-2-6",
         "sourceVersion": "2",
         "transformation": "Synthetic date-shift fixture v1; DEMO token is not approved PPRL"
       }
@@ -2187,6 +2429,6 @@
       }
     }
   ],
-  "digest": "4d47fb8c4c24a507ef679536a172a87129fbeda541ae8c3d7f3482055f9e8054",
-  "packageId": "DEMO-PKG-4d47fb8c4c24"
+  "digest": "f5d218329df5e58fb3984f22113b265bb620db06c19cf0992826afca979021b0",
+  "packageId": "DEMO-PKG-f5d218329df5"
 }

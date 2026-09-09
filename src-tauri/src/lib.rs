@@ -60,6 +60,11 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            commands::rehearsal::read_operation,
+            commands::rehearsal::write_operation,
+            commands::model_job::get_model_job,
+            commands::model_job::start_model_job,
+            commands::model_job::cancel_model_job,
             greet,
             get_app_status,
             init_database,

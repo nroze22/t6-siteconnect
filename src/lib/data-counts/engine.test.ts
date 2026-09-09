@@ -1,7 +1,7 @@
 import {describe,it,expect} from 'vitest';
-import {fixture,eligible,inRequestWindow,sourceBundle,sourceObservation,quality,buildRun,authorize,send} from './engine';
+import {fixture,comparePackages,displayResult,eligible,inRequestWindow,sourceBundle,sourceObservation,quality,buildRun,authorize,send} from './engine';
 describe('Data COUNTS synthetic rehearsal',()=>{
- it('exports FHIR-shaped source evidence with preserved codes, values and subject links',()=>{const l=fixture(true)[0]!;const source=sourceObservation(l);expect(source.valueQuantity.value).toBe(l.value);expect(source.code.coding[0]!.code).toBe(l.code);expect(source.subject.reference).toBe('Patient/SYN-001');expect(sourceBundle(true).entry).toHaveLength(156);});
+ it('exports FHIR-shaped source evidence with preserved codes, values and subject links',()=>{const l=fixture(true)[0]!;const source=sourceObservation(l);expect(('valueQuantity' in source?source.valueQuantity.value:undefined)).toBe(l.value);expect(source.code.coding[0]!.code).toBe(l.code);expect(source.subject.reference).toBe('Patient/SYN-001');expect(sourceBundle(true).entry).toHaveLength(156);});
  it('reports both seeded defects and blocks output',async()=>{const r=await buildRun(false,false);expect(quality(fixture())).toHaveLength(2);expect(r.output).toHaveLength(0);expect(()=>authorize(r,false,false)).toThrow();});
  it('preserves codes and units, reconciles disjoint exclusions, and shifts temporal intervals',async()=>{const r=await buildRun(true,false);expect(r.sourceCount).toBe(144);expect(r.output).toHaveLength(120);expect(r.cohortExcluded).toBe(12);expect(r.permissionExcluded).toBe(12);const source=fixture(true)[0]!;const out=r.output[0]!;expect(out.code).toBe(source.code);expect(out.unit).toBe(source.unit);expect(Date.parse(out.issued)-Date.parse(out.effectiveDateTime)).toBe(Date.parse(source.issued)-Date.parse(source.effectiveDateTime));expect(out).not.toHaveProperty('patient');});
  it('reproduces package identity and logical output',async()=>{expect(await buildRun(true,false)).toEqual(await buildRun(true,false));});
@@ -44,3 +44,17 @@ it('uses the exact adult cutoff and timezone-aware source window boundaries',()=
  expect(inRequestWindow({...l,effectiveDateTime:'2026-09-01T00:30:00+01:00'})).toBe(true);
  expect(inRequestWindow({...l,effectiveDateTime:'2026-09-01T00:00:00Z'})).toBe(false);
 });
+
+it('preserves lifecycle semantics and compares five changes after release',async()=>{
+ const previous=await buildRun(true,false);const next=await buildRun(true,false,undefined,true);
+ expect(next.issues).toHaveLength(0);expect(next.output).toHaveLength(120);
+ const diff=comparePackages(previous.output,next.output);expect(diff.changed).toHaveLength(5);expect(diff.changed.find(c=>c.id==='OBS-003-1-3')?.fields).toContain('Reference interval');expect(diff.added).toHaveLength(0);expect(diff.removed).toHaveLength(0);
+ const labs=fixture(true,true);const cancelled=sourceObservation(labs[25]!);expect(cancelled).not.toHaveProperty('valueQuantity');expect(cancelled).toHaveProperty('dataAbsentReason');
+ expect(displayResult(labs[27]!)).toBe('<2.5 mmol/L');expect(sourceObservation(labs[26]!)).toHaveProperty('referenceRange');
+ expect(()=>send(previous,previous.digest,true,false,[],true)).toThrow('Inputs changed');
+});
+it('rejects measured values on cancelled observations and conflicting absent reasons',()=>{
+ const labs=fixture(true,true);labs[25]!.value=19;expect(quality(labs).some(i=>i.id==='type-OBS-003-1-2')).toBe(true);
+});
+
+it('blocks reversed source intervals and comparators without a value',()=>{const labs=fixture(true,true);labs[26]!.referenceRange={low:145,high:135,unit:'mmol/L'};labs[25]!.comparator='<';expect(quality(labs).filter(i=>i.id.startsWith('context-'))).toHaveLength(2);});

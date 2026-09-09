@@ -10,4 +10,6 @@ await save('source-v2-corrected.fhir.json',engine.sourceBundle(true));
 await save('permission-fixtures.json',{synthetic:true,authority:'Internal demo only',v1:engine.PATIENTS.map(p=>({patient:p.id,permitted:p.permitted})),v2:engine.PATIENTS.map(p=>({patient:p.id,permitted:p.permitted&&p.id!=='SYN-003'}))});
 await save('expected-run-v2.json',{synthetic:true,warning:'Illustrative privacy tokens and dates. Not for NIH submission.',...await engine.buildRun(true,false)});
 await save('expected-revocation-refresh.json',{synthetic:true,warning:'Illustrative privacy tokens and dates. Not for NIH submission.',...await engine.buildRun(true,true)});
-console.log('Wrote six synthetic demo fixtures to sample-data/data-counts');
+await save('source-v3-lifecycle.fhir.json',engine.sourceBundle(true,true));
+await save('expected-lifecycle-refresh.json',{synthetic:true,...await engine.buildRun(true,false,undefined,true)});
+console.log('Wrote versioned synthetic demo fixtures to sample-data/data-counts');

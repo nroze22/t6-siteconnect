@@ -53,15 +53,11 @@ import {
   type WatcherStatus,
 } from "@/lib/tauri";
 import {
+  getModelSetupJob,startModelSetupJob,cancelModelSetupJob,
   getLlmStatus,
   checkLlmHealth,
   checkOllamaStatus,
-  installOllama,
-  startOllama,
   detectSystemHardware,
-  pullOllamaModel,
-  configureOllamaBackend,
-  testOllamaInference,
   listenForPullProgress,
   getAuditTrail,
   exportAuditTrail,
@@ -381,8 +377,10 @@ export function AiSetupPanel() {
   const [healthy, setHealthy] = useState(false);
 
   // Download speed tracking
-  const [downloadSpeed, setDownloadSpeed] = useState<string>("");
-  const lastProgressRef = useRef<{ completed: number; time: number } | null>(null);
+  const [downloadSpeed,setDownloadSpeed] = useState<string>("");
+
+
+  const progressSample=useRef<{completed:number;at:number}|null>(null);
 
   // Sync local + global LLM state
   const setStatus = useCallback((update: LlmStatus | ((prev: LlmStatus) => LlmStatus)) => {
@@ -422,136 +420,29 @@ export function AiSetupPanel() {
     if(!isTauri){setError('Model installation requires the desktop application. No download or hardware detection is simulated.');return;}
     const modelDef=AI_MODELS.find(m=>m.id===modelId);
     if(!modelDef){setError('Choose a supported local model.');return;}
-    let currentStatus:OllamaStatus;
     setPhase('starting_ollama');setPhaseMessage('Checking memory, model-drive space and existing downloads');
     try{
       const [hw,current]=await Promise.all([detectSystemHardware(),checkOllamaStatus()]);
-      setHardware(hw);currentStatus=current;setOllamaStatus(current);
+      setHardware(hw);setOllamaStatus(current);
       const problem=modelPreflight(hw.total_ram_gb,hw.free_disk_gb,modelDef.minRam,modelDef.sizeGb,current.models.some(m=>m.name===modelId));
       if(problem)throw Error(problem);
     }catch(e){setPhase('error');setError(String(e));return;}
 
-    if (!currentStatus.installed && !currentStatus.running) {
-      setPhase("installing_ollama");
-      setPhaseMessage("Step 1: Installing AI engine");
-      try {
-        const installResult = await installOllama();
-        // Windows: installer was launched asynchronously — user needs to complete it
-        if (typeof installResult === "string" && (installResult.includes("installer launched") || installResult.includes("Check Again"))) {
-          setPhase("error");
-          setError("Ollama installer is running. Complete the installation, then click 'Try Again' to continue setup.");
-          return;
-        }
-        currentStatus = await checkOllamaStatus();
-        setOllamaStatus(currentStatus);
-        if (!currentStatus.installed && !currentStatus.running) {
-          throw new Error("Installation completed but Ollama was not detected. Please try again.");
-        }
-      } catch (e) {
-        const errMsg = e instanceof Error ? e.message : String(e);
-        if (errMsg.includes("https://ollama.com/download")) {
-          try { const { open } = await import("@tauri-apps/plugin-shell"); await open("https://ollama.com/download"); } catch { window.open("https://ollama.com/download", "_blank"); }
-          setPhase("error");
-          setError("Please download and install Ollama, then click 'Try Again' to continue setup.");
-          return;
-        }
-        setPhase("error");
-        setError(errMsg);
-        toast.error("Setup failed", errMsg);
-        return;
-      }
-    }
+    try{const job=await startModelSetupJob(modelId);setPhase(job.phase as SetupPhase);setPhaseMessage(job.message);}catch(e){setPhase('error');setError(String(e));}
+  }, []);
 
-    // Step 2: Ensure Ollama is running
-    if (!currentStatus.running) {
-      setPhase("starting_ollama");
-      setPhaseMessage("Step 2: Starting AI engine");
-      try {
-        await startOllama();
-        currentStatus = await checkOllamaStatus();
-        setOllamaStatus(currentStatus);
-        if (!currentStatus.running) {
-          throw new Error("Ollama started but is not responding. It may need a moment — try again.");
-        }
-      } catch (e) {
-        setPhase("error");
-        setError(e instanceof Error ? e.message : String(e));
-        toast.error("Setup failed", "Could not start AI engine");
-        return;
-      }
-    }
-
-    // Step 3: Pull the model if not already installed
-    const alreadyInstalled = currentStatus.models.some((m) => m.name === modelId || m.name.startsWith(modelId + ":"));
-    if (!alreadyInstalled) {
-      setPhase("downloading_model");
-      setPhaseMessage("Step 3: Downloading AI model — this will take several minutes");
-      setPullProgress(null);
-      setDownloadSpeed("");
-      lastProgressRef.current = null;
-
-      try {
-        const unlisten=await listenForPullProgress(progress=>{
-          if(progress.model!==modelId)return;
-          const last=lastProgressRef.current;const now=Date.now();
-          if(last&&progress.completed>last.completed&&now-last.time>500){setDownloadSpeed(`${((progress.completed-last.completed)/(now-last.time)/1000).toFixed(1)} MB/s · current layer`);}
-          else if(last&&progress.completed<last.completed)setDownloadSpeed('Starting next layer');
-          lastProgressRef.current={completed:progress.completed,time:now};
-          setPullProgress(progress);
-          setPhaseMessage(progress.status==='success'?'Download verified':`Model setup: ${progress.status}`);
-        });
-        try{await pullOllamaModel(modelId);}finally{unlisten?.();}
-
-        setPullProgress(null);
-        currentStatus = await checkOllamaStatus();
-        setOllamaStatus(currentStatus);
-      } catch (e) {
-        setPhase("error");
-        setPullProgress(null);
-        const msg = e instanceof Error ? e.message : String(e);
-        if (msg.includes("OLLAMA_UPDATE_REQUIRED")) {
-          setError("Ollama needs to be updated to support this model. Please download the latest version from ollama.com/download, then try again.");
-          toast.error("Ollama update required", "This model requires a newer Ollama version. Update at ollama.com/download");
-          try { const { open } = await import("@tauri-apps/plugin-shell"); await open("https://ollama.com/download"); } catch { /* ignore */ }
-        } else {
-          setError(msg);
-          toast.error("Download failed", msg);
-        }
-        return;
-      }
-    }
-
-    // Step 4: Configure & activate
-    setPhase("activating");
-    setPhaseMessage("Step 4: Configuring screening engine");
-    try {
-      const result = await configureOllamaBackend(modelId);
-      setStatus({...result,status:"model_ready"});
-    } catch (e) {
-      setPhase("error");
-      setError(e instanceof Error ? e.message : String(e));
-      toast.error("Activation failed", e instanceof Error ? e.message : "Unknown error");
-      return;
-    }
-
-    // Step 5: Quick smoke test
-    setPhase("testing");
-    setPhaseMessage("Step 5: Verifying AI is working");
-    try {
-      const testResult = await testOllamaInference();
-      if (!testResult.success) {
-        throw Error(testResult.error||'The model did not pass its response check.');
-      }
-      const verified=await getLlmStatus();setStatus(verified);
-      toast.success("Local model verified",`${modelId} responded in ${testResult.latency_ms}ms`);
-    } catch(e) {
-      setStatus(prev=>({...prev,status:'model_ready'}));setPhase('error');
-      setError(`Model downloaded, but verification failed: ${String(e)}. Retry setup to test again; the installed model will be reused.`);return;
-    }
-
-    setPhase("done");
-    setPhaseMessage("");
-  }, [setStatus, toast]);
+  useEffect(()=>{
+    if(!isTauri)return;let active=true;let polling=false;
+    const refresh=async()=>{if(polling)return;polling=true;try{const job=await getModelSetupJob();if(!active||!job)return;
+      setSelectedModel(job.model);
+      if(['error','cancelled','interrupted'].includes(job.phase)){setPhase('error');setError(job.message);}
+      else if(job.phase==='done'){const current=await getLlmStatus();if(!active)return;setStatus(current);if(current.status==='running'){setPhase('done');setError(null);}else{setPhase('error');setError('Saved model selection restored. Resume setup to start the engine and verify this model again.');}}
+      else{setPhase(job.phase as SetupPhase);setPhaseMessage(job.message);setError(null);}
+    }catch(e){if(active)setError(String(e));}finally{polling=false;}};
+    void refresh();const timer=setInterval(()=>void refresh(),1500);
+    let unlisten:(()=>void)|null=null;listenForPullProgress(p=>{if(active){setPullProgress(p);const previous=progressSample.current;const at=Date.now();if(!previous||p.completed<previous.completed){progressSample.current={completed:p.completed,at};setDownloadSpeed('Starting layer');}else if(at-previous.at>=500){setDownloadSpeed(`${((p.completed-previous.completed)/(at-previous.at)/1000).toFixed(1)} MB/s · current layer`);progressSample.current={completed:p.completed,at};}}}).then(fn=>{if(active)unlisten=fn;else fn?.();}).catch(e=>{if(active)setError(String(e));});
+    return()=>{active=false;clearInterval(timer);unlisten?.();};
+  },[setStatus]);
 
   // Disable AI
   const handleDisableAi = useCallback(async () => {
@@ -654,8 +545,8 @@ export function AiSetupPanel() {
                   {phase === "starting_ollama" && "Launching the AI engine on your machine. Almost there..."}
                   {phase === "downloading_model" && (
                     pullProgress && pullProgress.percent > 0
-                      ? `Downloading AI model — ${Math.round(pullProgress.percent)}% of the current layer. This is a large file — please keep this window open and don't close the app.`
-                      : "Preparing to download the AI model. This is a multi-gigabyte download and may take 10–30 minutes depending on your internet connection. Keep this setup panel open until verification finishes."
+                      ? `Downloading AI model — ${Math.round(pullProgress.percent)}% of the current layer. This is a large file — you can navigate away and return to this progress.`
+                      : "Preparing to download the AI model. This is a multi-gigabyte download and may take 10–30 minutes depending on your internet connection. You can navigate elsewhere; setup continues in the desktop process."
                   )}
                   {phase === "activating" && "Connecting the AI model to the screening engine..."}
                   {phase === "testing" && "Checking that the model produces a response. This is not clinical validation."}
@@ -822,6 +713,7 @@ export function AiSetupPanel() {
           </div>
         )}
 
+        {isSettingUp&&<button className="dc-btn" onClick={()=>void cancelModelSetupJob().then(()=>setPhaseMessage('Cancellation requested. Runtime installation finishes its current step; downloaded files are preserved.')).catch(e=>setError(String(e)))}>Cancel setup</button>}
         {/* ── Done state (just completed setup) ── */}
         {phase === "done" && isActive && (
           <div className="rounded-lg bg-emerald-500/5 px-4 py-3 ring-1 ring-emerald-500/15">
@@ -843,10 +735,10 @@ export function AiSetupPanel() {
               <span className="text-[12px] text-red-400">{error}</span>
               {phase === "error" && (
                 <button
-                  onClick={() => { setPhase("idle"); setError(null); }}
+                  onClick={() => void handleOneClickSetup(selectedModel)}
                   className="mt-1 block text-[11px] font-semibold text-red-400 underline underline-offset-2 hover:text-red-300"
                 >
-                  Try again
+                  Resume setup
                 </button>
               )}
             </div>

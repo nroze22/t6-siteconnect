@@ -862,3 +862,8 @@ function analyticsPatientToParsed(p: AnalyticsPatient): ParsedPatient {
     provider: "",
   };
 }
+
+export type ModelSetupJob={model:string;phase:string;message:string;updated:string};
+export async function getModelSetupJob():Promise<ModelSetupJob|null>{if(!isTauri)return null;return tauriInvoke('get_model_job');}
+export async function startModelSetupJob(model:string):Promise<ModelSetupJob>{if(!isTauri)throw Error('Desktop setup required');return tauriInvoke('start_model_job',{model});}
+export async function cancelModelSetupJob():Promise<void>{if(!isTauri)return;return tauriInvoke('cancel_model_job');}

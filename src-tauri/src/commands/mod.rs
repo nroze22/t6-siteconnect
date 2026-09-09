@@ -1,3 +1,5 @@
+pub mod model_job;
+pub mod rehearsal;
 pub mod analytics;
 pub mod database;
 pub mod epic;

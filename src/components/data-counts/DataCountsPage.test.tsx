@@ -53,7 +53,7 @@ it('keeps source evidence aligned with search and issue navigation',async()=>{
  await screen.findByText('2 release blockers');
  fireEvent.click(screen.getAllByRole('button',{name:'Inspect source evidence'})[0]!);
  expect((screen.getByRole('textbox',{name:'Search source records'}) as HTMLInputElement).value).toBe('');
- expect(screen.getByText(/Unit not supplied/)).toBeTruthy();
+ expect(screen.getAllByText(/Unit not supplied/).length).toBeGreaterThan(0);
 });
 
 
@@ -63,6 +63,7 @@ it('preserves unreadable saved evidence until an explicit synthetic reset',()=>{
  render(<DataCountsPage/>);
  expect(screen.getByRole('heading',{name:'Session storage needs attention'})).toBeTruthy();
  expect(localStorage.getItem('siteconnect-data-counts-synthetic-v1')).toBe('unreadable-evidence');
+ fireEvent.click(screen.getByRole('button',{name:'Administration'}));
  fireEvent.click(screen.getByRole('button',{name:'Reset rehearsal'}));
  fireEvent.click(screen.getByRole('button',{name:'Reset synthetic workspace'}));
  expect(JSON.parse(localStorage.getItem('siteconnect-data-counts-synthetic-v1')!).hasRun).toBe(false);
