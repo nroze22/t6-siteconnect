@@ -798,7 +798,7 @@ export function AiSetupPanel() {
                         <span>Download: {model.downloadTime} depending on connection</span>
                       </div>
                     )}
-                    <div className={`mt-${installed ? "3" : "2"} flex items-center justify-center gap-1.5 rounded-lg bg-purple-600/90 py-2 text-[12px] font-semibold text-white opacity-0 group-hover:opacity-100 transition-opacity`}>
+                    <div className={`${installed ? "mt-3" : "mt-2"} flex items-center justify-center gap-1.5 rounded-lg bg-purple-600 py-2 text-[12px] font-semibold text-white group-hover:bg-purple-700 group-focus-visible:bg-purple-700 transition-colors`}>
                       <Sparkles className="h-3 w-3" />
                       {installed ? "Activate AI Screening" : "Set Up AI Screening"}
                     </div>
