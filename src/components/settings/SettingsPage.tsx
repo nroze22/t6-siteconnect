@@ -78,9 +78,10 @@ import { EpicConnectionsPanel } from "./EpicConnectionsPanel";
 
 // ─── Tab Definition ──────────────────────────────────────────
 
-type SettingsTab = "general" | "data" | "security" | "support";
+type SettingsTab = "ai" | "general" | "data" | "security" | "support";
 
 const TABS: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
+  {id:"ai",label:"Local AI",icon:<Brain className="h-3.5 w-3.5"/>},
   { id: "general", label: "General", icon: <Settings className="h-3.5 w-3.5" /> },
   { id: "data", label: "Data", icon: <Database className="h-3.5 w-3.5" /> },
   { id: "security", label: "Security", icon: <Shield className="h-3.5 w-3.5" /> },
@@ -90,7 +91,7 @@ const TABS: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
 // ─── Main Component ──────────────────────────────────────────
 
 export function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<SettingsTab>("general");
+  const [activeTab, setActiveTab] = useState<SettingsTab>("ai");
 
   return (
     <div className="flex h-full flex-col bg-background">
@@ -123,10 +124,10 @@ export function SettingsPage() {
       {/* Tab content */}
       <div className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-2xl space-y-3">
+          {activeTab === "ai" && <><div className="mb-5"><h3 className="text-lg font-semibold text-heading">Set up local extraction</h3><p className="text-sm text-dim mt-2">Choose a model once. Setup checks storage, downloads the model and verifies a response. Then return to Data COUNTS → Local AI to review a document.</p></div><AiSetupPanel/></>}
           {activeTab === "general" && (
             <>
               <SystemProfilePanel />
-              <AiSetupPanel />
               <PreferencesPanel />
               <UpdatePanel />
             </>
@@ -356,7 +357,7 @@ const AI_MODELS = [
 
 type SetupPhase = "idle" | "installing_ollama" | "starting_ollama" | "downloading_model" | "activating" | "testing" | "done" | "error";
 
-export function AiSetupPanel() {
+export function AiSetupPanel({onContinue}:{onContinue?:()=>void}={}) {
   const setGlobalLlmStatus = useAppStore((s) => s.setLlmStatus);
   const toast = useToast();
 
@@ -484,7 +485,7 @@ export function AiSetupPanel() {
           </div>
           <p className="mt-0.5 text-[12px] text-dim">
             {isActive
-              ? `Using ${llmStatus.model_name ?? llmStatus.ollama_model ?? selectedModel} · local model response verified`
+              ? `Using ${llmStatus.model_name ?? llmStatus.ollama_model ?? selectedModel} · local processing`
               : "Choose a local model. Setup checks this computer, downloads what is needed and verifies a response. System permission or a runtime update may be required."}
           </p>
         </div>
@@ -500,7 +501,7 @@ export function AiSetupPanel() {
                   <Sparkles className="h-4.5 w-4.5 text-emerald-400" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-[13px] font-semibold text-emerald-400">AI screening is active</p>
+                  <p className="text-[13px] font-semibold text-emerald-400">Local model is running</p>
                   <p className="text-[12px] text-dim">
                     Model: <span className="font-semibold text-body">{llmStatus.ollama_model ?? selectedModel}</span>
                     {healthy && <span className="ml-2 text-emerald-400">· Healthy</span>}
@@ -515,10 +516,9 @@ export function AiSetupPanel() {
               </div>
             </div>
 
+            {onContinue&&<button className="dc-btn primary mt-4" onClick={onContinue}>Continue to document review →</button>}
             {/* Chat test */}
-            <div className="mt-3">
-              <AiChatTest />
-            </div>
+            <details className="mt-4"><summary className="text-sm font-semibold text-body cursor-pointer">Troubleshoot · test a model response</summary><AiChatTest /></details>
 
             {/* System info (compact, in active state) */}
             {hardware && (
@@ -650,12 +650,12 @@ export function AiSetupPanel() {
               </div>
             )}
 
-            <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-1">Recommended for this computer</p>
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-1">{hardware&&hardware.recommended_model!=="none"?"Recommended for this computer":"Choose a starting model"}</p>
             <p className="text-[11px] text-dim mb-3 leading-relaxed">
-              Model downloads range from about 1–19 GB. Models and the runtime are downloaded on demand, not included in the app. Download time depends on your connection; allow disk space for the model and working files. These listed models run locally after setup. Check inference before your presentation.
+              Use the recommended model to get started. Setup checks available storage, downloads what is missing and verifies a response. After the one-time download, extraction runs locally.
             </p>
             <div className={showAlternatives?"grid grid-cols-1 md:grid-cols-2 gap-3":"grid grid-cols-1 gap-3"}>
-              {AI_MODELS.filter(model=>showAlternatives||!hardware||hardware.recommended_model==="none"||model.id===hardware.recommended_model).map((model) => {
+              {AI_MODELS.filter(model=>showAlternatives||model.id===(hardware?.recommended_model&&hardware.recommended_model!=="none"?hardware.recommended_model:"gemma4:e2b")).map((model) => {
                 const installed = isModelInstalled(model.id);
                 const isRecommended = hardware?.recommended_model === model.id;
                 const unavailable=hardware?modelPreflight(hardware.total_ram_gb,hardware.free_disk_gb,model.minRam,model.sizeGb,installed):null;
@@ -695,7 +695,7 @@ export function AiSetupPanel() {
                     )}
                     <div className={`${installed ? "mt-3" : "mt-2"} flex items-center justify-center gap-1.5 rounded-lg bg-purple-600 py-2 text-[12px] font-semibold text-white group-hover:bg-purple-700 group-focus-visible:bg-purple-700 transition-colors`}>
                       <Sparkles className="h-3 w-3" />
-                      {unavailable?"Unavailable on this computer":installed ? "Use this model" : "Download and set up"}
+                      {!isTauri?"Desktop app required":!hardware?"Checking this computer…":unavailable?"Unavailable on this computer":installed ? "Use this model" : "Download and set up"}
                     </div>
                   </button>
                 );
@@ -703,7 +703,7 @@ export function AiSetupPanel() {
             </div>
 
             <button className="mt-4 text-[13px] font-semibold text-body underline underline-offset-4" onClick={()=>setShowAlternatives(v=>!v)}>{showAlternatives?"Show recommended model only":"Compare other models"}</button>
-            {hardware?.model_directory&&<p className="mt-3 text-[12px] text-dim break-all">Storage checked: {hardware.model_directory}. For a separately configured Ollama service, verify it uses this same directory.</p>}
+            {hardware?.model_directory&&<details className="mt-3 text-sm text-dim"><summary>Storage details</summary><p className="break-all">{hardware.model_directory}. A separately configured Ollama service must use this directory for the same storage check.</p></details>}
             {hardware?.recommended_tier === "none" && (
               <div className="mt-3 flex items-center gap-2 rounded-lg model-setup-notice px-3 py-2 ring-1 ring-amber-500/15">
                 <AlertCircle className="h-3.5 w-3.5 text-inherit shrink-0" />
@@ -745,15 +745,7 @@ export function AiSetupPanel() {
           </div>
         )}
 
-        {/* Gemma 4 model guidance */}
-        <div className="rounded-lg border border-edge-2 bg-surface-2 px-3 py-2.5 text-[11px] text-dim">
-          <span className="font-semibold text-body">Recommended Gemma 4 models:</span>
-          <ul className="mt-1 space-y-0.5 text-[10px]">
-            <li><code className="text-indigo-300">gemma4:e2b</code> — about 7.2 GB download; plan 16 GB+ RAM</li>
-            <li><code className="text-indigo-300">gemma4:e4b</code> — about 9.6 GB download; plan 24 GB+ RAM</li>
-            <li><code className="text-indigo-300">gemma4:26b</code> — about 19 GB download; manual workstation option</li>
-          </ul>
-        </div>
+
       </div>
     </div>
   );
