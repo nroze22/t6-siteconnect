@@ -13,3 +13,12 @@ it('retains reviewed source when replacement is cancelled or unreadable',async()
 it('discloses original source and unencrypted export before opening a save destination',async()=>{
  render(<SourceWorkbench/>);fireEvent.click(screen.getByRole('button',{name:'Load example note'}));await screen.findByText('kept.csv');expect(screen.getByRole('button',{name:'Export review & open questions'})).toBeDisabled();fireEvent.click(screen.getByLabelText('I reviewed the parsed source fields and file coverage.'));fireEvent.click(screen.getByRole('button',{name:'Export review & open questions'}));expect(screen.getByRole('dialog')).toHaveTextContent('original document text');expect(screen.getByRole('dialog')).toHaveTextContent('not de-identified or encrypted');fireEvent.click(screen.getByRole('button',{name:'Keep reviewing'}));await waitFor(()=>expect(screen.queryByRole('dialog')).toBeNull());
 });
+it('distinguishes a download request from saving and invalidates its status after review changes',async()=>{
+ vi.spyOn(HTMLAnchorElement.prototype,'click').mockImplementation(()=>{});
+ URL.createObjectURL=vi.fn(()=> 'blob:test');URL.revokeObjectURL=vi.fn();
+ render(<SourceWorkbench/>);fireEvent.click(screen.getByRole('button',{name:'Load example note'}));await screen.findByText('kept.csv');
+ const review=screen.getByLabelText('I reviewed the parsed source fields and file coverage.');fireEvent.click(review);
+ fireEvent.click(screen.getByRole('button',{name:'Export review & open questions'}));fireEvent.click(screen.getByRole('button',{name:'Choose save location'}));
+ await screen.findByRole('heading',{name:'Download requested · check your downloads'});expect(screen.queryByRole('heading',{name:'Review file saved'})).toBeNull();
+ fireEvent.click(review);expect(screen.getByText(/Your review changed after the last export/)).toBeInTheDocument();expect(screen.getByRole('button',{name:'Export review & open questions'})).toBeDisabled();
+});
