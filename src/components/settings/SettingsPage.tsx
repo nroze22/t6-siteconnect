@@ -370,6 +370,7 @@ export function AiSetupPanel() {
   });
   const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus>({ installed: false, running: false, models: [] });
   const [hardware, setHardware] = useState<SystemHardware | null>(null);
+  const [showAlternatives,setShowAlternatives]=useState(false);
   const [selectedModel, setSelectedModel] = useState<string>("gemma4:e2b");
 
   // One-click setup state
@@ -592,7 +593,7 @@ export function AiSetupPanel() {
           </div>
           <p className="mt-0.5 text-[12px] text-dim">
             {isActive
-              ? `Using ${llmStatus.ollama_model ?? selectedModel} · 100% local inference · no PHI leaves this device`
+              ? `Using ${llmStatus.model_name ?? llmStatus.ollama_model ?? selectedModel} · local model response verified`
               : "Choose a local model. Setup checks this computer, downloads what is needed and verifies a response. System permission or a runtime update may be required."}
           </p>
         </div>
@@ -758,20 +759,21 @@ export function AiSetupPanel() {
               </div>
             )}
 
-            <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-1">Choose a model</p>
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-1">Recommended for this computer</p>
             <p className="text-[11px] text-dim mb-3 leading-relaxed">
               Model downloads range from about 1–19 GB. Models and the runtime are downloaded on demand, not included in the app. Download time depends on your connection; allow disk space for the model and working files. These listed models run locally after setup. Check inference before your presentation.
             </p>
-            <div className="grid grid-cols-2 gap-3">
-              {AI_MODELS.map((model) => {
+            <div className={showAlternatives?"grid grid-cols-1 md:grid-cols-2 gap-3":"grid grid-cols-1 gap-3"}>
+              {AI_MODELS.filter(model=>showAlternatives||!hardware||hardware.recommended_model==="none"||model.id===hardware.recommended_model).map((model) => {
                 const installed = isModelInstalled(model.id);
                 const isRecommended = hardware?.recommended_model === model.id;
+                const unavailable=hardware?modelPreflight(hardware.total_ram_gb,hardware.free_disk_gb,model.minRam,model.sizeGb,installed):null;
                 return (
                   <button
                     key={model.id}
                     onClick={() => handleOneClickSetup(model.id)}
-                    disabled={!isTauri || isSettingUp || !hardware || (hardware.recommended_tier === "none")}
-                    className="group relative rounded-xl p-4 text-left transition-all bg-surface-1 ring-1 ring-edge-1 hover:ring-purple-500/30 hover:bg-purple-500/[0.03] disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!isTauri || isSettingUp || !hardware || !!unavailable}
+                    className="group relative rounded-xl p-4 text-left transition-all bg-surface-1 ring-1 ring-edge-1 hover:ring-purple-500/30 hover:bg-purple-500/[0.03] disabled:cursor-not-allowed"
                   >
                     {isRecommended && (
                       <span className="absolute -top-1.5 right-2 rounded-full bg-purple-500 px-2 py-0.5 text-[8px] font-bold text-white">
@@ -787,12 +789,13 @@ export function AiSetupPanel() {
                         </span>
                       )}
                     </div>
-                    <p className="text-[12px] text-dim mb-3">{model.description}</p>
+                    <p className="text-[12px] text-dim mb-3">{isRecommended?"A conservative starting choice based on this computer’s memory. Setup verifies a response before marking it ready.":model.description}</p>
                     <div className="flex items-center gap-3 text-[11px] text-dim">
                       <span>{model.size}</span>
                       <span className="text-faint">·</span>
                       <span>{model.ramReq} RAM</span>
                     </div>
+                    {unavailable&&<p className="model-setup-notice rounded-md p-2 text-[12px] mb-2">{unavailable}</p>}
                     {!installed && (
                       <div className="mt-2 flex items-center gap-1.5 rounded-md model-setup-notice px-2 py-1 text-[12px] font-medium">
                         <Clock className="h-3 w-3 shrink-0" />
@@ -801,14 +804,15 @@ export function AiSetupPanel() {
                     )}
                     <div className={`${installed ? "mt-3" : "mt-2"} flex items-center justify-center gap-1.5 rounded-lg bg-purple-600 py-2 text-[12px] font-semibold text-white group-hover:bg-purple-700 group-focus-visible:bg-purple-700 transition-colors`}>
                       <Sparkles className="h-3 w-3" />
-                      {installed ? "Activate AI Screening" : "Set Up AI Screening"}
+                      {unavailable?"Unavailable on this computer":installed ? "Use this model" : "Download and set up"}
                     </div>
                   </button>
                 );
               })}
             </div>
 
-            {hardware?.model_directory&&<p className="mt-3 text-[12px] text-dim break-all">Checked model directory: {hardware.model_directory}. For a separately configured Ollama service, verify it uses this same directory.</p>}
+            <button className="mt-4 text-[13px] font-semibold text-body underline underline-offset-4" onClick={()=>setShowAlternatives(v=>!v)}>{showAlternatives?"Show recommended model only":"Compare other models"}</button>
+            {hardware?.model_directory&&<p className="mt-3 text-[12px] text-dim break-all">Storage checked: {hardware.model_directory}. For a separately configured Ollama service, verify it uses this same directory.</p>}
             {hardware?.recommended_tier === "none" && (
               <div className="mt-3 flex items-center gap-2 rounded-lg model-setup-notice px-3 py-2 ring-1 ring-amber-500/15">
                 <AlertCircle className="h-3.5 w-3.5 text-inherit shrink-0" />

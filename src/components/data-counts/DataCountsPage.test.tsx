@@ -32,6 +32,9 @@ describe('Data COUNTS guided experience',()=>{
   expect(approve.disabled).toBe(false);
   fireEvent.click(approve);
   await waitFor(()=>expect((screen.getByRole('button',{name:'Export demo package'}) as HTMLButtonElement).disabled).toBe(false));
+  fireEvent.click(screen.getByRole('button',{name:'Source records'}));
+  fireEvent.click(screen.getByRole('button',{name:'Continue to release review'}));
+  expect((screen.getByRole('button',{name:'Export demo package'}) as HTMLButtonElement).disabled).toBe(false);
   fireEvent.click(screen.getByRole('button',{name:'Quick introduction'}));
   fireEvent.click(screen.getByRole('button',{name:'Skip introduction'}));
   fireEvent.click(screen.getByRole('button',{name:'Release & delivery'}));

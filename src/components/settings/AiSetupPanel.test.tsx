@@ -24,5 +24,5 @@ it('refreshes disk space before activating even an installed model',async()=>{
  render(<AiSetupPanel/>);const card=await screen.findByRole('button',{name:/Gemma 4 E2B/});
  await waitFor(()=>expect((card as HTMLButtonElement).disabled).toBe(false));
  vi.mocked(provider.detectSystemHardware).mockResolvedValue({total_ram_bytes:0,total_ram_gb:16,free_disk_bytes:0,free_disk_gb:1,recommended_tier:'recommended',recommended_model:'gemma4:e2b'});
- fireEvent.click(card);await screen.findByText(/Need 2.0 GiB free/);expect(provider.configureOllamaBackend).not.toHaveBeenCalled();
+ fireEvent.click(card);await screen.findAllByText(/Need 2.0 GiB free/);expect(provider.configureOllamaBackend).not.toHaveBeenCalled();
 });

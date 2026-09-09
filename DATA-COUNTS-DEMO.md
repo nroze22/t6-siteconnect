@@ -105,3 +105,9 @@ Verification: 239 frontend tests passed, including unreadable-state preservation
 ## Model setup
 
 Open **Model setup** directly in Data COUNTS. The guided on-demand installer now checks current model-drive space and memory, reuses installed models and requires a real response before setup succeeds. Models are not bundled with the app. See `MODEL-SETUP-REVIEW.md` for fixes, evidence and the clean-install, interruption and cross-platform checks still required.
+
+## Workflow clarity
+
+The release screens now show four navigable steps: understand request, check source, review/approve, and confirm delivery. Once source checks pass, the main source action continues to release review without rerunning or invalidating approval. Model setup explains that AI is optional, shows the recommended model first, and reveals other choices with Compare other models. Unavailable choices show the reason before a click. Explicit buttons return to the laboratory workflow or open the synthetic note.
+
+239 frontend tests passed, including approval preservation while revisiting source evidence. The rebuilt native app and recommended-model layout were inspected.
