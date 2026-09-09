@@ -70,8 +70,8 @@ export function transform(l:Lab):OutputLab{
  return {...source,effectiveDateTime:shifted(l.effectiveDateTime),issued:shifted(l.issued),patientToken:`DEMO-TOKEN-${String(index+1).padStart(3,'0')}`,provenance:{sourceResource:l.id,sourceVersion,transformation:'Synthetic date-shift fixture v1; DEMO token is not approved PPRL'}};
 }
 export type Exclusion={patient:string;count:number;reason:'Age below 18 at request start'|'Outside requested UTC window'|'Not permitted by fixture authority'|'Permission revoked in fixture v2'};
-export type Run={exclusions:Exclusion[];id:string;revision:number;eligibilityVersion:number;issues:Issue[];sourceCount:number;cohortExcluded:number;permissionExcluded:number;output:OutputLab[];digest:string;packageId:string};
-export async function buildRun(corrected:boolean,revoked:boolean,source?:Lab[],lifecycle=false):Promise<Run>{
+export type Run={exclusions:Exclusion[];id:string;revision:number;eligibilityVersion:number;issues:Issue[];sourceCount:number;cohortExcluded:number;permissionExcluded:number;output:OutputLab[];digest:string;packageId:string;sourceFile?:{hash:string;name:string}};
+export async function buildRun(corrected:boolean,revoked:boolean,source?:Lab[],lifecycle=false,sourceFile?:{hash:string;name:string}):Promise<Run>{
  const labs=source??fixture(corrected,lifecycle);const issues=quality(labs);
  const exclusions:Exclusion[]=[];
  const included:Lab[]=[];
@@ -84,10 +84,10 @@ export async function buildRun(corrected:boolean,revoked:boolean,source?:Lab[],l
  const permissionExcluded=exclusions.filter(e=>e.reason==='Not permitted by fixture authority'||e.reason==='Permission revoked in fixture v2').reduce((n,e)=>n+e.count,0);
  const output=issues.length?[]:included.map(transform);
  if(!issues.length&&labs.length!==cohortExcluded+permissionExcluded+output.length)throw Error('Counts do not reconcile');
- const canonical=JSON.stringify({request:REQUEST,engineVersion:3,source:lifecycle?3:corrected?2:1,eligibility:revoked?2:1,exclusions,output});
+ const canonical=JSON.stringify({request:REQUEST,engineVersion:3,...(sourceFile?{sourceFile}:{}),source:lifecycle?3:corrected?2:1,eligibility:revoked?2:1,exclusions,output});
  const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(canonical));
  const digest=Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');
- return {exclusions,id:`RUN-S${lifecycle?3:corrected?2:1}-E${revoked?2:1}`,revision:lifecycle?3:corrected?2:1,eligibilityVersion:revoked?2:1,issues,sourceCount:labs.length,cohortExcluded,permissionExcluded,output,digest,packageId:`DEMO-PKG-${digest.slice(0,12)}`};
+ return {...(sourceFile?{sourceFile}:{}),exclusions,id:`RUN-S${lifecycle?3:corrected?2:1}-E${revoked?2:1}`,revision:lifecycle?3:corrected?2:1,eligibilityVersion:revoked?2:1,issues,sourceCount:labs.length,cohortExcluded,permissionExcluded,output,digest,packageId:`DEMO-PKG-${digest.slice(0,12)}`};
 }
 export type Receipt={packageId:string;digest:string;count:number;status:'awaiting'|'reconciled'};
 export function authorize(run:Run|null,corrected:boolean,revoked:boolean,lifecycle=false){

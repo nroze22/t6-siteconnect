@@ -6,7 +6,7 @@
 2. In Administration, open Model setup. Resume/verify Gemma 4 E2B if the application has restarted. Installed files are reused; do not plan a model download during the meeting.
 3. Select Check demo preparation. The native checks exercise a temporary file write/read, available working space, the fixed laboratory story and an optional model response. The file check does not prove permissions for an arbitrary destination folder.
 4. Resolve any unknown receipt before starting fresh. Start fresh guided demo replaces the active synthetic rehearsal while retaining native journal revisions.
-5. Open Local AI and extract the note once. Confirm both source quotes and values, then return to the request. The review never imports data or modifies a release.
+5. Open Local AI and load `sample-data/extraction/lab-pair.txt`. Extract and review each source quote. Narrative annotations do not modify releases. Optionally open `laboratory-source.xlsx`, review its fields and explicitly load it as the synthetic laboratory source. See SOURCE-EXTRACTION-REVIEW.md for the new workflow and current benchmark.
 6. Export one package to the actual presentation folder and open it. Test the presentation display, sleep/wake and a full native offline restart. These machine-level checks are not replaced by browser testing.
 7. Keep SiteConnect-Product-Video.mp4 available locally as a captioned backup. It has a quiet original music bed and works muted; there is no voiceover.
 
@@ -35,7 +35,9 @@ SiteConnect is an alpha starting point. Do not claim deployed hospital clients, 
 
 ## Current verification
 
-- 250 frontend tests and 113 Rust tests passed; the Apple Silicon debug app built.
+The new source extraction profile and file workflow are documented in SOURCE-EXTRACTION-REVIEW.md. Timing below for the previous fixed-note command is historical and does not describe the new broader profile.
+
+- 264 frontend tests and 116 Rust tests passed; the Apple Silicon debug app built.
 - Browser journey: two blockers → corrected source → 120-observation export and readable summary → unknown receipt → reload → same package reconciled, one ingestion.
 - Loaded browser workflow continued with browser networking disabled. This is not a native clean-start offline test.
 - 1024×768 browser layout had no page-level horizontal overflow. Keyboard focus reached the next operational tab. This is a focused check, not an accessibility certification or projector test.

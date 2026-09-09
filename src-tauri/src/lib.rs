@@ -121,6 +121,8 @@ pub fn run() {
             chat_with_llm,
             parse_clinical_notes,
             commands::demo_tools::extract_demo_note,
+            commands::source_extract::extract_source_entities,
+            commands::source_extract::cancel_source_extraction,
             commands::demo_tools::check_demo_export,
             generate_ai_insight,
             import_extracted_patients,
