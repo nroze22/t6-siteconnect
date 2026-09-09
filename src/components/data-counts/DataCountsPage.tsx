@@ -26,7 +26,7 @@ export function DataCountsPage(){
  const [intro,setIntro]=useState(()=>{try{return localStorage.getItem('siteconnect-data-counts-intro-v1')!=='complete';}catch{return true;}});
  const finishIntro=()=>{try{localStorage.setItem('siteconnect-data-counts-intro-v1','complete');}catch{}setIntro(false);setTab('Request');};
  const currentPage=useAppStore(s=>s.currentPage);
- const [tab,setTab]=useState<Tab>(currentPage==='settings'?'System':'Overview');
+ const [tab,setTab]=useState<Tab>(currentPage==='settings'?'Model setup':'Overview');
  const [initial]=useState(restore);const [recovery,setRecovery]=useState(initial.problem);const [persisted,setPersisted]=useState(false);const [notice,setNotice]=useState('');const [saveAttempt,setSaveAttempt]=useState(0);
  const [state,setState]=useState(initial.state);const [run,setRun]=useState<Run|null>(null);const [busy,setBusy]=useState(false);const [error,setError]=useState('');const [storage,setStorage]=useState('Session saved locally');const [selected,setSelected]=useState('OBS-003-1-1');const [filter,setFilter]=useState('');const [reviewed,setReviewed]=useState(false);const [confirmReset,setConfirmReset]=useState(false);
  const [hydrated,setHydrated]=useState(!isTauri);
@@ -38,8 +38,8 @@ export function DataCountsPage(){
  const showGuide=(value:boolean)=>{setGuide(value);try{sessionStorage.setItem('dc-presenter',value?'on':'off');}catch{}};
  useEffect(()=>{if(!isTauri)return;let active=true;const refresh=()=>getModelSetupJob().then(job=>{if(active)setSetupJob(job);}).catch(()=>{});void refresh();const timer=setInterval(()=>void refresh(),2500);return()=>{active=false;clearInterval(timer);};},[]);
  useEffect(()=>{scrollArea.current?.scrollTo({top:0});},[tab]);
- useEffect(()=>{const navigate=(event:Event)=>setTab((event as CustomEvent).detail==='settings'?'System':'Overview');window.addEventListener('data-counts-navigate',navigate);return()=>window.removeEventListener('data-counts-navigate',navigate);},[]);
- useEffect(()=>{if(currentPage==='settings')setTab('System');},[currentPage]);
+ useEffect(()=>{const navigate=(event:Event)=>setTab((event as CustomEvent).detail==='settings'?'Model setup':'Overview');window.addEventListener('data-counts-navigate',navigate);return()=>window.removeEventListener('data-counts-navigate',navigate);},[]);
+ useEffect(()=>{if(currentPage==='settings')setTab('Model setup');},[currentPage]);
  useEffect(()=>{if(!isTauri)return;let mounted=true;readJournal('rehearsal').then(raw=>{if(!mounted)return;if(raw){setState(Saved.parse(JSON.parse(raw)));setRecovery('');}setHydrated(true);}).catch(e=>{if(mounted){setRecovery(String(e));setHydrated(true);}});return()=>{mounted=false;};},[]);
  useEffect(()=>{if(!hydrated)return;if(recovery){setPersisted(false);setStorage('Saved session needs recovery');return;}let active=true;setPersisted(false);const payload=JSON.stringify(state);if(isTauri){writeJournal('rehearsal',payload).then(()=>{if(active){setPersisted(true);setStorage('Saved to native transaction journal');}}).catch(e=>{if(active){setStorage('Journal save failed');setError(String(e));}});}else{try{localStorage.setItem(KEY,payload);setPersisted(true);setStorage('Browser rehearsal saved locally');}catch{setStorage('Storage unavailable · this session will not survive reload');}}return()=>{active=false;};},[state,recovery,saveAttempt,hydrated]);
  useEffect(()=>{const id=++seq.current;if(state.hasRun){setBusy(true);buildRun(state.corrected,state.revoked,state.imported?.rows,state.lifecycle,state.imported?{hash:state.imported.hash,name:state.imported.name}:undefined).then(r=>{if(seq.current===id){setRun(r);setBusy(false);}}).catch(e=>{if(seq.current===id){setError(String(e));setBusy(false);}});}else{setRun(null);setBusy(false);}return()=>{seq.current++;};},[state.hasRun,state.corrected,state.revoked,state.lifecycle,state.imported,generation]);
