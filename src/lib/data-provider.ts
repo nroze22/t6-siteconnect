@@ -113,6 +113,7 @@ export interface SystemHardware {
   total_ram_gb: number;
   free_disk_bytes: number;
   free_disk_gb: number;
+  model_directory?: string;
   recommended_tier: string;
   recommended_model: string;
 }

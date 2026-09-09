@@ -81,7 +81,7 @@ The reference is RFI **75N95C26R00005**, not an awarded contract. This implement
 ## Verification
 
 - TypeScript and Vite production build passed.
-- 234 frontend tests passed; 108 Rust tests passed.
+- 239 frontend tests passed; 110 Rust tests passed.
 - Added regression coverage: source defects block release; exact counts; code/unit and time-interval preservation; stable identity; revocation invalidates approval; no duplicate simulated ingestion; FHIR-shaped source exports; pooled encrypted connections across reopen; lab update preservation; no fabricated zero vital.
 - This revision verified first-run onboarding, remembered introduction completion, persistent appearance switching, source correction, explicit approval gating and receipt completion. Three UI regression tests cover onboarding and the correction/review path.
 - Browser walkthrough verified corrected release, authorization, lost-receipt reconciliation, 108-row revocation refresh, retained Screening workspace and reset.
@@ -100,4 +100,8 @@ Unreadable saved rehearsal state is preserved until the operator explicitly rese
 
 System now includes Device & recovery, interruption guidance, a support-summary export and update/maintenance instructions. The support summary uses an explicit metadata allowlist and excludes source records, values, patient identifiers, model output, file paths and activity text. It is saved locally, not sent to support. Native exports report successful save or cancellation; browser exports accurately report only that a download was requested.
 
-Verification: 234 frontend tests passed, including unreadable-state preservation and storage-failure/retry authorization gates. The native debug build succeeded, restarted with the existing synthetic session, and displayed the new recovery screen. Existing production security and compliance limitations remain unchanged. Assumed sponsor/user input informed prioritization; no new interviews or signoffs are claimed.
+Verification: 239 frontend tests passed, including unreadable-state preservation and storage-failure/retry authorization gates. The native debug build succeeded, restarted with the existing synthetic session, and displayed the new recovery screen. Existing production security and compliance limitations remain unchanged. Assumed sponsor/user input informed prioritization; no new interviews or signoffs are claimed.
+
+## Model setup
+
+Open **Model setup** directly in Data COUNTS. The guided on-demand installer now checks current model-drive space and memory, reuses installed models and requires a real response before setup succeeds. Models are not bundled with the app. See `MODEL-SETUP-REVIEW.md` for fixes, evidence and the clean-install, interruption and cross-platform checks still required.

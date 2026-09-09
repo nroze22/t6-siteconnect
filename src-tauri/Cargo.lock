@@ -4606,6 +4606,7 @@ dependencies = [
  "hex",
  "jsonwebtoken",
  "keyring",
+ "libc",
  "notify",
  "p256",
  "r2d2",
