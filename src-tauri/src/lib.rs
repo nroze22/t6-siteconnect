@@ -120,6 +120,8 @@ pub fn run() {
             evaluate_criterion_with_llm,
             chat_with_llm,
             parse_clinical_notes,
+            commands::demo_tools::extract_demo_note,
+            commands::demo_tools::check_demo_export,
             generate_ai_insight,
             import_extracted_patients,
             // Ollama

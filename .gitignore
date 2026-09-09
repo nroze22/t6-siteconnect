@@ -55,3 +55,7 @@ logs/
 *.db-wal
 *.db-shm
 .vercel
+
+# Local presentation captures and benchmark scratch files
+.playwright-cli/
+/work/

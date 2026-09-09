@@ -1,3 +1,4 @@
+pub mod demo_tools;
 pub mod model_job;
 pub mod rehearsal;
 pub mod analytics;

@@ -119,3 +119,8 @@ See `OPERATIONS-REFINEMENT.md` for the complete seven-area implementation and it
 To demonstrate source changes, finish the first delivery, return to Overview and select **Load laboratory changes**. Run checks and open release review: five changes are compared with the earlier approval. Cancelled and missing-result notices carry no fabricated number. Source/schema v3 and generated lifecycle fixtures are included. **Download readable summary** exports a text review alongside the JSON package.
 
 Administration contains reset, model setup and diagnostics. The journal is synthetic-only, unencrypted and not a hospital-authenticated audit service. No real broker delivery, hospital approval or approved PPRL is claimed.
+
+
+## Presentation revision
+
+Administration now includes demo preparation and a fresh guided start, which is blocked by unresolved receipts. A six-step presenter guide and source-backed Local AI review support the story. See DEMO-PRESENTATION.md for the script, capability boundaries and current evidence. Current tests: 250 frontend and 113 Rust.
