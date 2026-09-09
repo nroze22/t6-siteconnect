@@ -20,9 +20,9 @@ Actual local gemma4:e2b with schema-constrained decoding and source validation. 
 | Fixture | Previous model source-backed matches | New model source-backed matches | Combined pipeline |
 |---|---:|---:|---:|
 | Built-in note: expected lab measurements | 1/2 | 2/2 | 2/2 |
-| Labeled request-context note: expected values | 7/9 | 9/9 | 9/9 |
+| Labeled request-context note: expected values | 7/9 | 7/9 | 9/9 |
 
-No unsupported model candidates remained in either new run. The first run also returned a supported contextual fact. Recorded model wall times were 24.2 and 36.9 seconds; these are observations rather than a controlled speed comparison. Exact copied values do not prove correct clinical assertion or linkage.
+The final run uses native JSON serialization order. An earlier ordering returned 9/9 context values; the native-order run omitted the observation ID and test code. Source rules recovered both. This sensitivity is a reason to retain coverage checks and not equate constrained JSON with exhaustive extraction. No unsupported model candidates remained in either final run. The first run also returned a supported contextual fact. Recorded model wall times were 24.2 and 36.9 seconds; these are observations rather than a controlled speed comparison. Exact copied values do not prove correct clinical assertion or linkage.
 
 Validation: 290 frontend tests, 120 native tests, and the explicit live-model acceptance test passed. Apple Silicon debug app rebuilt. Native screen interaction remains unverified while the Mac is locked.
 
