@@ -1,0 +1,8 @@
+import {useState} from 'react';
+import {requirements} from '@/lib/data-counts/requirements';
+import {useDataCountsNavigation,destinationTitle} from '@/lib/data-counts/navigation';
+export function ProductionReadiness(){
+ const [filter,setFilter]=useState('All requirements');const setTab=useDataCountsNavigation(s=>s.setTab);
+ const visible=requirements.filter(r=>filter!=='Most complex'||r.complexity==='Very high');
+ return <section className="dc-panel"><h2>What still needs production evidence</h2><p>All 15 RFI criteria are tracked below. No criterion is certified complete. Demo approval and simulated receipts cannot authorize live hospital processing.</p><div className="dc-readiness-summary"><strong>Live operation is not enabled</strong><span>Hospital connectors · approved privacy and linkage · site permissions · broker delivery remain external dependencies.</span></div><label className="dc-check">Show <select className="dc-input" value={filter} onChange={e=>setFilter(e.target.value)}><option>All requirements</option><option>Most complex</option></select></label><p>Complexity is our engineering assessment. These are implementation requirements, not a self-attestation checklist.</p><div className="dc-requirements">{visible.map(r=><details key={r.id}><summary><span>RFI {r.id} · {r.name}</span><span>{r.status} · {r.complexity} complexity</span></summary><dl className="dc-details"><div><dt>Existing foundation</dt><dd>{r.existing}</dd></div><div><dt>Remaining work</dt><dd>{r.remaining}</dd></div><div><dt>Completion evidence</dt><dd>{r.evidence}</dd></div><div><dt>Dependency owner</dt><dd>{r.owner}</dd></div></dl><button className="dc-btn" onClick={()=>setTab(r.destination)}>Open {destinationTitle(r.destination)}</button></details>)}</div></section>;
+}

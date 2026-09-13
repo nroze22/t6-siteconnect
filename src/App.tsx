@@ -145,7 +145,7 @@ function PageRouter() {
   })();
 
   return (
-    <PageTransition pageKey={currentPage}>
+    <PageTransition pageKey={currentMode === "data-counts" ? "data-counts" : currentPage}>
       {page}
     </PageTransition>
   );

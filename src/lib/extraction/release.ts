@@ -9,7 +9,13 @@ export function releaseRows(source:SourceFile):Lab[]{
   const resources=Array.isArray(parsed)?parsed:parsed.resourceType==='Bundle'?parsed.entry.map((e:{resource:unknown})=>e.resource):[parsed];
   for(const r of resources){if(r.resourceType==='Patient'){const expected=PATIENTS.find(p=>p.id===r.id);if(!expected||expected.birthDate!==r.birthDate)throw Error('Patient demographics do not match this synthetic request authority.');}
    if(r.resourceType!=='Observation')continue;
+   const unsupported=['component','interpretation','extension','modifierExtension','derivedFrom','basedOn','partOf','hasMember','note','method','bodySite','device','performer','identifier'];
+   const extra=unsupported.filter(k=>r[k]!==undefined);
+   if(extra.length)throw Error(`This release profile cannot preserve Observation fields: ${extra.join(', ')}. Review evidence is available; use a broader approved profile before release.`);
+   if(r.meta?.security||r.meta?.profile||r.meta?.source||r.meta?.lastUpdated)throw Error('This release profile cannot preserve the supplied FHIR provenance/security metadata. Review evidence only.');
    if(r.code?.coding?.length!==1)throw Error('This laboratory profile requires one unambiguous supplied test coding.');const code=r.code.coding[0];const q=r.valueQuantity;
+   if(q?.code!==undefined&&q.code!==q.unit)throw Error('Quantity machine code differs from display unit. This release profile cannot preserve both; review evidence only.');
+   if(code.version||code.userSelected||r.code.text)throw Error('Additional source terminology context needs a broader lossless release profile.');
    if(r.referenceRange?.length>1)throw Error('Multiple reference intervals require a broader request profile.');const range=r.referenceRange?.[0];if(range?.high?.unit&&range.high.unit!==range.low?.unit)throw Error('Reference interval units disagree. Resolve the source before release.');
    labs.push({resourceType:'Observation',id:r.id,patient:r.subject?.reference?.replace(/^Patient\//,''),status:r.status,specimen:r.specimen?.display,code:code.code,display:code.display,system:code.system,value:q?.value??null,...(q?.comparator?{comparator:q.comparator}:{}),...(r.dataAbsentReason?{dataAbsentReason:r.dataAbsentReason.coding?.[0]?.code}:{}),...(range?{referenceRange:{low:range.low?.value,high:range.high?.value,unit:range.low?.unit}}:{}),unit:q?.unit??'',unitSystem:q?.system??'',effectiveDateTime:r.effectiveDateTime,issued:r.issued,sourceVersion:r.meta?.versionId});
   }

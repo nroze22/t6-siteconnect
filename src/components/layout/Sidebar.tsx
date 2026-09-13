@@ -1,3 +1,5 @@
+import {DataCountsNavigation} from "@/components/data-counts/DataCountsNavigation";
+import {openDataCountsDestination} from "@/lib/data-counts/navigation";
 import { motion } from "framer-motion";
 import {
   Search,
@@ -143,8 +145,8 @@ export function Sidebar() {
     .filter((group) => group.items.length > 0);
 
   const navigate = (page: NavigationPage) => {
+    if(currentMode === "data-counts"){openDataCountsDestination(page==='settings'?'Model setup':'Overview');return;}
     setCurrentPage(page);
-    if (currentMode === "data-counts") window.dispatchEvent(new CustomEvent("data-counts-navigate", {detail: page}));
   };
 
   return (
@@ -168,7 +170,7 @@ export function Sidebar() {
       </button>
 
       {/* Navigation Groups */}
-      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-3">
+      {currentMode === "data-counts" ? <DataCountsNavigation/> : <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-3">
         {visibleGroups.map((group, gi) => (
           <div key={group.title} className={gi > 0 ? "mt-2" : ""}>
             <p className="mb-1 px-2 text-[9px] font-semibold uppercase tracking-widest text-dim">
@@ -220,10 +222,10 @@ export function Sidebar() {
             </div>
           </div>
         ))}
-      </nav>
+      </nav>}
 
       {/* Settings — pinned at bottom */}
-      <div className="border-t border-border px-3 py-2">
+      <div className="border-t border-border px-3 py-2" hidden={currentMode==='data-counts'}>
         <button
           onClick={() => navigate("settings")}
           className={`group relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors duration-150 ${currentPage !== "settings" ? "hover:bg-surface-3" : ""}`}

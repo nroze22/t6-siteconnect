@@ -1,25 +1,35 @@
 import {beforeEach,describe,expect,it,vi} from 'vitest';
 import {render,screen,fireEvent,waitFor,cleanup} from '@testing-library/react';
 import {DataCountsPage} from './DataCountsPage';
+import {DataCountsNavigation} from './DataCountsNavigation';
+import {useDataCountsNavigation} from '@/lib/data-counts/navigation';
 import {useAppStore} from '@/stores/use-app-store';
 
 describe('Data COUNTS guided experience',()=>{
- beforeEach(()=>{HTMLElement.prototype.scrollTo=()=>{};cleanup();localStorage.clear();useAppStore.setState({currentPage:'dashboard',theme:'light'});});
+ beforeEach(()=>{HTMLElement.prototype.scrollTo=()=>{};cleanup();localStorage.clear();useDataCountsNavigation.setState({tab:'Overview'});useAppStore.setState({currentPage:'dashboard',theme:'light'});});
  it('explains the demo before opening the request, and remembers completion',()=>{
-  const view=render(<DataCountsPage/>);
+  const view=render(<><DataCountsNavigation/><DataCountsPage/></>);
   expect(screen.getByRole('heading',{name:'A clear path from hospital records to a reviewed release.'})).toBeTruthy();
   fireEvent.click(screen.getByRole('button',{name:'Continue'}));
   expect(screen.getByRole('heading',{name:'Inspect. Resolve. Review.'})).toBeTruthy();
   fireEvent.click(screen.getByRole('button',{name:'Continue'}));
   fireEvent.click(screen.getByRole('button',{name:'Open the example request'}));
   expect(screen.getByRole('button',{name:'Inspect source records'})).toBeTruthy();
-  view.unmount();render(<DataCountsPage/>);
+  view.unmount();render(<><DataCountsNavigation/><DataCountsPage/></>);
   expect(screen.queryByRole('button',{name:'Continue'})).toBeNull();
   expect(screen.getByRole('button',{name:'Quick introduction'})).toBeTruthy();
  });
+ it('opens a sidebar destination during introduction without claiming onboarding completion',()=>{
+  render(<><DataCountsNavigation/><DataCountsPage/></>);
+  fireEvent.click(screen.getByRole('button',{name:'Requests'}));
+  expect(screen.queryByRole('region',{name:'Demo introduction'})).toBeNull();
+  expect(screen.getByRole('button',{name:'Inspect source records'})).toBeTruthy();
+  expect(localStorage.getItem('siteconnect-data-counts-intro-v1')).toBeNull();
+  expect(screen.getByRole('button',{name:'Requests'}).getAttribute('aria-current')).toBe('page');
+ });
  it('guides source correction and keeps authorization disabled until explicit review',async()=>{
   localStorage.setItem('siteconnect-data-counts-intro-v1','complete');
-  render(<DataCountsPage/>);
+  render(<><DataCountsNavigation/><DataCountsPage/></>);
   fireEvent.click(screen.getByRole('button',{name:'Run quality checks'}));
   await screen.findByText('2 release blockers');
   fireEvent.click(screen.getByRole('button',{name:'Load corrected source v2'}));
@@ -43,8 +53,8 @@ describe('Data COUNTS guided experience',()=>{
 });
 
 it('keeps source evidence aligned with search and issue navigation',async()=>{
- cleanup();localStorage.clear();localStorage.setItem('siteconnect-data-counts-intro-v1','complete');HTMLElement.prototype.scrollTo=()=>{};useAppStore.setState({currentPage:'dashboard',theme:'light'});
- render(<DataCountsPage/>);
+ cleanup();localStorage.clear();useDataCountsNavigation.setState({tab:'Overview'});localStorage.setItem('siteconnect-data-counts-intro-v1','complete');HTMLElement.prototype.scrollTo=()=>{};useAppStore.setState({currentPage:'dashboard',theme:'light'});
+ render(<><DataCountsNavigation/><DataCountsPage/></>);
  fireEvent.click(screen.getByRole('button',{name:'Source records'}));
  fireEvent.change(screen.getByRole('textbox',{name:'Search source records'}),{target:{value:'OBS-003-1-5'}});
  expect(screen.getByRole('heading',{name:'Glucose'})).toBeTruthy();
@@ -58,12 +68,12 @@ it('keeps source evidence aligned with search and issue navigation',async()=>{
 
 
 it('preserves unreadable saved evidence until an explicit synthetic reset',()=>{
- cleanup();localStorage.clear();localStorage.setItem('siteconnect-data-counts-intro-v1','complete');
+ cleanup();localStorage.clear();useDataCountsNavigation.setState({tab:'Overview'});localStorage.setItem('siteconnect-data-counts-intro-v1','complete');
  localStorage.setItem('siteconnect-data-counts-synthetic-v1','unreadable-evidence');
- render(<DataCountsPage/>);
+ render(<><DataCountsNavigation/><DataCountsPage/></>);
  expect(screen.getByRole('heading',{name:'Session storage needs attention'})).toBeTruthy();
  expect(localStorage.getItem('siteconnect-data-counts-synthetic-v1')).toBe('unreadable-evidence');
- fireEvent.click(screen.getByRole('button',{name:'Administration'}));
+ fireEvent.click(screen.getByRole('button',{name:'System & support'}));
  fireEvent.click(screen.getByRole('button',{name:'Reset rehearsal'}));
  fireEvent.click(screen.getByRole('button',{name:'Reset synthetic workspace'}));
  expect(JSON.parse(localStorage.getItem('siteconnect-data-counts-synthetic-v1')!).hasRun).toBe(false);
@@ -71,12 +81,12 @@ it('preserves unreadable saved evidence until an explicit synthetic reset',()=>{
 });
 
 it('pauses authorization on save failure and resumes after successful retry',async()=>{
- cleanup();localStorage.clear();localStorage.setItem('siteconnect-data-counts-intro-v1','complete');
+ cleanup();localStorage.clear();useDataCountsNavigation.setState({tab:'Overview'});localStorage.setItem('siteconnect-data-counts-intro-v1','complete');
  localStorage.setItem('siteconnect-data-counts-synthetic-v1',JSON.stringify({corrected:true,revoked:false,hasRun:true,approval:null,receipts:[],events:[]}));
  const original=localStorage.setItem;
  const fail=vi.spyOn(localStorage,'setItem').mockImplementation(function(this:Storage,key:string,value:string){if(key==='siteconnect-data-counts-synthetic-v1')throw Error('Quota exceeded');original.call(this,key,value);});
  try{
- render(<DataCountsPage/>);
+ render(<><DataCountsNavigation/><DataCountsPage/></>);
  await screen.findByRole('button',{name:'Open release review'});
  fireEvent.click(screen.getByRole('button',{name:'Open release review'}));
  fireEvent.click(screen.getByRole('checkbox'));
