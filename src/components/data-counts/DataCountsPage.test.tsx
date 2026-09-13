@@ -1,5 +1,7 @@
+import {ToastProvider} from '@/components/ui/Toast';
+import {fixture} from '@/lib/data-counts/engine';
 import {beforeEach,describe,expect,it,vi} from 'vitest';
-import {render,screen,fireEvent,waitFor,cleanup} from '@testing-library/react';
+import {render,screen,fireEvent,waitFor,cleanup,within} from '@testing-library/react';
 import {DataCountsPage} from './DataCountsPage';
 import {DataCountsNavigation} from './DataCountsNavigation';
 import {useDataCountsNavigation} from '@/lib/data-counts/navigation';
@@ -95,4 +97,20 @@ it('pauses authorization on save failure and resumes after successful retry',asy
  fireEvent.click(screen.getByRole('button',{name:'Retry saving session'}));
  await waitFor(()=>expect((screen.getByRole('button',{name:'Authorize demo package'}) as HTMLButtonElement).disabled).toBe(false));
  }finally{fail.mockRestore();}
+});
+
+it('retains imported source through correction navigation without substituting the fixture',async()=>{
+ cleanup();localStorage.clear();useDataCountsNavigation.setState({tab:'Overview'});localStorage.setItem('siteconnect-data-counts-intro-v1','complete');
+ const rows=fixture(false);rows[0]!.display='Imported source test';
+ const imported={name:'site-correct-me.json',hash:'source-hash',rows,evidence:'{"source":"unchanged"}'};
+ localStorage.setItem('siteconnect-data-counts-synthetic-v1',JSON.stringify({imported,corrected:true,revoked:false,hasRun:true,approval:null,receipts:[],events:[]}));
+ render(<ToastProvider><DataCountsNavigation/><DataCountsPage/></ToastProvider>);
+ fireEvent.click(screen.getByRole('button',{name:'Quality review'}));
+ await screen.findByText('2 release blockers');
+ expect(screen.queryByRole('button',{name:'Load corrected source v2'})).toBeNull();
+ fireEvent.click(screen.getByRole('button',{name:'Review corrected file'}));
+ fireEvent.click(within(screen.getByRole('navigation',{name:'Data operations'})).getByRole('button',{name:'Model setup'}));
+ fireEvent.click(screen.getByRole('button',{name:'Source records'}));
+ expect(screen.getAllByText('Imported source test').length).toBeGreaterThan(0);
+ expect(JSON.parse(localStorage.getItem('siteconnect-data-counts-synthetic-v1')!).imported).toEqual(imported);
 });
