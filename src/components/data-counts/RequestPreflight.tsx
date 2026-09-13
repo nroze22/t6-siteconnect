@@ -3,7 +3,7 @@ import {Download,Upload} from 'lucide-react';
 import {MAX_REQUEST_BYTES,parseRequest,REQUEST_TEMPLATE,requestJsonSchema,type RequestPreflight as Report} from '@/lib/data-counts/request-preflight';
 
 type Loaded={name:string;sha256:string;checkedAt:string;report:Report};
-export function RequestPreflight({download}:{download:(name:string,value:unknown)=>Promise<void>}){
+export function RequestPreflight({download}:{download:(name:string,value:unknown)=>Promise<unknown>}){
  const input=useRef<HTMLInputElement>(null);const [loaded,setLoaded]=useState<Loaded|null>(null);const [busy,setBusy]=useState(false);const [error,setError]=useState('');
  async function load(file:File){
   setBusy(true);setError('');

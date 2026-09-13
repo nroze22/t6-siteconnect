@@ -20,4 +20,4 @@ Automated tests exercise exclusion of internal context, tampering, stale approva
 
 ## Remaining security work
 
-Authenticated encryption and decryption/recovery workflow, managed recipient/site keys, encrypted output policy, signed identities, broker authentication, TLS/network restrictions and production audit integration remain incomplete. The existing SQLCipher database is a separate storage mechanism; it does not encrypt these exported files. Keep organizational compliance and operational security validation separate from local code evidence.
+Local JWE encryption and recovery are now implemented (see ENCRYPTED_EXPORT.md). Remaining work includes managed recipient/site keys, encrypted output policy, signed identities, broker authentication, TLS/network restrictions and production audit integration remain incomplete. The existing SQLCipher database is a separate storage mechanism; it does not encrypt these exported files. Keep organizational compliance and operational security validation separate from local code evidence.
