@@ -1,0 +1,10 @@
+import {build} from 'esbuild';
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+const result=await build({stdin:{contents:"export {evaluateExtraction} from './src/lib/extraction/evaluation'; export {noteGold} from './src/lib/extraction/note-gold'; export {NOTE} from './src/lib/data-counts/engine';",resolveDir:process.cwd()},bundle:true,platform:'node',format:'esm',write:false});
+const {evaluateExtraction,noteGold,NOTE}=await import(`data:text/javascript;base64,${Buffer.from(result.outputFiles[0].text).toString('base64')}`);
+const raw=await readFile('work/recall-live-benchmark.json','utf8'),runs=JSON.parse(raw),note=runs.find(r=>r.name==='built-in-note');
+if(!note)throw Error('Run the live recall benchmark first.');
+const segments=[{id:'s1',label:'built-in-note',text:NOTE}];
+const report={createdAt:new Date().toISOString(),inputSha256:createHash('sha256').update(raw).digest('hex'),model:note.model,scope:'Rescoring saved actual inference; two synthetic lab annotations only. Exact fields, patient, assertion and annotated source spans. Context candidates excluded. Not a clinical validation score.',gold:noteGold,modelScore:evaluateExtraction(noteGold,note.modelCandidates.filter(e=>e.kind==='lab'),segments),combinedScore:evaluateExtraction(noteGold,note.combinedCandidates.filter(e=>e.kind==='lab'),segments),seconds:note.seconds};
+await mkdir('docs/extraction-evidence',{recursive:true});await writeFile('docs/extraction-evidence/note-strict-latest.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));

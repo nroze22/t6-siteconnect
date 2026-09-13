@@ -1,5 +1,7 @@
 // Explicit opt-in: actual local Ollama only, synthetic fixtures only.
 import {it,expect} from 'vitest';
+import {evaluateExtraction} from './evaluation';
+import {noteGold} from './note-gold';
 import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {NOTE,REQUEST} from '../data-counts/engine';
 import profile from './request-profile.json';
@@ -19,7 +21,7 @@ it.skipIf(process.env.SITECONNECT_LIVE_RECALL!=='1')('benchmarks actual default 
  messages.push({role:'assistant',content:payload.message.content},{role:'user',content:profile.repair_instruction+JSON.stringify(model.filter(e=>!e.supported).map(e=>e.problem))});
  }
  const rules=directCandidates(segments),combined=mergeCandidates(rules,model);const found=(es:typeof combined)=>expected.filter(value=>es.some(e=>e.supported&&e.value===value));
- reports.push({name,model:'gemma4:e2b',profile:profile.version,recallProfile:RECALL_VERSION,seconds:(Date.now()-started)/1000,expectedValues:expected,modelMatched:found(model),combinedMatched:found(combined),ruleCandidates:rules,modelCandidates:model,combinedCandidates:combined,uncoveredMeasurements:uncoveredMeasurements(segments,combined)});
+ reports.push({...(name==='built-in-note'?{strictLabEvaluation:{scope:'Lab fields, patient/assertion and exact annotated evidence spans; excludes context candidates',model:evaluateExtraction(noteGold,model.filter(e=>e.kind==='lab'),segments),combined:evaluateExtraction(noteGold,combined.filter(e=>e.kind==='lab'),segments)}}:{}),name,model:'gemma4:e2b',profile:profile.version,recallProfile:RECALL_VERSION,seconds:(Date.now()-started)/1000,expectedValues:expected,modelMatched:found(model),combinedMatched:found(combined),ruleCandidates:rules,modelCandidates:model,combinedCandidates:combined,uncoveredMeasurements:uncoveredMeasurements(segments,combined)});
  mkdirSync('work',{recursive:true});writeFileSync('work/recall-live-benchmark.json',JSON.stringify(reports,null,2));
  expect(found(combined)).toHaveLength(expected.length);
  }
