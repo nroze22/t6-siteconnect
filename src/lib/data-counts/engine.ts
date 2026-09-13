@@ -1,3 +1,4 @@
+import {processingCounts,assertProcessingComplete,type ProcessingStage} from './processing';
 /** Synthetic-only rehearsal engine. Never a production privacy or broker implementation. */
 export type Patient = { id: string; birthDate: string; permitted: boolean };
 export type Lab = { resourceType: 'Observation'; id: string; patient: string; status: 'final' | 'corrected' | 'cancelled'; specimen: 'Serum' | 'Whole blood'; code: string; display: string; system: string; value: number | null; comparator?: '<'; dataAbsentReason?: string; referenceRange?: {low:number;high:number;unit:string}; unit: string; unitSystem: string; quantityCode?: string; codingVersion?: string; codingText?: string; codingUserSelected?: boolean; referenceContext?: {text?:string;lowSystem?:string;lowCode?:string;highSystem?:string;highCode?:string}; effectiveDateTime: string; issued: string; sourceVersion: string };
@@ -71,12 +72,13 @@ export function transform(l:Lab):OutputLab{
  return {...source,effectiveDateTime:shifted(l.effectiveDateTime),issued:shifted(l.issued),patientToken:`DEMO-TOKEN-${String(index+1).padStart(3,'0')}`,provenance:{sourceResource:l.id,sourceVersion,transformation:'Synthetic date-shift fixture v1; DEMO token is not approved PPRL'}};
 }
 export type Exclusion={patient:string;count:number;reason:'Age below 18 at request start'|'Outside requested UTC window'|'Not permitted by fixture authority'|'Permission revoked in fixture v2'};
-export type Run={exclusions:Exclusion[];id:string;revision:number;eligibilityVersion:number;issues:Issue[];sourceCount:number;cohortExcluded:number;permissionExcluded:number;output:OutputLab[];digest:string;packageId:string;sourceFile?:{hash:string;name:string}};
+export type Run={sourceDigest:string;stages:ProcessingStage[];exclusions:Exclusion[];id:string;revision:number;eligibilityVersion:number;issues:Issue[];sourceCount:number;cohortExcluded:number;permissionExcluded:number;output:OutputLab[];digest:string;packageId:string;sourceFile?:{hash:string;name:string}};
 export async function buildRun(corrected:boolean,revoked:boolean,source?:Lab[],lifecycle=false,sourceFile?:{hash:string;name:string}):Promise<Run>{
- const labs=source??fixture(corrected,lifecycle);const issues=quality(labs);
+ const sourceIdentity=sourceFile?structuredClone(sourceFile):undefined;
+ const labs=structuredClone(source??fixture(corrected,lifecycle));const issues=quality(labs);
  const exclusions:Exclusion[]=[];
  const included:Lab[]=[];
- for(const l of labs){
+ for(const l of issues.length?[]:labs){
   const p=PATIENTS.find(p=>p.id===l.patient);if(!p)continue;
   const reason:Exclusion['reason']|null=!eligible(p)?'Age below 18 at request start':!inRequestWindow(l)?'Outside requested UTC window':!p.permitted?'Not permitted by fixture authority':revoked&&p.id==='SYN-003'?'Permission revoked in fixture v2':null;
   if(reason){const previous=exclusions.find(e=>e.patient===p.id&&e.reason===reason);if(previous)previous.count++;else exclusions.push({patient:p.id,count:1,reason});}else included.push(l);
@@ -85,21 +87,33 @@ export async function buildRun(corrected:boolean,revoked:boolean,source?:Lab[],l
  const permissionExcluded=exclusions.filter(e=>e.reason==='Not permitted by fixture authority'||e.reason==='Permission revoked in fixture v2').reduce((n,e)=>n+e.count,0);
  const output=issues.length?[]:included.map(transform);
  if(!issues.length&&labs.length!==cohortExcluded+permissionExcluded+output.length)throw Error('Counts do not reconcile');
- const canonical=JSON.stringify({request:REQUEST,engineVersion:3,...(sourceFile?{sourceFile}:{}),source:lifecycle?3:corrected?2:1,eligibility:revoked?2:1,exclusions,output});
- const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(canonical));
- const digest=Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');
- return {...(sourceFile?{sourceFile}:{}),exclusions,id:`RUN-S${lifecycle?3:corrected?2:1}-E${revoked?2:1}`,revision:lifecycle?3:corrected?2:1,eligibilityVersion:revoked?2:1,issues,sourceCount:labs.length,cohortExcluded,permissionExcluded,output,digest,packageId:`DEMO-PKG-${digest.slice(0,12)}`};
+ const sourceDigest=await hashValue(labs);
+ const stages=processingCounts(labs.length,issues.length,cohortExcluded,permissionExcluded,output.length);
+ const result={...(sourceIdentity?{sourceFile:sourceIdentity}:{}),sourceDigest,stages,exclusions,id:`RUN-S${lifecycle?3:corrected?2:1}-E${revoked?2:1}`,revision:lifecycle?3:corrected?2:1,eligibilityVersion:revoked?2:1,issues,sourceCount:labs.length,cohortExcluded,permissionExcluded,output};
+ if(!issues.length)assertProcessingComplete(result);
+ const digest=await reviewDigest(result);
+ return {...result,digest,packageId:`DEMO-PKG-${digest.slice(0,12)}`};
 }
+async function hashValue(value:unknown){const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(value)));return Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');}
+export async function reviewDigest(run:Pick<Run,'sourceFile'|'sourceDigest'|'stages'|'revision'|'eligibilityVersion'|'exclusions'|'output'>){return hashValue({request:REQUEST,engineVersion:4,...(run.sourceFile?{sourceFile:run.sourceFile}:{}),sourceDigest:run.sourceDigest,stages:run.stages,source:run.revision,eligibility:run.eligibilityVersion,exclusions:run.exclusions,output:run.output});}
+
 export type Receipt={packageId:string;digest:string;count:number;status:'awaiting'|'reconciled'};
 export function authorize(run:Run|null,corrected:boolean,revoked:boolean,lifecycle=false){
  if(!run||run.issues.length||!run.output.length)throw Error('Complete a valid run before approval.');
+ assertProcessingComplete(run);
  if(run.revision!==(lifecycle?3:corrected?2:1)||run.eligibilityVersion!==(revoked?2:1))throw Error('Inputs changed. Reprocess and review the current package.');
  return run.digest;
 }
 export function send(run:Run|null,approval:string|null,corrected:boolean,revoked:boolean,receipts:Receipt[],lifecycle=false):Receipt[]{
  const digest=authorize(run,corrected,revoked,lifecycle);if(approval!==digest)throw Error('Approve this exact package first.');
+ if(receipts.some(r=>r.status==='awaiting'&&r.digest!==digest))throw Error('Resolve earlier simulated receipts in Activity before starting another delivery.');
  if(receipts.some(r=>r.digest===digest))return receipts;
  return [...receipts,{packageId:run!.packageId,digest,count:run!.output.length,status:'awaiting'}];
+}
+export function reconcileHistoricalReceipt(receipts:Receipt[],digest:string,currentDigest?:string):Receipt[]{
+ const matches=receipts.filter(r=>r.digest===digest);
+ if(digest===currentDigest||matches.length!==1||!Number.isSafeInteger(matches[0]!.count)||matches[0]!.count<0||!matches[0]!.packageId.startsWith('DEMO-PKG-'))throw Error('Historical simulator receipt is invalid or belongs to the current package.');
+ return receipts.map(r=>r.digest===digest?{...r,status:'reconciled'}:r);
 }
 export const NOTE='Synthetic laboratory note. Patient SYN-003. On August 6, 2026 at 08:30 UTC, creatinine was 1.36 mg/dL and potassium was 4.44 mmol/L. These final results became available at 10:15 UTC. The chemistry specimen was serum. Reference ranges and fasting status were not supplied. No diagnosis is documented. Do not infer a diagnosis from laboratory results.';
 

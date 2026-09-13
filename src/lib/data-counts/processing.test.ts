@@ -1,0 +1,13 @@
+import {expect,it} from 'vitest';
+import {buildRun,fixture,authorize,send} from './engine';
+import {deliveryExport} from './export';
+import {assertProcessingComplete} from './processing';
+it('accounts for every record at each completed stage',async()=>{const run=await buildRun(true,false);expect(run.stages.map(s=>[s.input,s.output,s.excluded,s.held])).toEqual([[144,144,0,0],[144,144,0,0],[144,132,12,0],[132,120,12,0],[120,120,0,0],[120,120,0,0]]);expect(()=>assertProcessingComplete(run)).not.toThrow();});
+it('holds the entire invalid source and does not report downstream processing',async()=>{const run=await buildRun(false,false);expect(run.stages[1]).toMatchObject({status:'blocked',input:145,output:0,held:145});expect(run.stages.slice(2).every(s=>s.status==='not-run'&&s.input===null)).toBe(true);expect(run.output).toEqual([]);expect(run.exclusions).toEqual([]);expect(()=>authorize(run,false,false)).toThrow('valid run');});
+it.each(['missing','blocked','count','order'])('blocks %s stage corruption at approval, send and export',async kind=>{
+ const run=await buildRun(true,false);if(kind==='missing')run.stages.pop();if(kind==='blocked')run.stages[3]!.status='blocked';if(kind==='count')run.stages[4]!.output!+=1;if(kind==='order')run.stages.reverse();
+ expect(()=>authorize(run,true,false)).toThrow('Processing');expect(()=>send(run,run.digest,true,false,[])).toThrow('Processing');await expect(deliveryExport(run,run.digest,true,false)).rejects.toThrow('Processing');
+});
+it('binds changes to excluded source records even when output is identical',async()=>{const rows=fixture(true),a=await buildRun(true,false,rows);rows.find(r=>r.patient==='SYN-012')!.value=999;const b=await buildRun(true,false,rows);expect(a.output).toEqual(b.output);expect(a.sourceDigest).not.toBe(b.sourceDigest);expect(a.digest).not.toBe(b.digest);await expect(deliveryExport(b,a.digest,true,false)).rejects.toThrow('Approve');});
+it('snapshots source and source identity before asynchronous hashing',async()=>{const rows=fixture(true),identity={hash:'original',name:'source.json'};const baseline=await buildRun(true,false,rows,false,identity);const pending=buildRun(true,false,rows,false,identity);rows[0]!.value=999;identity.name='changed.json';expect((await pending).digest).toBe(baseline.digest);});
+it('reprocessing the unchanged source reproduces the same completed stage record',async()=>{const a=await buildRun(true,true,undefined,true),b=await buildRun(true,true,undefined,true);expect(a.stages).toEqual(b.stages);expect(a.digest).toBe(b.digest);expect(a.stages[3]).toMatchObject({input:132,output:108,excluded:24});});

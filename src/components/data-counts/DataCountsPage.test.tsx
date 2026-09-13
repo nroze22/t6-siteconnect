@@ -1,5 +1,5 @@
 import {ToastProvider} from '@/components/ui/Toast';
-import {fixture} from '@/lib/data-counts/engine';
+import {fixture,buildRun} from '@/lib/data-counts/engine';
 import {beforeEach,describe,expect,it,vi} from 'vitest';
 import {render,screen,fireEvent,waitFor,cleanup,within} from '@testing-library/react';
 import {DataCountsPage} from './DataCountsPage';
@@ -113,4 +113,28 @@ it('retains imported source through correction navigation without substituting t
  fireEvent.click(screen.getByRole('button',{name:'Source records'}));
  expect(screen.getAllByText('Imported source test').length).toBeGreaterThan(0);
  expect(JSON.parse(localStorage.getItem('siteconnect-data-counts-synthetic-v1')!).imported).toEqual(imported);
+});
+
+it('resolves an older pending simulator receipt without approving the new engine package',async()=>{
+ cleanup();localStorage.clear();useDataCountsNavigation.setState({tab:'Activity'});localStorage.setItem('siteconnect-data-counts-intro-v1','complete');
+ const old={packageId:'DEMO-PKG-old-engine',digest:'old-engine-digest',count:120,status:'awaiting'};
+ localStorage.setItem('siteconnect-data-counts-synthetic-v1',JSON.stringify({corrected:true,revoked:false,hasRun:true,approval:old.digest,receipts:[old],events:[]}));
+ render(<><DataCountsNavigation/><DataCountsPage/></>);
+ const historical=await screen.findByRole('button',{name:'Check historical simulated receipt'});
+ await waitFor(()=>expect(historical).toBeEnabled());fireEvent.click(historical);
+ await waitFor(()=>expect(JSON.parse(localStorage.getItem('siteconnect-data-counts-synthetic-v1')!).receipts).toEqual([{...old,status:'reconciled'}]));
+ fireEvent.click(screen.getByRole('button',{name:'Release & delivery'}));
+ expect(screen.getByRole('button',{name:'Export encrypted demo package'})).toBeDisabled();
+ expect(screen.getByRole('button',{name:'Authorize demo package'})).toBeDisabled();
+ expect(JSON.parse(localStorage.getItem('siteconnect-data-counts-synthetic-v1')!).approval).toBe(old.digest);
+});
+
+it('does not treat a current pending receipt as historical during recomputation',async()=>{
+ cleanup();localStorage.clear();useDataCountsNavigation.setState({tab:'Activity'});localStorage.setItem('siteconnect-data-counts-intro-v1','complete');const run=await buildRun(true,false);
+ const receipt={packageId:run.packageId,digest:run.digest,count:120,status:'awaiting'};
+ localStorage.setItem('siteconnect-data-counts-synthetic-v1',JSON.stringify({corrected:true,revoked:false,hasRun:true,approval:run.digest,receipts:[receipt],events:[]}));
+ render(<><DataCountsNavigation/><DataCountsPage/></>);
+ expect(screen.getByRole('button',{name:'Check historical simulated receipt'})).toBeDisabled();
+ await waitFor(()=>expect(screen.queryByRole('button',{name:'Check historical simulated receipt'})).toBeNull());
+ expect(JSON.parse(localStorage.getItem('siteconnect-data-counts-synthetic-v1')!).receipts).toEqual([receipt]);
 });

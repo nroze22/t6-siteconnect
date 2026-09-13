@@ -1,0 +1,5 @@
+import type {Receipt} from '@/lib/data-counts/engine';
+export function HistoricalReceipts({receipts,currentDigest,onResolve,disabled}:{receipts:Receipt[];currentDigest?:string;onResolve:(digest:string)=>void;disabled:boolean}){
+ const historical=receipts.filter(r=>r.digest!==currentDigest);if(!historical.length)return null;
+ return <section className="dc-panel mb-4"><h2>Earlier simulated deliveries</h2><p>Check unresolved receipts from before a source change or app update. This only reconciles the saved simulator receipt; it does not approve the current package or contact a broker.</p>{historical.map(r=><div className="dc-event" key={r.digest}><div><strong>{r.packageId}</strong><p>{r.count} observations · {r.status==='awaiting'?'Receipt unknown · simulated':'Reconciled · simulated'}</p><details><summary>Historical review digest</summary><p className="break-all">{r.digest}</p></details>{r.status==='awaiting'&&<button className="dc-btn mt-3" disabled={disabled} onClick={()=>onResolve(r.digest)}>Check historical simulated receipt</button>}</div></div>)}</section>;
+}

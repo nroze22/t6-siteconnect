@@ -14,7 +14,7 @@ it('rejects missing approval and post-review content changes',async()=>{
 });
 it('rejects a modified manifest even if observations are unchanged',async()=>{
  const run=await buildRun(true,false);run.cohortExcluded+=1;run.sourceCount+=1;
- await expect(deliveryExport(run,run.digest,true,false)).rejects.toThrow('manifest differs');
+ await expect(deliveryExport(run,run.digest,true,false)).rejects.toThrow('Processing stages do not reconcile');
 });
 it('binds export to a snapshot before asynchronous hashing',async()=>{
  const run=await buildRun(true,false);const expected=run.output[0]!.value;const pending=deliveryExport(run,run.digest,true,false);run.output[0]!.value=999;
