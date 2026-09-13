@@ -11,3 +11,18 @@ it('rejects one review identity for different snapshots and duplicate record IDs
 it('rejects conflicting operations and incomplete inventory even with recomputed plan hashes',async()=>{const {base,target}=await setup(),plan=await planRefresh(base,target);const resign=async(p:typeof plan)=>{const {planDigest:_,...content}=p;return {...content,planDigest:await hashValue(content)};};await expect(applyRefresh(base,await resign({...plan,upserts:[...plan.upserts,plan.upserts[0]!]}))).rejects.toThrow('operation');await expect(applyRefresh(base,await resign({...plan,targetOrder:plan.targetOrder.slice(1)}))).rejects.toThrow('inventory');});
 
 it('rejects rehashed plans that reuse or omit target review identity',async()=>{const {base,target}=await setup(),plan=await planRefresh(base,target);for(const targetReviewDigest of [base.digest,'']){const {planDigest:_,...content}={...plan,targetReviewDigest};await expect(applyRefresh(base,{...content,planDigest:await hashValue(content)})).rejects.toThrow(/identit/);}});
+
+it('preserves clinical result semantics and provenance through serialized lifecycle plans',async()=>{
+ const original=await buildRun(true,false),corrected=await buildRun(true,false,undefined,true);
+ const base={digest:original.digest,rows:original.output},target={digest:corrected.digest,rows:corrected.output};
+ const plan=JSON.parse(JSON.stringify(await planRefresh(base,target)));
+ const applied=await applyRefresh(base,plan);
+ expect(plan.upserts).toHaveLength(5);
+ expect(applied.snapshot).toEqual(target);
+ const record=(id:string)=>applied.snapshot.rows.find(r=>r.id===id)!;
+ expect(record('OBS-003-1-1')).toMatchObject({status:'corrected',value:1.18});
+ expect(record('OBS-003-1-2')).toMatchObject({status:'cancelled',value:null,dataAbsentReason:'not-performed'});
+ expect(record('OBS-003-1-4')).toMatchObject({value:2.5,comparator:'<'});
+ expect(record('OBS-003-1-5')).toMatchObject({value:null,dataAbsentReason:'error'});
+ for(const change of plan.upserts)expect(change.record.provenance).toEqual(target.rows.find(r=>r.id===change.record.id)!.provenance);
+});
