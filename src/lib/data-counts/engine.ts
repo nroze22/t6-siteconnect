@@ -94,8 +94,8 @@ export async function buildRun(corrected:boolean,revoked:boolean,source?:Lab[],l
  const digest=await reviewDigest(result);
  return {...result,digest,packageId:`DEMO-PKG-${digest.slice(0,12)}`};
 }
-async function hashValue(value:unknown){const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(value)));return Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');}
-export async function reviewDigest(run:Pick<Run,'sourceFile'|'sourceDigest'|'stages'|'revision'|'eligibilityVersion'|'exclusions'|'output'>){return hashValue({request:REQUEST,engineVersion:4,...(run.sourceFile?{sourceFile:run.sourceFile}:{}),sourceDigest:run.sourceDigest,stages:run.stages,source:run.revision,eligibility:run.eligibilityVersion,exclusions:run.exclusions,output:run.output});}
+async function hashValue(value:unknown){const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(stableValue(value)));return Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');}
+export async function reviewDigest(run:Pick<Run,'sourceFile'|'sourceDigest'|'stages'|'revision'|'eligibilityVersion'|'exclusions'|'output'>){return hashValue({request:REQUEST,engineVersion:5,...(run.sourceFile?{sourceFile:run.sourceFile}:{}),sourceDigest:run.sourceDigest,stages:run.stages,source:run.revision,eligibility:run.eligibilityVersion,exclusions:run.exclusions,output:run.output});}
 
 export type Receipt={packageId:string;digest:string;count:number;status:'awaiting'|'reconciled'};
 export function authorize(run:Run|null,corrected:boolean,revoked:boolean,lifecycle=false){
@@ -118,7 +118,16 @@ export function reconcileHistoricalReceipt(receipts:Receipt[],digest:string,curr
 export const NOTE='Synthetic laboratory note. Patient SYN-003. On August 6, 2026 at 08:30 UTC, creatinine was 1.36 mg/dL and potassium was 4.44 mmol/L. These final results became available at 10:15 UTC. The chemistry specimen was serum. Reference ranges and fasting status were not supplied. No diagnosis is documented. Do not infer a diagnosis from laboratory results.';
 
 export function displayResult(l:Pick<Lab,'value'|'comparator'|'unit'|'status'|'dataAbsentReason'>){return l.value===null?`${l.status==='cancelled'?'Cancelled':'No result'} · ${l.dataAbsentReason||'reason unavailable'}`:`${l.comparator||''}${l.value} ${l.unit||'Unit not supplied'}`;}
+const OUTPUT_FIELDS:Record<string,string>={resourceType:'Resource type',id:'Record ID',value:'Result value',comparator:'Result comparator',status:'Result status',dataAbsentReason:'Missing-result reason',referenceRange:'Reference interval',issued:'Result availability time',effectiveDateTime:'Observation time',patientToken:'Patient linkage token',specimen:'Specimen',code:'Test code',display:'Source test label',system:'Test code system',unit:'Unit display',unitSystem:'Unit system',quantityCode:'Unit machine code',codingVersion:'Terminology version',codingText:'Source terminology text',codingUserSelected:'Source coding selection',referenceContext:'Reference interval context',provenance:'Source provenance'};
+function stableValue(value:unknown):string{if(value===undefined)return 'Not supplied';if(value===null)return 'null';if(Array.isArray(value))return '['+value.map(stableValue).join(',')+']';if(typeof value==='object')return '{'+Object.entries(value).filter(([,v])=>v!==undefined).sort(([a],[b])=>a<b?-1:a>b?1:0).map(([k,v])=>JSON.stringify(k)+':'+stableValue(v)).join(',')+'}';return JSON.stringify(value);}
 export function comparePackages(previous:OutputLab[],current:OutputLab[]){
- const old=new Map(previous.map(l=>[l.id,l]));const next=new Map(current.map(l=>[l.id,l]));
- return {added:current.filter(l=>!old.has(l.id)).map(l=>l.id),removed:previous.filter(l=>!next.has(l.id)).map(l=>l.id),changed:current.filter(l=>old.has(l.id)&&JSON.stringify(old.get(l.id))!==JSON.stringify(l)).map(l=>({id:l.id,before:displayResult(old.get(l.id)!),after:displayResult(l),beforeStatus:old.get(l.id)!.status,afterStatus:l.status,fields:([['value','Result value'],['comparator','Result comparator'],['status','Result status'],['dataAbsentReason','Missing-result reason'],['referenceRange','Reference interval'],['issued','Result availability time']] as const).filter(([key])=>JSON.stringify(old.get(l.id)![key])!==JSON.stringify(l[key])).map(([,label])=>label),interval:l.referenceRange?`${l.referenceRange.low}–${l.referenceRange.high} ${l.referenceRange.unit}`:null}))};
+ const previousById=new Map(previous.map(l=>[l.id,l]));
+ const changed=current.filter(l=>previousById.has(l.id)).flatMap(l=>{
+  const before=previousById.get(l.id)!;
+  const details=[...new Set([...Object.keys(before),...Object.keys(l)])].filter(k=>stableValue((before as unknown as Record<string,unknown>)[k])!==stableValue((l as unknown as Record<string,unknown>)[k])).map(k=>({field:k,label:OUTPUT_FIELDS[k]??`Additional output field: ${k}`,before:stableValue((before as unknown as Record<string,unknown>)[k]),after:stableValue((l as unknown as Record<string,unknown>)[k])}));
+  return details.length?[{id:l.id,before:displayResult(before),after:displayResult(l),beforeStatus:before.status,afterStatus:l.status,fields:details.map(d=>d.label),details,identityChanged:details.some(d=>d.field==='patientToken'),interval:l.referenceRange?`${l.referenceRange.low}–${l.referenceRange.high} ${l.referenceRange.unit}`:null}]:[];
+ });
+ const error=[previous,current].some(rows=>new Set(rows.map(r=>r.id)).size!==rows.length)?'Repeated record IDs make this comparison ambiguous. Review the source and saved snapshot; changes cannot be determined safely.':null;
+ const old=new Set(previous.map(l=>l.id)),next=new Set(current.map(l=>l.id));
+ return {error,added:error?[]:current.filter(l=>!old.has(l.id)).map(l=>l.id),removed:error?[]:previous.filter(l=>!next.has(l.id)).map(l=>l.id),changed:error?[]:changed};
 }

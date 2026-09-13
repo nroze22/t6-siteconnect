@@ -138,3 +138,15 @@ it('does not treat a current pending receipt as historical during recomputation'
  await waitFor(()=>expect(screen.queryByRole('button',{name:'Check historical simulated receipt'})).toBeNull());
  expect(JSON.parse(localStorage.getItem('siteconnect-data-counts-synthetic-v1')!).receipts).toEqual([receipt]);
 });
+
+it('preserves ambiguous historical evidence and prevents new release approval',async()=>{
+ cleanup();localStorage.clear();useDataCountsNavigation.setState({tab:'Release & delivery'});localStorage.setItem('siteconnect-data-counts-intro-v1','complete');const run=await buildRun(true,false);
+ const raw=JSON.stringify({corrected:true,revoked:false,hasRun:true,approval:run.digest,receipts:[],events:[],snapshots:[{digest:run.digest,packageId:run.packageId,at:'2026-09-13',output:[run.output[0],run.output[0]]}]});
+ localStorage.setItem('siteconnect-data-counts-synthetic-v1',raw);render(<><DataCountsNavigation/><DataCountsPage/></>);
+ expect(screen.getByRole('heading',{name:'Session storage needs attention'})).toBeVisible();expect(screen.getByRole('button',{name:'Save internal recovery evidence'})).toBeVisible();expect(screen.queryByRole('button',{name:'Authorize demo package'})).toBeNull();expect(localStorage.getItem('siteconnect-data-counts-synthetic-v1')).toBe(raw);
+});
+it('does not offer bundled lifecycle replacement after an imported release',async()=>{
+ cleanup();localStorage.clear();useDataCountsNavigation.setState({tab:'Overview'});localStorage.setItem('siteconnect-data-counts-intro-v1','complete');const rows=fixture(true),source={hash:'kept',name:'imported.json'},run=await buildRun(true,false,rows,false,source);
+ const imported={...source,rows,evidence:'{}'};localStorage.setItem('siteconnect-data-counts-synthetic-v1',JSON.stringify({imported,corrected:true,revoked:false,hasRun:true,approval:run.digest,receipts:[{packageId:run.packageId,digest:run.digest,count:120,status:'reconciled'}],events:[]}));
+ render(<><DataCountsNavigation/><DataCountsPage/></>);await screen.findByText('REHEARSAL COMPLETE');expect(screen.queryByRole('button',{name:'Load laboratory changes'})).toBeNull();expect(JSON.parse(localStorage.getItem('siteconnect-data-counts-synthetic-v1')!).imported).toEqual(imported);
+});
