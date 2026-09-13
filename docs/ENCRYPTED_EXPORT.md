@@ -18,7 +18,7 @@ This feature does not implement hospital KMS, recipient identity, key rotation/r
 
 337 automated tests passed, 1 skipped; frontend build passed. New tests cover round-trip, randomness, wrong keys, modified header/IV/ciphertext/tag, truncation, algorithm/type mismatch, limits, inner integrity, confirmation, cancellation and failed-save retry. Browser downloaded an encrypted 120-observation package, reopened it successfully and closed the decrypted review. Independent read-only review found no blocking implementation defect. Native save-dialog and packaged app behavior are unverified this pass.
 
-Dependency audit completed after a sandbox DNS failure was retried with network access. The audit reports 15 existing dependency vulnerabilities, including 2 critical and 9 high, with no jose finding. See DEPENDENCY_AUDIT_2026-09-13.json. Remediation and updated checks are required next; this is not a security-ready release.
+Dependency audit completed after a sandbox DNS failure was retried with network access. The audit reports 15 existing dependency vulnerabilities, including 2 critical and 9 high, with no jose finding. See DEPENDENCY_AUDIT_2026-09-13.json. Subsequent remediation removed 13 findings; two development-tool findings retain a tested local mitigation. See DEPENDENCY_REMEDIATION.md. This is not a security-ready release.
 
 ## Standards and library references
 

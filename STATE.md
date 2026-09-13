@@ -25,8 +25,10 @@ Test/build logs: /tmp/siteconnect-tests.log and /tmp/siteconnect-build.log (ephe
 5. Run reviewed clinical extraction benchmarks against source-grounded expected facts; document recall and false positives by content type/model. Then native package and device validation after disk-space preflight (last observed ~3.3 GiB free).
 
 ## Exact resume action
-Next remediate the verified dependency audit (15 findings, including 2 critical and 9 high). Inspect affected dependency paths and available compatible fixes before updating; avoid forced downgrades. Run tests/build and repeat audit, then continue stage reconciliation, refresh lifecycle coverage and workload reports. Hospital KMS/IAM/privacy/broker dependencies remain open.
+Next implement deterministic stage reconciliation and failure recovery, expand full/incremental lifecycle coverage (deletes, merges/unmerges and late arrivals), and produce representative baseline/2x/5x workload reports. The dependency audit now has zero runtime findings and two development-tool highs with tested local mitigation, documented in docs/DEPENDENCY_REMEDIATION.md. Native dependency/build verification and hospital KMS/IAM/privacy/broker dependencies remain open.
 
 Latest verification: independent read-only review passed export separation, approval/content/aggregate checks, snapshot isolation and honest UI limits. Browser screenshot ../../outputs/SiteConnect-Export-Review-2026-09-13.png; checked download /tmp/siteconnect-export-verified.json. Native package unchanged.
 
 Encrypted-export checkpoint: browser JWE download/recovery passed, UI visually inspected, native save unverified. Audit evidence docs/DEPENDENCY_AUDIT_2026-09-13.json; new crypto dependency has no finding. Screenshot ../../outputs/SiteConnect-Encrypted-Recovery-2026-09-13.png.
+
+Dependency checkpoint: clean npm ci, 337 tests and frontend build passed after 43 compatible package updates. Reproduced ICNS/JXL hangs now fail with version-checked patch. Omitted dev dependencies do not break postinstall; unexpected installed versions fail closed. Patched Vite server restarted and browser smoke passed. Full audit retains 2 high dev-tool findings; no known runtime npm findings.
