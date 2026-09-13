@@ -94,7 +94,7 @@ export async function buildRun(corrected:boolean,revoked:boolean,source?:Lab[],l
  const digest=await reviewDigest(result);
  return {...result,digest,packageId:`DEMO-PKG-${digest.slice(0,12)}`};
 }
-async function hashValue(value:unknown){const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(stableValue(value)));return Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');}
+export async function hashValue(value:unknown){const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(stableValue(value)));return Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');}
 export async function reviewDigest(run:Pick<Run,'sourceFile'|'sourceDigest'|'stages'|'revision'|'eligibilityVersion'|'exclusions'|'output'>){return hashValue({request:REQUEST,engineVersion:5,...(run.sourceFile?{sourceFile:run.sourceFile}:{}),sourceDigest:run.sourceDigest,stages:run.stages,source:run.revision,eligibility:run.eligibilityVersion,exclusions:run.exclusions,output:run.output});}
 
 export type Receipt={packageId:string;digest:string;count:number;status:'awaiting'|'reconciled'};
