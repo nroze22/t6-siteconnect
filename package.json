@@ -22,7 +22,8 @@
     "postinstall": "node scripts/security/patch-image-size.cjs",
     "prebuild": "node scripts/security/patch-image-size.cjs",
     "pretest": "node scripts/security/patch-image-size.cjs",
-    "test:security-dependencies": "node scripts/security/patch-image-size.cjs && node scripts/security/image-size-probes.cjs"
+    "test:security-dependencies": "node scripts/security/patch-image-size.cjs && node scripts/security/image-size-probes.cjs",
+    "benchmark:refresh": "node scripts/benchmark-refresh.mjs"
   },
   "author": "Talosix",
   "license": "UNLICENSED",

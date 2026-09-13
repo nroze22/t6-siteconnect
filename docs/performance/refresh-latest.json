@@ -1,0 +1,181 @@
+{
+  "sourceHashes": {
+    "src/lib/data-counts/engine.ts": "f6a8878538a0afdd61ad7b93bc7dcc7b7e706c1c282a5d3ed5dae8ddd64c7015",
+    "src/lib/data-counts/processing.ts": "8c1fb41eb9d863277d6c7eda54f10d9187a5426c8ec736140920c25b15f832c5",
+    "src/lib/data-counts/refresh.ts": "db7f7bee15d43b9a5bf5f63f2a5f9e5ea1ec92687c20f4559c7cb18203be082a",
+    "scripts/benchmark-refresh.mjs": "bc83cb8843e5eefa6973d7f70a2c8a47c25aa159c6c87c7eb2317e7996c95eba",
+    "scripts/performance/refresh-worker.mjs": "852c5dbc3c0aa53d3b3c9134b127440207a797a8dc84a85396b1bb6db3118e93",
+    "package-lock.json": "e58127247ef47d8ad957cb3cddfea53e9208451d0e78267250ed8d7da729c2b6"
+  },
+  "bundleSha256": "94fcc89576f0064240e5bd1471be578e2f9d700515c05edb2abd83de5f978536",
+  "workingTreeStatus": "M package.json\n?? docs/performance/\n?? scripts/benchmark-refresh.mjs\n?? scripts/performance/",
+  "createdAt": "2026-09-13T17:26:07.671Z",
+  "revision": "5386e31adad0b499d5705c83d2fbd3bb671451b6",
+  "scope": "Synthetic Node component benchmark: full snapshot hashing, incremental planning, JSON round trip and application. Not hospital baseline or end-to-end processing.",
+  "excludes": [
+    "Source connectors and quality/cohort/permission execution",
+    "OCR and model inference",
+    "Native/browser UI and responsiveness",
+    "Encryption, disk persistence, network and broker",
+    "Staff time and target VM resource contention"
+  ],
+  "method": {
+    "baselineRows": 12000,
+    "scales": [
+      1,
+      2,
+      5
+    ],
+    "warmupRuns": 1,
+    "measuredRuns": 3,
+    "changePattern": "Every 100th row starting at index0; actual count is ceil(rows/100)",
+    "workerIsolation": "Fresh process per scale; scales run sequentially",
+    "timing": "Includes hashing, plan generation, JSON serialization/parsing and apply; excludes fixture generation and correctness assertions"
+  },
+  "hardware": {
+    "platform": "darwin",
+    "release": "25.3.0",
+    "arch": "arm64",
+    "cpu": "Apple M4",
+    "logicalCpus": 10,
+    "totalMemoryBytes": 17179869184,
+    "node": "v26.7.0"
+  },
+  "results": [
+    {
+      "scale": 1,
+      "rows": 12000,
+      "changes": 120,
+      "samples": [
+        {
+          "elapsedMs": 264.51979199999994,
+          "hashMs": 55.941291999999976,
+          "planMs": 125.590708,
+          "serializeMs": 0.4317919999999731,
+          "applyMs": 82.55387499999995,
+          "cpuMs": 343.595,
+          "rowsPerSecond": 45365.22544974632,
+          "planBytes": 225212
+        },
+        {
+          "elapsedMs": 261.488292,
+          "hashMs": 57.42237499999999,
+          "planMs": 126.85666700000002,
+          "serializeMs": 0.48974999999995816,
+          "applyMs": 76.71749999999997,
+          "cpuMs": 311.689,
+          "rowsPerSecond": 45891.155998678514,
+          "planBytes": 225212
+        },
+        {
+          "elapsedMs": 294.42154200000004,
+          "hashMs": 93.70595800000001,
+          "planMs": 124.773958,
+          "serializeMs": 0.4039580000001024,
+          "applyMs": 75.535709,
+          "cpuMs": 391.983,
+          "rowsPerSecond": 40757.887206500665,
+          "planBytes": 225212
+        }
+      ],
+      "processPeakRssBytes": 501170176,
+      "peakScope": "Entire isolated worker including fixture generation, warm-up, timed work and assertions; not per-stage memory",
+      "correctness": "Exact target equality, expected change count and idempotent replay passed",
+      "summary": {
+        "medianMs": 264.51979199999994,
+        "medianRowsPerSecond": 45365.22544974632,
+        "peakRssMiB": 477.953125
+      }
+    },
+    {
+      "scale": 2,
+      "rows": 24000,
+      "changes": 240,
+      "samples": [
+        {
+          "elapsedMs": 537.617834,
+          "hashMs": 114.03495799999996,
+          "planMs": 257.6662920000001,
+          "serializeMs": 1.109625000000051,
+          "applyMs": 164.8058329999999,
+          "cpuMs": 650.654,
+          "rowsPerSecond": 44641.376238274126,
+          "planBytes": 461332
+        },
+        {
+          "elapsedMs": 572.9613340000003,
+          "hashMs": 154.2980419999999,
+          "planMs": 257.8124579999999,
+          "serializeMs": 1.0164999999999509,
+          "applyMs": 159.833208,
+          "cpuMs": 757.803,
+          "rowsPerSecond": 41887.64332917444,
+          "planBytes": 461332
+        },
+        {
+          "elapsedMs": 631.1608340000002,
+          "hashMs": 114.70995799999992,
+          "planMs": 334.810375,
+          "serializeMs": 2.459124999999858,
+          "applyMs": 179.17979099999957,
+          "cpuMs": 759.647,
+          "rowsPerSecond": 38025.17315261674,
+          "planBytes": 461332
+        }
+      ],
+      "processPeakRssBytes": 835813376,
+      "peakScope": "Entire isolated worker including fixture generation, warm-up, timed work and assertions; not per-stage memory",
+      "correctness": "Exact target equality, expected change count and idempotent replay passed",
+      "summary": {
+        "medianMs": 572.9613340000003,
+        "medianRowsPerSecond": 41887.64332917444,
+        "peakRssMiB": 797.09375
+      }
+    },
+    {
+      "scale": 5,
+      "rows": 60000,
+      "changes": 600,
+      "samples": [
+        {
+          "elapsedMs": 1580.9687079999999,
+          "hashMs": 366.51541700000007,
+          "planMs": 789.6150419999999,
+          "serializeMs": 3.609375,
+          "applyMs": 421.22749999999996,
+          "cpuMs": 1929.757,
+          "rowsPerSecond": 37951.41529138982,
+          "planBytes": 1169692
+        },
+        {
+          "elapsedMs": 1701.8181249999998,
+          "hashMs": 313.6664999999998,
+          "planMs": 909.2874579999998,
+          "serializeMs": 3.404457999999977,
+          "applyMs": 475.4582909999999,
+          "cpuMs": 1863.88,
+          "rowsPerSecond": 35256.41143350733,
+          "planBytes": 1169692
+        },
+        {
+          "elapsedMs": 1453.8095000000003,
+          "hashMs": 308.4343749999998,
+          "planMs": 718.614208,
+          "serializeMs": 3.6139579999999114,
+          "applyMs": 423.1456250000001,
+          "cpuMs": 1843.33,
+          "rowsPerSecond": 41270.88177646383,
+          "planBytes": 1169692
+        }
+      ],
+      "processPeakRssBytes": 1585577984,
+      "peakScope": "Entire isolated worker including fixture generation, warm-up, timed work and assertions; not per-stage memory",
+      "correctness": "Exact target equality, expected change count and idempotent replay passed",
+      "summary": {
+        "medianMs": 1580.9687079999999,
+        "medianRowsPerSecond": 37951.41529138982,
+        "peakRssMiB": 1512.125
+      }
+    }
+  ]
+}
