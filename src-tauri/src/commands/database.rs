@@ -17,6 +17,9 @@ pub fn init_database(app: AppHandle, passphrase: String) -> Result<String, Strin
         .map_err(|e| format!("Failed to create app data directory: {}", e))?;
 
     let db_path = app_data_dir.join("siteconnect.db");
+    if db_path.try_exists().map_err(|_| "Could not inspect local database storage.".to_string())? {
+        return Err("A database already exists. Unlock it instead of creating new storage.".into());
+    }
 
     let pool = init_pool(&db_path, &passphrase)
         .map_err(|e| format!("Failed to initialize database: {}", e))?;
@@ -57,7 +60,7 @@ pub fn unlock_database(app: AppHandle, passphrase: String) -> Result<String, Str
         .map_err(|e| format!("Failed to get app data directory: {}", e))?;
 
     let db_path = app_data_dir.join("siteconnect.db");
-    if !db_path.exists() {
+    if !db_path.try_exists().map_err(|_| "Could not inspect local database storage.".to_string())? {
         return Err("Database does not exist. Please run initial setup.".to_string());
     }
 
@@ -91,5 +94,5 @@ pub fn check_database_exists(app: AppHandle) -> Result<bool, String> {
         .map_err(|e| format!("Failed to get app data directory: {}", e))?;
 
     let db_path: PathBuf = app_data_dir.join("siteconnect.db");
-    Ok(db_path.exists())
+    db_path.try_exists().map_err(|_| "Could not inspect local database storage.".to_string())
 }

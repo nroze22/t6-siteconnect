@@ -60,6 +60,10 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            commands::hospital::hospital_request,
+            commands::hospital::hospital_public_key,
+            commands::hospital::hospital_authenticate,
+            commands::hospital::hospital_disconnect,
             commands::rehearsal::read_operation,
             commands::rehearsal::write_operation,
             commands::model_job::get_model_job,

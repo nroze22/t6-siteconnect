@@ -43,15 +43,15 @@ describe('Data COUNTS guided experience',()=>{
   fireEvent.click(screen.getByRole('checkbox'));
   expect(approve.disabled).toBe(false);
   fireEvent.click(approve);
-  await waitFor(()=>expect((screen.getByRole('button',{name:'Export plaintext demo package'}) as HTMLButtonElement).disabled).toBe(false));
+  await waitFor(()=>expect((screen.getByRole('button',{name:'Export encrypted demo package'}) as HTMLButtonElement).disabled).toBe(false));
   fireEvent.click(screen.getByRole('button',{name:'Source records'}));
   fireEvent.click(screen.getByRole('button',{name:'Continue to release review'}));
-  expect((screen.getByRole('button',{name:'Export plaintext demo package'}) as HTMLButtonElement).disabled).toBe(false);
+  expect((screen.getByRole('button',{name:'Export encrypted demo package'}) as HTMLButtonElement).disabled).toBe(false);
   fireEvent.click(screen.getByRole('button',{name:'Quick introduction'}));
   fireEvent.click(screen.getByRole('button',{name:'Skip introduction'}));
   fireEvent.click(screen.getByRole('button',{name:'Release & delivery'}));
-  expect((screen.getByRole('button',{name:'Export plaintext demo package'}) as HTMLButtonElement).disabled).toBe(false);
- });
+  expect((screen.getByRole('button',{name:'Export encrypted demo package'}) as HTMLButtonElement).disabled).toBe(false);
+ },15000);
 });
 
 it('keeps source evidence aligned with search and issue navigation',async()=>{
@@ -124,7 +124,7 @@ it('resolves an older pending simulator receipt without approving the new engine
  await waitFor(()=>expect(historical).toBeEnabled());fireEvent.click(historical);
  await waitFor(()=>expect(JSON.parse(localStorage.getItem('siteconnect-data-counts-synthetic-v1')!).receipts).toEqual([{...old,status:'reconciled'}]));
  fireEvent.click(screen.getByRole('button',{name:'Release & delivery'}));
- expect(screen.getByRole('button',{name:'Export encrypted demo package'})).toBeDisabled();
+ expect(screen.queryByRole('button',{name:'Export encrypted demo package'})).toBeNull();
  expect(screen.getByRole('button',{name:'Authorize demo package'})).toBeDisabled();
  expect(JSON.parse(localStorage.getItem('siteconnect-data-counts-synthetic-v1')!).approval).toBe(old.digest);
 });

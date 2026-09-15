@@ -16,3 +16,16 @@ export const useDataCountsNavigation=create<{tab:DataCountsTab;setTab:(tab:DataC
 export const destinationTitle=(tab:DataCountsTab)=>destinations.find(d=>d.tab===tab)!.label;
 
 export function openDataCountsDestination(tab:DataCountsTab){useDataCountsNavigation.getState().setTab(tab);window.dispatchEvent(new Event('data-counts-open-destination'));}
+
+export const destinationDescription:Record<DataCountsTab,string>={
+ 'Overview':'Your current laboratory request, processing status and next decision.',
+ 'Request':'Confirm the cohort, source systems, dates and exact requested fields.',
+ 'Source records':'Inspect original values and provenance before running quality checks.',
+ 'Issues':'Resolve missing or inconsistent source data before preparing a release.',
+ 'Release & delivery':'Review counts, exclusions and changes. Approve the exact package before export.',
+ 'Activity':'Reconcile processing counts and resolve outstanding simulated receipts.',
+ 'Local AI':'Open a document, review extracted facts and verify each value against its source.',
+ 'Model setup':'Prepare local extraction, then return to your document.',
+ 'System':'Manage local storage, recovery, maintenance and support.',
+ 'Requirements':'Track each RFI requirement, remaining integration work and acceptance evidence.',
+};

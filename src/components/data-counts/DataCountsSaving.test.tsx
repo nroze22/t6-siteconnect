@@ -1,0 +1,20 @@
+import {afterEach,expect,it,vi} from 'vitest';
+import {cleanup,render,screen,waitFor} from '@testing-library/react';
+import {DataCountsPage} from './DataCountsPage';
+const journal=vi.hoisted(()=>({read:vi.fn(),write:vi.fn()}));
+vi.mock('@/lib/tauri',async original=>({...await original<typeof import('@/lib/tauri')>(),isTauri:true}));
+vi.mock('@/lib/data-counts/journal',()=>({readJournal:journal.read,writeJournal:journal.write}));
+vi.mock('./SourceWorkbench',()=>({SourceWorkbench:()=>null}));
+vi.mock('@/lib/data-provider',async original=>({...await original<typeof import('@/lib/data-provider')>(),getModelSetupJob:vi.fn().mockResolvedValue(null)}));
+afterEach(()=>{cleanup();vi.clearAllMocks();localStorage.clear();});
+it('shows normal saving without a false failure, then reports a real rejected save',async()=>{
+ HTMLElement.prototype.scrollTo=()=>{};localStorage.setItem('siteconnect-data-counts-intro-v1','complete');journal.read.mockResolvedValue(null);
+ let reject!:(error:Error)=>void;journal.write.mockImplementation(()=>new Promise((_,r)=>{reject=r;}));
+ render(<DataCountsPage/>);
+ await waitFor(()=>expect(journal.write).toHaveBeenCalled());
+ expect(screen.getByText('Saving changes…')).toBeVisible();
+ expect(screen.queryByRole('heading',{name:'Session storage needs attention'})).toBeNull();
+ reject(Error('test write failure'));
+ await screen.findByRole('heading',{name:'Session storage needs attention'});
+ expect(screen.getByRole('button',{name:'Retry saving session'})).toBeVisible();
+});

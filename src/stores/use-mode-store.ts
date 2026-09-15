@@ -2,6 +2,8 @@ import { create } from "zustand";
 import type { WorkspaceMode } from "@/lib/workspace-modes";
 import { WORKSPACE_MODES } from "@/lib/workspace-modes";
 
+export const legacyWorkspacesEnabled = import.meta.env.VITE_ENABLE_LEGACY_WORKSPACES === "true";
+
 const STORAGE_KEY = "siteconnect-workspace-mode-v2";
 
 interface PersistedState {
@@ -10,6 +12,8 @@ interface PersistedState {
 }
 
 function loadFromStorage(): PersistedState {
+  // Keep historical preferences/data intact, but open the focused product by default.
+  if (!legacyWorkspacesEnabled) return { mode: "data-counts", hasChosen: true };
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { mode: "data-counts", hasChosen: true };

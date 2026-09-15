@@ -482,7 +482,7 @@ pub fn disconnect_epic_connection(app: AppHandle, id: String) -> Result<(), Stri
 // Internal helpers
 // =============================================================================
 
-fn load_connection(app: &AppHandle, id: &str) -> Result<EpicConnection, String> {
+pub(crate) fn load_connection(app: &AppHandle, id: &str) -> Result<EpicConnection, String> {
     let db_state = app.state::<DbState>();
     let lock = db_state
         .0

@@ -59,7 +59,7 @@ class ErrorBoundary extends React.Component<
 
             <h1 className="text-[17px] font-bold text-white">Something went wrong</h1>
             <p className="mt-2 text-[13px] text-slate-400">
-              An unexpected error occurred. Your data is safe — try reloading the application.
+              An unexpected error stopped this view. Reload to recover the last saved session; unsaved changes may be lost.
             </p>
 
             {/* Error details (collapsed) */}
@@ -94,7 +94,7 @@ class ErrorBoundary extends React.Component<
             {/* Security reassurance */}
             <div className="mt-6 flex items-center justify-center gap-2 text-[10px] text-slate-600">
               <div className="h-1.5 w-1.5 rounded-full bg-emerald-400/50" />
-              <span>Your encrypted data remains safe on this device</span>
+              <span>Reloading does not intentionally reset saved data</span>
             </div>
           </div>
         </div>
@@ -144,8 +144,12 @@ function PageRouter() {
     }
   })();
 
+  // Operational screens must paint immediately in native WebKit, including
+  // background launch. Keep their mounted workbench independent of animation.
+  if (currentMode === "data-counts") return <div className="h-full w-full">{page}</div>;
+
   return (
-    <PageTransition pageKey={currentMode === "data-counts" ? "data-counts" : currentPage}>
+    <PageTransition pageKey={currentPage}>
       {page}
     </PageTransition>
   );

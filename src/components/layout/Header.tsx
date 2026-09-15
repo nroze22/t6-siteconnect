@@ -1,4 +1,4 @@
-import { useModeStore } from "@/stores/use-mode-store";
+import { useModeStore, legacyWorkspacesEnabled } from "@/stores/use-mode-store";
 import { Lock, WifiOff, Search, Command, HelpCircle } from "lucide-react";
 import { useAppStore } from "@/stores/use-app-store";
 import { useScreeningStore } from "@/stores/use-screening-store";
@@ -65,8 +65,8 @@ export function Header() {
   const lock = useAppStore((s) => s.lock);
   const patientCount = useScreeningStore((s) => s.patients.length);
   const helpDrawer = useHelpDrawer();
-  const config = (demoMode ? {title:"Data COUNTS", subtitle:"Hospital data operations · synthetic rehearsal"} : pageConfig[currentPage]) ?? { title: "SiteConnect", subtitle: "" };
-  const screeningSub = currentPage === "screening" && patientCount > 0
+  const config = (demoMode ? {title:"Data COUNTS", subtitle:"Hospital data operations"} : pageConfig[currentPage]) ?? { title: "SiteConnect", subtitle: "" };
+  const screeningSub = !demoMode && currentPage === "screening" && patientCount > 0
     ? `Screening ${patientCount} patients`
     : config.subtitle;
 
@@ -103,17 +103,10 @@ export function Header() {
           </div>
         </button>}
 
-        {/* Divider */}
-        <div className="h-4 w-px bg-border mx-1" aria-hidden="true" />
-
-        {/* Workspace mode switcher */}
-        <ModeSwitcher />
-
-        {/* Divider */}
-        <div className="h-4 w-px bg-border mx-1" aria-hidden="true" />
+        {legacyWorkspacesEnabled && <ModeSwitcher />}
 
         {/* Offline indicator */}
-        <Tooltip content={demoMode ? "Synthetic-only rehearsal; no broker connection" : "Local processing; external connections depend on enabled integrations"} side="bottom">
+        <Tooltip content={demoMode ? "Release uses synthetic data. Source connections are a separate preview; no broker delivery." : "Local processing; external connections depend on enabled integrations"} side="bottom">
           <div className="flex items-center gap-1.5 rounded-md bg-surface-2 px-2 py-1 ring-1 ring-edge-2">
             <WifiOff className="h-3 w-3 text-dim" />
             <span className="text-[11px] font-medium text-dim">{demoMode ? "Synthetic data" : "Local processing"}</span>

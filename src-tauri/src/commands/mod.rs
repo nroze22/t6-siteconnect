@@ -1,3 +1,4 @@
+pub mod hospital;
 pub mod source_extract;
 pub mod demo_tools;
 pub mod model_job;
@@ -44,3 +45,5 @@ pub fn get_app_status() -> AppStatus {
 }
 
 pub mod docling;
+
+mod hospital_signing;

@@ -1,0 +1,30 @@
+import {afterEach,expect,it,vi} from 'vitest';
+import {cleanup,fireEvent,render,screen,waitFor} from '@testing-library/react';
+import {HospitalConnections} from './HospitalConnections';
+const mocks=vi.hoisted(()=>({list:vi.fn(),invoke:vi.fn()}));
+vi.mock('@/lib/tauri',()=>({isTauri:true,listEpicConnections:mocks.list,upsertEpicConnection:vi.fn()}));
+vi.mock('@tauri-apps/api/core',()=>({invoke:mocks.invoke}));
+afterEach(()=>{cleanup();vi.resetAllMocks();});
+it('keeps locked-storage recovery instructions visible after a capability check',async()=>{
+ mocks.list.mockRejectedValue(Error('locked'));
+ mocks.invoke.mockResolvedValue({status:200,body:JSON.stringify({resourceType:'CapabilityStatement',status:'active',kind:'instance',fhirVersion:'4.0.1',rest:[{mode:'server',resource:[]}]})});
+ render(<HospitalConnections onClose={()=>{}}/>);
+ expect(mocks.list).not.toHaveBeenCalled();
+ fireEvent.click(screen.getByRole('checkbox',{name:'Use synthetic walkthrough'}));
+ await screen.findByText(/Connection storage is locked or unavailable/);
+ fireEvent.change(screen.getByRole('textbox',{name:'FHIR R4 base URL'}),{target:{value:'https://hospital.test/fhir'}});
+ fireEvent.click(screen.getByRole('button',{name:'Check source capabilities'}));
+ await screen.findByText('Server capabilities checked. This does not prove authorization to patient data.');
+ expect(screen.getByRole('button',{name:'Set up or unlock storage'})).toBeVisible();
+ expect(screen.getByRole('button',{name:'Save connection configuration'})).toBeDisabled();
+});
+it('ignores a stale storage failure after returning to the synthetic walkthrough',async()=>{
+ let reject!:(reason:Error)=>void;mocks.list.mockReturnValue(new Promise((_,r)=>{reject=r;}));
+ render(<HospitalConnections onClose={()=>{}}/>);
+ fireEvent.click(screen.getByRole('checkbox',{name:'Use synthetic walkthrough'}));
+ await waitFor(()=>expect(mocks.list).toHaveBeenCalledTimes(1));
+ fireEvent.click(screen.getByRole('checkbox',{name:'Use synthetic walkthrough'}));
+ reject(Error('locked'));
+ await waitFor(()=>expect(screen.getByText('Bundled fixtures only. No hospital request or authentication is performed.')).toBeVisible());
+ expect(screen.queryByText(/Connection storage is locked or unavailable/)).toBeNull();
+});
