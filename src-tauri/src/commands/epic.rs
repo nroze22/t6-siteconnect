@@ -212,14 +212,9 @@ pub fn upsert_epic_connection(
         }
     };
 
-    let _ = conn.execute(
-        "INSERT INTO audit_log (id, action, details, timestamp)
-         VALUES (?1, 'epic_connection_upserted', ?2, datetime('now'))",
-        rusqlite::params![
-            uuid::Uuid::new_v4().to_string(),
-            format!("connection_id={} site={}", id, input.site_label.trim()),
-        ],
-    );
+    crate::db::audit::write_named_audit_entry(&conn, "epic_connection_upserted",
+        &format!("connection_id={} site={}", id, input.site_label.trim()))
+        .map_err(|e| format!("Audit write failed: {}", e))?;
 
     let sql = format!("SELECT {} FROM epic_connections WHERE id = ?1", SELECT_COLS);
     conn.query_row(&sql, [&id], map_row)
@@ -251,14 +246,9 @@ pub fn delete_epic_connection(app: AppHandle, id: String) -> Result<(), String> 
         return Err("Connection not found.".to_string());
     }
 
-    let _ = conn.execute(
-        "INSERT INTO audit_log (id, action, details, timestamp)
-         VALUES (?1, 'epic_connection_deleted', ?2, datetime('now'))",
-        rusqlite::params![
-            uuid::Uuid::new_v4().to_string(),
-            format!("connection_id={}", id),
-        ],
-    );
+    crate::db::audit::write_named_audit_entry(&conn, "epic_connection_deleted",
+        &format!("connection_id={}", id))
+        .map_err(|e| format!("Audit write failed: {}", e))?;
     Ok(())
 }
 
@@ -447,11 +437,11 @@ pub async fn connect_epic_connection(
 
     // 7: mark connected.
     update_connection_status(&app, &id, "connected", None, /* clear_error */ true)?;
-    let _ = audit_event(
+    audit_event(
         &app,
         "epic_connection_connected",
         &format!("connection_id={}", id),
-    );
+    )?;
 
     Ok(EpicConnectResult {
         authorize_url,
@@ -480,11 +470,11 @@ pub fn disconnect_epic_connection(app: AppHandle, id: String) -> Result<(), Stri
         Some("Disconnected by user. Reconnect to resume access."),
         /* clear_error */ false,
     )?;
-    let _ = audit_event(
+    audit_event(
         &app,
         "epic_connection_disconnected",
         &format!("connection_id={}", id),
-    );
+    )?;
     Ok(())
 }
 
@@ -492,7 +482,7 @@ pub fn disconnect_epic_connection(app: AppHandle, id: String) -> Result<(), Stri
 // Internal helpers
 // =============================================================================
 
-fn load_connection(app: &AppHandle, id: &str) -> Result<EpicConnection, String> {
+pub(crate) fn load_connection(app: &AppHandle, id: &str) -> Result<EpicConnection, String> {
     let db_state = app.state::<DbState>();
     let lock = db_state
         .0
@@ -575,11 +565,10 @@ pub fn generate_epic_keypair(
         "UPDATE epic_connections SET jwk_thumbprint = ?2, updated_at = datetime('now') WHERE id = ?1",
         rusqlite::params![id, public_jwk.kid],
     );
-    let _ = audit_event(
-        &app,
-        "epic_keypair_generated",
-        &format!("connection_id={} kid={}", id, public_jwk.kid),
-    );
+    // Reuse this connection; audit_event would re-lock the held DbState mutex.
+    crate::db::audit::write_named_audit_entry(&conn, "epic_keypair_generated",
+        &format!("connection_id={} kid={}", id, public_jwk.kid))
+        .map_err(|e| format!("Audit write failed: {}", e))?;
 
     // Return as a JWKS document so the frontend can show/copy/download it.
     let doc = jwks::format_jwks_document(&public_jwk);
@@ -673,11 +662,11 @@ pub async fn connect_epic_backend_services(
     }
 
     update_connection_status(&app, &id, "connected", None, true)?;
-    let _ = audit_event(
+    audit_event(
         &app,
         "epic_backend_services_connected",
         &format!("connection_id={}", id),
-    );
+    )?;
 
     Ok(EpicConnectResult {
         authorize_url: String::new(),
@@ -903,7 +892,7 @@ pub async fn pull_epic_cohort(
 
     // ----- 5. Persist sync timestamp + audit -----
     update_last_sync(&app, &connection_id)?;
-    let _ = audit_event(
+    audit_event(
         &app,
         "epic_cohort_pulled",
         &format!(
@@ -916,7 +905,7 @@ pub async fn pull_epic_cohort(
             total_stats.vitals_inserted,
             total_stats.skipped,
         ),
-    );
+    )?;
 
     let summary = CohortPullSummary {
         connection_id: connection_id.clone(),
@@ -1091,10 +1080,7 @@ fn audit_event(app: &AppHandle, action: &str, details: &str) -> Result<(), Strin
         .ok_or("Database not initialized.")?
         .get()
         .map_err(|e| format!("Failed to get connection: {}", e))?;
-    let _ = conn.execute(
-        "INSERT INTO audit_log (id, action, details, timestamp)
-         VALUES (?1, ?2, ?3, datetime('now'))",
-        rusqlite::params![uuid::Uuid::new_v4().to_string(), action, details],
-    );
+    crate::db::audit::write_named_audit_entry(&conn, action, details)
+        .map_err(|e| format!("Required audit write failed: {}", e))?;
     Ok(())
 }

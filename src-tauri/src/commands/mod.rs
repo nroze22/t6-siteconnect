@@ -1,3 +1,8 @@
+pub mod hospital;
+pub mod source_extract;
+pub mod demo_tools;
+pub mod model_job;
+pub mod rehearsal;
 pub mod analytics;
 pub mod database;
 pub mod epic;
@@ -38,3 +43,7 @@ pub fn get_app_status() -> AppStatus {
         last_import: None,
     }
 }
+
+pub mod docling;
+
+mod hospital_signing;

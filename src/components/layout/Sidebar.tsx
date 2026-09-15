@@ -1,3 +1,5 @@
+import {DataCountsNavigation} from "@/components/data-counts/DataCountsNavigation";
+import {openDataCountsDestination} from "@/lib/data-counts/navigation";
 import { motion } from "framer-motion";
 import {
   Search,
@@ -135,18 +137,23 @@ export function Sidebar() {
 
   // Filter each group's items by what's visible in the active workspace mode.
   // Empty groups are dropped entirely so the sidebar stays tight.
-  const visibleGroups = navGroups
+  const visibleGroups = (currentMode === "data-counts" ? [{title: "Data operations", items: [{id: "dashboard" as NavigationPage, label: "Laboratory rehearsal", hint: "Request to reconciled release", icon: <FlaskConical className="h-4.5 w-4.5" />, shortcut: "`"}]}] : navGroups)
     .map((group) => ({
       ...group,
       items: group.items.filter((item) => isPageVisibleInMode(item.id, currentMode)),
     }))
     .filter((group) => group.items.length > 0);
 
+  const navigate = (page: NavigationPage) => {
+    if(currentMode === "data-counts"){openDataCountsDestination(page==='settings'?'Model setup':'Overview');return;}
+    setCurrentPage(page);
+  };
+
   return (
     <aside className="no-select flex w-[240px] flex-col border-r border-border bg-background">
       {/* Logo — click to go to Dashboard */}
       <button
-        onClick={() => setCurrentPage("dashboard")}
+        onClick={() => navigate("dashboard")}
         className="flex h-14 items-center gap-2.5 border-b border-border px-5 transition-colors hover:bg-surface-3"
       >
         <div className={`logo-glow flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-blue-700 shadow-lg shadow-indigo-500/20 ${currentPage === "dashboard" ? "ring-2 ring-indigo-400/40" : ""}`}>
@@ -157,13 +164,13 @@ export function Sidebar() {
             TalOS SiteConnect
           </h1>
           <p className="text-[12px] font-medium text-dim">
-            {currentPage === "dashboard" ? "Dashboard" : "On-Premise Screening"}
+            {currentMode === "data-counts" ? "Hospital data operations" : currentPage === "dashboard" ? "Dashboard" : "On-Premise Screening"}
           </p>
         </div>
       </button>
 
       {/* Navigation Groups */}
-      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-3">
+      {currentMode === "data-counts" ? <DataCountsNavigation/> : <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-3">
         {visibleGroups.map((group, gi) => (
           <div key={group.title} className={gi > 0 ? "mt-2" : ""}>
             <p className="mb-1 px-2 text-[9px] font-semibold uppercase tracking-widest text-dim">
@@ -176,7 +183,7 @@ export function Sidebar() {
                   <button
                     key={item.id}
                     onClick={() => {
-                      setCurrentPage(item.id);
+                      navigate(item.id);
                       if (item.id === "import" && unreadCount > 0) markAllRead();
                     }}
                     className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors duration-150 ${!isActive ? "hover:bg-surface-3" : ""}`}
@@ -200,7 +207,7 @@ export function Sidebar() {
                       <span className={`block text-[13px] font-semibold leading-tight ${isActive ? "text-heading" : "text-dim group-hover:text-body"}`}>
                         {item.label}
                       </span>
-                      <span className={`block text-[11px] leading-tight ${isActive ? "text-indigo-400/80" : "text-dim/60"}`}>
+                      <span className={`sidebar-item-hint block text-[11px] leading-tight ${isActive ? "text-indigo-400/80" : "text-dim/60"}`}>
                         {item.hint}
                       </span>
                     </div>
@@ -215,12 +222,12 @@ export function Sidebar() {
             </div>
           </div>
         ))}
-      </nav>
+      </nav>}
 
       {/* Settings — pinned at bottom */}
-      <div className="border-t border-border px-3 py-2">
+      <div className="border-t border-border px-3 py-2" hidden={currentMode==='data-counts'}>
         <button
-          onClick={() => setCurrentPage("settings")}
+          onClick={() => navigate("settings")}
           className={`group relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors duration-150 ${currentPage !== "settings" ? "hover:bg-surface-3" : ""}`}
         >
           {currentPage === "settings" && (
@@ -244,11 +251,11 @@ export function Sidebar() {
 
       {/* Security Footer */}
       <div className="border-t border-border px-4 py-3">
-        <Tooltip content="Zero data leaves this device. HIPAA-ready architecture." side="right">
-          <div className="flex items-center gap-2.5 rounded-lg bg-emerald-500/8 px-3 py-2 ring-1 ring-emerald-500/15">
+        <Tooltip content={currentMode === "data-counts" ? "Synthetic example records only. Broker delivery is simulated." : "Local processing workspace. Review configured integrations before using sensitive data."} side="right">
+          <div className="sidebar-status-badge flex items-center gap-2.5 rounded-lg bg-emerald-500/8 px-3 py-2 ring-1 ring-emerald-500/15">
             <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
             <span className="text-[12px] font-medium text-emerald-400/90">
-              100% On-Premise
+              {currentMode === 'data-counts' ? 'Synthetic rehearsal' : '100% On-Premise'}
             </span>
           </div>
         </Tooltip>

@@ -1,0 +1,87 @@
+{
+  "createdAt": "2026-09-13T18:09:16.246Z",
+  "inputSha256": "9dc4bb6c9db48d50adb2b08d1a05b2b062736e54fc337aa791e858d28688e75e",
+  "model": "gemma4:e2b",
+  "scope": "Rescoring saved actual inference; two synthetic lab annotations only. Exact fields, patient, assertion and annotated source spans. Context candidates excluded. Not a clinical validation score.",
+  "gold": [
+    {
+      "id": "note-creatinine",
+      "field": "Observation.valueQuantity",
+      "segment_id": "s1",
+      "kind": "lab",
+      "label": "creatinine",
+      "value": "1.36",
+      "unit": "mg/dL",
+      "subject": "SYN-003",
+      "assertion": "present",
+      "start": 27,
+      "end": 101
+    },
+    {
+      "id": "note-potassium",
+      "field": "Observation.valueQuantity",
+      "segment_id": "s1",
+      "kind": "lab",
+      "label": "potassium",
+      "value": "4.44",
+      "unit": "mmol/L",
+      "subject": "SYN-003",
+      "assertion": "present",
+      "start": 27,
+      "end": 131
+    }
+  ],
+  "modelScore": {
+    "truePositive": 0,
+    "falsePositive": 2,
+    "falseNegative": 2,
+    "precision": 0,
+    "recall": 0,
+    "grounded": 2,
+    "unsupported": 0,
+    "missing": [
+      "note-creatinine",
+      "note-potassium"
+    ],
+    "extra": [
+      {
+        "index": 0,
+        "id": "s1-0",
+        "grounded": true
+      },
+      {
+        "index": 1,
+        "id": "s1-1",
+        "grounded": true
+      }
+    ],
+    "passed": false
+  },
+  "combinedScore": {
+    "truePositive": 0,
+    "falsePositive": 2,
+    "falseNegative": 2,
+    "precision": 0,
+    "recall": 0,
+    "grounded": 2,
+    "unsupported": 0,
+    "missing": [
+      "note-creatinine",
+      "note-potassium"
+    ],
+    "extra": [
+      {
+        "index": 0,
+        "id": "s1-0",
+        "grounded": true
+      },
+      {
+        "index": 1,
+        "id": "s1-1",
+        "grounded": true
+      }
+    ],
+    "passed": false
+  },
+  "seconds": 44.181
+}

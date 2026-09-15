@@ -4,11 +4,12 @@ import type { NavigationPage } from "@/types";
  * Workspace modes tailor the app surface to a specific persona.
  * Each mode filters the sidebar, sets a landing route, and provides
  * a role-aware tagline. Data scope is never affected — all modes
- * read the same local database, just through a different lens.
+ * read the same local database, except the isolated synthetic Data COUNTS rehearsal.
  *
  * Modes are persisted per-user in localStorage (see use-mode-store.ts).
  */
 export type WorkspaceMode =
+  | "data-counts"
   | "screening"
   | "feasibility"
   | "registry"
@@ -33,6 +34,7 @@ export interface WorkspaceModeConfig {
 }
 
 export const WORKSPACE_MODES: readonly WorkspaceModeConfig[] = [
+  { id: "data-counts", label: "Data COUNTS", tagline: "Prepare an accountable laboratory release", description: "Synthetic laboratory rehearsal for the NIH Data COUNTS RFI.", persona: "Hospital data operations · Internal demo", landingPage: "dashboard", visiblePages: ["dashboard"] },
   {
     id: "screening",
     label: "Screening",

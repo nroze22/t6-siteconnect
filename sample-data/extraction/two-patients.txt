@@ -1,0 +1,3 @@
+Patient SYN-A: sodium was 138 mmol/L.
+
+Patient SYN-B: sodium was 142 mmol/L.

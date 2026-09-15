@@ -25,10 +25,16 @@ impl DbState {
 /// The pool is configured to run SQLCipher pragmas on every new connection
 /// and executes migrations on the first connection obtained.
 pub fn init_pool(db_path: &Path, passphrase: &str) -> Result<DbPool, DbError> {
-    let manager = SqliteConnectionManager::file(db_path);
+    let key = zeroize::Zeroizing::new(passphrase.to_owned());
+    let manager = SqliteConnectionManager::file(db_path).with_init(move |conn| {
+        conn.pragma_update(None, "key", key.as_str())?;
+        conn.pragma_update(None, "cipher_page_size", 4096)?;
+        conn.pragma_update(None, "kdf_iter", 256000)?;
+        conn.query_row("SELECT count(*) FROM sqlite_master", [], |row| row.get::<_, i64>(0))?;
+        Ok(())
+    });
 
-    // Build the pool — r2d2_sqlite does not support connection_customizer
-    // that can set pragmas, so we do it manually after pool creation.
+    // Every initial and replacement connection is keyed by the manager.
     let pool = Pool::builder()
         .max_size(4)
         .build(manager)
@@ -37,8 +43,7 @@ pub fn init_pool(db_path: &Path, passphrase: &str) -> Result<DbPool, DbError> {
             Some(format!("Pool creation failed: {}", e)),
         )))?;
 
-    // Configure every existing connection in the pool with SQLCipher pragmas.
-    // For a freshly-built pool the first `get()` opens the DB file.
+    // Migrate once, after all connections can open the protected database.
     let conn = pool.get().map_err(|e| DbError::Sqlite(rusqlite::Error::SqliteFailure(
         rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_ERROR),
         Some(format!("Failed to get connection from pool: {}", e)),
@@ -63,4 +68,32 @@ pub fn init_pool(db_path: &Path, passphrase: &str) -> Result<DbPool, DbError> {
 
     tracing::info!("Database connection pool initialized successfully");
     Ok(pool)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn every_pool_connection_can_read_encrypted_database_after_reopen() {
+        let path = std::env::temp_dir().join(format!("siteconnect-pool-{}.db", uuid::Uuid::new_v4()));
+        {
+            let pool = init_pool(&path, "synthetic-test-key").unwrap();
+            let connections: Vec<_> = (0..4).map(|_| pool.get().unwrap()).collect();
+            for conn in &connections {
+                let count: i64 = conn.query_row("SELECT count(*) FROM patients", [], |r| r.get(0)).unwrap();
+                assert_eq!(count, 0);
+            }
+        }
+        {
+            let pool = init_pool(&path, "synthetic-test-key").unwrap();
+            let connections: Vec<_> = (0..4).map(|_| pool.get().unwrap()).collect();
+            for conn in &connections {
+                let _: i64 = conn.query_row("SELECT count(*) FROM patients", [], |r| r.get(0)).unwrap();
+            }
+        }
+        let raw = rusqlite::Connection::open(&path).unwrap();
+        assert!(raw.query_row("SELECT count(*) FROM patients", [], |r| r.get::<_, i64>(0)).is_err());
+        drop(raw);
+        let _ = std::fs::remove_file(path);
+    }
 }

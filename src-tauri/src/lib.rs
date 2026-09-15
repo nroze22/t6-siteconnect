@@ -60,6 +60,15 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            commands::hospital::hospital_request,
+            commands::hospital::hospital_public_key,
+            commands::hospital::hospital_authenticate,
+            commands::hospital::hospital_disconnect,
+            commands::rehearsal::read_operation,
+            commands::rehearsal::write_operation,
+            commands::model_job::get_model_job,
+            commands::model_job::start_model_job,
+            commands::model_job::cancel_model_job,
             greet,
             get_app_status,
             init_database,
@@ -115,6 +124,14 @@ pub fn run() {
             evaluate_criterion_with_llm,
             chat_with_llm,
             parse_clinical_notes,
+            commands::demo_tools::extract_demo_note,
+            commands::docling::docling_status,
+            commands::docling::setup_docling,
+            commands::docling::cancel_docling,
+            commands::docling::parse_docling_pdf,
+            commands::source_extract::extract_source_entities,
+            commands::source_extract::cancel_source_extraction,
+            commands::demo_tools::check_demo_export,
             generate_ai_insight,
             import_extracted_patients,
             // Ollama

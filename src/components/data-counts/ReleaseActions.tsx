@@ -1,0 +1,13 @@
+import {CheckCircle2,LockKeyhole,Download,ShieldCheck} from 'lucide-react';
+type Props={approved:boolean;reviewed:boolean;saved:boolean;exporting:boolean;hasBaseline:boolean;exportNotice:string;onReviewed:(value:boolean)=>void;onApprove:()=>void;onEncrypted:()=>void;onPlaintext:()=>void;onIncremental:()=>void};
+export function ReleaseActions(p:Props){
+ const blocked=!p.saved||p.exporting;
+ return <section className="dc-release-actions" aria-label="Package authorization and export">
+  <div className="dc-action-heading"><span className="dc-action-number">{p.approved?<CheckCircle2 size={18}/>:1}</span><div><h3>{p.approved?'Approved for this rehearsal':'Confirm your review'}</h3><p>{p.approved?'Approval applies to this exact package. Changed inputs require a new review.':'Check the observations, exclusions and changes above before authorizing.'}</p></div></div>
+  {!p.approved&&<><label className="dc-check"><input type="checkbox" checked={p.reviewed} onChange={e=>p.onReviewed(e.target.checked)}/>I reviewed this synthetic package and its exclusions.</label><button className="dc-btn primary" disabled={!p.reviewed||blocked} onClick={p.onApprove}><ShieldCheck size={16}/>Authorize demo package</button><p className="dc-action-hint"><LockKeyhole size={14}/>Export becomes available after authorization.</p></>}
+  {p.approved&&<div className="dc-export-choice"><div className="dc-action-heading"><span className="dc-action-number">2</span><div><h3>Save a protected local copy</h3><p>Encrypted export with a separately saved recovery key. This does not transmit data to a broker.</p></div></div><button className="dc-btn primary" disabled={blocked} onClick={p.onEncrypted}><LockKeyhole size={16}/>{p.exporting?'Preparing export…':'Export encrypted demo package'}</button>{p.exportNotice&&<p className="dc-export-result" role="status"><CheckCircle2 size={15}/>{p.exportNotice}</p>}
+   <details className="dc-secondary-options"><summary>Other export formats</summary><p>Plaintext files are for internal review. Keep them within the site review workspace.</p><div className="dc-actions"><button className="dc-btn" disabled={blocked} onClick={p.onPlaintext}><Download size={15}/>Export plaintext demo package</button>{p.hasBaseline&&<button className="dc-btn" disabled={blocked} onClick={p.onIncremental}>Export incremental review plan</button>}</div>{p.hasBaseline&&<p>Incremental plans compare the latest different approved snapshot, which may not have been delivered. They verify reconstruction locally and do not authorize source deletions, identity merges or broker delivery.</p>}</details>
+  </div>}
+  {!p.saved&&<p className="dc-action-hint" role="status">Actions are paused until this session is saved. Check storage status above.</p>}
+ </section>;
+}

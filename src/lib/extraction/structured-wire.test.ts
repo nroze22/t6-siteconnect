@@ -1,0 +1,10 @@
+import {it,expect} from 'vitest';
+import {normalizeWire,sourceSchema} from './structured-wire';
+import {validateEntities} from './review';
+const segments=[{id:'real',label:'Source',text:'Test code 2160-0. Potassium <2.5 mmol/L.'}];
+const context={segment_id:'real',quote:'Test code 2160-0.',field:'Observation.code',value:'2160-0',assertion:'present'};
+it('derives redundant fields instead of asking the model to invent context labels',()=>{const output=normalizeWire({entities:[context]});expect(output.entities[0]).toMatchObject({kind:'context',label:'2160-0',unit:null,subject:null});expect(validateEntities(output,segments)[0]!.supported).toBe(true);});
+it('constrains source ids in both grammar branches',()=>{for(const branch of sourceSchema(segments).properties.entities.items.anyOf)expect((branch.properties.segment_id as {enum?:string[]}).enum).toEqual(['real']);});
+it('requires measurement shape and rejects invented fields, null values and empty units',()=>{for(const entity of [{...context,kind:'context'},{...context,value:null},{...context,field:'Observation.valueQuantity'},{...context,field:'Invented.field'},{...context,field:'Observation.valueQuantity',label:'Potassium',unit:'',subject:null}])expect(()=>normalizeWire({entities:[entity]})).toThrow();});
+it('does not confuse structural validity with supporting evidence',()=>{const output=normalizeWire({entities:[{...context,value:'9999-9'}]});expect(validateEntities(output,segments)[0]!.supported).toBe(false);});
+it('preserves comparator, absence of a unit and uncertainty without normalization',()=>{const output=normalizeWire({entities:[{segment_id:'real',quote:'Potassium <2.5 mmol/L.',field:'Observation.valueQuantity',label:'Potassium',value:'<2.5',unit:null,subject:null,assertion:'uncertain'}]});expect(output.entities[0]).toMatchObject({value:'<2.5',unit:null,assertion:'uncertain',kind:'lab'});});

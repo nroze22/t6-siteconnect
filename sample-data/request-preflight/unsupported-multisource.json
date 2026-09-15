@@ -1,0 +1,51 @@
+{
+  "format": "siteconnect-request/1",
+  "id": "DEMO-MULTISOURCE-001",
+  "version": 3,
+  "label": "Adult longitudinal laboratory extract",
+  "approval": {
+    "reference": "SYNTHETIC-ONLY",
+    "authority": "Synthetic authorization for internal rehearsal only",
+    "status": "draft"
+  },
+  "cohort": {
+    "description": "Age 18 or older on 2026-08-01; laboratory observations, corrections and cancellation notices in August 2026",
+    "minimumAge": 18,
+    "ageAsOf": "2026-08-01"
+  },
+  "sourceSystems": [
+    "hospital-emr",
+    "hospital-lis"
+  ],
+  "domains": [
+    "laboratory",
+    "radiology"
+  ],
+  "fields": [
+    "Observation.id",
+    "Observation.code",
+    "Observation.valueQuantity",
+    "Observation.effectiveDateTime",
+    "Observation.issued",
+    "Observation.status",
+    "Observation.specimen",
+    "Observation.dataAbsentReason",
+    "Observation.referenceRange",
+    "ImagingStudy.id"
+  ],
+  "dateRange": {
+    "start": "2026-08-01",
+    "end": "2026-08-31"
+  },
+  "mode": "incremental",
+  "cadence": {
+    "frequency": "daily",
+    "timezone": "UTC"
+  },
+  "permissions": {
+    "source": "synthetic-fixture",
+    "version": "1",
+    "rule": "Exclude SYN-012"
+  },
+  "outputSchema": "talosix-demo-labs/3"
+}

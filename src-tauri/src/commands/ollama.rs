@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
-use sysinfo::{Disks, System};
+use sysinfo::System;
+#[cfg(not(unix))]
+use sysinfo::Disks;
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::commands::llm::{LlmState, LlmStatus, LlmStatusResponse};
@@ -26,6 +28,7 @@ pub struct SystemHardware {
     pub total_ram_gb: f64,
     pub free_disk_bytes: u64,
     pub free_disk_gb: f64,
+    pub model_directory: String,
     pub recommended_tier: String,
     pub recommended_model: String,
 }
@@ -251,7 +254,9 @@ pub async fn install_ollama(app: AppHandle) -> Result<String, String> {
         tracing::info!("Installing Ollama on macOS");
 
         let download_url = "https://ollama.com/download/Ollama-darwin.zip";
-        let tmp_dir = std::env::temp_dir();
+        if std::path::Path::new("/Applications/Ollama.app").exists(){return Err("Ollama.app already exists. Open it or update it through the official installer; SiteConnect will not overwrite it. https://ollama.com/download".into());}
+        let tmp_dir=std::env::temp_dir().join(format!("siteconnect-ollama-{}-{}",std::process::id(),std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_err(|e|e.to_string())?.as_millis()));
+        tokio::fs::create_dir(&tmp_dir).await.map_err(|e|e.to_string())?;
         let zip_path = tmp_dir.join("Ollama-darwin.zip");
 
         // Clean up any leftover zip from a previous failed attempt
@@ -259,7 +264,7 @@ pub async fn install_ollama(app: AppHandle) -> Result<String, String> {
 
         // Step 1: Download the official macOS zip
         let output = tokio::process::Command::new("curl")
-            .args(["-fSL", "-o", zip_path.to_str().unwrap_or("/tmp/Ollama-darwin.zip"), download_url])
+            .args(["-fSL", "--connect-timeout", "30", "--max-time", "1800", "-o", zip_path.to_str().unwrap_or("/tmp/Ollama-darwin.zip"), download_url])
             .output()
             .await
             .map_err(|e| {
@@ -286,7 +291,7 @@ pub async fn install_ollama(app: AppHandle) -> Result<String, String> {
 
         // Step 2: Unzip to /Applications
         let output = tokio::process::Command::new("unzip")
-            .args(["-o", "-q", zip_path.to_str().unwrap_or(""), "-d", "/Applications"])
+            .args(["-o", "-q", zip_path.to_str().unwrap_or(""), "-d", tmp_dir.to_str().ok_or("Invalid installer path")?])
             .output()
             .await
             .map_err(|e| {
@@ -299,10 +304,17 @@ pub async fn install_ollama(app: AppHandle) -> Result<String, String> {
 
         if !output.status.success() {
             // Clean up partial extraction
-            let _ = tokio::fs::remove_dir_all("/Applications/Ollama.app").await;
+            let _ = tokio::fs::remove_dir_all(&tmp_dir).await;
             let stderr = String::from_utf8_lossy(&output.stderr);
             return Err(format!("Extraction failed: {}", stderr.lines().last().unwrap_or("Unknown error")));
         }
+
+        let staged=tmp_dir.join("Ollama.app");
+        let assessment=tokio::process::Command::new("/usr/sbin/spctl").args(["--assess","--type","execute"]).arg(&staged).output().await.map_err(|e|format!("Cannot verify installer signature: {e}"))?;
+        if !assessment.status.success(){let _=tokio::fs::remove_dir_all(&tmp_dir).await;return Err("macOS did not accept the downloaded app signature. Install Ollama through the official installer. https://ollama.com/download".into());}
+        if std::path::Path::new("/Applications/Ollama.app").exists(){return Err("An Ollama installation now exists. Open it and retry setup.".into());}
+        tokio::fs::rename(&staged,"/Applications/Ollama.app").await.map_err(|e|format!("Could not install Ollama: {e}. Use the official installer: https://ollama.com/download"))?;
+        let _=tokio::fs::remove_dir_all(&tmp_dir).await;
 
         // Step 3: Launch Ollama.app (which starts the server)
         let _ = tokio::process::Command::new("open")
@@ -445,6 +457,10 @@ pub async fn start_ollama() -> Result<String, String> {
 /// Pull a model from the Ollama registry, streaming progress events.
 #[tauri::command]
 pub async fn pull_ollama_model(app: AppHandle, model: String) -> Result<(), String> {
+    let (size_gb,min_ram)=match model.as_str(){"gemma4:e2b"=>(7.2,16.0),"gemma4:e4b"=>(9.6,24.0),"gemma4:12b"=>(7.6,24.0),"gemma4:26b"=>(19.0,32.0),"gemma3:1b"=>(1.0,4.0),_=>return Err("Choose a supported local model".into())};
+    let hw=detect_system_hardware()?;
+    if hw.total_ram_gb<min_ram{return Err("Not enough memory under this model's setup policy. Choose a smaller model.".into());}
+    if hw.free_disk_gb<size_gb*1e9/1024_f64.powi(3)+5.0{return Err("Insufficient model-drive space including the 5 GiB working reserve. Free space and retry.".into());}
     tracing::info!("Pulling Ollama model: {}", model);
 
     let client = reqwest::Client::builder()
@@ -482,6 +498,7 @@ pub async fn pull_ollama_model(app: AppHandle, model: String) -> Result<(), Stri
     use futures_util::StreamExt;
     let mut stream = resp.bytes_stream();
     let mut buffer = String::new();
+    let mut succeeded=false;
 
     while let Some(chunk) = stream.next().await {
         let chunk = chunk.map_err(|e| format!("Stream error: {}", e))?;
@@ -496,7 +513,9 @@ pub async fn pull_ollama_model(app: AppHandle, model: String) -> Result<(), Stri
                 continue;
             }
 
-            if let Ok(val) = serde_json::from_str::<serde_json::Value>(&line) {
+            {
+                let val=parse_pull_line(&line)?;
+                succeeded |= val.get("status").and_then(|v|v.as_str())==Some("success");
                 let total = val.get("total").and_then(|t| t.as_u64()).unwrap_or(0);
                 let completed = val.get("completed").and_then(|c| c.as_u64()).unwrap_or(0);
                 let percent = if total > 0 { (completed as f64 / total as f64) * 100.0 } else { 0.0 };
@@ -516,6 +535,10 @@ pub async fn pull_ollama_model(app: AppHandle, model: String) -> Result<(), Stri
         }
     }
 
+    if !buffer.trim().is_empty(){let val=parse_pull_line(buffer.trim())?;succeeded |= val.get("status").and_then(|v|v.as_str())==Some("success");}
+    if !succeeded{return Err("Download ended before Ollama verified success. Retry setup to resume available layers.".into());}
+    if !fetch_ollama_models().await?.iter().any(|m|m.name==model){return Err("Downloaded model is not listed by Ollama. Retry setup.".into());}
+
     let _ = app.emit(
         "ollama://pull-complete",
         serde_json::json!({ "model": model, "success": true, "error": serde_json::Value::Null }),
@@ -523,6 +546,12 @@ pub async fn pull_ollama_model(app: AppHandle, model: String) -> Result<(), Stri
     tracing::info!("Ollama model pull complete: {}", model);
 
     Ok(())
+}
+
+fn parse_pull_line(line:&str)->Result<serde_json::Value,String>{
+ let value:serde_json::Value=serde_json::from_str(line).map_err(|_|"Invalid model download response".to_string())?;
+ if let Some(error)=value.get("error"){return Err(format!("Model download failed: {error}"));}
+ Ok(value)
 }
 
 /// Detect system hardware (RAM, disk space) and recommend a model tier.
@@ -534,24 +563,42 @@ pub fn detect_system_hardware() -> Result<SystemHardware, String> {
     let total_ram_bytes = sys.total_memory(); // bytes
     let total_ram_gb = total_ram_bytes as f64 / (1024.0 * 1024.0 * 1024.0);
 
-    // Get free disk space on the root/home disk (where Ollama stores models)
-    let disks = Disks::new_with_refreshed_list();
-    let free_disk_bytes = disks.iter()
-        .filter(|d| d.mount_point() == std::path::Path::new("/") || d.mount_point() == std::path::Path::new("C:\\"))
-        .map(|d| d.available_space())
-        .next()
-        .or_else(|| disks.iter().map(|d| d.available_space()).max())
-        .unwrap_or(0);
+    // Match the model directory to its containing filesystem, never an unrelated drive.
+    let model_directory = std::env::var_os("OLLAMA_MODELS").map(std::path::PathBuf::from).or_else(|| {
+        if cfg!(target_os="linux") {Some(std::path::PathBuf::from("/usr/share/ollama/.ollama/models"))}
+        else {std::env::var_os(if cfg!(target_os="windows"){"USERPROFILE"}else{"HOME"}).map(|h|std::path::PathBuf::from(h).join(".ollama/models"))}
+    }).ok_or("Cannot determine the model directory")?;
+    let mut existing=model_directory.as_path();
+    while !existing.exists(){existing=existing.parent().ok_or("Cannot resolve model storage")?;}
+    let resolved=existing.canonicalize().map_err(|e|format!("Cannot resolve model storage: {e}"))?;
+    #[cfg(unix)]
+    let free_disk_bytes = {
+        use std::os::unix::ffi::OsStrExt;
+        let path=std::ffi::CString::new(resolved.as_os_str().as_bytes()).map_err(|e|e.to_string())?;
+        let mut info=std::mem::MaybeUninit::<libc::statvfs>::uninit();
+        // statvfs resolves the actual filesystem (including macOS firmlinks) and
+        // counts blocks available to this user, without purgeable-space estimates.
+        if unsafe{libc::statvfs(path.as_ptr(),info.as_mut_ptr())}!=0{return Err("Cannot measure model-drive space".into());}
+        let info=unsafe{info.assume_init()};
+        (info.f_bavail as u64).saturating_mul(info.f_frsize as u64)
+    };
+    #[cfg(not(unix))]
+    let free_disk_bytes = {
+        let disks=Disks::new_with_refreshed_list();
+        disks.iter().filter(|d|resolved.starts_with(d.mount_point())).max_by_key(|d|d.mount_point().components().count())
+            .map(|d|d.available_space()).ok_or("Cannot measure model-drive space")?
+    };
     let free_disk_gb = free_disk_bytes as f64 / (1024.0 * 1024.0 * 1024.0);
 
+    // Catalog size is not total runtime memory; leave room for OS and context.
     let (recommended_tier, recommended_model) = if total_ram_gb >= 24.0 {
-        ("premium", "gemma4:26b-a4b")  // MoE: 25B params, 3.8B active, near-frontier
+        ("optimal", "gemma4:e4b")
     } else if total_ram_gb >= 16.0 {
-        ("optimal", "gemma4:e4b")      // 8B params, 4.5B active, best quality/speed
-    } else if total_ram_gb >= 8.0 {
-        ("recommended", "gemma4:e2b")  // 4.5B params, 2.3B active, good structured output
+        ("recommended", "gemma4:e2b")
+    } else if total_ram_gb >= 4.0 {
+        ("minimum", "gemma3:1b")
     } else {
-        ("minimum", "gemma4:e2b")      // Same model, tighter memory — marginal but functional
+        ("none", "none")
     };
 
     Ok(SystemHardware {
@@ -559,6 +606,7 @@ pub fn detect_system_hardware() -> Result<SystemHardware, String> {
         total_ram_gb,
         free_disk_bytes,
         free_disk_gb,
+        model_directory: model_directory.to_string_lossy().to_string(),
         recommended_tier: recommended_tier.to_string(),
         recommended_model: recommended_model.to_string(),
     })
@@ -610,7 +658,7 @@ pub async fn configure_ollama_backend(
         .lock()
         .map_err(|e| format!("Lock poisoned: {}", e))?;
 
-    lock.status = LlmStatus::Running;
+    lock.status = LlmStatus::ModelReady;
     lock.model = Some(model.clone());
     lock.port = 11434;
 
@@ -634,7 +682,7 @@ pub async fn test_ollama_inference(app: AppHandle) -> Result<TestInferenceResult
             .lock()
             .map_err(|e| format!("Lock poisoned: {}", e))?;
 
-        if lock.status != LlmStatus::Running {
+        if lock.status != LlmStatus::Running && lock.status != LlmStatus::ModelReady {
             return Err("LLM is not running".to_string());
         }
 
@@ -644,7 +692,7 @@ pub async fn test_ollama_inference(app: AppHandle) -> Result<TestInferenceResult
     };
 
     let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(30))
+        .timeout(std::time::Duration::from_secs(180))
         .build()
         .map_err(|e| format!("HTTP client error: {}", e))?;
 
@@ -664,11 +712,13 @@ pub async fn test_ollama_inference(app: AppHandle) -> Result<TestInferenceResult
     let latency_ms = start.elapsed().as_millis() as u64;
 
     match result {
-        Ok(resp) if resp.status().is_success() => Ok(TestInferenceResult {
-            success: true,
-            latency_ms,
-            error: None,
-        }),
+        Ok(resp) if resp.status().is_success() => {
+            let body:serde_json::Value=resp.json().await.map_err(|e|format!("Invalid inference response: {e}"))?;
+            let success=body.pointer("/choices/0/message/content").and_then(|v|v.as_str()).map(|v|!v.trim().is_empty()).unwrap_or(false);
+            let state=app.state::<LlmState>();let mut lock=state.0.lock().map_err(|e|e.to_string())?;
+            if lock.model.as_deref()==Some(model.as_str()){lock.status=if success{LlmStatus::Running}else{LlmStatus::ModelReady};}
+            Ok(TestInferenceResult{success,latency_ms,error:if success{None}else{Some("Model returned no response text".into())}})
+        },
         Ok(resp) => {
             let status = resp.status();
             let body = resp.text().await.unwrap_or_default();
@@ -684,4 +734,11 @@ pub async fn test_ollama_inference(app: AppHandle) -> Result<TestInferenceResult
             error: Some(format!("Request failed: {}", e)),
         }),
     }
+}
+
+#[cfg(test)]
+mod setup_tests {
+ use super::*;
+ #[test] fn pull_errors_are_not_success(){assert!(parse_pull_line(r#"{"error":"disk full"}"#).is_err());assert!(parse_pull_line("broken").is_err());}
+ #[test] fn pull_status_preserves_verification(){assert_eq!(parse_pull_line(r#"{"status":"success"}"#).unwrap()["status"],"success");}
 }

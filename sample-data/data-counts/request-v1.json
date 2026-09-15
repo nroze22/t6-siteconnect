@@ -1,0 +1,20 @@
+{
+  "id": "DC-LAB-2026-001",
+  "version": 1,
+  "label": "Adult longitudinal laboratory extract",
+  "authority": "Synthetic authorization for internal rehearsal only",
+  "cohort": "Age 18 or older on 2026-08-01; laboratory observations in August 2026",
+  "start": "2026-08-01",
+  "end": "2026-08-31",
+  "mode": "Full snapshot",
+  "fields": [
+    "Observation.id",
+    "Observation.code",
+    "Observation.valueQuantity",
+    "Observation.effectiveDateTime",
+    "Observation.issued"
+  ],
+  "source": "Northfield synthetic laboratory",
+  "schema": "talosix-demo-labs/1",
+  "rfi": "75N95C26R00005"
+}

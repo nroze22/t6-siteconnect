@@ -1,0 +1,33 @@
+import {hashText,type SourcePreview} from './fhir';
+const MAX_BYTES=12*1024*1024;
+export async function previewSourceFile(name:string,text:string):Promise<SourcePreview>{
+ if(!text.trim()||new TextEncoder().encode(text).length>MAX_BYTES)throw Error('Choose a nonempty UTF-8 file no larger than 12 MiB.');
+ const original=text;text=text.replace(/^\uFEFF/,'');
+ const ext=name.split('.').pop()?.toLowerCase();let records:Record<string,unknown>[]=[],format:SourcePreview['format']='FHIR R4';const warnings:string[]=[];
+ if(ext==='hl7'||text.startsWith('MSH')){format='HL7 v2';records=hl7(text);warnings.push('ORU R01 message-file preview only. No MLLP listener, ACK, scheduled feed or clinical normalization.','Raw fields, units, status codes and sending authority are retained. Repeated/encoded values remain source text.');}
+ else if(ext==='csv'||ext==='tsv'){format='Tabular';records=table(text,ext==='tsv'?'\t':',');warnings.push('Columns are source-defined. No units, patient identities or clinical mappings are inferred.','Managed-file intake is manual. No SFTP credentials, folder watcher or automated synchronization is configured.');}
+ else if(ext==='json'||ext==='ndjson'){
+  let parsed:unknown;try{parsed=ext==='ndjson'?text.split(/\r?\n/).filter(l=>l.trim()).map(l=>JSON.parse(l)):JSON.parse(text);}catch{throw Error('Invalid JSON/NDJSON. No malformed lines were skipped.');}
+  const obj=parsed as any;
+  const values=Array.isArray(parsed)?parsed:obj?.resourceType==='Bundle'?(()=>{if(obj.type==='searchset'&&(obj.link??[]).some((l:any)=>l.relation==='next'))throw Error('This Bundle has another page. Supply a complete extract.');if(!Array.isArray(obj.entry))throw Error('Bundle entries are missing.');if(obj.type==='searchset'){if(obj.entry.some((e:any)=>e.search?.mode&&e.search.mode!=='match'))throw Error('Searchset contains included/outcome records requiring reconciliation.');if(obj.total!==undefined&&(!Number.isSafeInteger(obj.total)||obj.total!==obj.entry.length))throw Error('Searchset total does not reconcile with supplied records.');}return obj.entry.map((e:any)=>e.resource);})():[parsed];
+  const ids=new Set<string>();records=values.map((r:any)=>{if(!r||typeof r!=='object'||Array.isArray(r)||typeof r.resourceType!=='string'||typeof r.id!=='string'||!r.id)throw Error('Every FHIR resource requires a type and ID.');if(r.resourceType==='OperationOutcome')throw Error('Source contains an OperationOutcome; resolve it before accepting the extract.');const id=`${r.resourceType}/${r.id}`;if(ids.has(id))throw Error('Duplicate FHIR resource identity. Source reconciliation is required.');ids.add(id);return r;});warnings.push('FHIR structure preview only; source profile, cohort permissions and clinical completeness still require validation.');
+ }else throw Error('Choose a FHIR JSON/NDJSON, HL7 ORU message, CSV or TSV extract. Documents belong in Document review.');
+ if(!records.length||records.length>10000)throw Error('Source must contain 1–10,000 records for a bounded preview.');
+ const sha256=await hashText(original);return {sourceId:`file:sha256:${sha256}`,format,records,artifacts:[{label:name,body:original,sha256}],warnings,complete:true};
+}
+function hl7(text:string){
+ const segments=text.replace(/^\u000b/,'').replace(/\u001c\r?$/,'').split(/\r\n|\r|\n/).filter(Boolean);
+ let separator='|',encoding='^~\\&',message:Record<string,unknown>|undefined,patient:string[]|undefined,order:string[]|undefined;const rows:Record<string,unknown>[]=[];const messages=new Set<string>();let observation=0;
+ for(const [index,line] of segments.entries()){
+  if(line.startsWith('MSH')){separator=line[3]!;const fields=line.split(separator);encoding=fields[1]??'';if(encoding.length!==4||new Set(separator+encoding).size!==5||/[\w\s]/.test(separator+encoding))throw Error('Unsupported HL7 delimiters.');const type=(fields[8]??'').split(encoding[0]!);if(type[0]!=='ORU'||type[1]!=='R01')throw Error('This intake supports ORU R01 result messages. ADT merge/unmerge events require a separate authoritative workflow.');if(!fields[9]||!/^2\.\d+(?:\.\d+)?$/.test(fields[11]??''))throw Error('HL7 message control ID and version are required.');const key=JSON.stringify([fields[2],fields[3],fields[9]]);if(messages.has(key))throw Error('Repeated HL7 sending authority/message ID. No message was silently discarded.');messages.add(key);message={sendingApplication:fields[2],sendingFacility:fields[3],controlId:fields[9],version:fields[11],rawHeader:line};patient=undefined;order=undefined;observation=0;continue;}
+  if(!message)throw Error('HL7 extract must start with MSH.');
+  if(line[3]!==separator||!/^\w{3}/.test(line))throw Error('Malformed HL7 segment.');const fields=line.split(separator);if(fields[0]==='PID'){patient=fields;order=undefined;}if(fields[0]==='OBR')order=fields;
+  if(fields[0]==='OBX'){if(!patient?.[3]||!order||!fields[2]||!fields[3]||!fields[11])throw Error('OBX requires patient identifier, order context, value type, test identifier and result status.');rows.push({resourceType:'HL7 observation',id:`message-${messages.size}-observation-${++observation}`,message,patientIdentifier:patient[3],orderFields:order,valueType:fields[2],testIdentifier:fields[3],value:fields[5]??'',units:fields[6]??'',referenceRange:fields[7]??'',abnormalFlags:fields[8]??'',resultStatus:fields[11],observationTime:fields[14]??'',sourceLine:index+1,encoding,rawSegment:line,fields});}
+ }
+ if(!messages.size)throw Error('No HL7 message found.');return rows;
+}
+// RFC4180-style quoted cells; retain strings, empty cells and exact source artifact.
+function table(text:string,delimiter:string){const rows:string[][]=[];let row:string[]=[],cell='',quoted=false,closed=false;
+ const push=()=>{row.push(cell);cell='';closed=false;};
+ for(let i=0;i<text.length;i++){const c=text[i]!;if(quoted){if(c==='"'){if(text[i+1]==='"'){cell+='"';i++;}else{quoted=false;closed=true;}}else cell+=c;continue;}if(c==='"'){if(cell||closed)throw Error('Malformed quote in source table.');quoted=true;}else if(c===delimiter){push();}else if(c==='\r'||c==='\n'){if(c==='\r'&&text[i+1]==='\n')i++;push();rows.push(row);row=[];}else{if(closed)throw Error('Unexpected text after a quoted field.');cell+=c;}}
+ if(quoted)throw Error('Unclosed quoted cell.');if(cell||row.length||closed){push();rows.push(row);}const headers=rows.shift();if(!headers?.length||headers.some(h=>!h.trim())||new Set(headers).size!==headers.length)throw Error('Source table needs distinct nonempty column names.');return rows.map((r,i)=>{if(r.length!==headers.length)throw Error(`Source row ${i+2} has a different column count.`);return Object.fromEntries(headers.map((h,j)=>[h,r[j]]));});}

@@ -536,3 +536,9 @@
     animation: none !important;
   }
 }
+
+/* Keep sidebar context legible on pale surfaces. */
+.light .sidebar-item-hint { color: #475569; opacity: 1; }
+.light .sidebar-status-badge { background: #ecfdf5; box-shadow: 0 0 0 1px #a7f3d0; }
+.light .sidebar-status-badge span { color: #065f46; font-weight: 600; }
+.light .sidebar-status-badge > div { background: #047857; box-shadow: none; }

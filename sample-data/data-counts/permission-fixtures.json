@@ -1,0 +1,104 @@
+{
+  "synthetic": true,
+  "authority": "Internal demo only",
+  "v1": [
+    {
+      "patient": "SYN-001",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-002",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-003",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-004",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-005",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-006",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-007",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-008",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-009",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-010",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-011",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-012",
+      "permitted": false
+    }
+  ],
+  "v2": [
+    {
+      "patient": "SYN-001",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-002",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-003",
+      "permitted": false
+    },
+    {
+      "patient": "SYN-004",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-005",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-006",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-007",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-008",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-009",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-010",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-011",
+      "permitted": true
+    },
+    {
+      "patient": "SYN-012",
+      "permitted": false
+    }
+  ]
+}

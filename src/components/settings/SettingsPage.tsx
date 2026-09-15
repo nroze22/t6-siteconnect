@@ -1,3 +1,4 @@
+import "./model-setup.css";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   Brain,
@@ -52,17 +53,12 @@ import {
   type WatcherStatus,
 } from "@/lib/tauri";
 import {
+  getModelSetupJob,startModelSetupJob,cancelModelSetupJob,
   getLlmStatus,
   checkLlmHealth,
   checkOllamaStatus,
-  installOllama,
-  startOllama,
   detectSystemHardware,
-  pullOllamaModel,
-  configureOllamaBackend,
-  testOllamaInference,
   listenForPullProgress,
-  listenForPullComplete,
   getAuditTrail,
   exportAuditTrail,
   verifyAuditChain,
@@ -73,6 +69,7 @@ import {
   type PullProgress,
   type AuditEntry,
 } from "@/lib/data-provider";
+import {modelPreflight} from "@/lib/model-preflight";
 import { useToast } from "@/components/ui/Toast";
 import { useAppStore } from "@/stores/use-app-store";
 import { useWatcherStore } from "@/stores/use-watcher-store";
@@ -81,9 +78,10 @@ import { EpicConnectionsPanel } from "./EpicConnectionsPanel";
 
 // ─── Tab Definition ──────────────────────────────────────────
 
-type SettingsTab = "general" | "data" | "security" | "support";
+type SettingsTab = "ai" | "general" | "data" | "security" | "support";
 
 const TABS: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
+  {id:"ai",label:"Local AI",icon:<Brain className="h-3.5 w-3.5"/>},
   { id: "general", label: "General", icon: <Settings className="h-3.5 w-3.5" /> },
   { id: "data", label: "Data", icon: <Database className="h-3.5 w-3.5" /> },
   { id: "security", label: "Security", icon: <Shield className="h-3.5 w-3.5" /> },
@@ -93,7 +91,7 @@ const TABS: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
 // ─── Main Component ──────────────────────────────────────────
 
 export function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<SettingsTab>("general");
+  const [activeTab, setActiveTab] = useState<SettingsTab>("ai");
 
   return (
     <div className="flex h-full flex-col bg-background">
@@ -126,10 +124,10 @@ export function SettingsPage() {
       {/* Tab content */}
       <div className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-2xl space-y-3">
+          {activeTab === "ai" && <><div className="mb-5"><h3 className="text-lg font-semibold text-heading">Set up local extraction</h3><p className="text-sm text-dim mt-2">Choose a model once. Setup checks storage, downloads the model and verifies a response. Then return to Data COUNTS → Local AI to review a document.</p></div><AiSetupPanel/></>}
           {activeTab === "general" && (
             <>
               <SystemProfilePanel />
-              <AiSetupPanel />
               <PreferencesPanel />
               <UpdatePanel />
             </>
@@ -347,16 +345,19 @@ function WatcherPanel() {
 
 // ─── Ollama model tier definitions ─────────────────────────────────
 
+// Catalog checked against https://ollama.com/library/gemma4 on 2026-09-08.
+// RAM figures are conservative demo planning estimates, not measured guarantees.
 const AI_MODELS = [
-  { id: "gemma3:1b", label: "Lite (1B)", size: "~1.0 GB", sizeGb: 1.0, ramReq: "4 GB", downloadTime: "1–3 min", description: "Lightweight model for basic AI screening. Fast inference on any hardware." },
-  { id: "gemma3:4b", label: "Standard (4B)", size: "~3.3 GB", sizeGb: 3.3, ramReq: "8 GB+", downloadTime: "5–15 min", description: "Balanced performance and quality. Recommended for most sites." },
-  { id: "gemma3:12b", label: "Advanced (12B)", size: "~8.1 GB", sizeGb: 8.1, ramReq: "16 GB+", downloadTime: "15–30 min", description: "High-quality clinical reasoning. Great for complex eligibility criteria." },
-  { id: "gemma3:27b", label: "Premium (27B)", size: "~17 GB", sizeGb: 17.0, ramReq: "24 GB+", downloadTime: "30–60 min", description: "Near-frontier reasoning with 128K context. Best accuracy available." },
+  { id: "gemma4:e2b", label: "Gemma 4 E2B", size: "~7.2 GB", sizeGb: 7.2, minRam:16, ramReq: "16 GB+ suggested", downloadTime: "varies", description: "Compact current-generation option. Validate extraction on your demo machine." },
+  { id: "gemma4:e4b", label: "Gemma 4 E4B", size: "~9.6 GB", sizeGb: 9.6, minRam:24, ramReq: "24 GB+ suggested", downloadTime: "varies", description: "Default candidate on larger demo machines. Review every extracted value." },
+  { id: "gemma4:12b", label: "Gemma 4 12B", size: "~7.6 GB", sizeGb: 7.6, minRam:24, ramReq: "24 GB+ suggested", downloadTime: "varies", description: "Optional dense model for comparison. Benchmark latency before presenting." },
+  { id: "gemma4:26b", label: "Gemma 4 26B", size: "~19 GB", sizeGb: 19, minRam:32, ramReq: "32 GB+ suggested", downloadTime: "varies", description: "Manual workstation option. Not selected automatically for the rehearsal." },
+  { id: "gemma3:1b", label: "Legacy lite (1B)", size: "~1.0 GB", sizeGb: 1, minRam:4, ramReq: "4 GB+", downloadTime: "varies", description: "Existing lightweight fallback. Limited extraction capability; review carefully." },
 ] as const;
 
 type SetupPhase = "idle" | "installing_ollama" | "starting_ollama" | "downloading_model" | "activating" | "testing" | "done" | "error";
 
-function AiSetupPanel() {
+export function AiSetupPanel({onContinue}:{onContinue?:()=>void}={}) {
   const setGlobalLlmStatus = useAppStore((s) => s.setLlmStatus);
   const toast = useToast();
 
@@ -366,7 +367,8 @@ function AiSetupPanel() {
   });
   const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus>({ installed: false, running: false, models: [] });
   const [hardware, setHardware] = useState<SystemHardware | null>(null);
-  const [selectedModel, setSelectedModel] = useState<string>("gemma3:4b");
+  const [showAlternatives,setShowAlternatives]=useState(false);
+  const [selectedModel, setSelectedModel] = useState<string>("gemma4:e2b");
 
   // One-click setup state
   const [phase, setPhase] = useState<SetupPhase>("idle");
@@ -376,8 +378,10 @@ function AiSetupPanel() {
   const [healthy, setHealthy] = useState(false);
 
   // Download speed tracking
-  const [downloadSpeed, setDownloadSpeed] = useState<string>("");
-  const lastProgressRef = useRef<{ completed: number; time: number } | null>(null);
+  const [downloadSpeed,setDownloadSpeed] = useState<string>("");
+
+
+  const progressSample=useRef<{completed:number;at:number}|null>(null);
 
   // Sync local + global LLM state
   const setStatus = useCallback((update: LlmStatus | ((prev: LlmStatus) => LlmStatus)) => {
@@ -389,25 +393,13 @@ function AiSetupPanel() {
     });
   }, [setGlobalLlmStatus]);
 
-  // Initial load — skip heavy Ollama/hardware checks if LLM is already running
   useEffect(() => {
-    const globalLlm = useAppStore.getState().status.llmStatus;
-    getLlmStatus().then((status) => {
-      setStatus(status);
-      // If LLM is already running (from global state or fresh check), just sync state
-      // and skip expensive Ollama re-detection + hardware checks
-      if (status.status === "running" || globalLlm === "running") {
-        // Still populate ollamaStatus minimally so the UI renders correctly
-        checkOllamaStatus().then(setOllamaStatus);
-        return;
-      }
-      checkOllamaStatus().then(setOllamaStatus);
-      detectSystemHardware().then((hw) => {
-        setHardware(hw);
-        if (hw.recommended_model && hw.recommended_model !== "none") setSelectedModel(hw.recommended_model);
-      });
-    });
-  }, [setStatus]);
+    if(!isTauri)return;
+    Promise.all([getLlmStatus(),checkOllamaStatus(),detectSystemHardware()]).then(([status,engine,hw])=>{
+      setStatus(status);setOllamaStatus(engine);setHardware(hw);
+      if(hw.recommended_model!=='none')setSelectedModel(hw.recommended_model);
+    }).catch(e=>setError(String(e)));
+  },[setStatus]);
 
   // Health check for running server
   useEffect(() => {
@@ -426,185 +418,32 @@ function AiSetupPanel() {
     setError(null);
     setSelectedModel(modelId);
 
-    const modelDef = AI_MODELS.find((m) => m.id === modelId);
-    const requiredGb = modelDef?.sizeGb ?? 4.0;
+    if(!isTauri){setError('Model installation requires the desktop application. No download or hardware detection is simulated.');return;}
+    const modelDef=AI_MODELS.find(m=>m.id===modelId);
+    if(!modelDef){setError('Choose a supported local model.');return;}
+    setPhase('starting_ollama');setPhaseMessage('Checking memory, model-drive space and existing downloads');
+    try{
+      const [hw,current]=await Promise.all([detectSystemHardware(),checkOllamaStatus()]);
+      setHardware(hw);setOllamaStatus(current);
+      const problem=modelPreflight(hw.total_ram_gb,hw.free_disk_gb,modelDef.minRam,modelDef.sizeGb,current.models.some(m=>m.name===modelId));
+      if(problem)throw Error(problem);
+    }catch(e){setPhase('error');setError(String(e));return;}
 
-    // Pre-flight: disk space (skip if model is already downloaded)
-    const modelAlreadyDownloaded = ollamaStatus.models.some((m) => m.name === modelId || m.name.startsWith(modelId + ":"));
-    if (!modelAlreadyDownloaded && hardware && hardware.free_disk_gb < requiredGb + 1) {
-      setError(`Not enough disk space. ${modelId} needs ~${requiredGb} GB but you only have ${hardware.free_disk_gb.toFixed(1)} GB free.`);
-      toast.error("Insufficient disk space", `Need ~${requiredGb + 1} GB free`);
-      return;
-    }
+    try{const job=await startModelSetupJob(modelId);setPhase(job.phase as SetupPhase);setPhaseMessage(job.message);}catch(e){setPhase('error');setError(String(e));}
+  }, []);
 
-    // Step 1: Ensure Ollama is installed
-    let currentStatus = await checkOllamaStatus();
-    setOllamaStatus(currentStatus);
-
-    if (!currentStatus.installed && !currentStatus.running) {
-      setPhase("installing_ollama");
-      setPhaseMessage("Step 1: Installing AI engine");
-      try {
-        const installResult = await installOllama();
-        // Windows: installer was launched asynchronously — user needs to complete it
-        if (typeof installResult === "string" && (installResult.includes("installer launched") || installResult.includes("Check Again"))) {
-          setPhase("error");
-          setError("Ollama installer is running. Complete the installation, then click 'Try Again' to continue setup.");
-          return;
-        }
-        currentStatus = await checkOllamaStatus();
-        setOllamaStatus(currentStatus);
-        if (!currentStatus.installed && !currentStatus.running) {
-          throw new Error("Installation completed but Ollama was not detected. Please try again.");
-        }
-      } catch (e) {
-        const errMsg = e instanceof Error ? e.message : String(e);
-        if (errMsg.includes("https://ollama.com/download")) {
-          try { const { open } = await import("@tauri-apps/plugin-shell"); await open("https://ollama.com/download"); } catch { window.open("https://ollama.com/download", "_blank"); }
-          setPhase("error");
-          setError("Please download and install Ollama, then click 'Try Again' to continue setup.");
-          return;
-        }
-        setPhase("error");
-        setError(errMsg);
-        toast.error("Setup failed", errMsg);
-        return;
-      }
-    }
-
-    // Step 2: Ensure Ollama is running
-    if (!currentStatus.running) {
-      setPhase("starting_ollama");
-      setPhaseMessage("Step 2: Starting AI engine");
-      try {
-        await startOllama();
-        currentStatus = await checkOllamaStatus();
-        setOllamaStatus(currentStatus);
-        if (!currentStatus.running) {
-          throw new Error("Ollama started but is not responding. It may need a moment — try again.");
-        }
-      } catch (e) {
-        setPhase("error");
-        setError(e instanceof Error ? e.message : String(e));
-        toast.error("Setup failed", "Could not start AI engine");
-        return;
-      }
-    }
-
-    // Step 3: Pull the model if not already installed
-    const alreadyInstalled = currentStatus.models.some((m) => m.name === modelId || m.name.startsWith(modelId + ":"));
-    if (!alreadyInstalled) {
-      setPhase("downloading_model");
-      setPhaseMessage("Step 3: Downloading AI model — this will take several minutes");
-      setPullProgress(null);
-      setDownloadSpeed("");
-      lastProgressRef.current = null;
-
-      try {
-        await new Promise<void>(async (resolve, reject) => {
-          const unlistenProgress = await listenForPullProgress((progress) => {
-            setPullProgress(progress);
-            // Compute download speed and ETA
-            const now = Date.now();
-            const last = lastProgressRef.current;
-            if (last && progress.completed > last.completed) {
-              const elapsed = (now - last.time) / 1000; // seconds
-              if (elapsed > 0.5) {
-                const bytesPerSec = (progress.completed - last.completed) / elapsed;
-                const remaining = progress.total - progress.completed;
-                const etaSec = remaining / bytesPerSec;
-                const speed = bytesPerSec > 1_000_000
-                  ? `${(bytesPerSec / 1_000_000).toFixed(1)} MB/s`
-                  : `${(bytesPerSec / 1_000).toFixed(0)} KB/s`;
-                const eta = etaSec > 60
-                  ? `~${Math.ceil(etaSec / 60)} min left`
-                  : `~${Math.ceil(etaSec)}s left`;
-                setDownloadSpeed(`${speed} · ${eta}`);
-                lastProgressRef.current = { completed: progress.completed, time: now };
-              }
-            } else if (!last) {
-              lastProgressRef.current = { completed: progress.completed, time: now };
-            }
-            const pct = progress.percent > 0 ? ` (${Math.round(progress.percent)}%)` : "";
-            setPhaseMessage(`Downloading AI model${pct}`);
-          });
-          const unlistenComplete = await listenForPullComplete((result) => {
-            unlistenProgress?.();
-            unlistenComplete?.();
-            if (result.success) resolve();
-            else reject(new Error(result.error ?? "Download failed"));
-          });
-
-          try {
-            await pullOllamaModel(modelId);
-            // In web/demo mode, simulate completion
-            if (!isTauri) {
-              setTimeout(() => {
-                setOllamaStatus((prev) => ({
-                  ...prev,
-                  models: [...prev.models, { name: modelId, size: 3_300_000_000, modified_at: new Date().toISOString() }],
-                }));
-                resolve();
-              }, 2000);
-            }
-          } catch (e) {
-            unlistenProgress?.();
-            unlistenComplete?.();
-            reject(e);
-          }
-        });
-
-        setPullProgress(null);
-        currentStatus = await checkOllamaStatus();
-        setOllamaStatus(currentStatus);
-      } catch (e) {
-        setPhase("error");
-        setPullProgress(null);
-        const msg = e instanceof Error ? e.message : String(e);
-        if (msg.includes("OLLAMA_UPDATE_REQUIRED")) {
-          setError("Ollama needs to be updated to support this model. Please download the latest version from ollama.com/download, then try again.");
-          toast.error("Ollama update required", "This model requires a newer Ollama version. Update at ollama.com/download");
-          try { const { open } = await import("@tauri-apps/plugin-shell"); await open("https://ollama.com/download"); } catch { /* ignore */ }
-        } else {
-          setError(msg);
-          toast.error("Download failed", msg);
-        }
-        return;
-      }
-    }
-
-    // Step 4: Configure & activate
-    setPhase("activating");
-    setPhaseMessage("Step 4: Configuring screening engine");
-    try {
-      const result = await configureOllamaBackend(modelId);
-      setStatus(result);
-    } catch (e) {
-      setPhase("error");
-      setError(e instanceof Error ? e.message : String(e));
-      toast.error("Activation failed", e instanceof Error ? e.message : "Unknown error");
-      return;
-    }
-
-    // Step 5: Quick smoke test
-    setPhase("testing");
-    setPhaseMessage("Step 5: Verifying AI is working");
-    try {
-      const testResult = await testOllamaInference();
-      if (!testResult.success) {
-        // Non-fatal — AI is configured but test failed
-        toast.info("AI activated", `Model ready, but test returned: ${testResult.error ?? "slow response"}`);
-      } else {
-        toast.success("AI screening ready", `${modelId} responding in ${testResult.latency_ms}ms`);
-      }
-    } catch {
-      // Non-fatal
-      toast.info("AI activated", "Model configured. Inference test was inconclusive.");
-    }
-
-    setPhase("done");
-    setPhaseMessage("");
-  }, [hardware, setStatus, toast]);
+  useEffect(()=>{
+    if(!isTauri)return;let active=true;let polling=false;
+    const refresh=async()=>{if(polling)return;polling=true;try{const job=await getModelSetupJob();if(!active||!job)return;
+      setSelectedModel(job.model);
+      if(['error','cancelled','interrupted'].includes(job.phase)){setPhase('error');setError(job.message);}
+      else if(job.phase==='done'){const current=await getLlmStatus();if(!active)return;setStatus(current);if(current.status==='running'){setPhase('done');setError(null);}else{setPhase('error');setError('Saved model selection restored. Resume setup to start the engine and verify this model again.');}}
+      else{setPhase(job.phase as SetupPhase);setPhaseMessage(job.message);setError(null);}
+    }catch(e){if(active)setError(String(e));}finally{polling=false;}};
+    void refresh();const timer=setInterval(()=>void refresh(),1500);
+    let unlisten:(()=>void)|null=null;listenForPullProgress(p=>{if(active){setPullProgress(p);const previous=progressSample.current;const at=Date.now();if(!previous||p.completed<previous.completed){progressSample.current={completed:p.completed,at};setDownloadSpeed('Starting layer');}else if(at-previous.at>=500){setDownloadSpeed(`${((p.completed-previous.completed)/(at-previous.at)/1000).toFixed(1)} MB/s · current layer`);progressSample.current={completed:p.completed,at};}}}).then(fn=>{if(active)unlisten=fn;else fn?.();}).catch(e=>{if(active)setError(String(e));});
+    return()=>{active=false;clearInterval(timer);unlisten?.();};
+  },[setStatus]);
 
   // Disable AI
   const handleDisableAi = useCallback(async () => {
@@ -614,17 +453,18 @@ function AiSetupPanel() {
   }, [setStatus, toast]);
 
   // Status badge
-  const isActive = llmStatus.status === "running" && llmStatus.backend === "ollama";
+  const isActive = llmStatus.status === "running" && llmStatus.backend === "ollama" && phase !== "error";
   const isSettingUp = phase !== "idle" && phase !== "done" && phase !== "error";
 
   const badge = (() => {
-    if (isActive) return { label: "Active", cls: "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20", dot: true };
-    if (isSettingUp) return { label: "Setting up...", cls: "text-amber-400 bg-amber-500/10 ring-1 ring-amber-500/20", dot: false };
+    if (isActive && !isSettingUp) return { label: "Active", cls: "text-emerald-400 bg-emerald-500/10 ring-1 ring-emerald-500/20", dot: true };
+    if (isSettingUp) return { label: "Setting up...", cls: "model-setup-notice", dot: false };
     return { label: "Not Active", cls: "text-dim bg-surface-2 ring-1 ring-edge-2", dot: false };
   })();
 
   return (
     <div className="rounded-xl border border-edge-2 bg-card overflow-hidden">
+      {!isTauri&&<p className="p-4 text-dim">Open the desktop app to check this computer and install a model. Browser hardware and installation results are not simulated.</p>}
       {/* Header */}
       <div className="flex items-center gap-4 p-4 border-b border-edge-2">
         <div className="rounded-lg p-2.5 bg-purple-500/10 ring-1 ring-purple-500/20">
@@ -632,7 +472,7 @@ function AiSetupPanel() {
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-[13px] font-semibold text-body">AI Screening</h3>
+            <h3 className="text-[13px] font-semibold text-body">Local model setup</h3>
             <span className={`flex items-center gap-1 rounded-md px-2 py-0.5 text-[9px] font-semibold ${badge.cls}`}>
               {badge.dot && <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />}
               {badge.label}
@@ -645,8 +485,8 @@ function AiSetupPanel() {
           </div>
           <p className="mt-0.5 text-[12px] text-dim">
             {isActive
-              ? `Using ${llmStatus.ollama_model ?? selectedModel} · 100% local inference · no PHI leaves this device`
-              : "Enable local AI to evaluate complex eligibility criteria. One click — we handle everything."}
+              ? `Using ${llmStatus.model_name ?? llmStatus.ollama_model ?? selectedModel} · local processing`
+              : "Choose a local model. Setup checks this computer, downloads what is needed and verifies a response. System permission or a runtime update may be required."}
           </p>
         </div>
       </div>
@@ -661,7 +501,7 @@ function AiSetupPanel() {
                   <Sparkles className="h-4.5 w-4.5 text-emerald-400" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-[13px] font-semibold text-emerald-400">AI screening is active</p>
+                  <p className="text-[13px] font-semibold text-emerald-400">Local model is running</p>
                   <p className="text-[12px] text-dim">
                     Model: <span className="font-semibold text-body">{llmStatus.ollama_model ?? selectedModel}</span>
                     {healthy && <span className="ml-2 text-emerald-400">· Healthy</span>}
@@ -676,17 +516,16 @@ function AiSetupPanel() {
               </div>
             </div>
 
+            {onContinue&&<button className="dc-btn primary mt-4" onClick={onContinue}>Continue to document review →</button>}
             {/* Chat test */}
-            <div className="mt-3">
-              <AiChatTest />
-            </div>
+            <details className="mt-4"><summary className="text-sm font-semibold text-body cursor-pointer">Troubleshoot · test a model response</summary><AiChatTest /></details>
 
             {/* System info (compact, in active state) */}
             {hardware && (
               <div className="mt-3 flex items-center gap-2 flex-wrap text-[11px] text-dim">
-                <span className="flex items-center gap-1"><MemoryStick className="h-3 w-3" />{hardware.total_ram_gb.toFixed(0)} GB RAM</span>
+                <span className="flex items-center gap-1"><MemoryStick className="h-3 w-3" />{hardware.total_ram_gb.toFixed(0)} GiB RAM</span>
                 <span className="text-faint">·</span>
-                <span className="flex items-center gap-1"><HardDrive className="h-3 w-3" />{hardware.free_disk_gb.toFixed(0)} GB free</span>
+                <span className="flex items-center gap-1"><HardDrive className="h-3 w-3" />{hardware.free_disk_gb.toFixed(0)} GiB free</span>
                 <span className="text-faint">·</span>
                 <span>100% on-device inference</span>
               </div>
@@ -702,20 +541,20 @@ function AiSetupPanel() {
               <div className="flex-1">
                 <p className="text-[13px] font-semibold text-purple-400">{phaseMessage}</p>
                 <p className="text-[12px] text-dim">
-                  {phase === "installing_ollama" && "Downloading the Ollama AI runtime (~150 MB). This only happens once."}
+                  {phase === "installing_ollama" && "Downloading the official Ollama runtime. Installation may require system permission."}
                   {phase === "starting_ollama" && "Launching the AI engine on your machine. Almost there..."}
                   {phase === "downloading_model" && (
                     pullProgress && pullProgress.percent > 0
-                      ? `Downloading AI model — ${Math.round(pullProgress.percent)}% complete. This is a large file — please keep this window open and don't close the app.`
-                      : "Preparing to download the AI model. This is a multi-gigabyte download and may take 10–30 minutes depending on your internet connection. You can continue using the app while it downloads."
+                      ? `Downloading AI model — ${Math.round(pullProgress.percent)}% of the current layer. This is a large file — you can navigate away and return to this progress.`
+                      : "Preparing to download the AI model. This is a multi-gigabyte download and may take 10–30 minutes depending on your internet connection. You can navigate elsewhere; setup continues in the desktop process."
                   )}
                   {phase === "activating" && "Connecting the AI model to the screening engine..."}
-                  {phase === "testing" && "Verifying the AI model can process clinical criteria..."}
+                  {phase === "testing" && "Checking that the model produces a response. This is not clinical validation."}
                 </p>
               </div>
             </div>
 
-            {/* Progress bar for model download */}
+            {/* Progress is per Ollama layer, not the entire multi-layer model. */}
             {phase === "downloading_model" && (
               <div>
                 <div className="flex items-center justify-between mb-1.5">
@@ -789,42 +628,43 @@ function AiSetupPanel() {
                 <div className="flex items-center gap-3 flex-wrap">
                   <div className="flex items-center gap-2 rounded-lg bg-surface-1 px-3 py-2 ring-1 ring-edge-1">
                     <MemoryStick className="h-3.5 w-3.5 text-indigo-400" />
-                    <p className="text-[12px] font-semibold text-body">{hardware.total_ram_gb.toFixed(1)} GB RAM</p>
+                    <p className="text-[12px] font-semibold text-body">{hardware.total_ram_gb.toFixed(1)} GiB RAM</p>
                   </div>
                   <div className="flex items-center gap-2 rounded-lg bg-surface-1 px-3 py-2 ring-1 ring-edge-1">
                     <HardDrive className={`h-3.5 w-3.5 ${hardware.free_disk_gb < 5 ? "text-red-400" : "text-indigo-400"}`} />
-                    <p className={`text-[12px] font-semibold ${hardware.free_disk_gb < 5 ? "text-red-400" : "text-body"}`}>{hardware.free_disk_gb.toFixed(1)} GB free</p>
+                    <p className={`text-[12px] font-semibold ${hardware.free_disk_gb < 5 ? "text-red-400" : "text-body"}`}>{hardware.free_disk_gb.toFixed(1)} GiB free</p>
                   </div>
                 </div>
                 {hardware.free_disk_gb < 5 && ollamaStatus.models.length === 0 && (
                   <div className="mt-2 flex items-center gap-2 rounded-lg bg-red-500/5 px-3 py-2 ring-1 ring-red-500/15">
                     <AlertCircle className="h-3.5 w-3.5 text-red-400 shrink-0" />
-                    <span className="text-[12px] text-red-400">Low disk space. At least 5 GB free is recommended for downloading a new model.</span>
+                    <span className="text-[12px] text-red-400">Low disk space. At least 5 GiB free is recommended for downloading a new model.</span>
                   </div>
                 )}
                 {hardware.free_disk_gb < 5 && ollamaStatus.models.length > 0 && (
-                  <div className="mt-2 flex items-center gap-2 rounded-lg bg-amber-500/5 px-3 py-2 ring-1 ring-amber-500/15">
-                    <Info className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                    <span className="text-[12px] text-amber-400">Low disk space, but you already have a model downloaded — you can activate it below.</span>
+                  <div className="mt-2 flex items-center gap-2 rounded-lg model-setup-notice px-3 py-2 ring-1 ring-amber-500/15">
+                    <Info className="h-3.5 w-3.5 text-inherit shrink-0" />
+                    <span className="text-[12px] text-inherit">Low disk space, but you already have a model downloaded — you can activate it below.</span>
                   </div>
                 )}
               </div>
             )}
 
-            <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-1">Choose a model</p>
+            <p className="text-[12px] font-semibold uppercase tracking-wider text-dim mb-1">{hardware&&hardware.recommended_model!=="none"?"Recommended for this computer":"Choose a starting model"}</p>
             <p className="text-[11px] text-dim mb-3 leading-relaxed">
-              AI models are large files (1–4 GB) and require a one-time download. Depending on your internet speed, this can take <strong className="text-body">10–30 minutes</strong>. Once downloaded, all AI screening runs 100% locally — no internet needed.
+              Use the recommended model to get started. Setup checks available storage, downloads what is missing and verifies a response. After the one-time download, extraction runs locally.
             </p>
-            <div className="grid grid-cols-2 gap-3">
-              {AI_MODELS.map((model) => {
+            <div className={showAlternatives?"grid grid-cols-1 md:grid-cols-2 gap-3":"grid grid-cols-1 gap-3"}>
+              {AI_MODELS.filter(model=>showAlternatives||model.id===(hardware?.recommended_model&&hardware.recommended_model!=="none"?hardware.recommended_model:"gemma4:e2b")).map((model) => {
                 const installed = isModelInstalled(model.id);
                 const isRecommended = hardware?.recommended_model === model.id;
+                const unavailable=hardware?modelPreflight(hardware.total_ram_gb,hardware.free_disk_gb,model.minRam,model.sizeGb,installed):null;
                 return (
                   <button
                     key={model.id}
                     onClick={() => handleOneClickSetup(model.id)}
-                    disabled={isSettingUp || (hardware?.recommended_tier === "none")}
-                    className="group relative rounded-xl p-4 text-left transition-all bg-surface-1 ring-1 ring-edge-1 hover:ring-purple-500/30 hover:bg-purple-500/[0.03] disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!isTauri || isSettingUp || !hardware || !!unavailable}
+                    className="group relative rounded-xl p-4 text-left transition-all bg-surface-1 ring-1 ring-edge-1 hover:ring-purple-500/30 hover:bg-purple-500/[0.03] disabled:cursor-not-allowed"
                   >
                     {isRecommended && (
                       <span className="absolute -top-1.5 right-2 rounded-full bg-purple-500 px-2 py-0.5 text-[8px] font-bold text-white">
@@ -840,36 +680,40 @@ function AiSetupPanel() {
                         </span>
                       )}
                     </div>
-                    <p className="text-[12px] text-dim mb-3">{model.description}</p>
+                    <p className="text-[12px] text-dim mb-3">{isRecommended?"A conservative starting choice based on this computer’s memory. Setup verifies a response before marking it ready.":model.description}</p>
                     <div className="flex items-center gap-3 text-[11px] text-dim">
                       <span>{model.size}</span>
                       <span className="text-faint">·</span>
                       <span>{model.ramReq} RAM</span>
                     </div>
+                    {unavailable&&<p className="model-setup-notice rounded-md p-2 text-[12px] mb-2">{unavailable}</p>}
                     {!installed && (
-                      <div className="mt-2 flex items-center gap-1.5 rounded-md bg-amber-500/8 px-2 py-1 text-[10px] text-amber-400/80">
+                      <div className="mt-2 flex items-center gap-1.5 rounded-md model-setup-notice px-2 py-1 text-[12px] font-medium">
                         <Clock className="h-3 w-3 shrink-0" />
                         <span>Download: {model.downloadTime} depending on connection</span>
                       </div>
                     )}
-                    <div className={`mt-${installed ? "3" : "2"} flex items-center justify-center gap-1.5 rounded-lg bg-purple-600/90 py-2 text-[12px] font-semibold text-white opacity-0 group-hover:opacity-100 transition-opacity`}>
+                    <div className={`${installed ? "mt-3" : "mt-2"} flex items-center justify-center gap-1.5 rounded-lg bg-purple-600 py-2 text-[12px] font-semibold text-white group-hover:bg-purple-700 group-focus-visible:bg-purple-700 transition-colors`}>
                       <Sparkles className="h-3 w-3" />
-                      {installed ? "Activate AI Screening" : "Set Up AI Screening"}
+                      {!isTauri?"Desktop app required":!hardware?"Checking this computer…":unavailable?"Unavailable on this computer":installed ? "Use this model" : "Download and set up"}
                     </div>
                   </button>
                 );
               })}
             </div>
 
+            <button className="mt-4 text-[13px] font-semibold text-body underline underline-offset-4" onClick={()=>setShowAlternatives(v=>!v)}>{showAlternatives?"Show recommended model only":"Compare other models"}</button>
+            {hardware?.model_directory&&<details className="mt-3 text-sm text-dim"><summary>Storage details</summary><p className="break-all">{hardware.model_directory}. A separately configured Ollama service must use this directory for the same storage check.</p></details>}
             {hardware?.recommended_tier === "none" && (
-              <div className="mt-3 flex items-center gap-2 rounded-lg bg-amber-500/5 px-3 py-2 ring-1 ring-amber-500/15">
-                <AlertCircle className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                <span className="text-[12px] text-amber-400">Your system has less than 8 GB RAM. AI screening requires at least 8 GB. Rule-based screening is still available.</span>
+              <div className="mt-3 flex items-center gap-2 rounded-lg model-setup-notice px-3 py-2 ring-1 ring-amber-500/15">
+                <AlertCircle className="h-3.5 w-3.5 text-inherit shrink-0" />
+                <span className="text-[12px] text-inherit">Hardware checks are unavailable or memory is insufficient. Use the structured rehearsal without local AI.</span>
               </div>
             )}
           </div>
         )}
 
+        {isSettingUp&&<button className="dc-btn" onClick={()=>void cancelModelSetupJob().then(()=>setPhaseMessage('Cancellation requested. Runtime installation finishes its current step; downloaded files are preserved.')).catch(e=>setError(String(e)))}>Cancel setup</button>}
         {/* ── Done state (just completed setup) ── */}
         {phase === "done" && isActive && (
           <div className="rounded-lg bg-emerald-500/5 px-4 py-3 ring-1 ring-emerald-500/15">
@@ -878,7 +722,7 @@ function AiSetupPanel() {
               <span className="text-[13px] font-semibold text-emerald-400">Setup complete</span>
             </div>
             <p className="mt-1 text-[12px] text-dim">
-              AI screening is now active. When you screen patients, complex eligibility criteria will be evaluated by the local AI model in addition to rule-based checks. Go to <button onClick={() => useAppStore.getState().setCurrentPage("screening")} className="text-indigo-400 underline underline-offset-2 hover:text-indigo-300">Screening</button> to try it out.
+              The local model passed its response check. Return to the synthetic note and review extracted values against the source. This check does not establish clinical accuracy.
             </p>
           </div>
         )}
@@ -891,25 +735,17 @@ function AiSetupPanel() {
               <span className="text-[12px] text-red-400">{error}</span>
               {phase === "error" && (
                 <button
-                  onClick={() => { setPhase("idle"); setError(null); }}
+                  onClick={() => void handleOneClickSetup(selectedModel)}
                   className="mt-1 block text-[11px] font-semibold text-red-400 underline underline-offset-2 hover:text-red-300"
                 >
-                  Try again
+                  Resume setup
                 </button>
               )}
             </div>
           </div>
         )}
 
-        {/* Gemma 4 model guidance */}
-        <div className="rounded-lg border border-edge-2 bg-surface-2 px-3 py-2.5 text-[11px] text-dim">
-          <span className="font-semibold text-body">Recommended Gemma 4 models:</span>
-          <ul className="mt-1 space-y-0.5 text-[10px]">
-            <li><code className="text-indigo-300">gemma4:e2b</code> — 3.5 GB, good for 8GB RAM</li>
-            <li><code className="text-indigo-300">gemma4:e4b</code> — 5.4 GB, best quality/speed for 16GB RAM</li>
-            <li><code className="text-indigo-300">gemma4:26b-a4b</code> — 17 GB, near-frontier reasoning for 24GB+ RAM</li>
-          </ul>
-        </div>
+
       </div>
     </div>
   );
@@ -1370,7 +1206,7 @@ function SystemProfilePanel() {
       const hw = probeHardware();
       setHardware(hw);
       setScanning(false);
-      toast.success("Hardware analysis complete", `${hw.cpuCores} cores · ${hw.ramGB} GB RAM`);
+      toast.success("Hardware analysis complete", `${hw.cpuCores} cores · ${hw.ramGB} GiB RAM`);
     }, 1800);
   }, [toast]);
 
@@ -1434,7 +1270,7 @@ function SystemProfilePanel() {
                 <MemoryStick className="h-4 w-4 text-emerald-400 shrink-0" />
                 <div>
                   <p className="text-[12px] text-dim">Memory</p>
-                  <p className="text-[12px] font-semibold text-body">{hardware.ramGB} GB RAM</p>
+                  <p className="text-[12px] font-semibold text-body">{hardware.ramGB} GiB RAM</p>
                   <p className="text-[12px] text-dim">{hardware.ramGB >= 16 ? "Optimal" : hardware.ramGB >= 8 ? "Sufficient" : "Limited"}</p>
                 </div>
               </div>

@@ -105,7 +105,7 @@ export function ModeSwitcher() {
                 Workspace Mode
               </p>
               <p className="mt-0.5 text-[11px] text-dim/70">
-                Tailor the sidebar to your role. Data stays the same.
+                Existing workspaces are preserved. Data COUNTS uses separate synthetic data.
               </p>
             </div>
             <div className="flex flex-col gap-0.5">

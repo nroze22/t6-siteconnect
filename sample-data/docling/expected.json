@@ -1,0 +1,76 @@
+{
+  "lab-table.pdf": {
+    "tableRows": [
+      [
+        "Creatinine",
+        "1.36",
+        "mg/dL"
+      ],
+      [
+        "Potassium",
+        "<2.5",
+        "mmol/L"
+      ],
+      [
+        "Glucose",
+        "112",
+        ""
+      ],
+      [
+        "Hemoglobin",
+        "12.7",
+        "g/dL"
+      ]
+    ],
+    "phrases": [
+      "SYN-A",
+      "1.63",
+      "1.36",
+      "<2.5",
+      "112",
+      "12.7"
+    ]
+  },
+  "lab-table-scanned.pdf": {
+    "tableRows": [
+      [
+        "Creatinine",
+        "1.36",
+        "mg/dL"
+      ],
+      [
+        "Potassium",
+        "<2.5",
+        "mmol/L"
+      ],
+      [
+        "Glucose",
+        "112",
+        ""
+      ],
+      [
+        "Hemoglobin",
+        "12.7",
+        "g/dL"
+      ]
+    ],
+    "phrases": [
+      "SYN-A",
+      "1.63",
+      "1.36",
+      "<2.5",
+      "112",
+      "12.7"
+    ]
+  },
+  "two-column-notes.pdf": {
+    "phrases": [
+      "SYN-A",
+      "138",
+      "SYN-B",
+      "142",
+      "No diabetes",
+      "Possible pneumonia"
+    ]
+  }
+}

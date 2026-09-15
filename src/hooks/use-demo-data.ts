@@ -10,7 +10,7 @@ import { getPatients, getStudies, screenPatientsViaRust, screeningResultToOutput
  *
  * Skips if the screening store already has persisted data (from a previous session).
  */
-export function useDemoData() {
+export function useDemoData(enabled = true) {
   const patients = useScreeningStore((s) => s.patients);
   const setPatients = useScreeningStore((s) => s.setPatients);
   const setScreeningResult = useScreeningStore((s) => s.setScreeningResult);
@@ -19,6 +19,7 @@ export function useDemoData() {
   const setStatus = useAppStore((s) => s.setStatus);
 
   useEffect(() => {
+    if (!enabled) return;
     // If screening store already has patients (hydrated from localStorage), just update app status
     if (patients.length > 0) {
       const selectedStudyId = useScreeningStore.getState().selectedStudyId;
@@ -59,5 +60,5 @@ export function useDemoData() {
         studyCount: studies.length || 6,
       });
     })();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [enabled, ]); // eslint-disable-line react-hooks/exhaustive-deps
 }

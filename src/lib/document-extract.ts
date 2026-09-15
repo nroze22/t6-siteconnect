@@ -26,8 +26,7 @@ export function detectDocumentFormat(fileName: string): ExtractableFormat | null
   if (
     lower.endsWith(".txt") ||
     lower.endsWith(".md") ||
-    lower.endsWith(".markdown") ||
-    lower.endsWith(".rtf")
+    lower.endsWith(".markdown")
   ) {
     return "text";
   }

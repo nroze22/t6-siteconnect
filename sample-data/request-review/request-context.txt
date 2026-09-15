@@ -1,0 +1,1 @@
+Synthetic laboratory source. Patient ID SYN-003. Observation ID OBS-003-1. Test code 2160-0. Creatinine 1.36 mg/dL. Specimen Serum. Observation time 2026-08-06T08:30:00Z. Issued 2026-08-06T10:15:00Z. Result status final. Birth date 1970-04-12. Unrelated medication: metformin 500 mg daily.

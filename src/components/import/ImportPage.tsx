@@ -480,7 +480,7 @@ export function ImportPage() {
         } catch (err) {
           setImportError(err instanceof Error ? err.message : String(err));
           toast.error("Import failed", err instanceof Error ? err.message : String(err));
-          // Fall through to demo mode
+          return; // Keep native errors visible; never fabricate a successful import.
         }
       }
 

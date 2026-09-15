@@ -1,0 +1,1253 @@
+{
+  "profile": "docling-pdf/1",
+  "version": "2.126.0",
+  "sha256": "f738405568aa5d69473acb3d6fadd9b808229c940484c3f1c1c96816367b2dcf",
+  "elapsedSeconds": 11.521,
+  "segments": [
+    {
+      "id": "docling-1",
+      "label": "PDF page 1 \u00b7 section_header",
+      "text": "Synthetic laboratory report",
+      "page": 1,
+      "pageWidth": 612.0,
+      "pageHeight": 792.0,
+      "runs": [
+        {
+          "start": 0,
+          "end": 27,
+          "box": {
+            "x": 40.0,
+            "y": 25.511999999999944,
+            "width": 205.376,
+            "height": 14.800000000000068
+          }
+        }
+      ],
+      "sourceRef": "#/texts/0"
+    },
+    {
+      "id": "docling-2",
+      "label": "PDF page 1 \u00b7 text",
+      "text": "SYNTHETIC TRAINING DOCUMENT - NOT PATIENT DATA",
+      "page": 1,
+      "pageWidth": 612.0,
+      "pageHeight": 792.0,
+      "runs": [
+        {
+          "start": 0,
+          "end": 46,
+          "box": {
+            "x": 40.0,
+            "y": 49.82000000000005,
+            "width": 272.24000000000007,
+            "height": 9.25
+          }
+        }
+      ],
+      "sourceRef": "#/texts/1"
+    },
+    {
+      "id": "docling-3",
+      "label": "PDF page 1 \u00b7 text",
+      "text": "Patient: SYN-A | Specimen: Serum | Collected: 2026-08-06",
+      "page": 1,
+      "pageWidth": 612.0,
+      "pageHeight": 792.0,
+      "runs": [
+        {
+          "start": 0,
+          "end": 56,
+          "box": {
+            "x": 40.0,
+            "y": 84.10199999999998,
+            "width": 287.56200000000007,
+            "height": 10.175000000000068
+          }
+        }
+      ],
+      "sourceRef": "#/texts/2"
+    },
+    {
+      "id": "docling-4",
+      "label": "PDF page 1 \u00b7 table row 1",
+      "text": "Table headers: Test | Result | Unit | Reference interval | Status\nTest | Result | Unit | Reference interval | Status",
+      "page": 1,
+      "pageWidth": 612.0,
+      "pageHeight": 792.0,
+      "runs": [
+        {
+          "start": 0,
+          "end": 116,
+          "box": {
+            "x": 38.972923278808594,
+            "y": 155.92559814453125,
+            "width": 461.65531158447266,
+            "height": 161.2484130859375
+          }
+        }
+      ],
+      "sourceRef": "#/tables/0"
+    },
+    {
+      "id": "docling-5",
+      "label": "PDF page 1 \u00b7 table row 2",
+      "text": "Table headers: Test | Result | Unit | Reference interval | Status\nCreatinine | 1.36 | mg/dL | Not supplied | Corrected",
+      "page": 1,
+      "pageWidth": 612.0,
+      "pageHeight": 792.0,
+      "runs": [
+        {
+          "start": 0,
+          "end": 118,
+          "box": {
+            "x": 38.972923278808594,
+            "y": 155.92559814453125,
+            "width": 461.65531158447266,
+            "height": 161.2484130859375
+          }
+        }
+      ],
+      "sourceRef": "#/tables/0"
+    },
+    {
+      "id": "docling-6",
+      "label": "PDF page 1 \u00b7 table row 3",
+      "text": "Table headers: Test | Result | Unit | Reference interval | Status\nPotassium | <2.5 | mmol/L | Not supplied | Final",
+      "page": 1,
+      "pageWidth": 612.0,
+      "pageHeight": 792.0,
+      "runs": [
+        {
+          "start": 0,
+          "end": 114,
+          "box": {
+            "x": 38.972923278808594,
+            "y": 155.92559814453125,
+            "width": 461.65531158447266,
+            "height": 161.2484130859375
+          }
+        }
+      ],
+      "sourceRef": "#/tables/0"
+    },
+    {
+      "id": "docling-7",
+      "label": "PDF page 1 \u00b7 table row 4",
+      "text": "Table headers: Test | Result | Unit | Reference interval | Status\nGlucose | 112 |  | Not supplied | Final",
+      "page": 1,
+      "pageWidth": 612.0,
+      "pageHeight": 792.0,
+      "runs": [
+        {
+          "start": 0,
+          "end": 105,
+          "box": {
+            "x": 38.972923278808594,
+            "y": 155.92559814453125,
+            "width": 461.65531158447266,
+            "height": 161.2484130859375
+          }
+        }
+      ],
+      "sourceRef": "#/tables/0"
+    },
+    {
+      "id": "docling-8",
+      "label": "PDF page 1 \u00b7 table row 5",
+      "text": "Table headers: Test | Result | Unit | Reference interval | Status\nHemoglobin | 12.7 | g/dL | Not supplied | Final",
+      "page": 1,
+      "pageWidth": 612.0,
+      "pageHeight": 792.0,
+      "runs": [
+        {
+          "start": 0,
+          "end": 113,
+          "box": {
+            "x": 38.972923278808594,
+            "y": 155.92559814453125,
+            "width": 461.65531158447266,
+            "height": 161.2484130859375
+          }
+        }
+      ],
+      "sourceRef": "#/tables/0"
+    },
+    {
+      "id": "docling-9",
+      "label": "PDF page 1 \u00b7 text",
+      "text": "Glucose unit is absent in the source. Do not infer it.",
+      "page": 1,
+      "pageWidth": 612.0,
+      "pageHeight": 792.0,
+      "runs": [
+        {
+          "start": 0,
+          "end": 54,
+          "box": {
+            "x": 40.0,
+            "y": 339.82,
+            "width": 226.22000000000003,
+            "height": 9.25
+          }
+        }
+      ],
+      "sourceRef": "#/texts/3"
+    },
+    {
+      "id": "docling-10",
+      "label": "PDF page 1 \u00b7 text",
+      "text": "Correction: prior creatinine 1.63 mg/dL is superseded by 1.36 mg/dL.",
+      "page": 1,
+      "pageWidth": 612.0,
+      "pageHeight": 792.0,
+      "runs": [
+        {
+          "start": 0,
+          "end": 68,
+          "box": {
+            "x": 40.0,
+            "y": 359.82,
+            "width": 304.57999999999987,
+            "height": 9.25
+          }
+        }
+      ],
+      "sourceRef": "#/texts/4"
+    }
+  ],
+  "tables": [
+    {
+      "self_ref": "#/tables/0",
+      "parent": {
+        "cref": "#/body"
+      },
+      "children": [],
+      "content_layer": "body",
+      "meta": null,
+      "label": "table",
+      "prov": [
+        {
+          "page_no": 1,
+          "bbox": {
+            "l": 38.972923278808594,
+            "t": 636.0744018554688,
+            "r": 500.62823486328125,
+            "b": 474.82598876953125,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            0
+          ]
+        }
+      ],
+      "captions": [],
+      "references": [],
+      "footnotes": [],
+      "image": null,
+      "data": {
+        "table_cells": [
+          {
+            "bbox": {
+              "l": 46.0,
+              "t": 169.81999999999994,
+              "r": 66.56,
+              "b": 179.06999999999994,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 0,
+            "end_row_offset_idx": 1,
+            "start_col_offset_idx": 0,
+            "end_col_offset_idx": 1,
+            "text": "Test",
+            "column_header": true,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 146.0,
+              "t": 169.81999999999994,
+              "r": 176.56,
+              "b": 179.06999999999994,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 0,
+            "end_row_offset_idx": 1,
+            "start_col_offset_idx": 1,
+            "end_col_offset_idx": 2,
+            "text": "Result",
+            "column_header": true,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 211.0,
+              "t": 169.81999999999994,
+              "r": 230.44,
+              "b": 179.06999999999994,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 0,
+            "end_row_offset_idx": 1,
+            "start_col_offset_idx": 2,
+            "end_col_offset_idx": 3,
+            "text": "Unit",
+            "column_header": true,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 281.0,
+              "t": 169.81999999999994,
+              "r": 367.69999999999993,
+              "b": 179.06999999999994,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 0,
+            "end_row_offset_idx": 1,
+            "start_col_offset_idx": 3,
+            "end_col_offset_idx": 4,
+            "text": "Reference interval",
+            "column_header": true,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 421.0,
+              "t": 169.81999999999994,
+              "r": 451.56,
+              "b": 179.06999999999994,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 0,
+            "end_row_offset_idx": 1,
+            "start_col_offset_idx": 4,
+            "end_col_offset_idx": 5,
+            "text": "Status",
+            "column_header": true,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 46.0,
+              "t": 201.81999999999994,
+              "r": 91.57000000000001,
+              "b": 211.06999999999994,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 1,
+            "end_row_offset_idx": 2,
+            "start_col_offset_idx": 0,
+            "end_col_offset_idx": 1,
+            "text": "Creatinine",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 146.0,
+              "t": 201.81999999999994,
+              "r": 165.46,
+              "b": 211.06999999999994,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 1,
+            "end_row_offset_idx": 2,
+            "start_col_offset_idx": 1,
+            "end_col_offset_idx": 2,
+            "text": "1.36",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 211.0,
+              "t": 201.81999999999994,
+              "r": 238.79000000000002,
+              "b": 211.06999999999994,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 1,
+            "end_row_offset_idx": 2,
+            "start_col_offset_idx": 2,
+            "end_col_offset_idx": 3,
+            "text": "mg/dL",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 281.0,
+              "t": 201.81999999999994,
+              "r": 336.58000000000004,
+              "b": 211.06999999999994,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 1,
+            "end_row_offset_idx": 2,
+            "start_col_offset_idx": 3,
+            "end_col_offset_idx": 4,
+            "text": "Not supplied",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 421.0,
+              "t": 201.81999999999994,
+              "r": 464.9,
+              "b": 211.06999999999994,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 1,
+            "end_row_offset_idx": 2,
+            "start_col_offset_idx": 4,
+            "end_col_offset_idx": 5,
+            "text": "Corrected",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 46.0,
+              "t": 233.81999999999994,
+              "r": 92.68,
+              "b": 243.06999999999994,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 2,
+            "end_row_offset_idx": 3,
+            "start_col_offset_idx": 0,
+            "end_col_offset_idx": 1,
+            "text": "Potassium",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 146.0,
+              "t": 233.81999999999994,
+              "r": 165.74,
+              "b": 243.06999999999994,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 2,
+            "end_row_offset_idx": 3,
+            "start_col_offset_idx": 1,
+            "end_col_offset_idx": 2,
+            "text": "<2.5",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 211.0,
+              "t": 233.81999999999994,
+              "r": 243.78000000000003,
+              "b": 243.06999999999994,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 2,
+            "end_row_offset_idx": 3,
+            "start_col_offset_idx": 2,
+            "end_col_offset_idx": 3,
+            "text": "mmol/L",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 281.0,
+              "t": 233.81999999999994,
+              "r": 336.58000000000004,
+              "b": 243.06999999999994,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 2,
+            "end_row_offset_idx": 3,
+            "start_col_offset_idx": 3,
+            "end_col_offset_idx": 4,
+            "text": "Not supplied",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 421.0,
+              "t": 233.81999999999994,
+              "r": 442.6700000000001,
+              "b": 243.06999999999994,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 2,
+            "end_row_offset_idx": 3,
+            "start_col_offset_idx": 4,
+            "end_col_offset_idx": 5,
+            "text": "Final",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 46.0,
+              "t": 265.82000000000005,
+              "r": 82.68,
+              "b": 275.07000000000005,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 3,
+            "end_row_offset_idx": 4,
+            "start_col_offset_idx": 0,
+            "end_col_offset_idx": 1,
+            "text": "Glucose",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 146.0,
+              "t": 265.82000000000005,
+              "r": 162.68,
+              "b": 275.07000000000005,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 3,
+            "end_row_offset_idx": 4,
+            "start_col_offset_idx": 1,
+            "end_col_offset_idx": 2,
+            "text": "112",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 281.0,
+              "t": 265.82000000000005,
+              "r": 336.58000000000004,
+              "b": 275.07000000000005,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 3,
+            "end_row_offset_idx": 4,
+            "start_col_offset_idx": 3,
+            "end_col_offset_idx": 4,
+            "text": "Not supplied",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 421.0,
+              "t": 265.82000000000005,
+              "r": 442.6700000000001,
+              "b": 275.07000000000005,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 3,
+            "end_row_offset_idx": 4,
+            "start_col_offset_idx": 4,
+            "end_col_offset_idx": 5,
+            "text": "Final",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 46.0,
+              "t": 297.82,
+              "r": 99.35000000000001,
+              "b": 307.07,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 4,
+            "end_row_offset_idx": 5,
+            "start_col_offset_idx": 0,
+            "end_col_offset_idx": 1,
+            "text": "Hemoglobin",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 146.0,
+              "t": 297.82,
+              "r": 165.46,
+              "b": 307.07,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 4,
+            "end_row_offset_idx": 5,
+            "start_col_offset_idx": 1,
+            "end_col_offset_idx": 2,
+            "text": "12.7",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 211.0,
+              "t": 297.82,
+              "r": 230.46,
+              "b": 307.07,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 4,
+            "end_row_offset_idx": 5,
+            "start_col_offset_idx": 2,
+            "end_col_offset_idx": 3,
+            "text": "g/dL",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 281.0,
+              "t": 297.82,
+              "r": 336.58000000000004,
+              "b": 307.07,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 4,
+            "end_row_offset_idx": 5,
+            "start_col_offset_idx": 3,
+            "end_col_offset_idx": 4,
+            "text": "Not supplied",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 421.0,
+              "t": 297.82,
+              "r": 442.6700000000001,
+              "b": 307.07,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 4,
+            "end_row_offset_idx": 5,
+            "start_col_offset_idx": 4,
+            "end_col_offset_idx": 5,
+            "text": "Final",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          }
+        ],
+        "num_rows": 5,
+        "num_cols": 5,
+        "orientation": "rot_0",
+        "grid": [
+          [
+            {
+              "bbox": {
+                "l": 46.0,
+                "t": 169.81999999999994,
+                "r": 66.56,
+                "b": 179.06999999999994,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 0,
+              "end_row_offset_idx": 1,
+              "start_col_offset_idx": 0,
+              "end_col_offset_idx": 1,
+              "text": "Test",
+              "column_header": true,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 146.0,
+                "t": 169.81999999999994,
+                "r": 176.56,
+                "b": 179.06999999999994,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 0,
+              "end_row_offset_idx": 1,
+              "start_col_offset_idx": 1,
+              "end_col_offset_idx": 2,
+              "text": "Result",
+              "column_header": true,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 211.0,
+                "t": 169.81999999999994,
+                "r": 230.44,
+                "b": 179.06999999999994,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 0,
+              "end_row_offset_idx": 1,
+              "start_col_offset_idx": 2,
+              "end_col_offset_idx": 3,
+              "text": "Unit",
+              "column_header": true,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 281.0,
+                "t": 169.81999999999994,
+                "r": 367.69999999999993,
+                "b": 179.06999999999994,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 0,
+              "end_row_offset_idx": 1,
+              "start_col_offset_idx": 3,
+              "end_col_offset_idx": 4,
+              "text": "Reference interval",
+              "column_header": true,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 421.0,
+                "t": 169.81999999999994,
+                "r": 451.56,
+                "b": 179.06999999999994,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 0,
+              "end_row_offset_idx": 1,
+              "start_col_offset_idx": 4,
+              "end_col_offset_idx": 5,
+              "text": "Status",
+              "column_header": true,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            }
+          ],
+          [
+            {
+              "bbox": {
+                "l": 46.0,
+                "t": 201.81999999999994,
+                "r": 91.57000000000001,
+                "b": 211.06999999999994,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 1,
+              "end_row_offset_idx": 2,
+              "start_col_offset_idx": 0,
+              "end_col_offset_idx": 1,
+              "text": "Creatinine",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 146.0,
+                "t": 201.81999999999994,
+                "r": 165.46,
+                "b": 211.06999999999994,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 1,
+              "end_row_offset_idx": 2,
+              "start_col_offset_idx": 1,
+              "end_col_offset_idx": 2,
+              "text": "1.36",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 211.0,
+                "t": 201.81999999999994,
+                "r": 238.79000000000002,
+                "b": 211.06999999999994,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 1,
+              "end_row_offset_idx": 2,
+              "start_col_offset_idx": 2,
+              "end_col_offset_idx": 3,
+              "text": "mg/dL",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 281.0,
+                "t": 201.81999999999994,
+                "r": 336.58000000000004,
+                "b": 211.06999999999994,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 1,
+              "end_row_offset_idx": 2,
+              "start_col_offset_idx": 3,
+              "end_col_offset_idx": 4,
+              "text": "Not supplied",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 421.0,
+                "t": 201.81999999999994,
+                "r": 464.9,
+                "b": 211.06999999999994,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 1,
+              "end_row_offset_idx": 2,
+              "start_col_offset_idx": 4,
+              "end_col_offset_idx": 5,
+              "text": "Corrected",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            }
+          ],
+          [
+            {
+              "bbox": {
+                "l": 46.0,
+                "t": 233.81999999999994,
+                "r": 92.68,
+                "b": 243.06999999999994,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 2,
+              "end_row_offset_idx": 3,
+              "start_col_offset_idx": 0,
+              "end_col_offset_idx": 1,
+              "text": "Potassium",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 146.0,
+                "t": 233.81999999999994,
+                "r": 165.74,
+                "b": 243.06999999999994,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 2,
+              "end_row_offset_idx": 3,
+              "start_col_offset_idx": 1,
+              "end_col_offset_idx": 2,
+              "text": "<2.5",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 211.0,
+                "t": 233.81999999999994,
+                "r": 243.78000000000003,
+                "b": 243.06999999999994,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 2,
+              "end_row_offset_idx": 3,
+              "start_col_offset_idx": 2,
+              "end_col_offset_idx": 3,
+              "text": "mmol/L",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 281.0,
+                "t": 233.81999999999994,
+                "r": 336.58000000000004,
+                "b": 243.06999999999994,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 2,
+              "end_row_offset_idx": 3,
+              "start_col_offset_idx": 3,
+              "end_col_offset_idx": 4,
+              "text": "Not supplied",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 421.0,
+                "t": 233.81999999999994,
+                "r": 442.6700000000001,
+                "b": 243.06999999999994,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 2,
+              "end_row_offset_idx": 3,
+              "start_col_offset_idx": 4,
+              "end_col_offset_idx": 5,
+              "text": "Final",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            }
+          ],
+          [
+            {
+              "bbox": {
+                "l": 46.0,
+                "t": 265.82000000000005,
+                "r": 82.68,
+                "b": 275.07000000000005,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 3,
+              "end_row_offset_idx": 4,
+              "start_col_offset_idx": 0,
+              "end_col_offset_idx": 1,
+              "text": "Glucose",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 146.0,
+                "t": 265.82000000000005,
+                "r": 162.68,
+                "b": 275.07000000000005,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 3,
+              "end_row_offset_idx": 4,
+              "start_col_offset_idx": 1,
+              "end_col_offset_idx": 2,
+              "text": "112",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": null,
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 3,
+              "end_row_offset_idx": 4,
+              "start_col_offset_idx": 2,
+              "end_col_offset_idx": 3,
+              "text": "",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 281.0,
+                "t": 265.82000000000005,
+                "r": 336.58000000000004,
+                "b": 275.07000000000005,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 3,
+              "end_row_offset_idx": 4,
+              "start_col_offset_idx": 3,
+              "end_col_offset_idx": 4,
+              "text": "Not supplied",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 421.0,
+                "t": 265.82000000000005,
+                "r": 442.6700000000001,
+                "b": 275.07000000000005,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 3,
+              "end_row_offset_idx": 4,
+              "start_col_offset_idx": 4,
+              "end_col_offset_idx": 5,
+              "text": "Final",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            }
+          ],
+          [
+            {
+              "bbox": {
+                "l": 46.0,
+                "t": 297.82,
+                "r": 99.35000000000001,
+                "b": 307.07,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 4,
+              "end_row_offset_idx": 5,
+              "start_col_offset_idx": 0,
+              "end_col_offset_idx": 1,
+              "text": "Hemoglobin",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 146.0,
+                "t": 297.82,
+                "r": 165.46,
+                "b": 307.07,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 4,
+              "end_row_offset_idx": 5,
+              "start_col_offset_idx": 1,
+              "end_col_offset_idx": 2,
+              "text": "12.7",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 211.0,
+                "t": 297.82,
+                "r": 230.46,
+                "b": 307.07,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 4,
+              "end_row_offset_idx": 5,
+              "start_col_offset_idx": 2,
+              "end_col_offset_idx": 3,
+              "text": "g/dL",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 281.0,
+                "t": 297.82,
+                "r": 336.58000000000004,
+                "b": 307.07,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 4,
+              "end_row_offset_idx": 5,
+              "start_col_offset_idx": 3,
+              "end_col_offset_idx": 4,
+              "text": "Not supplied",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            },
+            {
+              "bbox": {
+                "l": 421.0,
+                "t": 297.82,
+                "r": 442.6700000000001,
+                "b": 307.07,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 4,
+              "end_row_offset_idx": 5,
+              "start_col_offset_idx": 4,
+              "end_col_offset_idx": 5,
+              "text": "Final",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            }
+          ]
+        ]
+      },
+      "annotations": []
+    }
+  ],
+  "warnings": [],
+  "pageCount": 1,
+  "settings": {
+    "ocr": "Tesseract English",
+    "tableMode": "accurate",
+    "remoteServices": false,
+    "network": "disabled during processing"
+  },
+  "coordinatePrecision": "document block / table region; not character-level OCR proof"
+}

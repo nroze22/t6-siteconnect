@@ -1,0 +1,7358 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "id": "synthetic-laboratory-v1",
+  "meta": {
+    "tag": [
+      {
+        "system": "urn:talosix:demo",
+        "code": "synthetic"
+      }
+    ]
+  },
+  "entry": [
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-001",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "SYN-001",
+        "birthDate": "1952-04-12"
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-002",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "SYN-002",
+        "birthDate": "1955-04-12"
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-003",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "SYN-003",
+        "birthDate": "1958-04-12"
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-004",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "SYN-004",
+        "birthDate": "1961-04-12"
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-005",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "SYN-005",
+        "birthDate": "1964-04-12"
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-006",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "SYN-006",
+        "birthDate": "1967-04-12"
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-007",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "SYN-007",
+        "birthDate": "1970-04-12"
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-008",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "SYN-008",
+        "birthDate": "1973-04-12"
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-009",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "SYN-009",
+        "birthDate": "1976-04-12"
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-010",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "SYN-010",
+        "birthDate": "1979-04-12"
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-011",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "SYN-011",
+        "birthDate": "2010-04-12"
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Patient/SYN-012",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "SYN-012",
+        "birthDate": "1985-04-12"
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-1-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-001-1-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-001"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 0.86,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-1-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-001-1-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-001"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 14,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-1-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-001-1-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-001"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 138,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-1-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-001-1-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-001"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 4.1,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-1-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-001-1-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-001"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 96,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-1-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-001-1-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-001"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 13.8,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-2-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-001-2-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-001"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 0.92,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-2-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-001-2-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-001"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 12,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-2-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-001-2-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-001"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 139,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-2-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-001-2-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-001"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 4,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-2-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-001-2-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-001"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 88,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-2-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-001-2-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-001"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 14,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-1-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-002-1-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-002"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 1.24
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-1-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-002-1-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-002"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 22,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-1-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-002-1-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-002"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 140,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-1-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-002-1-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-002"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 4.6,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-1-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-002-1-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-002"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 148,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-1-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-002-1-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-002"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 12.1,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-2-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-002-2-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-002"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 1.3,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-2-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-002-2-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-002"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 20,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-2-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-002-2-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-002"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 141,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-2-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-002-2-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-002"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 4.5,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-2-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-002-2-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-002"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 140,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-002-2-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-002-2-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-002"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 12.3,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-1-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-003-1-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-003"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 1.36,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-1-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-003-1-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-003"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 19,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-1-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-003-1-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-003"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 139,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-1-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-003-1-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-003"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 4.44,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-1-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-003-1-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-003"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 112,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-1-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-003-1-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-003"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 14.2,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-2-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-003-2-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-003"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 1.42,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-2-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-003-2-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-003"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 17,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-2-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-003-2-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-003"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 140,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-2-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-003-2-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-003"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 4.34,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-2-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-003-2-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-003"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 104,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-003-2-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-003-2-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-003"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 14.4,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-1-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-004-1-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-004"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 1.48,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-1-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-004-1-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-004"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 28,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-1-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-004-1-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-004"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 137,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-1-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-004-1-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-004"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 4.9,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-1-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-004-1-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-004"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 172,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-1-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-004-1-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-004"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 11.6,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-2-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-004-2-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-004"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 1.54,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-2-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-004-2-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-004"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 26,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-2-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-004-2-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-004"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 138,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-2-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-004-2-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-004"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 4.8,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-2-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-004-2-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-004"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 164,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-004-2-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-004-2-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-004"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 11.8,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-1-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-005-1-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-005"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 0.74,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-1-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-005-1-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-005"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 11,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-1-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-005-1-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-005"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 142,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-1-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-005-1-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-005"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 3.8,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-1-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-005-1-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-005"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 88,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-1-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-005-1-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-005"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 13.4,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-2-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-005-2-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-005"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 0.8,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-2-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-005-2-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-005"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 9,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-2-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-005-2-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-005"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 143,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-2-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-005-2-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-005"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 3.7,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-2-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-005-2-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-005"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 80,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-005-2-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-005-2-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-005"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 13.6,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-1-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-006-1-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-006"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 1.02,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-1-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-006-1-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-006"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 16,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-1-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-006-1-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-006"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 141,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-1-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-006-1-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-006"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 4.2,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-1-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-006-1-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-006"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 104,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-1-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-006-1-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-006"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 15.1,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-2-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-006-2-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-006"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 1.08,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-2-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-006-2-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-006"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 14,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-2-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-006-2-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-006"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 142,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-2-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-006-2-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-006"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 4.1,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-2-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-006-2-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-006"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 96,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-006-2-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-006-2-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-006"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 15.3,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-1-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-007-1-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-007"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 1.63,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-1-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-007-1-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-007"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 31,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-1-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-007-1-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-007"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 136,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-1-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-007-1-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-007"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 5.1,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-1-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-007-1-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-007"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 156,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-1-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-007-1-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-007"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 10.9,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-2-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-007-2-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-007"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 1.69,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-2-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-007-2-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-007"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 29,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-2-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-007-2-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-007"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 137,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-2-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-007-2-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-007"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 5,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-2-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-007-2-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-007"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 148,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-007-2-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-007-2-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-007"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 11.1,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-1-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-008-1-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-008"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 0.91,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-1-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-008-1-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-008"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 13,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-1-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-008-1-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-008"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 140,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-1-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-008-1-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-008"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 4,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-1-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-008-1-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-008"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 93,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-1-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-008-1-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-008"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 14.4,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-2-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-008-2-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-008"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 0.97,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-2-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-008-2-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-008"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 11,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-2-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-008-2-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-008"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 141,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-2-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-008-2-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-008"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 3.9,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-2-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-008-2-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-008"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 85,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-008-2-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-008-2-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-008"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 14.6,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-1-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-009-1-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-009"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 1.18,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-1-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-009-1-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-009"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 24,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-1-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-009-1-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-009"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 139,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-1-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-009-1-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-009"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 4.5,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-1-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-009-1-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-009"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 126,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-1-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-009-1-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-009"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 12.7,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-2-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-009-2-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-009"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 1.24,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-2-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-009-2-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-009"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 22,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-2-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-009-2-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-009"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 140,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-2-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-009-2-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-009"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 4.4,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-2-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-009-2-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-009"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 118,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-009-2-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-009-2-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-009"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 12.9,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-1-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-010-1-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-010"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 0.82,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-1-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-010-1-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-010"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 15,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-1-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-010-1-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-010"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 138,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-1-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-010-1-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-010"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 3.9,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-1-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-010-1-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-010"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 101,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-1-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-010-1-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-010"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 13.9,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-2-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-010-2-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-010"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 0.88,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-2-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-010-2-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-010"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 13,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-2-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-010-2-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-010"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 139,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-2-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-010-2-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-010"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 3.8,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-2-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-010-2-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-010"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 93,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-010-2-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-010-2-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-010"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 14.1,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-1-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-011-1-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-011"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 0.68,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-1-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-011-1-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-011"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 10,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-1-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-011-1-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-011"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 141,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-1-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-011-1-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-011"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 4.1,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-1-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-011-1-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-011"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 90,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-1-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-011-1-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-011"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 13.2,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-2-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-011-2-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-011"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 0.74,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-2-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-011-2-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-011"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 8,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-2-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-011-2-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-011"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 142,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-2-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-011-2-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-011"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 4,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-2-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-011-2-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-011"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 82,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-011-2-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-011-2-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-011"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 13.4,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-1-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-012-1-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-012"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 1.12,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-1-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-012-1-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-012"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 18,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-1-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-012-1-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-012"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 137,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-1-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-012-1-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-012"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 4.3,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-1-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-012-1-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-012"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 118,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-1-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-012-1-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-012"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 12.5,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-2-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-012-2-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-012"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 1.18,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-2-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-012-2-2",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "3094-0",
+              "display": "Urea nitrogen"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-012"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 16,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-2-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-012-2-3",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2951-2",
+              "display": "Sodium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-012"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 138,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-2-4",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-012-2-4",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2823-3",
+              "display": "Potassium"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-012"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 4.2,
+          "unit": "mmol/L",
+          "system": "http://unitsofmeasure.org",
+          "code": "mmol/L"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-2-5",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-012-2-5",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2345-7",
+              "display": "Glucose"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-012"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 110,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-012-2-6",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-012-2-6",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "718-7",
+              "display": "Hemoglobin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-012"
+        },
+        "specimen": {
+          "display": "Whole blood"
+        },
+        "effectiveDateTime": "2026-08-20T08:30:00Z",
+        "issued": "2026-08-20T10:15:00Z",
+        "valueQuantity": {
+          "value": 12.7,
+          "unit": "g/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "g/dL"
+        }
+      }
+    },
+    {
+      "fullUrl": "https://synthetic.siteconnect.invalid/fhir/Observation/OBS-001-1-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "OBS-001-1-1",
+        "meta": {
+          "versionId": "1",
+          "tag": [
+            {
+              "system": "urn:talosix:demo",
+              "code": "synthetic"
+            }
+          ]
+        },
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "laboratory"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "2160-0",
+              "display": "Creatinine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/SYN-001"
+        },
+        "specimen": {
+          "display": "Serum"
+        },
+        "effectiveDateTime": "2026-08-06T08:30:00Z",
+        "issued": "2026-08-06T10:15:00Z",
+        "valueQuantity": {
+          "value": 0.86,
+          "unit": "mg/dL",
+          "system": "http://unitsofmeasure.org",
+          "code": "mg/dL"
+        }
+      }
+    }
+  ]
+}

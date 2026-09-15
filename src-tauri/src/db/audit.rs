@@ -81,9 +81,13 @@ pub fn write_audit_entry(
     action: AuditAction,
     details: &str,
 ) -> Result<String, DbError> {
+    write_named_audit_entry(conn, action.as_str(), details)
+}
+
+/// Shared writer for connector actions as well as typed application events.
+pub fn write_named_audit_entry(conn: &Connection, action_str: &str, details: &str) -> Result<String, DbError> {
     let id = Uuid::new_v4().to_string();
     let timestamp = Utc::now().to_rfc3339();
-    let action_str = action.as_str();
 
     // Get the most recent checksum to chain from
     let previous_checksum: String = conn

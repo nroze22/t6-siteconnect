@@ -1,0 +1,63 @@
+{
+  "note": "Synthetic laboratory note. Patient SYN-003. On August 6, 2026 at 08:30 UTC, creatinine was 1.36 mg/dL and potassium was 4.44 mmol/L. These final results became available at 10:15 UTC. The chemistry specimen was serum. Reference ranges and fasting status were not supplied. No diagnosis is documented. Do not infer a diagnosis from laboratory results.",
+  "request": {
+    "stream": false,
+    "think": false,
+    "keep_alive": "10m",
+    "options": {
+      "temperature": 0,
+      "num_predict": 512
+    },
+    "messages": [
+      {
+        "role": "system",
+        "content": "Extract only laboratory measurements explicitly documented in the supplied synthetic note. Return JSON with patient and labs; each lab has test, numeric value, unit and a verbatim supporting quote. Do not infer diagnoses, normality, ranges, missing units or later corrections. The quote must contain the test name, value and unit exactly as written."
+      },
+      {
+        "role": "user",
+        "content": "Synthetic laboratory note. Patient SYN-003. On August 6, 2026 at 08:30 UTC, creatinine was 1.36 mg/dL and potassium was 4.44 mmol/L. These final results became available at 10:15 UTC. The chemistry specimen was serum. Reference ranges and fasting status were not supplied. No diagnosis is documented. Do not infer a diagnosis from laboratory results."
+      }
+    ],
+    "format": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "patient": {
+          "type": "string"
+        },
+        "labs": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "test": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              },
+              "quote": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "test",
+              "value",
+              "unit",
+              "quote"
+            ]
+          }
+        }
+      },
+      "required": [
+        "patient",
+        "labs"
+      ]
+    }
+  }
+}
